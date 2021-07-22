@@ -70,6 +70,7 @@ export class Neurofeedback{
                 ]
 
                 if (eegMetrics.includes(this.params.metric)){
+                    console.log(data.eeg)
                     data.eeg.forEach(ch => {
                         if (this.params.metric === 'Alpha Beta Ratio'){
                             arr.push(this.session.atlas.getAlphaBetaRatio(ch))

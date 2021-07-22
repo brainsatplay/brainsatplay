@@ -1,6 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
-import {eegBarChart, mirrorBarChart} from '../../../platform/js/frontend/UX/eegvisuals'
+import {eegBarChart, mirrorBarChart} from '../../../libraries/js/src/ui/eegvisuals'
 import {addChannelOptions, addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
 import * as settingsFile from './settings'
 
@@ -241,27 +241,27 @@ export class BarChartApplet {
         if(dat.fftCount > 0) {
             if(graphmode === 'single') {
                 if(datamode === 'fft') {
-                    this.chart.slices = dat.slice;
+                    this.chart.data = dat.slice;
                 } else if (datamode === 'bands') {
-                    this.chart.slices = dat.mean;
+                    this.chart.data = dat.mean;
                 } else if (datamode === 'ratios') {
                     let coord = this.session.atlas.getEEGDataByChannel(ch1);
                     if(coord) {
                         let thetabeta = this.session.atlas.getThetaBetaRatio(coord);
                         let alphabeta = this.session.atlas.getAlphaBetaRatio(coord);
                         let alpha2_1 = this.session.atlas.getAlphaRatio(coord);
-                        this.chart.slices = { scp:thetabeta, theta:alphabeta, alpha1:alpha2_1 };
+                        this.chart.data = { scp:thetabeta, theta:alphabeta, alpha1:alpha2_1 };
                     }
                 }
             } else if (graphmode === 'mirror') {
                 let ch2 = document.getElementById(this.props.id+'channel2').value;
                 let dat2 = this.session.atlas.getLatestFFTData(ch2)[0];
                 if(datamode === 'fft') {
-                    this.chart.leftbars.slices = dat.slice;
-                    this.chart.rightbars.slices = dat2.slice;
+                    this.chart.leftbars.data = dat.slice;
+                    this.chart.rightbars.data = dat2.slice;
                 } else if (datamode === 'bands') {
-                    this.chart.leftbars.slices = dat.mean;
-                    this.chart.rightbars.slices = dat2.mean;
+                    this.chart.leftbars.data = dat.mean;
+                    this.chart.rightbars.data = dat2.mean;
                 } else if (datamode === 'ratios') {
                     let coord = this.session.atlas.getEEGDataByChannel(ch1);
                     if(coord) {
@@ -269,7 +269,7 @@ export class BarChartApplet {
                         let alphabeta = this.session.atlas.getAlphaBetaRatio(coord);
                         let alpha2_1 = this.session.atlas.getAlphaRatio(coord);
                         let alphatheta = this.session.atlas.getAlphaThetaRatio(coord);
-                        this.chart.leftbars.slices = { scp:thetabeta, theta:alphatheta, alpha2:alpha2_1, beta:alphabeta };
+                        this.chart.leftbars.data = { scp:thetabeta, theta:alphatheta, alpha2:alpha2_1, beta:alphabeta };
                     }
                     let coord2 = this.session.atlas.getEEGDataByChannel(ch2);
                     if(coord2) {
@@ -277,7 +277,7 @@ export class BarChartApplet {
                         let alphabeta2 = this.session.atlas.getAlphaBetaRatio(coord2);
                         let alpha2_12 = this.session.atlas.getAlphaRatio(coord2);
                         let alphatheta2 = this.session.atlas.getAlphaThetaRatio(coord2);
-                        this.chart.rightbars.slices = { scp:thetabeta2, theta:alphatheta2, alpha2:alpha2_12, beta:alphabeta2 };
+                        this.chart.rightbars.data = { scp:thetabeta2, theta:alphatheta2, alpha2:alpha2_12, beta:alphabeta2 };
                     }
                 }
             }

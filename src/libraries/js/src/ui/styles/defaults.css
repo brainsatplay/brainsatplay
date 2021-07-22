@@ -539,19 +539,19 @@ select {
     position: relative;
   }
 
-  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close {
+  .closeIcon {
     position: absolute;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
     opacity: 0.3;
     cursor: pointer;
-    padding: 15px;
+    padding-right: 15px;
     transition: 0.3s;
     font-size: 130%;
   }
 
-  .brainsatplay-node-editor-tabs > .tab > .tablinks > .close:hover {
+  .closeIcon:hover {
     opacity: 0.5;
     /* transition: 0.1s; */
   }
@@ -690,6 +690,11 @@ select {
     background: rgb(15,15,15);
     cursor: pointer;
     transition: 0.5s;
+    display: flex;
+}
+
+.brainsatplay-option-node.experimental {
+    background: rgb(61, 39, 39);
 }
 
 .brainsatplay-option-node:hover{
@@ -778,9 +783,9 @@ select {
     grid-template-columns: 1fr 30px;
 }
 
-.node-sidebar-section button{
+.brainsatplay-node-sidebar .addbutton{
     min-width: 0px;
-    font-size: 200%;
+    font-size: 14px;
     height: 20px;
     width: 20px;
     min-height: 0;
@@ -822,7 +827,7 @@ select {
 }
 
 
-.node-sidebar-content > div > div > input{
+.node-sidebar-content > div > div input{
     background: black;
     color: white;
     padding: 5px;
@@ -923,6 +928,15 @@ select {
     width:100%;
     user-select: none;
     pointer-events: none;
+}
+
+.node-text > .latency-display {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    background: #ff1439;
+    height: 2px;
 }
 
 .brainsatplay-display-node > .node-text h3{
@@ -1329,6 +1343,70 @@ select {
     margin-bottom: 25px;
 }
 
+/* Applet Menu */
+
+.brainsatplay-default-interaction-menu {
+    opacity: 1;
+    width: 200px;
+    /* padding: 10px 15px; */
+    font-size: 75%;
+    box-sizing: border-box; 
+    transition: 0.5s;
+    position: absolute;
+    top: 0px;
+    right:0px;
+    z-index: 1000;
+    transition: opacity 0.5s;
+    /* overflow: scroll; */
+    opacity: 0;
+}
+
+.brainsatplay-default-interaction-menu:hover {
+    opacity: 1;
+    /* background: rgb(10,10,10); */
+}
+
+.brainsatplay-default-interaction-menu .brainsatplay-option-node {
+    padding: 10px;
+}
+
+.brainsatplay-default-interaction-menu .toggle {
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 25px; 
+    height: 25px; 
+    border: 1px solid white;
+    border-radius: 50%; 
+    margin: 2.5px; 
+    margin-right: 10px;
+    background: rgb(15,15,15);
+  }
+
+  .brainsatplay-default-interaction-menu  .toggle > img{
+    box-sizing: border-box; 
+    filter: invert(1);
+    cursor: pointer;
+    padding: 7px;
+  }
+
+  .arrow-up {
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid white;
+  }
+  
+  .arrow-down {
+    width: 0; 
+    height: 0; 
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid white;
+  }
+  
 
 
 /* DEFAULT UI ELEMENTS */

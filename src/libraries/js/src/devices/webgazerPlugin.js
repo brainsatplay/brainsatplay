@@ -3,9 +3,7 @@
 import { DOMFragment } from '../ui/DOMFragment';
 import {DataAtlas} from '../DataAtlas'
 import {BiquadChannelFilterer} from '../utils/BiquadFilters'
-// import webgazer from 'webgazer'
-// import './webgazer'
-// console.log(webgazer)
+import { TorusGeometry } from 'three';
 
 export class webgazerPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
@@ -20,17 +18,25 @@ export class webgazerPlugin {
         this.onconnect = onconnect;
         this.ondisconnect = ondisconnect;
 
-        window.onkeypress = () => {
-            var prediction = this.device.getCurrentPrediction();
-            console.log(prediction)
-            if (prediction) {
-                var x = prediction.x;
-                var y = prediction.y;
-                console.log(x,y)
-            }
+        this.states = {
+            'blink_left': {data: false, meta: {id:'blink_left'}},
+            'blink_right': {data: false, meta: {id:'blink_right'}}
         }
 
 
+        this.blinkBuffers = {
+            left: [],
+            right: []
+        }
+
+        this.maxBufferLength = 150
+        this.blinkThreshold = 1.1
+        this.lastBlink = {
+            right: Date.now(),
+            left: Date.now()
+        }
+        this.blinkDuration = 400 // ms
+        this.startCalculating = true
     }
 
     handleScriptLoad= async(onload)=> {    
@@ -42,6 +48,7 @@ export class webgazerPlugin {
         webgazer.showFaceFeedbackBox(true)
         webgazer.showPredictionPoints(true)
         webgazer.setRegression('weightedRidge')
+        
         this.checkWebGazerLoaded(onload)
     }
 
@@ -96,15 +103,34 @@ export class webgazerPlugin {
     _onConnected = () => {} //for internal use only on init
 
 
+    // From https://gist.github.com/kleysonr/d75494f239ad0dce561a55a624920693
+    euclidean_dist (x1, y1, x2, y2) {
+        return Math.sqrt( Math.pow((x1-x2), 2) + Math.pow((y1-y2), 2) );
+    };
+
+
     startWebgazer(webgazer){
         webgazer.setGazeListener((data,elapsedTime) => {
-            console.log('eyes', data)
-            if(data == null) {
-                return;
+            if(data == null) return  
+            
+            for (let side in data.eyeFeatures){
+                let aspect = data.eyeFeatures[side].width / data.eyeFeatures[side].height
+
+                // Only Calculate after Delay AND When Buffer is Full
+                if (Date.now() - this.lastBlink[side] > this.blinkDuration && this.startCalculating){
+                    let mean = this.atlas.mean(this.blinkBuffers[side])
+                    this.states[`blink_${side}`].data = aspect > this.blinkThreshold*mean
+                    if (this.states[`blink_${side}`].data) console.log(`blink ${side}`)
+                    this.lastBlink[side] = Date.now()
+                } else this.states[`blink_${side}`].data = false
+
+                this.blinkBuffers[side].push(aspect)
+                if (this.blinkBuffers[side].length > this.maxBufferLength) {
+                    this.blinkBuffers[side].shift()
+                    this.startCalculating = true
+                }
             }
-            let x = data.x;
-            let y = data.y;
-            console.log(x,y)
+            
             if(this.info.useAtlas === true) {
                 let o = this.atlas.data.eyetracker[this.info.deviceNum];
                 if(o.times.length === 0) { o.startTime = Date.now(); }
@@ -153,7 +179,7 @@ export class webgazerPlugin {
         script.src = "https://webgazer.cs.brown.edu/webgazer.js"
         script.async = true;
 
-        console.log('luading webgazer')
+        console.log('loading webgazer')
         script.onload = () => {
             console.log('script loaded')
             this.handleScriptLoad(onload);

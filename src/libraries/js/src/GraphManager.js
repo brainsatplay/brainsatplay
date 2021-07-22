@@ -1,11 +1,20 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './utils/graphEditor/GraphEditor'
-import  {plugins} from '../brainsatplay'
+import {plugins} from '../brainsatplay'
 
 export class GraphManager{
     constructor(session, settings = {}){
         this.session = session
+
+        // Centrally Manage Plugins through the Project Manager
+        this.plugins = plugins
+        if (this.session.projects) {
+            (async() => {
+                let library = await this.session.projects.getLibraryVersion(this.session.projects.version)
+                this.plugins = library.plugins
+            })()
+        }
 
         // Two Modes
         this.applets = {}
@@ -14,6 +23,10 @@ export class GraphManager{
         // Metadata
         this.settings = settings
         this.registry = {local: {}, brainstorm: {}}
+
+        this.info = {
+            latencies: {}
+        }
 
         this.props = {
             toUnsubscribe: {
@@ -27,7 +40,30 @@ export class GraphManager{
         this.state = new StateManager()
     }
 
+    convertNodeParamsToSaveableTypes = (node) => {
+        for (let port in node.ports){
+            // if (typeof node.params[port] === 'object') {
+            //     if (node.params[port] instanceof Element)
+            //     // if (node.params[port].constructor){
+            //     //     let name = node.params[port].constructor.name
+            //         if (name === 'Element') delete node.params[port] // Cannot params manually set with Element
+            //     // }
+            // }
+            if (node.params[port] == null) {
+                node.params[port] = node.ports[port].default
+            }
+        }
+        return node.params
+    }
+
+    getPortsFromClass(nodeInfo,session=this.session) {
+        let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+        node.states = {}
+        return node.ports
+    }
+
     instantiateNode(nodeInfo,session=this.session){
+
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
         let toAnalyze = new Set()
@@ -39,29 +75,22 @@ export class GraphManager{
             }
         }
 
-        for (let port in node.ports){
-            if (node.params[port] == null) node.params[port] = node.ports[port].default
-        }
+        node.params = this.convertNodeParamsToSaveableTypes(node)
 
         // Set Params to Info Object
         nodeInfo.params = node.params
 
         // Add Default States
         node.states = {}
+        node.uuid = this._getRandomId()
+
+        // Setup Info Object
+        if (!(node.uuid in this.info.latencies)) this.info.latencies[node.uuid] = {label: node.label}
 
         if (node.ports != null){
             for (let port in node.ports){
-                controlsToBind.push(...this.instantiateNodePort(node, port))
+                controlsToBind.push(...this.instantiateNodePort(node, port, node.params[port]))
             }
-        } else {
-            node.ports = {
-                default:{
-                    active:{in:0,out:0}, 
-                    input: {type:node.ports[port]?.types.in}, 
-                    output: {type:node.ports[port]?.types?.out}
-                }
-            }
-            node.states['default'] = [{}]
         }
         
         nodeInfo.controls = controlsToBind
@@ -98,11 +127,16 @@ export class GraphManager{
     }
 
     _resizeAllNodeFragments = (appId) => {
-        let funcs = []
-        // Gather Resize Functions
-        this.applets[appId].nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
-        // Repeat to Scale Everything Appropriately
-        funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
+        let app =  this.applets[appId]
+        if (app){
+            let funcs = []
+            // Gather Resize Functions
+            app.nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
+            
+            // Repeat to Scale Everything Appropriately
+            funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
+            funcs.forEach(f => f()) // Catch outliers
+        }
     }
 
     _getRandomId(){
@@ -135,11 +169,9 @@ export class GraphManager{
         let node = nodeInfo.instance
                 
         // Add Node to Registry
-        if (this.registry.local[node.label] == null){
-            this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
-            for (let port in node.states){
-                this.addPortToRegistry(node,port)
-            }
+        if (this.registry.local[node.label] == null) this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
+        for (let port in node.ports){
+            this.addPortToRegistry(node,port)
         }
         this.registry.local[node.label].count++
 
@@ -147,6 +179,9 @@ export class GraphManager{
 
         // Run Init Function and Instantiate Some Additional Nodes
         let ui = node.init(nodeInfo.params)
+
+        // Grab Configure Function
+        nodeInfo.configure = node.configure
 
         // Grab Created UI Functions
         if (ui != null) {
@@ -221,6 +256,9 @@ export class GraphManager{
 
     deeperCopy(input){
         let inputCopy = []
+        
+        let isArray = Array.isArray(input)
+        if (!isArray) input = [input]
 
         input.forEach(u => {
             inputCopy.push(Object.assign({}, u))
@@ -230,6 +268,8 @@ export class GraphManager{
                 }
             }
         })
+
+        if (!isArray) inputCopy = inputCopy[0]
         return inputCopy
     }
 
@@ -240,21 +280,24 @@ export class GraphManager{
     // Input Must Be An Array
     runSafe(node, port='default',input=[{}], internal=false){
 
+        let tick = performance.now()
+ 
         try {
             // Shallow Copy State before Repackaging
             let inputCopy = []
 
             let forceRun = false
             let forceUpdate = false
-            let stringify = true
+            // let stringify = true
             input.forEach(u => {
                 if (u.forceRun) forceRun = true
                 if (u.forceUpdate) forceUpdate = true
-                if (u.stringify === false) stringify = false
+                // if (typeof u.data === 'object') stringify = false // Auto-set stringify blocking
             })
 
-            if (stringify) inputCopy = this.deeperCopy(input)
-            else inputCopy = input
+            // if (stringify) 
+            inputCopy = this.deeperCopy(input)
+            // else inputCopy = input
             
             for (let i = inputCopy.length - 1; i >= 0; i -= 1) {
                 // Remove Users with Empty Dictionaries
@@ -265,10 +308,16 @@ export class GraphManager{
                     if (!inputCopy[i].meta) inputCopy[i].meta = {}
                     if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
                 }
-            }            
+            }
+            
+            let connected
+            if (node.ports[port].output.active > 0) connected = true
+            if (node.ports[port].input.active > 0) connected = true
+            if (node.ports[port].output.type === null) connected = true
+            if (node.ports[port].input.type === null) connected = true
 
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-            if ((inputCopy.length > 0 || forceRun) && ((node.ports[port].active?.out > 0 || node.ports[port]?.output?.type === null || forceUpdate))){
+            if ((inputCopy.length > 0 || forceRun) && ((connected || forceUpdate))){
                 let result
                 if (node[port] instanceof Function) {
                     result = node[port](inputCopy)
@@ -296,6 +345,12 @@ export class GraphManager{
             }
         } catch (e) { console.log(e)}
 
+        // Calculate Latency
+        let tock = performance.now()
+        let latency = tock - tick
+        if (this.info.latencies[node.uuid] == null) this.info.latencies[node.uuid] = {}
+        if (this.info.latencies[node.uuid].average == null) this.info.latencies[node.uuid].average = latency
+        else this.info.latencies[node.uuid].average = (this.info.latencies[node.uuid].average + latency)/2
 
         return node.states[port]
     }
@@ -304,6 +359,7 @@ export class GraphManager{
         if (result && result.length > 0){
             let allEqual = true
             let forced = false
+            let stringify = true
 
             if (node.states[port] == null) node.states[port] = []
 
@@ -321,16 +377,17 @@ export class GraphManager{
                         if (node.states[port].length > i){
 
                             let case1, case2
-                            if (o.stringify === false){
+                            if (typeof o.data === 'object' || typeof o.data === 'function'){
                                 case1 = node.states[port][i]
                                 case2 = o
+                                stringify = false
                             } else {
                                 case1 = JSON.stringifyFast(node.states[port][i])
                                 case2 = JSON.stringifyFast(o)
-                            }
+                            }                            
 
                             let thisEqual = case1 === case2
- 
+
                             if (!thisEqual){
                                 node.states[port][i] = o
                                 allEqual = false
@@ -347,10 +404,10 @@ export class GraphManager{
             })
 
             if ((!allEqual || forced) && node.stateUpdates){
-                // node.states[port] = result
                 let updateObj = {}
                 let label = this.getLabel(node,port)
-                updateObj[label] = true
+                updateObj[label] = {trigger:true}
+                if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.states[port])) // Do not send huge objects
                 node.stateUpdates.manager.setState(updateObj)
             }
         }
@@ -359,7 +416,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports){
-            this.runSafe(node,port, [{forceRun: true}], true)
+            this.runSafe(node,port, [{forceRun: true, forceUpdate: true}])
         }
     }
 
@@ -394,14 +451,15 @@ export class GraphManager{
             if (Array.isArray(graph.nodes)){
                 graph.nodes.forEach((nodeInfo,i) => {
                     let o = this.addNode(app,nodeInfo)
-                    // setupCallbacks.push(o.setupFunction)
                 })
             }
 
             // Create Edges
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
+                    try {
                     setupCallbacks.push(this.addEdge(id, edge, false))
+                    } catch (e) {console.log('Failed to Create Edge', e)}
                 })
             }
         }
@@ -417,6 +475,9 @@ export class GraphManager{
         if (applet){
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
+
+            applet.setupCallbacks.forEach(f => f())
+            // applet.nodes.forEach(this.triggerAllActivePorts)
         }
 
         return applet
@@ -428,7 +489,7 @@ export class GraphManager{
         this.registry.local[node.label].registry[port].callbacks = []
     }
 
-    instantiateNodePort = (node, port) => {
+    instantiateNodePort = (node, port, params) => {
 
         // Grab Controls
         let controls = []
@@ -436,40 +497,20 @@ export class GraphManager{
         // Set Port State
         node.states[port] = [{}]
 
-        let defaults = node.ports[port].defaults
-
         // Force Default Outputs to Next Node
-        try {
-            if (Array.isArray(defaults.output)) {
-                node.states[port] = defaults.output
-                node.states[port][0].forceRun = true
-                node.states[port][0].forceUpdate = true
-            }
-            else if (defaults.output.constructor == Object && 'data' in defaults.output) {
-                node.states[port] = [defaults.output]
-                node.states[port][0].forceRun = true
-                node.states[port][0].forceUpdate = true
-            }
-        } catch {
-            try {
-                if (node.ports[port].default != null) {
-                    node.states[port] = [{data: node.ports[port].default, meta: node.ports[port].meta}]
-                    node.states[port][0].forceRun = true
-                    node.states[port][0].forceUpdate = true
-                }
-            } catch {
-                if (defaults && defaults.output != null) {
-                    node.states[port] = defaults.output
-                    node.states[port][0].forceRun = true
-                    node.states[port][0].forceUpdate = true
-                }
-            }
+        let defaultVal = params ?? node.ports[port].default
+        if (defaultVal !== undefined) {
+            let user = {data: defaultVal}
+            if (node.ports[port].meta != null) user.meta = node.ports[port].meta
+            node.states[port] = [user]
+            node.states[port][0].forceRun = true
+            node.states[port][0].forceUpdate = true
         }
 
         // Derive Control Structure
         let firstUserDefault= node.states[port][0]
         if (
-            node instanceof plugins.controls.Event
+            node instanceof this.plugins.controls.Event
             // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
             ){
             let controlDict = {}
@@ -481,40 +522,68 @@ export class GraphManager{
             }
             controls.push(controlDict)
         }
+
+
         if (node.ports[port].analysis == null) node.ports[port].analysis = []
-        if (node.ports[port].active == null) node.ports[port].active = {in:0,out:0}
-        
-        if (node.ports[port].input == null) node.ports[port].input = {type: node.ports[port]?.types?.in}
-        if (node.ports[port].output == null) node.ports[port].output = {type: node.ports[port]?.types?.out}
+
+        let types = ['input', 'output']
+        types.forEach(type => {
+            if (node.ports[port][type] == null) node.ports[port][type] = {type: undefined, active: 0}
+            if (!('active' in node.ports[port][type])) node.ports[port][type].active = 0
+        })
 
         let coerceType = (t) => {
             if (t === 'float') return 'number'
             else if (t === 'int') return'number'
             else return t
         }
-        node.ports[port].input.type = coerceType(node.ports[port].input?.type)
-        node.ports[port].output.type = coerceType(node.ports[port].output?.type)
+
+        node.ports[port].input.type = coerceType(node.ports[port].input.type)
+        node.ports[port].output.type = coerceType(node.ports[port].output.type)
 
         return controls
     }
 
+    updatePorts = (node) => {
+        for (let port in this.registry.local[node.label].registry){
+            if (!(port in node.ports)){
+                console.log('need to remove a port')
+            }
+        }
+    }
+
+    removePort = (node, port) => {
+
+        // Remove Record of Port
+        delete node.ports[port]
+        delete this.registry.local[node.label].registry[port]
+
+        // Remove Port on Visual Editor
+        let applet = this.applets[node.app?.props?.id]
+        if (applet){
+            let editor = applet.editor
+            if (editor) editor.removePort(node,port)
+        }
+    }
+
     addPort = (node, port, info) => {
-        if (node.states && info) { // Only if node is fully instantiated
-            if (node.ports[port] == null || node.ports[port].onUpdate == null){
-
-                console.log('adding port')
-
+        if (node.states && info) { // Only if node is fully instantiated            
+            let noPort = node.ports[port] == null
+            if (noPort || node.ports[port].onUpdate == null){
+                
                 // Add Port to Node
                 node.ports[port] = info
                 this.instantiateNodePort(node,port)
                 this.addPortToRegistry(node,port)
 
                 // Add Port to Visual Editor
-                let applet = this.applets[node.app?.props?.id]
-                if (applet){
-                    let editor = applet.editor
+                if (noPort){
+                    let applet = this.applets[node.app?.props?.id]
+                    if (applet){
+                        let editor = applet.editor
 
-                    if (editor) editor.addPort(node,port)
+                        if (editor) editor.addPort(node,port)
+                    }
                 }
             }
         }
@@ -586,18 +655,27 @@ export class GraphManager{
             })
 
             // Pass Data from Source to Target
-            let _onTriggered = (trigger) => {
+            let _onTriggered = (o) => {
+
                 if (this.applets[appId]){
-                    if (trigger){
-                        let input = source.states[sourcePort]
+                    if (o.trigger){
+                        let input = o.value ?? source.states[sourcePort]
                         input.forEach(u => {
                             if (!u.meta) u.meta = {}
-                            u.meta.source = label
+                            if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                             u.meta.session = applet.sessionId
                         })
 
-                        if (this.applets[appId].editor) this.applets[appId].editor.animate({label:source.label, port: sourcePort},{label:target.label, port: targetPort})
-                        return this.runSafe(target, targetPort, input, true)
+                        let returned = this.runSafe(target, targetPort, input, true)
+                        if (this.applets[appId].editor) this.applets[appId].editor.animate(
+                            {label:source.label, port: sourcePort},
+                            {label:target.label, port: targetPort}, 
+                            [
+                                {node: source, latency: this.info.latencies[source.uuid].average},
+                                {node: target, latency: this.info.latencies[target.uuid].average},
+                            ])
+
+                        return returned
                     }
                 }
             }
@@ -605,7 +683,7 @@ export class GraphManager{
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
-            if (target instanceof plugins.utilities.Brainstorm) {
+            if (target instanceof this.plugins.networking.Brainstorm) {
                 applet.streams.add(label) // Keep track of streams
 
                 // Initialize Port
@@ -621,24 +699,15 @@ export class GraphManager{
             applet.subscriptions.local[label].push({id: subId, target: newEdge.target})
 
             if (target.ports[targetPort] == null) target.ports[targetPort] = {}
-            if (target.ports[targetPort] == null) source.ports[sourcePort] = {}
+            if (source.ports[sourcePort] == null) source.ports[sourcePort] = {}
 
             let tP = target.ports[targetPort]
             let sP = source.ports[sourcePort]
-            if (tP.active == null) tP.active = {in: 0, out: 0}
-            if (sP.active == null) sP.active = {in: 0, out: 0}
-            if (tP.input == null) tP.input = {type: tP?.types?.in}
-            if (tP.output == null) tP.output = {type: tP?.types?.out}
-            if (sP.input == null) sP.input = {type: sP?.types?.in}
-            if (sP.output == null) sP.output = {type: sP?.types?.out}
 
-            tP.active.in++
-            sP.active.out++
-            if (tP.active.in && tP.active.out && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
-            if (sP.active.in && sP.active.out && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
-
-
-
+            tP.input.active++
+            sP.output.active++
+            if (tP.input.active && tP.output.active && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+            if (sP.input.active && sP.output.active && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
             // Push Edge into Registry
             this.applets[appId].edges.push(newEdge)
@@ -650,14 +719,19 @@ export class GraphManager{
             let sendFunction = () => {
 
                 // Add Default Metadata
+                let pass
                 source.states[sourcePort].forEach(o => {
                     if (o.meta == null) o.meta = {}
                     o.meta.source = label
                     o.meta.session = applet.sessionId
+                    if (o.forceUpdate || o.data) pass = true
                 })
-                this.runSafe(target, targetPort, source.states[sourcePort], true)
+
+                if (pass) this.runSafe(target, targetPort, source.states[sourcePort], true)
             }
-            if (sendOutput) sendFunction()
+            if (sendOutput) {
+                sendFunction()
+            }
             else return sendFunction
         }
     }
@@ -687,7 +761,7 @@ export class GraphManager{
                 if ((label === null || n.instance.label === label) && this.registry.local[n.instance.label] != null){
                     this.registry.local[n.instance.label].count--
 
-                if (n.instance.ports[port].active != null && (n.instance.ports[port].active.in > 0 || n.instance.ports[port].active.out > 0)){
+                if (n.instance.ports[port].active != null && (n.instance.ports[port].input.active > 0 || n.instance.ports[port].output.active > 0)){
 
                     // Catch Edge Removal Case
                     if (this.registry.local[n.instance.label].count == 0) {
@@ -778,8 +852,8 @@ export class GraphManager{
         let target = targetInfo.instance
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
-        tP.active.in--
-        sP.active.out--
+        tP.input.active--
+        sP.output.active--
 
         let toRemove = []
         let toCheck = []

@@ -6,18 +6,96 @@ class Math3D { //some stuff for doing math in 3D
 
     }
 
+	//Throwing a bunch in here for the hell of it
+	static TWO_PI = Math.PI*2; //2PI
+	static C = 299792458; //speed of light m/s
+	static G = 6.67430e-11; //Newton's gravitation constant N*m^2 / kg^2
+	static h = 6.62607015e-34; //Planck constant J*s
+	static R = 8.31432e3; //Universal gas constant J / kg*mol*K
+	static Ra = 287; //Air gas constant J / kg*K
+	static H = 69.3; //Hubble constant km/s/Mpc 
+	static kbar = 1.054571817e-34; //Dirac constant J*s
+	static kB = 1.380649e-23; //Boltzmann constant J/K
+	static ke = 8.9875517923e9; //Coulomb constant kg * m^3 * s^-2 * C^-2
+	static me = 9.1093837015e-31; //electron mass kg
+	static mp = 1.67262192369e-27; //proton mass kg
+	static mn =	1.67492749804e-27; //neutron mass kg
+	static P0 = 1.01325e5; //Sea level pressure N/m^2
+	static T0 = 288.15; //Sea level room temperature K
+	static p0 = 1.225; //Sea level air density kg/m^3
+	static Na = 6.0220978e23; //Avogadro's number 1 / kg*mol
+	static y = 1.405; //Adiabatic constant
+	static M0 = 28.96643; //Sea level molecular weight
+	static g0 = 9.80665; //Sea level gravity m/s^2
+	static Re = 6.3781e6; //Earth radius m
+	static B = 1.458e-6; //Thermal constant Kg / m*s*sqrt(kg)
+	static S = 110.4; //Sutherland's constant K
+	static Sigma = 3.65e-10; //Collision diameter of air m
+	
+    //2D integral approximation using rectangular area under the curve. If you need absolute values be sure to return that.
+    static integral = (func=(x)=>{ let y=x; return y;}, range=[], stepx=0.01) => {
+        let area = 0;
+        for(let i = range[0]; i<range[1]; i+=stepx) {
+            let y=func(i);
+            area += y*stepx;
+        }
+        return area;
+    }
+
+    //3D double integral approximation
+    static dintegral = (func=(x,y)=>{ let z = x+y; return z;}, range=[[],[]], stepx=0.01,stepy=stepx) => {
+        let volume = 0;
+        for(let i = range[0][0]+stepx; i<range[0][1]; i+=stepx) {
+            for(let j = range[1][0]+stepy; j<range[1][1]; j+=stepy) {
+                let z=func(i,j);
+                volume += z*stepx*stepy;
+            }
+        }
+        return volume;
+    }
+
+    //4D triple integral approximation
+    static tintegral = (func=(x,y,z)=>{ let w=x+y+z; return w;}, range=[[],[],[]], stepx=0.01, stepy=stepx, stepz=stepx) => {
+        let volume = 0;
+        for(let i = range[0][0]+stepx; i<range[0][1]; i+=stepx) {
+            for(let j = range[1][0]+stepy; j<range[1][1]; j+=stepy) {
+                for(let k = range[2][0]+stepz; k<range[2][1]; k+=stepz) {
+                    let w=func(i,j,k);
+                    volume += w*stepx*stepy*stepz;
+                }
+            }
+        }
+        return volume;
+    }
+
+    //2D path integral approximation (the length of a curve)
+    static pintegral = (func=(x)=>{ let y=x; return y; }, range=[], stepx=0.01) => {
+        let length = 0;
+        let y0 = undefined;
+        let yi = undefined;
+        for(let i = range[0]; i<range[1]; i+=stepx) {
+            y0 = yi;
+            yi = func(i);
+            if(y0)
+                length += this.distance([0,y0],[stepx,yi]);
+        }
+        return length;
+    }
+
     static dot(vec1,vec2) { //nDimensional vector dot product
         var dot=0;
-        for(var i=0; i<vec.length; i++) {
-            dot+= vec1[i]*vec2[i];
+        for(var i=0; i<vec1.length; i++) {
+            dot += vec1[i]*vec2[i];
         }
+        return dot;
     }
 
     static cross3D(vec1,vec2) { //3D vector cross product
         return [
             vec1[1]*vec2[2]-vec1[2]*vec2[1],
             vec1[2]*vec2[0]-vec1[0]*vec2[2],
-            vec1[0]*vec2[1]-vec1[1]*vec2[0]]
+            vec1[0]*vec2[1]-vec1[1]*vec2[0]
+        ];
     }
 
     static magnitude(vec) { //nDimensional magnitude
@@ -724,9 +802,10 @@ class Physics {
                 parent:undefined,
                 children:[],
                 bodies:[],
-                XX:0,
-                YY:0,
-                ZZ:0
+                collisionType:"Box",
+                collisionRadius: 1, 
+                collisionBoundsScale: [1,1,1], //radius of bounding box
+                position:{x:0,y:0,z:0} //center of bounds
             },
             tree:{}
         };
@@ -738,7 +817,7 @@ class Physics {
             collisionEnabled: true,
             collisionType: "Sphere", //Sphere, Box, Point
             collisionRadius: 1, //Radius of sphere or nearest point on side planes in a box
-            collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions (eigenvalues), doesn't affect the sphere yet.
+            collisionBoundsScale: [1,1,1], //Can distort the bounding box dimensions, doesn't affect the sphere yet.
 
             dynamic: true, //Does this object move? Changes objects added to the dynamic bounding volume
 
@@ -788,9 +867,9 @@ class Physics {
             let yy = body.position[1]+body.collisionRadius*body.collisionBoundsScale[1];
             let zz = body.position[2]+body.collisionRadius*body.collisionBoundsScale[2];
 
-            boundX = Math.max(boundX,xx);
-            boundY = Math.max(boundY,yy);
-            boundZ = Math.max(boundZ,zz);
+            maxX = Math.max(boundX,xx);
+            maxY = Math.max(boundY,yy);
+            maxZ = Math.max(boundZ,zz);
 
             minX = Math.min(minX,xx);
             minY = Math.min(minY,yy);
@@ -800,9 +879,11 @@ class Physics {
 
         let head = JSON.parse(JSON.stringify(this.dynamicBoundingVolumeTree.proto));
 
-        head.XX = boundX;
-        head.YY = boundY;
-        head.ZZ = boundZ;
+        let boxdims = [maxX-minX,maxY-minY,maxZ-minZ];
+        let boxpos = {x:boxdims[0]*.5,y:boxdims[1]*.5,z:boxdims[2]*.5};
+        
+        head.position = boxpos;
+        head.collisionBoundsScale = [boxdims[0]*.5,boxdims[1]*.5,boxdims[2]*.5];
 
         head.bodies = bodies;
         
@@ -816,6 +897,8 @@ class Physics {
             repeat at a smaller radius till no more objects can be grouped at a minimum group size or radius
             bodies will be referenced in each 
         */
+
+        
 
     }
 

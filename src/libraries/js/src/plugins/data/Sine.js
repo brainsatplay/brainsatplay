@@ -10,7 +10,8 @@ export class Sine{
 
         this.paramOptions = {
             amplitude: {default: 1, min: 0, max: 1000, step: 0.1},
-            frequency: {default: 1, mim: 0, max: 250, step: 0.1},
+            frequency: {default: 1},
+            phase: {default: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.01},
             rate: {default: 250, min: 0, max: 1000, step: .1},
             center: {default: 0, min: 0, max: 1000, step: .1},
             scale: {default: 1, min: 0, max: 10, step: .1}
@@ -18,10 +19,8 @@ export class Sine{
 
         this.ports = {
             default: {
-                types: {
-                    in: null,
-                    out: 'number'
-                }
+                input: {type: null},
+                output: {type: 'number'},
             }
         }
 
@@ -48,7 +47,10 @@ export class Sine{
     }
 
     default = () => {
-        let value = this.params.center + this.params.scale*Number.parseFloat(this.params.amplitude)*Math.sin(2*Math.PI*(Number.parseFloat(this.params.frequency))*Date.now()/1000)
+        let angularVelocity = 2*Math.PI*(Number.parseFloat(this.params.frequency))
+        let t = Date.now()/1000
+        let phase = Number.parseFloat(this.params.phase)
+        let value = this.params.center + this.params.scale*Number.parseFloat(this.params.amplitude)*Math.sin(angularVelocity*t + phase)
         return [{data: value, meta: {label: this.label}}]
     }
 }

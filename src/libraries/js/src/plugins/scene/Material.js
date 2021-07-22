@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
+import vertexShader from './shader/vertex.glsl'
+import blankFragment from './shader/blankFragment.glsl'
 
 export class Material{
 
@@ -10,55 +12,87 @@ export class Material{
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            type: {default: 'MeshStandardMaterial', options: [
-                'MeshStandardMaterial',
-                'ShaderMaterial'
-            ]},
-            color: {default: '#ffffff'},
-            transparent: {default: false},
-            wireframe: {default: false},
-            depthWrite: {default: false},
-            alphaTest: {default: 0, min: 0, max: 1, step: 0.01},
-        }
-
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             material: null,
             state: new StateManager(),
             lastRendered: Date.now(),
-            uniforms: {}
+            uniforms: {},
+            defaultColor: '#ffffff'
         }
         
-        this.props.material = new THREE.MeshStandardMaterial({color: this.paramOptions.color.default});
+        this.props.material = new THREE.MeshStandardMaterial({color: this.props.defaultColor});
 
         this.ports = {
             default: {
-                defaults: {
-                    output: [{data: this.props.material, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: 'Material',
+                edit: false,
+                default: this.props.material,
+                input: {type: null},
+                output: {type: Object, name: 'Material'},
+                onUpdate: () => {
+                    switch(this.params.type){
+                        case 'MeshStandardMaterial':
+                            this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
+                            break
+                        case 'ShaderMaterial':
+
+                            this._replaceUniformsWithThreeObjects(this.props.uniforms) // Conduct on original object
+
+                            this.props.material = new THREE.ShaderMaterial({
+                                vertexShader: this.params.vertexShader,
+                                fragmentShader: this.params.fragmentShader,
+                                uniforms: this.props.uniforms
+                            });
+                            break
+                    }
+            
+                    this.props.material.side = THREE.DoubleSide
+                    this.props.material.transparent = this.params.transparent
+                    this.props.material.wireframe = this.params.wireframe
+                    this.props.material.depthWrite = this.params.depthWrite
+                    this.props.material.alphaTest = this.params.alphaTest
+            
+                    return [{data: this.props.material}]
                 }
             },
-            fragment: {
-                types: {
-                    in: 'glsl',
-                    out: null
+            type: {
+                default: 'MeshStandardMaterial', 
+                options: [
+                    'MeshStandardMaterial',
+                    'ShaderMaterial'
+                ],
+                input: {type: 'string'}, 
+                output: {type: null}
+            },
+            fragmentShader: {
+                default: blankFragment,
+                input: {type: 'GLSL'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.fragmentShader = userData[0].data
+                    this._updateUniforms(userData[0].meta.uniforms)
+                    this._passShaderMaterial()
                 }
             },
-            vertex: {
-                types: {
-                    in: 'glsl',
-                    out: null
+            vertexShader: {
+                default: vertexShader,
+                input: {type: 'GLSL'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                        this.params.vertexShader = userData[0].data
+                        this._updateUniforms(userData[0].meta.uniforms)
+                        this._passShaderMaterial()
                 }
-            }
+            },
+            color: {default: this.props.defaultColor, input: {type: 'color'}, output: {type: null}},
+            transparent: {default: false, input: {type: 'boolean'}, output: {type: null}},
+            wireframe: {default: false, input: {type: 'boolean'}, output: {type: null}},
+            depthWrite: {default: false, input: {type: 'boolean'}, output: {type: null}},
+            alphaTest: {default: 0, min: 0, max: 1, step: 0.01, input: {type: 'number'}, output: {type: null}},
         }
     }
 
     init = () => {
-
 
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
@@ -75,48 +109,41 @@ export class Material{
         }
     }
 
-    default = () => {
-
-        switch(this.params.type){
-            case 'MeshStandardMaterial':
-                this.props.material = new THREE.MeshStandardMaterial( {color: this.params.color} );
-                break
-            case 'ShaderMaterial':
-                this.props.material = new THREE.ShaderMaterial({
-                    vertexShader: this.props.vertexShader,
-                    fragmentShader: this.props.fragmentShader,
-                    uniforms: this.props.uniforms
-                });
-                break
-        }
-
-        this.props.material.side = THREE.DoubleSide
-        this.props.material.transparent = this.params.transparent
-        this.props.material.wireframe = this.params.wireframe
-        this.props.material.depthWrite = this.params.depthWrite
-        this.props.material.alphaTest = this.params.alphaTest
-
-        return [{data: this.props.material, meta: {label: this.label, params: this.params}}]
-    }
-
-    fragment = (userData) => {
-        this.props.fragmentShader = userData[0].data
-        this._updateUniforms(userData[0].meta.uniforms)
-        this._passShaderMaterial()
-    }
-
-    vertex = (userData) => {
-        this.props.vertexShader = userData[0].data
-        this._updateUniforms(userData[0].meta.uniforms)
-        this._passShaderMaterial()
-    }
 
     _updateUniforms = (uniforms) => {
-        if (uniforms) this.props.uniforms = Object.assign(this.props.uniforms, uniforms)
+        if (typeof uniforms === 'object'){
+            this._filterMisformattedUniforms(uniforms) // Conduct on original object
+            this.props.uniforms = Object.assign(this.props.uniforms, uniforms) // Deep copy to keep params and props separate
+            this._replaceUniformsWithThreeObjects(this.props.uniforms)
+        }
+    }
+
+    _filterMisformattedUniforms = (uniforms) => {
+        for (let key in uniforms){
+            // console.log(uniforms[key])
+            // Remove Misformatted Uniforms
+            if (typeof uniforms[key] !== 'object' || !('value' in uniforms[key])) delete uniforms[key]
+        }
+    }
+
+    _replaceUniformsWithThreeObjects = (uniforms) => {
+        for (let key in uniforms){
+            let value = uniforms[key].value
+
+            // Remove Misformatted Uniforms
+            if (typeof uniforms[key] === 'object' && !('value' in uniforms[key])) delete uniforms[key]
+           
+            // Try Making Colors from Strings
+            else if (typeof value === 'string') uniforms[key].value = new THREE.Color(value)
+            
+            // Make Vectors from Properly Formatted Objects
+            else if (typeof value === 'object' && 'x' in value && 'y' in value) uniforms[key].value = new THREE.Vector2(value.x, value.y)
+        }
+
     }
 
     _passShaderMaterial = () => {
-        if (this.props.vertexShader && this.props.fragmentShader) {
+        if (this.params.vertexShader && this.params.fragmentShader) {
             this.params.type = 'ShaderMaterial'
             this.session.graph.runSafe(this,'default',[{forceRun: true, forceUpdate: true}])
         }

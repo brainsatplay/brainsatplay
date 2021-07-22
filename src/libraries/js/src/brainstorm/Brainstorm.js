@@ -4,7 +4,6 @@ const DataServer = require('./DataServer.js');
 const WebSocket = require('ws')
 const mongodb = require('mongodb')
 const uuid = require('uuid')
-const RobotManager = require('./RobotManager.js');
 
 // Create Brainstorm Server Instance
 const createBrainstorm = async (app, config={},onListen=()=>{},onError=()=>{}) => {
@@ -50,6 +49,7 @@ let mongoClient;
 if (mongouri) {
    mongodb.MongoClient.connect(mongouri, {useUnifiedTopology: true}).then(mongoClient => {
     dataServer.mongoClient =  mongoClient
+        app.set('mongodb', mongoClient)
     console.log('Connected to MongoDB Database')
    }).catch(err => {
         console.log('Error: ' + err)

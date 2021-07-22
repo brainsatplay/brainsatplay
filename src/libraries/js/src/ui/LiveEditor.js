@@ -107,9 +107,9 @@ export class LiveEditor {
                     // this.target[this.function] = eval(this.body);
                     // this.body = this.getFunctionBody(this.target[this.function]);
                     // this.head = this.getFunctionHead(this.target[this.function]);
-                    this.target[this.function] = this.copy;
+                    this.target[this.key] = this.copy;
                 } else if (['html', 'css'].includes(this.props.language)){
-                    this.target = this.copy;   
+                    this.target[this.key] = this.copy;   
                     // try{ eval(this.defaultScripts); } catch(er) {alert('Script error: ', er);}
                 } else if (this.props.language === 'glsl'){
                     this.target = this.copy;
@@ -165,10 +165,10 @@ export class LiveEditor {
                     catch (er) {console.log(er)}
 
                     if(newFunc){
-                        this.target[this.function] = newFunc;
+                        this.target[this.key] = newFunc;
                         this.onSave(this.target)
 
-                    } else if (this.function == null && this.target instanceof Object){
+                    } else if (this.key == null && this.target instanceof Object){
                         try {
                             newFunc = eval(`(${this.input.value})`)
                         } catch (e) {
@@ -191,6 +191,7 @@ export class LiveEditor {
                 }
 
                 else if (this.props.language === 'glsl'){
+                    this.target = this.input.value;
                     this.onSave(this.target)
                 }
             }
@@ -261,21 +262,21 @@ export class LiveEditor {
 
 
         // For JS Editor
-        this.function = settings.function;
+        this.key = settings.key;
 
         // For All Editors
         this.target = settings.target; //e.g. this.session.atlas
         if (this.props.language === 'javascript'){
 
             // Handle Specific Functions (from target)
-            if (typeof this.target === 'object' && this.target != null && this.function != null){
-                this.head = this.getFunctionHead(this.target[this.function]);
-                this.body = this.target[this.function] // this.getFunctionBody(this.target[this.function]);
-                this.copy = this.target[this.function].toString();
+            if (typeof this.target === 'object' && this.target != null && this.key != null){
+                this.head = this.getFunctionHead(this.target[this.key]);
+                this.body = this.target[this.key] // this.getFunctionBody(this.target[this.function]);
+                this.copy = this.target[this.key].toString();
             } 
 
             // Handle Whole Classes
-            else if (this.function == null && this.target instanceof Object) {
+            else if (this.key == null && this.target instanceof Object) {
                 this.target = this.target
                 this.head = settings.className ?? this.target.name;
                 this.body = this.target.prototype.constructor.toString().replace(/class (.+){/g, `class ${settings.className}{`)
@@ -289,15 +290,15 @@ export class LiveEditor {
                 //     this.target = document.getElementById(this.target);
                 // }
                 this.head = this.props.language // this.target.id
-                this.body = this.target//this.target.innerHTML
-                this.copy = this.target//this.target.innerHTML
+                this.body = this.target[this.key]//this.target.innerHTML
+                this.copy = this.target[this.key]//this.target.innerHTML
             } else {
                 console.warn('settings file does not contain a target...')
             }
         } else if (this.props.language === 'glsl'){
             if (this.target){
-                this.head = 'Fragment Shader';
-                this.body = this.target.replace(new RegExp(";", "g"), ";\n")
+                this.head = 'WebGL Shader';
+                this.body = this.target[this.key].replace(new RegExp(";", "g"), ";\n")
                 .replace(new RegExp("{", "g"), "{\n")
                 .replace(new RegExp("}", "g"), "}\n");
                 this.copy = this.body

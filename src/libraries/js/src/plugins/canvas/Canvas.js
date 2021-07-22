@@ -11,25 +11,35 @@ export class Canvas{
             canvas: null,
             container: null,
             context: null,
-            drawFunctions: {},
+            drawObjects: [],
             looping: false
         }
 
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'
+        this.props.canvas = document.createElement('canvas')
+        this.props.container.insertAdjacentElement('beforeend', this.props.canvas)
+        this.props.container.style = `width: 100%; height: 100%;`
+        this.props.container.onresize = this.responsive
+
         this.ports = {
             draw: {
-                input: {type: Function},
+                input: {type: Object},
                 output: {type: null},
                 onUpdate: (userData) => {
                     userData.forEach(u => {
-                        this.props.drawFunctions[u.username + u.meta.label] = u.data
+                        if (u.data.function instanceof Function) this.props.drawObjects.push(u.data)
                     })
                 }
             },
             element: {
+                default: this.props.container,
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {
-                    return [{data: this.props.container, meta: {label: `${this.label}_element`}}]
+                    this.params.element = this.props.container
+                    return [{data: this.params.element}]
                 }
             }
         }
@@ -37,49 +47,34 @@ export class Canvas{
 
     init = () => {
 
-        let HTMLtemplate = () => {
-            return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-                <canvas></canvas>
-            </div>`
-        }
+        this.props.context = this.props.canvas.getContext("2d");
 
-        let setupHTML = (app) => {
+        // Set Default Port Output
+        this.ports.element.default = this.props.container
 
-            this.props.container = document.getElementById(`${this.props.id}`);
-            this.props.canvas = this.props.container.querySelector(`canvas`);
-            this.props.context = this.props.canvas.getContext("2d");
+        // Set Looping
+        this.props.looping = true
 
-            // Set Default Port Output
-            this.ports.element.default = this.props.container
+        const animate = () => {
 
-            // Set Looping
-            this.props.looping = true
+            if (this.props.looping){
+                this._clearCanvas()
 
-            const animate = () => {
-
-                if (this.props.looping){
-                    setTimeout(() => {
-
-                        this._clearCanvas()
-
-                        // console.log(this.props.drawFunctions)
-                        for (let key in this.props.drawFunctions) {
-                            this.props.drawFunctions[key](this.props.context)
-                        }
-
-                        animate()
-                    }, 1000/60)
+                // Manage Draw Objects
+                for (let i = this.props.drawObjects.length - 1; i >= 0; i--){
+                    let o = this.props.drawObjects[i]
+                    if (o.active) o.function(this.props.context)
+                    else this.props.drawObjects.splice(i,1)
                 }
+                setTimeout(animate, 1000/60)
             }
-            animate()
         }
-
-        return { HTMLtemplate, setupHTML}
+        animate()
     }
 
     deinit = () => {
         this.props.looping = false
+        this.props.container.remove()
     }
 
     responsive = () => {

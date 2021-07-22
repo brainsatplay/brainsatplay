@@ -23,15 +23,21 @@ module.exports = {
         type: 'asset/inline'
       },
       {
+        test: /\.(png|jpe?g|gif)$/i,
+        type: 'asset/resource'
+      },
+      {
         test: /\.css$/i,
         use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.worker\.js$/,
         loader: "worker-loader",
-        options: {
-          inline: "no-fallback",
-        },
+        options: { inline: "fallback" },
+      },
+      {
+        test: /\.glsl$/,
+        loader: 'webpack-glsl-loader'
       },
       {
         test: /\.m?js$/,

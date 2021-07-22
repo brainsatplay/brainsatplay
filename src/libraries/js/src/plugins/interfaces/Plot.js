@@ -28,6 +28,7 @@ Date.prototype.customFormat = function(formatString){
 class Plot{
 
     static id = String(Math.floor(Math.random()*1000000))
+    static hidden = true
 
     constructor(label, session, params={}) {
 

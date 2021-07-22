@@ -24,9 +24,9 @@ let groundUniforms = {
   iTime: {value: 0.0},
   uBigWavesSpeed: { value: 0.5 },
   uBigWavesElevation: { value: 0.22 },
-  uBigWavesFrequency: { value: new THREE.Vector2(2,2)},
-  uDepthColor: { value: new THREE.Color('#000000')},
-  uSurfaceColor: { value: new THREE.Color('#111111')},
+  uBigWavesFrequency: { value:{x:2,y:2}},
+  uDepthColor: { value: '#000000'},
+  uSurfaceColor: { value: '#111111'},
   uColorOffset: {value: 0.2},
   uColorMultiplier: {value: 0.25},
   uSmallWavesElevation: { value: 0.05 },
@@ -43,9 +43,9 @@ let meshUniforms = {
   iTime: {value: 0.0},
   uBigWavesSpeed: { value: 0.5 },
   uBigWavesElevation: { value: 0.12 },
-  uBigWavesFrequency: { value: new THREE.Vector2(2,2)},
-  uDepthColor: { value: new THREE.Color('#000000')},
-  uSurfaceColor: { value: new THREE.Color('grey')},
+  uBigWavesFrequency: { value: {x: 2, y:2}},
+  uDepthColor: { value: '#000000'},
+  uSurfaceColor: { value: 'gray'},
   uColorOffset: {value: 0.2},
   uColorMultiplier: {value: 0.25},
   uSmallWavesElevation: { value: 0.05 },
@@ -87,8 +87,8 @@ export const settings = {
         {id: 'heg', class: brainsatplay.plugins.biosignals.HEG},
 
         // Utilities
-        {id: 'lastHEG', class: brainsatplay.plugins.utilities.Index},
-        {id: 'lastBreath', class: brainsatplay.plugins.utilities.Index},
+        {id: 'lastHEG', class: brainsatplay.plugins.transforms.Index},
+        {id: 'lastBreath', class: brainsatplay.plugins.transforms.Index},
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params: { duration: 4, progression: ['Welcome to Breath Garden', 'Welcome to Breath Garden', 'Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Hold','Breathe In','Hold','Breathe Out','Thank You for Playing!']}},
 
         // Tree
@@ -98,44 +98,31 @@ export const settings = {
         {id: 'light', class: brainsatplay.plugins.scene.Light},
 
         // Ground
-        {id: 'meshvertex', class: brainsatplay.plugins.scene.Shader, params: {glsl: desertGroundVertexShader, uniforms: meshUniforms}},
-        {id: 'meshfragment', class: brainsatplay.plugins.scene.Shader, params: {glsl: desertGroundFragmentShader, uniforms: meshUniforms}},
+        {id: 'meshvertex', class: brainsatplay.plugins.scene.Shader, params: {default: desertGroundVertexShader, uniforms: meshUniforms}},
+        {id: 'meshfragment', class: brainsatplay.plugins.scene.Shader, params: {default: desertGroundFragmentShader, uniforms: meshUniforms}},
         {id: 'meshmat', class: brainsatplay.plugins.scene.Material, params:{wireframe: true, transparent:true, depthWrite: true}},
         {id: 'mesh', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Mesh', x:0, y:0.05, z:0,scale:1, rotatex: Math.PI/2}},
         
-        {id: 'groundvertex', class: brainsatplay.plugins.scene.Shader, params: {glsl: desertGroundVertexShader, uniforms: groundUniforms}},
-        {id: 'groundfragment', class: brainsatplay.plugins.scene.Shader, params: {glsl: desertGroundFragmentShader, uniforms: groundUniforms}},
+        {id: 'groundvertex', class: brainsatplay.plugins.scene.Shader, params: {default: desertGroundVertexShader, uniforms: groundUniforms}},
+        {id: 'groundfragment', class: brainsatplay.plugins.scene.Shader, params: {default: desertGroundFragmentShader, uniforms: groundUniforms}},
         {id: 'groundgeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'PlaneGeometry', radius: terrainLength, segments: 256}},
         {id: 'groundmat', class: brainsatplay.plugins.scene.Material, params:{wireframe: false, transparent:true, depthWrite: true}},
         {id: 'ground', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Mesh', x:0, y:0, z:0,scale:1, rotatex: Math.PI/2}},
         
 
         // River
-        {id: 'riververtex', class: brainsatplay.plugins.scene.Shader, params: {glsl: invisisphereVertexShader, uniforms: invisisphereUniforms}},
-        {id: 'riverfragment', class: brainsatplay.plugins.scene.Shader, params: {glsl: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
+        {id: 'riververtex', class: brainsatplay.plugins.scene.Shader, params: {default: invisisphereVertexShader, uniforms: invisisphereUniforms}},
+        {id: 'riverfragment', class: brainsatplay.plugins.scene.Shader, params: {default: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
         {id: 'rivergeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', count: quantityPoints}},
         {id: 'rivermat', class: brainsatplay.plugins.scene.Material, params:{type: 'ShaderMaterial',wireframe: false, transparent:true, depthWrite: false}},
         {id: 'river', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Points', x: riverOffset - riverWidth/2, y:-1, z:terrainFog,scalex:terrainFog*2, scalez: riverWidth, rotatey: Math.PI/2}},
 
         // Particles
-        {id: 'particlesvertex', class: brainsatplay.plugins.scene.Shader, params: {glsl: particlesVertexShader, uniforms: particleUniforms}},
-        {id: 'particlesfragment', class: brainsatplay.plugins.scene.Shader, params: {glsl: particlesFragmentShader, uniforms: particleUniforms}},
+        {id: 'particlesvertex', class: brainsatplay.plugins.scene.Shader, params: {default: particlesVertexShader, uniforms: particleUniforms}},
+        {id: 'particlesfragment', class: brainsatplay.plugins.scene.Shader, params: {default: particlesFragmentShader, uniforms: particleUniforms}},
         {id: 'particlesgeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', count: quantityPoints/10}},
         {id: 'particlesmat', class: brainsatplay.plugins.scene.Material, params:{type: 'ShaderMaterial',wireframe: false, transparent:true, depthWrite: false}},
         {id: 'particles', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Points', x: -terrainLength/4, y:0, z:-terrainLength/4,scalex:terrainLength/2, scaley: 5, scalez: terrainLength/2}},
-
-                
-        // Sphere
-        // {id: 'vertex', class: brainsatplay.plugins.utilities.Shader, params: {glsl: vertexShader}},
-        // {id: 'fragment', class: brainsatplay.plugins.utilities.Shader, params: {glsl: fragmentShader, uniforms: {iTime: {value: 0}, iResolution: {value: new THREE.Vector2(1,1)}}}},
-        // {id: 'material', class: brainsatplay.plugins.utilities.Material},
-        // {id: 'geometry', class: brainsatplay.plugins.utilities.Geometry},
-        // {id: 'sphere', class: brainsatplay.plugins.utilities.Object3D, params:{type: 'Mesh',x:0, y:0, z:0,scale:100}},
-        
-        // Plant
-        // {id: 'plantmat', class: brainsatplay.plugins.utilities.Material, params:{color: '#228B22', wireframe: false}},
-        // {id: 'plant', class: brainsatplay.plugins.utilities.Mesh, params:{x:0, y:0, z:-10,scale:0.3}},
-
         {id: 'sine', class: brainsatplay.plugins.controls.Event},//, params: {center: 0.5, scale: 0.5, frequency: 0.1}},
         {id: 'html', class: brainsatplay.plugins.interfaces.UI, params:{
           html: `
@@ -145,21 +132,45 @@ export const settings = {
             </div>
           </div>
           `,
-          containerStyle: `
-          position: absolute;
-          pointer-events: none;
-          user-select: none;
-          width: 100%; 
-          height: 100%;
-          transition: 0.5s;
+          style: `
+          .brainsatplay-ui-container{
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            width: 100%; 
+            height: 100%;
+            transition: 0.5s;
+          }
           `
+          // containerStyle: `
+          // position: absolute;
+          // pointer-events: none;
+          // user-select: none;
+          // width: 100%; 
+          // height: 100%;
+          // transition: 0.5s;
+          // `
         }
         },
-        // {id: 'hud', class: brainsatplay.plugins.utilities.HTMLMesh, params:{x:0, y:1.6, z:-0.5,scale:2, isHUD: true}},
 
         {id: 'scene', class: brainsatplay.plugins.scene.Scene, params: {camerax: 1, cameray: 2.0, cameraz: 9.0}},
+        {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+          html: `<div id="sceneContainer" id="scene-container"></div>`,
+          style: `
+          .brainsatplay-ui-container {
+            width: 100%;
+            height: 100%;
+          }
+          `
+        }}
       ],
       edges: [
+
+        // Scene to UI
+        {
+          source: 'scene:element', 
+          target: 'ui:sceneContainer'
+        },
 
         // HEG Input
         {
@@ -218,37 +229,15 @@ export const settings = {
           source: 'lastBreath', 
           target: 'particlesfragment:uVerdant'
         },
-        
-        // // Draw Sphere to Scene
-        // {
-        //   source: 'geometry', 
-        //   target: 'sphere:geometry'
-        // },
-        // {
-        //   source: 'vertex', 
-        //   target: 'material:vertex'
-        // },
-        // {
-        //   source: 'fragment', 
-        //   target: 'material:fragment'
-        // },
-        // {
-        //   source: 'material', 
-        //   target: 'sphere:material'
-        // },
-        // {
-        //   source: 'sphere:add', 
-        //   target: 'scene:add'
-        // },
 
         // Add Ground
         {
           source: 'groundvertex', 
-          target: 'groundmat:vertex'
+          target: 'groundmat:vertexShader'
         },
         {
           source: 'groundfragment', 
-          target: 'groundmat:fragment'
+          target: 'groundmat:fragmentShader'
         },
         {
           source: 'groundgeo', 
@@ -266,11 +255,11 @@ export const settings = {
         // Add Mesh
         {
           source: 'meshvertex', 
-          target: 'meshmat:vertex'
+          target: 'meshmat:vertexShader'
         },
         {
           source: 'meshfragment', 
-          target: 'meshmat:fragment'
+          target: 'meshmat:fragmentShader'
         },
         {
           source: 'groundgeo', // Reuse
@@ -288,11 +277,11 @@ export const settings = {
         // Add River
         {
           source: 'riververtex', 
-          target: 'rivermat:vertex'
+          target: 'rivermat:vertexShader'
         },
         {
           source: 'riverfragment', 
-          target: 'rivermat:fragment'
+          target: 'rivermat:fragmentShader'
         },
         {
           source: 'rivergeo', 
@@ -310,11 +299,11 @@ export const settings = {
         // Add Particles
         {
           source: 'particlesvertex', 
-          target: 'particlesmat:vertex'
+          target: 'particlesmat:vertexShader'
         },
         {
           source: 'particlesfragment', 
-          target: 'particlesmat:fragment'
+          target: 'particlesmat:fragmentShader'
         },
         {
           source: 'particlesgeo', 
@@ -334,36 +323,6 @@ export const settings = {
           source: 'tree1:add', 
           target: 'scene:add'
         },
-
-        // Add Plant
-        // {
-        //   source: 'plantmat', 
-        //   target: 'plant:material'
-        // },
-        // {
-        //   source: 'plant:add', 
-        //   target: 'scene:add'
-        // },
-
-        // UI
-        // {
-        //   source: 'sine', 
-        //   target: 'transformer:toFloat'
-        // },
-        // {
-        //   source: 'transformer:toFloat', 
-        //   target: 'html:opacity'
-        // },
-
-        // HUD
-        // {
-        //   source: 'html:element', 
-        //   target: 'hud:element'
-        // },
-        // {
-        //   source: 'hud:add', 
-        //   target: 'scene:add'
-        // },
 
         {
           source: 'scheduler:state', 

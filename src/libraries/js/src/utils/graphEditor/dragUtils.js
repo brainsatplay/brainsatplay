@@ -15,9 +15,22 @@ export const dragElement = (container, dragItem, context, onMove, onDown,onUp) =
     container.addEventListener("mousedown", dragStart, false);
     container.addEventListener("mouseup", dragEnd, false);
     container.addEventListener("mousemove", drag, false);
-    
-    dragItem.style.transform = `scale(${defaultScale})`;
 
+    let transform = dragItem.style.cssText.match(/transform: ([^;].+);\s?/)
+    if (transform) transform = transform[1]
+    
+    if (transform) {
+      let scale = transform.match(/scale\(([^\)].+)\)\s?/)
+      if (scale) scale = scale[1]
+      else scale = 1
+
+      let translateString = transform.match(/translate3d\(([^\)].+)\)\s?/)
+      if (translateString){
+        let arr = translateString[1].split(',')
+        xOffset = arr[0].split('px')[0]
+        yOffset = arr[1].split('px')[0]
+      }
+    } else dragItem.style.transform = `scale(${defaultScale})`;
 
     function dragStart(e) {
 

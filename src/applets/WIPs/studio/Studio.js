@@ -1,4 +1,4 @@
-import {settings} from '../blank/settings.js'
+import {settings} from '../../templates/blank/settings.js'
 
 class Studio{
 

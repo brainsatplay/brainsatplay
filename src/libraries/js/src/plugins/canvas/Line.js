@@ -9,30 +9,33 @@ export class Line{
 
         this.paramOptions = {
             color: {default: '#ffffff'},
-            y: {default: 0, min: 0, max:1, step: 0.001},
+            y: {default: 0.5, min: 0, max:1, step: 0.001},
             weight: {default: 1, min: 0, max:10, step: 1.0},
             scale: {default: 1},
         }
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
-            data: []
+            data: [],
+            active: true,
         }
+
+        this.props.function = {function: this._plotLines, active: this.props.active}
 
         this.ports = {
             default: {
-                defaults: {
-                    output: [{data: this._plotLines, meta: {label: this.label}}]
-                },
-                types: {
-                    in: null,
-                    out: Function,
+                default: this.props.function,
+                input: {type: null},
+                output: {type: Object},
+                onUpdate: () => {
+                    return [{data: this.props.function}]
                 }
             },
             set: {
-                types: {
-                    in: Array,
-                    out: null,
+                input: {type: Array},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.props.data = userData[0].data
                 }
             }
         }
@@ -41,16 +44,9 @@ export class Line{
 
     init = (app) => {}
 
-    deinit = () => {}
-
-    default = () => {
-        return [{data: this._plotLines, meta: {label: this.label, params: this.params}}]
+    deinit = () => {
+        this.props.function.active = false
     }
-
-    set = (userData) => {
-        this.props.data = userData[0].data
-    }
-
 
     _plotLines = (ctx) => {
         let width = ctx.canvas.width;

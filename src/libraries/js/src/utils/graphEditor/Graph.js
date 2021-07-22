@@ -77,7 +77,6 @@ export class Graph{
                 let sP = edge.source.nodeInfo.instance.ports[sourcePort]
                 let tP = edge.target.nodeInfo.instance.ports[targetPort]
 
-
                 let coerceType = (t) => {
                     if (t === 'float') return 'number'
                     else if (t === 'int') return'number'

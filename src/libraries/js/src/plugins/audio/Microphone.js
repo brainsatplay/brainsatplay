@@ -12,7 +12,7 @@ export class Microphone{
         this.params = params
 
         this.ports = {
-            default: {
+            fft: {
                 default: [],
                 input: {type: null},
                 output: {type: Array},
@@ -25,7 +25,7 @@ export class Microphone{
                         window.audio.analyserNode.getByteFrequencyData(array);
                         audioDat = this._reduceArrByFactor(Array.from(array),4);
                     } else {
-                        audioDat = new Array(512).fill(0);
+                        audioDat = new Array(256).fill(0);
                     }
                     return [{data: audioDat, meta: {}}]
                 }
@@ -63,7 +63,7 @@ export class Microphone{
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{data: true}])
+                this.session.graph.runSafe(this,'fft',[{data: true}])
                 setTimeout(() => {animate()}, 1000/60)
             }
         }

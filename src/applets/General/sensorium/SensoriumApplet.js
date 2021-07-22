@@ -424,7 +424,8 @@ void main(){
             this.liveEditor = new LiveEditor(
                 {
                     language: 'glsl', 
-                    target: this.currentShader.fragmentShader,
+                    target: this.currentShader,
+                    key: 'fragmentShader',
                     onSave: () => {
                         this.shaderEdited = true;
                         this.setShaderFromText(this.liveEditor.input.value);
@@ -1788,7 +1789,7 @@ void main(){
         })
 
         // Update Shader Live Coding Console
-        this.liveEditor.updateSettings({language: 'glsl', target: this.currentShader.fragmentShader})
+        this.liveEditor.updateSettings({language: 'glsl', target: this.currentShader, key: 'fragmentShader'})
     }
 
     setShaderFromText = (text) => {

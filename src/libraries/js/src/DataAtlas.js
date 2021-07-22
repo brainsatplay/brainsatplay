@@ -6,7 +6,7 @@ import { StateManager } from "./ui/StateManager";
 import { WorkerManager } from "./Workers"
 import { GraphManager } from "./GraphManager"
 
-import { Blink } from "./plugins/algorithms/Blink"
+import { Blink } from "./plugins/models/Blink"
 import {DOMFragment} from './ui/DOMFragment'
 
 //-------------------------------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ export class DataAtlas {
 			}
 		}
 		this.liveGraph = this.graph.init(app)
-		this.graph.start(this.props.id, this._getRandomId())
+		this.graph.start(this.props.id)
 
 		this.liveGraph.nodes.forEach(n => {
 			let ui = n.ui
@@ -72,11 +72,6 @@ export class DataAtlas {
                 )
             }
 		})
-		
-		this.liveGraph.setupCallbacks.forEach(func => {
-			if (func instanceof Function) func()
-		})
-
 
 		let analysisDict = {
 			eegcoherence: false,
@@ -144,9 +139,10 @@ export class DataAtlas {
 			this.settings.eeg = true;
 			this.data.eeg = this.gen10_20Atlas(this.data.eegshared.eegChannelTags);
         }
-		else if (config === 'muse') {
+		else if (config.includes('muse')) {
 			this.settings.eeg = true;
-			this.data.eeg = this.genMuseAtlas();
+			let aux = config.includes('_Aux')
+			this.data.eeg = this.genMuseAtlas(aux);
 		}
 		else if (config === 'big') {
 			this.settings.eeg = true;
@@ -227,7 +223,7 @@ export class DataAtlas {
 		this.data.eeg.push(this.genEEGCoordinateStruct(tag,x,y,z));
 	}
 
-	genMuseAtlas() { //Muse coordinates (estimated)
+	genMuseAtlas(aux=false) { //Muse coordinates (estimated)
 
 		let eegmap = [];
 
@@ -242,7 +238,8 @@ export class DataAtlas {
 			return midpoint;
 		}
 
-		let tags = ['AF7','AF8','TP9','TP10','AUX'];
+		let tags = ['AF7','AF8','TP9','TP10'];
+		if (aux) tags.push('AUX')
 		let coords = [
 			mid(c[0],c[2]), //estimated
 			mid(c[1],c[3]), //estimated
@@ -437,27 +434,30 @@ export class DataAtlas {
 	//Makes a note to be saved. Will automatically get the latest timestamp for attached devices if there is one, or just Date.now();
 	makeNote(text='event',timestamp=undefined) {
 		if(Array.isArray('text')) text = [...text.join('|')];
+		let prevNoteIdx = this.data.other.notes.length-1
 		if(timestamp === undefined) {
-			if(this.settings.eeg) {
-				let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
-				timestamp = row.times[row.times.length-1]
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
-				else this.data.other.notes.push({time:timestamp, note:text});
-			}
-			if(this.settings.heg) {
-				timestamp = this.data.heg[0].times[this.data.heg[0].times.length-1];
-				this.data.other.notes.push({time:timestamp, note:text});
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
-				else this.data.other.notes.push({time:timestamp, note:text});
+			if (this.settings.deviceConnected){
+				if(this.settings.eeg) {
+					let row = this.getEEGDataByChannel(this.data.eegshared.eegChannelTags[0].ch);
+					timestamp = row.times[row.times.length-1]
+					if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
+					else this.data.other.notes.push({time:timestamp, note:text});
+				}
+				else if(this.settings.heg) {
+					timestamp = this.data.heg[0].times[prevNoteIdx];
+					this.data.other.notes.push({time:timestamp, note:text});
+					if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
+					else this.data.other.notes.push({time:timestamp, note:text});
+				}
 			}
 			else {
 				let timestamp = Date.now();
-				if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+				if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
 				else this.data.other.notes.push({time:Date.now(), note:text});
 			}
 		}
 		else {
-			if(this.data.other.notes.length != 0 && this.data.other.notes[this.data.other.notes.length-1].timestamp === timestamp) {this.data.other.notes[this.data.other.notes.length-1].note = this.data.other.notes[this.data.other.notes.length-1].note + "|" + text}
+			if(this.data.other.notes.length != 0 && this.data.other.notes[prevNoteIdx].timestamp === timestamp) {this.data.other.notes[prevNoteIdx].note = this.data.other.notes[prevNoteIdx].note + "|" + text}
 			else this.data.other.notes.push({time:timestamp, note:text});
 		}
 	}
@@ -842,7 +842,7 @@ export class DataAtlas {
 	getBlink = (params = {}) => {
 		let node = this.graph.getNode(this.props.id, 'blink')
 		this.graph.updateParams(node, params)
-		let blink = this.graph.runSafe(node,'default', [{data: this.data, meta: {}}])
+		let blink = this.graph.runSafe(node,'default', [{data: this.data, forceUpdate: true}])
 		return blink[0].data
 	}
 
@@ -1248,6 +1248,33 @@ export class DataAtlas {
 			   "(UTC" + sign + z(off/60|0) + ':00)'
 	}
 
+	readyDataForWriting = (from=0,to='end',getFFTs=true) => {
+		let eeg = this.readyEEGDataForWriting(from,to,getFFTs)
+		let heg = this.readyHEGDataForWriting(from,to)
+		let datasets = [eeg,heg]
+		let toSend
+		datasets.forEach(arr => {
+			if (arr[1] != '') toSend = arr
+		})
+
+		// If No Data, Return Notes Only
+		if (toSend) return toSend
+		else return this.readyNotesForWriting()
+	}
+
+	readyNotesForWriting = () => {
+		let header = ["TimeStamps","UnixTime","Notes"];
+		let data = []
+		this.data.other.notes.forEach((n,i) => {
+			let line = []
+			if (n.time != null){
+				line.push(this.toISOLocal(new Date(n.time)),n.time, n.note)
+				data.push(line.join(","))
+			}
+		})
+		return [header.join(",")+"\n",data.join("\n")];
+	}
+
 	readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
 		 
 		let header = ["TimeStamps","UnixTime","Notes"];
@@ -1336,8 +1363,6 @@ export class DataAtlas {
 
 				data.push(line.join(","));
 			}
-		
-			//console.log(data)
 			return [header.join(",")+"\n",data.join("\n")];	
 		}
 		else return undefined;
@@ -1350,7 +1375,10 @@ export class DataAtlas {
 		let noteidx = 0;
 		let beatidx = 0;
 		let breathidx = 0;
-		if(to === 'end') to = row.times.length;
+		if(to === 'end') {
+			if (row) to = row.times.length;
+			else to = 0
+		}
 		for(let i = from; i < to; i++) {
 			let t = row.times[i];
 			let amb = row.ambient[i]; if(!amb) amb = 0;
@@ -1385,7 +1413,7 @@ export class DataAtlas {
 	}
 
 	regenAtlasses(freqStart,freqEnd,sps=512) {
-		this.data.eeg = this.makeAtlas10_20(); //reset atlas
+		this.data.eeg = this.noteAtlas10_20(); //reset atlas
 
 		let bandPassWindow = this.bandPassWindow(freqStart,freqEnd,sps);
 
@@ -1455,9 +1483,9 @@ export class DataAtlas {
                 if(buf.length > 0) {
                     if(buf[0].length >= this.data.eegshared.sps) {
 						if (this.settings.analysis.eegcoherence){
+							this.workerWaiting = true;
 							window.workers.postToWorker({foo:'coherence', input:[buf, 1, 0, 128, 1], origin:this.name}, this.workerId);
 							//window.workers.postToWorker({foo:'gpucoh', input:[buf, 1, 0, this.data.eegshared.sps*0.5, 1], origin:this.name},this.workerId);
-							this.workerWaiting = true;
 						}
                     }
                 }

@@ -2,8 +2,6 @@ import {Graph} from './Graph'
 import {LiveEditor} from '../../ui/LiveEditor'
 import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
-import  {plugins} from '../../../brainsatplay'
-import  {Plugin} from '../../plugins/Plugin'
 
 // Project Selection
 import {appletManifest} from '../../../../../platform/appletManifest'
@@ -11,7 +9,6 @@ import { getApplet, getAppletSettings } from "../../../../../platform/js/general
 
 // Node Interaction
 import * as dragUtils from './dragUtils'
-import { isNullishCoalesce } from 'typescript'
 
 export class GraphEditor{
     constructor(manager, applet, parentId, onsuccess) {
@@ -27,21 +24,11 @@ export class GraphEditor{
         }
         this.searchOptions = []
         this.classRegistry = {}
+        this.local = window.location.origin.includes('localhost')
 
         this.selectorToggle = null
         this.search = null
-        // this.state = new StateManager()
-
-        // // Check changes to params
-        // this.plugins.nodes.forEach(n => {
-        //     let plugin = n.instance
-        //     for (let key in plugin.ports) {
-        //         console.log(plugin.ports[key])
-        //         this.state.addToState(`${plugin.label}_${key}`, plugin.ports[key], (state) => {
-        //             console.log('changed state', state)
-        //         })
-        //     }
-        // })
+        this.state = new StateManager()
 
         this.lastMouseEvent = {}
         this.editing = false
@@ -51,6 +38,8 @@ export class GraphEditor{
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
         }
+
+        this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT']
     
         if (this.plugins){
 
@@ -90,11 +79,12 @@ export class GraphEditor{
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
+                                <button id="${this.props.id}publish" class="brainsatplay-default-button">Publish Project</button>
                                 <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit the Studio</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>Node Editor</h3>
-                                <button id="${this.props.id}add" class="brainsatplay-default-button">+</button>
+                                <button id="${this.props.id}add" class="brainsatplay-default-button addbutton">+</button>
                             </div>
                             <div id="${this.props.id}params" class='node-sidebar-content'>
                             <p></p>
@@ -118,14 +108,17 @@ export class GraphEditor{
 
                 // Setup Presentation Based On Settings
                 if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
-                
-
-                let toggleClass = '.brainsatplay-default-editor-toggle'
+                let toggleClass = `.option-brainsatplay-visual-editor`
                 let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-
 
                 // Insert Projects
                 this.insertProjects()
+
+                // Publish Button
+                document.getElementById(`${this.props.id}publish`).onclick = () => {
+                    this.app.updateGraph()
+                    this.app.session.projects.publish(this.app)
+                }
 
                 // Search for Toggle
                 let tries = 0
@@ -146,7 +139,8 @@ export class GraphEditor{
                         } else {
                             tries = 11
                         }
-                    } else console.warn('toggle not available')
+                    } 
+                    // else console.warn('toggle not available')
                 }
 
                 checkToggle()
@@ -193,7 +187,7 @@ export class GraphEditor{
                 // Scale View of Graph
 
                 let relXParent, relYParent
-                // let relX, relY
+                let relX, relY
                 let translation = {x: 0, y:0}
                 let mouseDown
                 this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
@@ -218,8 +212,11 @@ export class GraphEditor{
                         // else {
                         //     // Grab Target Coords for Scaling
                         //     let rect = e.target.getBoundingClientRect();
-                        //     relX = (e.clientX - rect.left)/rect.width; //x position within the element.
-                        //     relY = (e.clientY - rect.top)/rect.height;  //y position within the element.
+                        //     // let rect = this.viewer.getBoundingClientRect()
+                        //     let p1 = {x: e.clientX, y: e.clientY}
+                        //     let position = this.mapPositionFromScale(p1, rect)
+                        //     console.log({x: e.clientX, y: e.clientY}, position)
+                        //     this.viewer.style['transformOrigin'] = `${position.x}px ${position.y}px`;
                         // }
                         relXParent = curXParent
                         relYParent = curYParent
@@ -228,7 +225,6 @@ export class GraphEditor{
 
                 let updateUI = () => {
                     this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
-                    // this.viewer.style['transformOrigin'] = `${relX*100}% ${relY*100}%`;
                 }
 
                 // Change scale
@@ -271,10 +267,12 @@ export class GraphEditor{
                     let availableSpace = 100 - 2*padding
                     let leftShift = 0.5 * availableSpace/(iterator+1)
                     let downShift = 0.5 * availableSpace/(iterator+2)
-        
-                    node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-                    node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
-                    i++
+                    
+                    if (!n.style.includes('top') && !n.style.includes('left')) {
+                        node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                        node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                        i++
+                    }
                 })
 
                 // Setup Edges
@@ -324,97 +322,123 @@ export class GraphEditor{
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
 
-        let galleries = {
-            personal: {
-                header: '',
-                projects: []
-            }, 
-            templates: {
-                header: 'Examples',
-                projects: []
-            }
-        }
+        let galleries = {}
+        galleries['My Projects'] = []
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
-        projectSet = Array.from(projectSet).map(async str => {
+        for (let key in projectSet) {
+            projectSet[key] = Array.from(projectSet[key])
+        }
+
+        let length = projectSet.local.length
+        let projects = Array.from({length}, e => new Promise(()=> {})) 
+        for(let i=0;i<projectSet.local.length;i++) {
+            let str = projectSet.local[i]
             let files = await this.app.session.projects.getFilesFromDB(str)
             let settings =  await this.app.session.projects.load(files)
-            return {destination: 'personal', settings}
-        })
+            projects[i] = {destination: 'My Projects', settings}
+        }
 
         // Get Template Files
         let templateSet = []
-        for (let key in appletManifest){
-            let o = appletManifest[key]
-            let settings = await getAppletSettings(o.folderUrl)
-            if (settings.graph) templateSet.push({destination: 'templates', settings})
+
+        if (this.local){
+            for (let key in appletManifest){
+                let o = appletManifest[key]
+                let settings = await getAppletSettings(o.folderUrl)
+                if (settings.graph) {
+                    if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
+                    else templateSet.push({destination: 'Examples', settings})
+                }
+            }
         }
 
-        Promise.allSettled([...projectSet,...templateSet]).then(set => {
+        Promise.allSettled([...projects,...templateSet]).then(set => {
 
-            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza']
+            let restrictedTemplates = ['BuckleUp', 'Analyzer', 'Brains@Play Studio', 'One Bit Bonanza', 'Applet Browser']
             set.forEach(o => {
                 if (o.status === 'fulfilled' && o.value.settings){
-                    if (!restrictedTemplates.includes(o.value.settings.name)) galleries[o.value.destination].projects.push(o.value.settings)
+                    if (!restrictedTemplates.includes(o.value.settings.name)) {
+                        if (galleries[o.value.destination] == null) galleries[o.value.destination] = []
+                        
+                        galleries[o.value.destination].push(o.value.settings)
+                    }
                 }
             })
 
             // Add Load from File Button
-            galleries.personal.projects.unshift({name: 'Load from File'})
+            galleries['My Projects'].unshift({name: 'Load from File'})
 
-            Object.keys(galleries).forEach(k => {
+            let galleryKeys = ['My Projects', 'Templates', 'Examples'] // Specify ordering
 
-                let o = galleries[k]
+            let lastClickedProjectCategory = ''
+            galleryKeys.forEach(k => {
 
-                // Create Top Header
-                if (k !== 'personal'){
-                    let div = document.createElement('div')
-                    div.classList.add(`brainsatplay-option-type`) 
-                    div.classList.add(`option-type-collapsible`)
-                    div.innerHTML = o.header
-                    this.addDropdownFunctionality(div)
-                    this.props.projectContainer.insertAdjacentElement('beforeend', div)
-                }
+                let projectArr = galleries[k]
 
-                // Create Project List
-                let projects = document.createElement('div')
-                projects.id = `${this.props.id}-projectlist-${k}`
-                projects.classList.add("option-type-content")
-                this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
+                if (projectArr){
 
-
-                o.projects.forEach(settings => {
-                    let item = document.createElement('div')
-                    item.innerHTML = settings.name
-                    item.classList.add('brainsatplay-option-node')
-                    item.style.padding = '10px 20px'
-                    item.style.display = 'block'
-
-                    item.onclick = async () => {
-
-                        // if (this.props.projects.style.pointerEvents != 'none'){
-                        // Rename Template Projects
-                        if (k === 'templates'){
-                            settings = Object.assign({}, settings)
-                            if (settings.name === 'Blank Project') settings.name = 'My Project'
-                        }
-
-                        // Create Application
-                        if (settings.name === 'Load from File') {
-                            settings = await this.app.session.projects.loadFromFile()
-                            this._createApp(settings)
-                        } else this._createApp(settings)
-                    // }
+                    // Create Top Header
+                    if (k !== 'My Projects'){
+                        let div = document.createElement('div')
+                        div.classList.add(`brainsatplay-option-type`) 
+                        div.classList.add(`option-type-collapsible`)
+                        div.innerHTML = k
+                        this.addDropdownFunctionality(div)
+                        this.props.projectContainer.insertAdjacentElement('beforeend', div)
                     }
-                    if (settings.name === 'Blank Project' || settings.name === 'Load from File' && k === 'templates'){
-                        // div.style.flex = '43%'
-                        projects.insertAdjacentElement('afterbegin',item)
-                    } else {projects.insertAdjacentElement('beforeend',item)}
 
-                })
+                    // Create Project List
+                    let projects = document.createElement('div')
+                    projects.id = `${this.props.id}-projectlist-${k}`
+                    projects.classList.add("option-type-content")
+                    this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
 
-                if (k === 'personal') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+                    projectArr.forEach(settings => {
+
+                        // Set Experimental Version on Example Projects
+                        if (k != 'My Projects') settings.version = 'experimental'
+
+                        let item = document.createElement('div')
+                        item.innerHTML = settings.name
+                        item.classList.add('brainsatplay-option-node')
+                        item.style.padding = '10px 20px'
+                        item.style.display = 'block'
+
+                        item.onclick = async () => {
+                            
+                            // Rename Template Projects
+                            if (k !== 'My Projects'){
+                                settings = Object.assign({}, settings)
+                                if (settings.name === 'Blank Project') settings.name = 'My Project'
+                            }
+
+                            // Create Application
+                            if (settings.name === 'Load from File') {
+                                settings = await this.app.session.projects.loadFromFile()
+                                this._createApp(settings)
+                            } else {
+                                if (((this.lastSavedProject === this.app.info.name) || lastClickedProjectCategory == 'My Projects') && k === 'My Projects' && this.app.info.name === settings.name) {
+                                    this._createApp(this.app.info)
+                                } else {
+                                    console.log(settings)
+                                    this._createApp(settings)
+                                }
+                            }
+                        // }
+                        lastClickedProjectCategory = k
+
+                        }
+                        if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
+                            // div.style.flex = '43%'
+                            projects.insertAdjacentElement('afterbegin',item)
+                        } else {projects.insertAdjacentElement('beforeend',item)}
+
+                    })
+
+                    if (k === 'My Projects') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
+                }
             })
         })
     }
@@ -451,6 +475,7 @@ export class GraphEditor{
         let onsave = () => {
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
+            this.lastSavedProject = this.app.info.name
         }
         save.onclick = onsave
         this.saveFileEvent('Graph Editor', onsave)
@@ -468,6 +493,19 @@ export class GraphEditor{
         window.addEventListener('keydown', this.files[filename].saveEvent)
     }
 
+    addCloseIcon(parent, callback){
+        let closeIcon = document.createElement('div')
+        closeIcon.innerHTML = 'x'
+        closeIcon.classList.add('closeIcon')
+
+        closeIcon.onclick = () => {
+            callback()
+        }
+
+        if (parent.style.position != 'absolute') parent.style.position = 'relative'
+        parent.insertAdjacentElement('beforeend', closeIcon)
+    }
+
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
         let tab = document.querySelector(`[data-target="${id}"]`);
         if (tab == null){
@@ -477,19 +515,16 @@ export class GraphEditor{
             tab.innerHTML = label
 
             if (label != 'Graph Editor'){
-                let closeIcon = document.createElement('div')
-                closeIcon.innerHTML = 'x'
-                closeIcon.classList.add('close')
-
-                closeIcon.onclick = () => {
+                let onClose = () => {
                     tab.style.display = 'none'
                     let editorTab = document.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
                     editorTab.click()
                 }
-                tab.insertAdjacentElement('beforeend', closeIcon)
+                this.addCloseIcon(tab,onClose)
             }
 
             tab.onclick = () => {
+
                 if (tab.style.display !== 'none'){
                     // Close Other Tabs
                     let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
@@ -538,50 +573,59 @@ export class GraphEditor{
 
     createSettingsEditor(settings){
             let settingsContainer = document.getElementById(`${this.props.id}settings`)
-            // settingsContainer.innerHTML = ''
-            Object.keys(settings).forEach(key => {
-                let restrictedKeys = ['image', 'editor','devices', 'categories', 'instructions', 'graph', 'intro', 'display']
-                if (restrictedKeys.includes(key)){
 
-                    switch(key){
-                        case 'intro':
-                            settings.intro = {
-                                title: false
-                            }
-                            return
-                        case 'display':
-                            settings.display = {
-                                production: false
-                            }
-                            return
-                        case 'devices':
-                            // Handle internally
-                            return
-                    }
-                    
-                } else {
-                    let containerDiv = document.createElement('div')
-                    containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
-                    containerDiv.classList.add(`content-div`)
+            let toParse ={}
 
-                    let inputContainer = document.createElement('div')
-                    inputContainer.style.position = 'relative'    
-                    let input = document.createElement('input')
-                    input.type = 'text'
-                    input.value = settings[key]
+            let dummySettings = {
+                name: "",
+                devices: [""],
+                author: "",
+                description: "",
+                categories: [],
+                instructions: "",
+                image: '',
+                version: '',
 
-                    // Change Live Params with Input Changes
-                    input.oninput = (e) => {
-                        settings[key] = input.value
-                    }
+                display: {
+                  production: false,
+                  development: false
+                },
+            
+                editor: {
+                  create: false
+                },
+            
+                // App Logic
+                graph:
+                {
+                  nodes: [],
+                  edges: []
+                },
+            }
 
-                    // Add to Document
-                    inputContainer.insertAdjacentElement('beforeend',input)
-                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
-                    settingsContainer.insertAdjacentElement('beforeend', containerDiv)
+            Object.keys(dummySettings).forEach(key => {
+
+                toParse[key] = {default: settings[key]}
+                toParse[key].input =  {type: typeof settings[key]}
+
+                switch(key){
+                    case 'image':
+                        toParse[key].input =  {type: 'file', accept: 'image/*'}
+                        break
+                    case 'instructions':
+                        toParse[key].input =  {type: 'HTML'}
+                        break    
+                    default:
+                        let type = typeof settings[key]
+                        if (type === 'object') if (Array.isArray(settings[key])) type = Array
+                        toParse[key].input =  {type}
                 }
+                                
+                let inputContainer = this.createInput(toParse, key, settings)
+                if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
+
             })
-    }
+        }
 
 
     toggleDisplay(){
@@ -619,12 +663,52 @@ export class GraphEditor{
     }
 
 
-    animate(source,target){
+    animate(source,target,latencyArr){
         if (this.shown){
+            if (latencyArr) {
+                latencyArr.forEach(o => {
+                    this.animateLatency(o.node,o.latency)
+                })
+            }
             this.animateNode(source,'source')
             this.animateNode(target,'target')
             this.animateEdge(source,target)
         }
+    }
+    
+    getColorfromMap = (pct, map) => {
+        for (var i = 1; i < map.length - 1; i++) {
+            if (pct < map[i].pct) {
+                break;
+            }
+        }
+        var lower = map[i - 1];
+        var upper = map[i];
+        var range = upper.pct - lower.pct;
+        var rangePct = (pct - lower.pct) / range;
+        var pctLower = 1 - rangePct;
+        var pctUpper = rangePct;
+        var color = {
+            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+        };
+        return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+        // or output as hex if preferred
+    };
+
+    animateLatency(node,latency){
+        let instance = this.graph.nodes[node.label]
+        let pct = Math.min(1,latency/1)
+
+        let map = [
+            { pct: 0.0, color: { r: 0x39, g: 0xff, b: 0x14 } },
+            { pct: 0.5, color: { r: 0xfa, g: 0xed, b: 0x27 } },
+            { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
+        ];
+        
+        instance.latencyDisplay.style.width = `${pct*100}%`
+        instance.latencyDisplay.style.background = this.getColorfromMap(pct, map)
     }
 
     animateNode(node,type){
@@ -710,9 +794,29 @@ export class GraphEditor{
 
     }
 
+    // updatePorts(node){
+    //     let n = this.graph.nodes[node.label]
+    //     if (n) {
+    //         n.updatePorts(node)
+    //         this.addPortEvents(n)
+    //     }
+    // }
+    
+    removePort(node,port){
+        let n = this.graph.nodes[node.label]
+        if (n) n.removePort(port)
+    }
+
     addPort(node,port){
-        this.graph.nodes[node.label].addPort(port)
-        this.addPortEvents(this.graph.nodes[node.label])
+        let n = this.graph.nodes[node.label]
+        if (n){
+            n.addPort(port)
+            this.addPortEvents(n)
+        }
+    }
+
+    removePort(node,port){
+        this.graph.nodes[node.label].removePort(port)
     }
 
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
@@ -720,7 +824,18 @@ export class GraphEditor{
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
         let node = this.graph.addNode(nodeInfo)
-        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {this.editing = false})
+
+        let top
+        let left
+        if (nodeInfo.style){
+            top = nodeInfo.style.match(/top: ([^;].+); /)
+            left = nodeInfo.style.match(/left: ([^;].+);\s?/)
+        }
+
+        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
+            this.editing = false
+            node.nodeInfo.style = node.element.style.cssText
+        })
 
         if (skipManager == false) this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
         this.addNodeEvents(this.graph.nodes[nodeInfo.id])
@@ -729,14 +844,34 @@ export class GraphEditor{
         if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
 
         // Place Node if Location is Provided
-        if (this.nextNode) {
+        if (top || left){
+            if (top) node.element.style.top = top[1]
+            if (left) node.element.style.left = left[1]
+        } else if (this.nextNode) {
             let rect = this.viewer.getBoundingClientRect()
-            node.element.style.top = `${this.nextNode.position.y - rect.top}px`
-            node.element.style.left = `${this.nextNode.position.x  - rect.left}px`
+            let position = this.mapPositionFromScale(this.nextNode.position, rect)
+            node.element.style.top = `${position.x}px`
+            node.element.style.left = `${position.y}px`
             this.nextNode = null
         }
 
+        node.nodeInfo.style = node.element.style.cssText // Set initial translation
+
         return node
+    }
+
+    mapPositionFromScale = (position, rect) => {
+        let relYPx = (position.y - rect.top)
+        let relXPx = (position.x - rect.left)
+        let relYPctMapped = (relYPx / rect.height) * (1/this.context.scale)
+        let relXPctMapped = (relXPx / rect.width) * (1/this.context.scale)
+        position.x = relYPctMapped * rect.height
+        position.y = relXPctMapped * rect.width
+        for (let key in position){
+            if (isNaN(position[key])) position[key] = 0
+        }
+        
+        return position
     }
 
     addNodeEvents(node){
@@ -756,173 +891,310 @@ export class GraphEditor{
             if (toParse == null) toParse = plugin.ports
 
             for (let key in toParse){
-                // Properly Nest Divs
-                let containerDiv = document.createElement('div')
-                containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
-                let inputContainer = document.createElement('div')
-                inputContainer.style.position = 'relative'
-
-                // Sort through Params
-                if (toParse[key].edit != false){
-
-                let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
-                if (typeof defaultType !== 'string') defaultType = defaultType.name
-
-                let specifiedOptions = toParse[key].options
-                let optionsType = typeof specifiedOptions
-
-                let input;
-
-
-                // Cannot Handle Objects or Elements
-                if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Object' && defaultType != 'Element'){
-
-                if (optionsType == 'object' && specifiedOptions != null){
-                        let options = ``
-                        toParse[key].options.forEach(option => {
-                            let attr = ''
-                            if (option === plugin.params[key]) attr = 'selected'
-                            options += `<option value="${option}" ${attr}>${option}</option>`
-                        })
-                        input = document.createElement('select')
-                        input.innerHTML = options
-                } else if (defaultType === 'boolean'){
-                    input = document.createElement('input')
-                    input.type = 'checkbox'
-                    input.checked = plugin.params[key]
-                } else if (defaultType === 'number'){
-                    if ('min' in toParse[key] && 'max' in toParse[key]){
-                        input = document.createElement('input')
-                        input.type = 'range'
-                        input.min = toParse[key].min
-                        input.max = toParse[key].max
-                        input.value = plugin.params[key]
-                        if (toParse[key].step) input.step = toParse[key].step
-                        let output = document.createElement('output')
-                        inputContainer.insertAdjacentElement('afterbegin',output)
-                        output.innerHTML = input.value
-                    } else {
-                        input = document.createElement('input')
-                        input.type = 'number'
-                        input.value = plugin.params[key]
-                    }
-                } else if (['Function', 'HTML', 'CSS'].includes(defaultType)){
-                    input = document.createElement('button')
-                    input.classList.add('brainsatplay-default-button')
-                    input.style.width = 'auto'
-                    input.innerHTML = `Edit ${defaultType}`
-                    
-                    let container = document.createElement('div')
-                    container.style = `
-                        width: 75vw;
-                        height: 75vh;
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        z-index: 1000;
-                        transform: translate(-50%, -50%)
-                    `
-                    
-                    document.body.insertAdjacentElement('beforeend', container)
-                    let settings = {}
-                    settings.onOpen = (res) => {
-                        container.style.pointerEvents = 'all'
-                        container.style.opacity = '1'
-                    }
-        
-                    settings.onSave = (res) => {
-                        this.manager.runSafe(plugin, key, [{data: res}])
-                    }
-        
-                    settings.onClose = (res) => {
-                        container.style.pointerEvents = 'none'
-                        container.style.opacity = '0'
-                    }
-
-                    if (defaultType === 'Function'){
-                        settings.language = 'javascript'
-                        settings.target = plugin.params
-                        settings.function = key
-                    } else {
-                        settings.language = defaultType.toLowerCase()
-                        settings.target = plugin.params[key]
-                    }
-
-                    settings.onClose()
-
-                    let editor
-                    input.onclick = () => {
-                        if (editor == null) editor = new LiveEditor(settings, container)
-                        else settings.onOpen()
-                    }
-                } else if (defaultType === 'file'){
-                    
-                    let text = 'Choose File'
-                    input = document.createElement('input')
-                    input.type = 'file'
-                    input.accept = toParse[key].input?.accept // Only in new format
-
-                    if (toParse[key].input?.multiple){
-                        input.multiple = true // Only in new format
-                        text = text + 's'
-                    }
-                    input.style.display = 'none'
-
-                    let button = document.createElement('button')
-                    button.classList.add('brainsatplay-default-button')
-                    button.innerHTML = text
-                    button.style.width = 'auto'
-                    button.onclick = () => {
-                        input.click()
-                    }
-                    inputContainer.insertAdjacentElement('beforeend',button)
-                }
-                else {
-                        input = document.createElement('input')
-                        // Check if Color String
-                        if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
-                            input.type = 'color'
-                        } else {
-                            input.type = 'text'
-                        }
-                        input.value = plugin.params[key]
-                }
-
-                // Add to Document
-                    inputContainer.insertAdjacentElement('beforeend',input)
-                    containerDiv.insertAdjacentElement('beforeend',inputContainer)
-                    containerDiv.classList.add(`content-div`)
-                    selectedParams.insertAdjacentElement('beforeend', containerDiv)
-                    
-
-                    // Change Live Params with Input Changes
-                    let changeFunc = (e) => {
-
-                        console.log(event.target.files)
-                        if (input.type === 'checkbox') plugin.params[key] = event.target.checked
-                        else if (input.type === 'file') plugin.params[key] = event.target.files;
-                        else if (['number','range'].includes(input.type)) plugin.params[key] = Number.parseFloat(input.value)
-                        else plugin.params[key] = input.value
-                        if (toParse[key] && toParse[key].onUpdate instanceof Function) toParse[key].onUpdate([{data: plugin.params[key]}])
-
-                        input.blur()
-                    }
-
-                    input.oninput = changeFunc
-                }
-            }
+                let inputContainer = this.createInput(toParse, key, plugin.params, plugin)
+                if (inputContainer) selectedParams.insertAdjacentElement('beforeend', inputContainer)
             }
 
 
             // Edit and Delete Buttons
-            document.getElementById(`${this.props.id}edit`).style.display = ''
             document.getElementById(`${this.props.id}delete`).style.display = ''
             document.getElementById(`${this.props.id}delete`).onclick = () => {
                 this.removeNode(node.nodeInfo)
             }
+            let edit = document.getElementById(`${this.props.id}edit`)
+            let editable = this.app.session.projects.checkIfSaveable(node.nodeInfo.class)
 
-            document.getElementById(`${this.props.id}edit`).onclick = (e) => {
+            if (editable){
+                edit.style.display = ''
+                edit.onclick = (e) => {
                 this.createFile(node.nodeInfo.class)
+            }} else edit.style.display = 'none'
+        }
+    }
+
+    createInput(toParse, key, toEdit, plugin){
+
+        // Properly Nest Divs
+        let containerDiv = document.createElement('div')
+        containerDiv.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+        let inputContainer = document.createElement('div')
+        inputContainer.style.position = 'relative'
+
+        // Sort through Params
+        if (toParse[key].edit != false){
+
+            let defaultType = toParse[key].input?.type ?? typeof toParse[key].default
+            if (typeof defaultType !== 'string' && defaultType.name) defaultType = defaultType.name
+
+            let specifiedOptions = toParse[key].options
+            let optionsType = typeof specifiedOptions
+
+            let input
+            
+
+            // console.log(defaultType)
+        // Cannot Handle Objects or Elements
+        if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Element'){
+
+
+            if (optionsType == 'object' && specifiedOptions != null){
+                    let options = ``
+                    toParse[key].options.forEach(option => {
+                        let attr = ''
+                        if (option === toEdit[key]) attr = 'selected'
+                        options += `<option value="${option}" ${attr}>${option}</option>`
+                    })
+                    input = document.createElement('select')
+                    input.innerHTML = options
+            } else if (defaultType === 'Array'){
+
+                let container = document.createElement('div')
+                container.style.width = '100%'
+                container.style.fontSize = `75%`
+
+                let insertOption = (v) => {
+                    let option = document.createElement('div')
+                    option.style.padding = '6px 0px'
+                    option.innerHTML = v
+                    this.addCloseIcon(option, () => {
+                        option.remove()
+                        toEdit[key].find((val,i) => {
+                            if (val === v){
+                                toEdit[key].splice(i,1)
+                            }
+                        })
+                    })
+                    container.insertAdjacentElement('beforeend',option)
+                }
+
+                input = document.createElement('div')
+                input.style.width = '100%'
+
+                toEdit[key].forEach(v => {
+                    insertOption(v)
+                })
+
+                let div = document.createElement('div')
+                div.style= `
+                    display: flex;
+                    align-items: center;
+                    width: 100%;
+                    flex-grow: 0;
+                `
+
+                let textInput = document.createElement('input')
+                textInput.type = 'text'
+                textInput.placeholder = 'Add tag'
+
+                let button = document.createElement('button')
+                button.classList.add('brainsatplay-default-button')
+                button.classList.add('addbutton')
+                button.innerHTML = `+`
+                button.onclick = () => {
+                    let set = new Set(toEdit[key])
+                    if (!set.has(textInput.value)){
+                        insertOption(textInput.value)
+                        toEdit[key].push(textInput.value)
+                    }
+                    textInput.value = ''
+                }
+
+                div.insertAdjacentElement('beforeend',textInput)
+                div.insertAdjacentElement('beforeend',button)
+                input.insertAdjacentElement('beforeend',container)
+                input.insertAdjacentElement('beforeend',div)
+
+
+            } else if (defaultType === 'boolean'){
+                input = document.createElement('input')
+                input.type = 'checkbox'
+                input.checked = toEdit[key]
+            } else if (defaultType === 'number'){
+                if ('min' in toParse[key] && 'max' in toParse[key]){
+                    input = document.createElement('input')
+                    input.type = 'range'
+                    input.min = toParse[key].min
+                    input.max = toParse[key].max
+                    if (toParse[key].step) input.step = toParse[key].step
+                    let output = document.createElement('output')
+                    inputContainer.insertAdjacentElement('afterbegin',output)
+                    input.value = toEdit[key]
+                    output.innerHTML = input.value
+                } else {
+                    input = document.createElement('input')
+                    input.type = 'number'
+                    input.value = toEdit[key]
+                }
+            } else if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)){
+                input = document.createElement('button')
+                input.classList.add('brainsatplay-default-button')
+                input.style.width = 'auto'
+                input.innerHTML = `Edit ${defaultType}`
+                
+                let container = document.createElement('div')
+                container.style = `
+                    width: 75vw;
+                    height: 75vh;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    z-index: 1000;
+                    transform: translate(-50%, -50%)
+                `
+                
+                document.body.insertAdjacentElement('beforeend', container)
+                let settings = {}
+                settings.onOpen = (res) => {
+                    container.style.pointerEvents = 'all'
+                    container.style.opacity = '1'
+                }
+    
+                settings.onSave = (res) => {
+                    if (defaultType === 'Function') res = res[key]
+                   if (plugin) this.manager.runSafe(plugin, key, [{data: res}])
+                   this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
+                }
+    
+                settings.onClose = (res) => {
+                    container.style.pointerEvents = 'none'
+                    container.style.opacity = '0'
+                }
+
+                if (defaultType === 'Function'){
+                    settings.language = 'javascript'
+                } else {
+                    settings.language = defaultType.toLowerCase()
+                }
+                settings.target = toEdit
+                settings.key = key
+
+                settings.onClose()
+
+                let editor
+                input.onclick = () => {
+                    if (editor == null) editor = new LiveEditor(settings, container)
+                    else settings.onOpen()
+                }
+            } else if (defaultType === 'file'){
+                
+                let text = 'Choose File'
+                input = document.createElement('input')
+                input.type = 'file'
+                input.accept = toParse[key].input?.accept // Only in new format
+
+                if (toParse[key].input?.multiple){
+                    input.multiple = true // Only in new format
+                    text = text + 's'
+                }
+                input.style.display = 'none'
+
+                // Add image display
+                let button = document.createElement('button')
+                let img = document.createElement('img')
+                button.classList.add('brainsatplay-default-button')
+                button.innerHTML = text
+                button.style.width = 'auto'
+
+                if (input.accept.includes('image')){
+                    img.style = `
+                        max-width: 50%;
+                        cursor: pointer;
+                    `
+
+                    input.addEventListener('input', () => {
+                        let file = input.files[0]
+                        if (file){
+                            var reader = new FileReader();
+                            reader.onloadend = () => {
+                                toEdit[key] = reader.result
+                                if (toEdit[key]) {
+                                    img.src = toEdit[key]
+                                    img.style.display = ''
+                                    button.style.display = 'none'
+                                } else {
+                                    img.style.display = 'none'
+                                    button.style.display = ''
+                                }
+                            }
+                            reader.readAsDataURL(file);
+                        }
+                    })
+                } 
+                
+                if (toEdit[key] != null){
+                    img.src = toEdit[key]
+                    img.style.display = ''
+                    button.style.display = 'none'
+                } else {
+                    img.style.display = 'none'
+                    button.style.display = ''
+                }
+
+                inputContainer.insertAdjacentElement('beforeend',img)
+                inputContainer.insertAdjacentElement('beforeend',button)
+
+                img.onclick = button.onclick = () => {
+                    input.click()
+                    button.blur()
+                }
+            }
+            else {
+                    input = document.createElement('input')
+                    // Check if Color String
+                    if (/^#[0-9A-F]{6}$/i.test(toParse[key].default)){
+                        input.type = 'color'
+                    } else {
+                        input.type = 'text'
+                    }
+                    input.value = toEdit[key]
+            }
+
+            // Add to Document
+                inputContainer.insertAdjacentElement('beforeend',input)
+                containerDiv.insertAdjacentElement('beforeend',inputContainer)
+                containerDiv.classList.add(`content-div`)                
+
+                // Change Live Params with Input Changes
+                let changeFunc = (e) => {
+                    if (this.elementTypesToUpdate.includes(input.tagName)){
+                        if (input.type === 'checkbox') toEdit[key] = input.checked
+                        else if (input.type === 'file') toEdit[key] = input.files;
+                        else if (['number','range'].includes(input.type)) {
+                            toEdit[key] = Number.parseFloat(input.value)
+                            if (input.type === 'range') {
+                                input.parentNode.querySelector('output').innerHTML = input.value
+                            }
+                        }
+                        else toEdit[key] = input.value
+                        if (plugin && toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: toEdit[key], forceUpdate: true}])
+                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
+                    }
+                }
+
+                input.oninput = changeFunc
+
+                // Listen for Non-GUI Changes to Params when Viewing
+                delete this.state.data[`activeGUINode`]
+                this.state.addToState(`activeGUINode`, toEdit, () => {
+
+                    let oldValue
+                    let newValue
+                    if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
+                        if (input.type === 'checkbox') {
+                            oldValue = input.checked
+                            input.checked = toEdit[key]
+                            newValue = input.checked
+                        }
+                        else {
+                            oldValue = input.value
+                            input.value = toEdit[key]
+                            newValue = input.value
+                        }
+                    }
+                    
+                    if (oldValue != newValue) changeFunc()
+                })
+                return containerDiv
             }
         }
     }
@@ -931,10 +1203,14 @@ export class GraphEditor{
         if (name == null || name === '') name = `${target.name}`
         let filename = `${name}.js`
 
-        let node 
-        this.plugins.nodes.forEach(n => {
-            if (n.class.id == target.id) node = n
-        })
+        let getNode = (target) => {
+            return this.plugins.nodes.find(n => {
+                if (n.class.id == target.id) return n
+            })
+        }
+
+         let activeNode = getNode(target)
+        
 
         if (this.files[filename] == null){
             this.files[filename] = {}
@@ -950,26 +1226,29 @@ export class GraphEditor{
             settings.onSave = (cls) => {
                 let instanceInfo = this.manager.instantiateNode({id:cls.name,class: cls})
                 let instance = instanceInfo.instance
-                        Object.getOwnPropertyNames( instance ).forEach(k => {
-                            if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
-                                node.instance[k] = instance[k]
-                            }
 
-                            if (k === 'ports'){
-                                for (let port in instance.ports){
-                                    if (node.instance.ports[port] == null) node.instance.ports[port] = instance.ports[port]
-                                    else {
-                                        let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
-                                        keys.forEach(str => {
-                                            node.instance.ports[port][str] = instance.ports[port][str]
-                                        })
-                                    }
+                if (activeNode){
+                    Object.getOwnPropertyNames( instance ).forEach(k => {
+                        if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
+                            activeNode.instance[k] = instance[k]
+                        }
+
+                        if (k === 'ports'){
+                            for (let port in instance.ports){
+                                if (activeNode.instance.ports[port] == null) activeNode.instance.ports[port] = instance.ports[port]
+                                else {
+                                    let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
+                                    keys.forEach(str => {
+                                        activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                    })
                                 }
                             }
-                        })
+                        }
+                    })
 
-                // Set New Class
-                node.class = cls
+                    // Set New Class
+                    activeNode.class = cls
+                }
                 cls.id = container.id // Assign a reliable id to the class
                 target = cls // Update target replacing all matching nodes
             }
@@ -998,8 +1277,15 @@ export class GraphEditor{
 
             this.saveFileEvent(filename, onsave)
 
+            if (activeNode == null){
+                onsave()
+                this.clickTab(this.files['Graph Editor'].tab)
+                this.addNode({class:target})
+                activeNode = getNode(target)
+            }
+
             // Add Option to Selector
-            this.addNodeOption({id:target.id, label: target.name, class:target}, 'custom', () => {
+            this.addNodeOption({id:target.id, label: target.name, class:target}, null, () => {
                 this.addNode({class:target})
                 this.selectorToggle.click()
             })
@@ -1035,15 +1321,15 @@ export class GraphEditor{
     }
  
 
-    createPluginSearch = (container) => {
+    createPluginSearch = async (container) => {
         let selector = document.createElement('div')
         selector.id = `${this.props.id}nodeSelector`
         selector.style.opacity = '0'
         selector.style.pointerEvents = 'none'
         selector.classList.add(`brainsatplay-node-selector`)
 
-        let selectorMenu = document.createElement('div')
-        selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
+        this.selectorMenu = document.createElement('div')
+        this.selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
         this.selectorToggle = document.getElementById(`${this.props.id}add`)
 
@@ -1064,13 +1350,13 @@ export class GraphEditor{
                 document.addEventListener('click', toggleVisibleSelector)
             }
         })
-        selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Search"></input><div class="node-options"></div>`)
-        selector.insertAdjacentElement('beforeend',selectorMenu)
+        this.selectorMenu.insertAdjacentHTML('beforeend',`<input type="text" placeholder="Search"></input><div class="node-options"></div>`)
+        selector.insertAdjacentElement('beforeend',this.selectorMenu)
         container.insertAdjacentElement('afterbegin',selector)
 
         // Populate Available Nodes
         let nodeDiv = document.createElement('div')
-        this.search = selectorMenu.getElementsByTagName(`input`)[0]
+        this.search = this.selectorMenu.getElementsByTagName(`input`)[0]
 
 
         // Allow Search of Plugins
@@ -1078,12 +1364,14 @@ export class GraphEditor{
             this.matchOptions()
         }
 
-        this.classRegistry = Object.assign({}, plugins)
+        this.library = await this.app.session.projects.getLibraryVersion(this.app.info.version)
+        this.classRegistry = Object.assign({}, this.library.plugins)
         this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class:Plugin}, undefined, () => {
-            this.createFile(Plugin, this.search.value)
+        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Plugin}, null, () => {
+            this.createFile(this.library.plugins.Plugin, this.search.value)
+            // this.addNode({class:this.library.plugins.Plugin})
             this.selectorToggle.click()
         })
 
@@ -1091,17 +1379,17 @@ export class GraphEditor{
         for (let type in this.classRegistry){
             let nodeType = this.classRegistry[type]
 
-            for (let key in nodeType){
-                let cls = this.classRegistry[type][key]
-                if (cls.hidden != true){
-                    if (!usedClasses.includes(cls.id)){
-                        // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                        this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
-                            this.addNode({class:cls})
-                            this.selectorToggle.click()
-                        })
-                        usedClasses.push(cls)
-                    }
+            if (typeof nodeType === 'object'){ // Skip classes
+                for (let key in nodeType){
+                    let cls = this.classRegistry[type][key]
+                        if (!usedClasses.includes(cls.id)){
+                            // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
+                            this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
+                                this.addNode({class:cls})
+                                this.selectorToggle.click()
+                            })
+                            usedClasses.push(cls)
+                        }
                 }
             }
         }
@@ -1110,7 +1398,7 @@ export class GraphEditor{
             let cls = n.class
             if (!usedClasses.includes(cls)){
                 this.classRegistry['custom'][cls.name] = cls
-                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, 'custom', () => {
+                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, null, () => {
                     this.addNode({class:cls})
                     this.selectorToggle.click()
                 })
@@ -1118,28 +1406,51 @@ export class GraphEditor{
             }
         })
 
-        selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
+        this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
         this.responsive()
     }
 
     matchOptions = () => {
-        let regex = new RegExp(this.search.value, 'i')
+        let regex = new RegExp(`^${this.search.value}`, 'i')
+
+        let matchedHeaderTypes = []
+
+        // Show Matching Headers
+        let headers = this.selectorMenu.querySelectorAll('.brainsatplay-option-type')
+        for (let header of headers){
+            for (let cls of header.classList){
+                if (cls.includes('nodetype-')){
+                    let type = cls.replace('nodetype-','')
+                    let labelMatch = regex.test(type)
+                    if (labelMatch) {
+                        matchedHeaderTypes.push(type)
+                    }
+                }
+            }
+        }
+
         this.searchOptions.forEach(o => {
 
             let change = 0
             let show = false
             let parent = o.element.parentNode
+            let nodetype = Array.from(o.element.parentNode.classList).find(cls => cls.includes('nodetype-'))
+            nodetype = nodetype.replace('nodetype-','')
 
             if (this.search.value !== ''){
-                // Check Label
-                let labelMatch = regex.test(o.label)
-                if (labelMatch || o.label == 'Add New Plugin') show = true
-                
-                // Check Types
-                o.types.forEach(type => {
-                    let typeMatch = regex.test(type)
-                    if (typeMatch) show = true
-                })
+
+                if (matchedHeaderTypes.includes(nodetype)) show = true // Show header if matched
+                else {
+                    // Check Label
+                    let labelMatch = regex.test(o.label)
+                    if (labelMatch || o.label == 'Add New Plugin') show = true
+                    
+                    // Check Types
+                    o.types.forEach(type => {
+                        let typeMatch = regex.test(type)
+                        if (typeMatch) show = true
+                    })
+                }
 
                 if (show && o.element.style.display === 'none') {
                     o.element.style.display = ''
@@ -1160,29 +1471,30 @@ export class GraphEditor{
 
                 // Open/Close Dropdown
                 if (parent.previousElementSibling){
-                    if (numMatching === 0 || this.search.value === '') {
-                        parent.previousElementSibling.classList.remove('active') // Close dropdown
-                        parent.style.maxHeight = null
-
-                        // Also Show/Hide Toggle
-                        if (numMatching === 0) parent.previousElementSibling.style.display = 'none'
-                        else parent.previousElementSibling.style.display = ''
-                    } else if (show) {
+                    if (show) {
                         parent.previousElementSibling.classList.add("active");
                         parent.style.maxHeight = parent.scrollHeight + "px";
+                    } else if (numMatching === 0 || this.search.value === '') {
+                        parent.previousElementSibling.classList.remove('active') // Close dropdown
+                        parent.style.maxHeight = null
                     }
+
+                    // Also Show/Hide Toggle
+                    if (!show && numMatching === 0) parent.previousElementSibling.style.display = 'none'
+                    else parent.previousElementSibling.style.display = ''
                 }
             }
         })
     }
 
     addNodeOption(classInfo, type, onClick){
+
         let id = classInfo.id
         let label = classInfo.label
         if (('class' in classInfo)) classInfo = classInfo.class
 
-        let options = document.querySelector('.brainsatplay-node-selector-menu').querySelector(`.node-options`)
-        let contentOfType = options.querySelector(`.nodetype-${type}`)
+        let options = this.selectorMenu.querySelector(`.node-options`)
+        let contentOfType = options.querySelector(`.option-type-content.nodetype-${type}`)
         if (contentOfType == null) {
 
             contentOfType = document.createElement('div')
@@ -1194,6 +1506,7 @@ export class GraphEditor{
                 selectedType.innerHTML = type[0].toUpperCase() + type.slice(1)
                 selectedType.classList.add(`brainsatplay-option-type`)
                 selectedType.classList.add(`option-type-collapsible`)
+                selectedType.classList.add(`nodetype-${type}`)
 
                 let count = document.createElement('div')
                 count.classList.add('count')
@@ -1214,6 +1527,7 @@ export class GraphEditor{
             element.classList.add("brainsatplay-option-node")
             element.classList.add(`${id}`)
             element.innerHTML = `<p>${label}</p>`
+            
             element.onclick = () => {
                 onClick()
                 document.getElementById(`${this.props.id}add`).click() // Close menu
@@ -1222,21 +1536,26 @@ export class GraphEditor{
             // element.insertAdjacentElement('beforeend',labelDiv)
             contentOfType.insertAdjacentElement('beforeend',element)
 
-            // Add Instance Details to Plugin Registry
-            let types = new Set()
-            let o = this.app.session.graph.instantiateNode({class:classInfo})
-            let instance = o.instance
-            for(let port in instance.ports){
-                let type = instance.ports[port].input.type
-                if (type instanceof Object) types.add(type.name)
-                else types.add(type)
+            if (classInfo.hidden && !this.local) element.remove()
+            else {
+                if (classInfo.hidden) element.classList.add("experimental")
+           
+
+                // Add Instance Details to Plugin Registry
+                let types = new Set()
+                let ports = this.app.session.graph.getPortsFromClass({class:classInfo})
+                for(let port in ports){
+                    let type = ports[port].input.type
+                    if (type instanceof Object) types.add(type.name)
+                    else types.add(type)
+                }
+
+                this.searchOptions.push({label, element, types, category: type})
+                if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
+
+                let count = options.querySelector(`.${type}-count`)
+                if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
             }
-
-            this.searchOptions.push({label, element, types, category: type})
-            if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
-
-            let count = options.querySelector(`.${type}-count`)
-            if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
         }
     }
 

@@ -10,6 +10,7 @@ import expandSVG from '../../assets/expand-arrows-alt-solid.svg'
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 
 import {Application} from '../../../libraries/js/src/Application'
+import { Dropdown } from "../../../libraries/js/src/utils/Dropdown";
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {
@@ -165,7 +166,6 @@ export class AppletManager {
         applets.style.display = 'grid'
         applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
         applets.style.width = 'calc(100vw - 75px)'
-
     }
 
     initUI = () => { }
@@ -365,14 +365,6 @@ export class AppletManager {
         let appletIdx = appnode.appletIdx - 1
 
         // Brains@Play Default Overlays
-
-        // let thisApplet = this.applets.find(o => {
-        //     if (o.appletIdx === appletIdx){
-        //         return o.classinstance
-        //     }
-        // })
-        // console.log(thisApplet)
-
         if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
         {
 
@@ -386,45 +378,162 @@ export class AppletManager {
             if (!appletManifest[appletName].folderUrl.includes('/UI/')) {
                 getAppletSettings(appletManifest[appletName].folderUrl).then(appletSettings => {
 
-                    var div = document.createElement('div');
+                    var container = document.createElement('div');
+                    container.id = `${appletDiv.id}-brainsatplay-default-ui`
+                    container.classList.add('brainsatplay-default-interaction-menu')
+                    appletDiv.insertAdjacentElement('beforeend', container);
+
+                    let instance
+                    let headers = [{label: 'Applet Menu', id:'options-menu'}]
+                    let options = [
+                        {header: 'options-menu', content: '<div class="toggle">i</div><p>Info</p>', onclick: (el) => {
+                            if (infoMask.style.opacity != 0) {
+                                infoMask.style.opacity = 0
+                                infoMask.style.pointerEvents = 'none'
+                            } else {
+                                infoMask.style.opacity = 1
+                                infoMask.style.pointerEvents = 'auto'
+                                appletMask.style.opacity = 0;
+                                appletMask.style.pointerEvents = 'none';
+                            }
+                        }},
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${nodeSVG}"></div><p>Edit</p>`, id:"brainsatplay-visual-editor", onload: (el)=> {                    
+                            if (!(appnode.classinstance instanceof Application)) el.style.display = 'none'
+                        }, onclick: (el) => {
+                            console.log('toggling')
+                        }},
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, id:"brainsatplay-browser", onclick: async (el) => {
+                                if (appletMask.style.opacity != 0) {
+                                    appletMask.style.opacity = 0
+                                    appletMask.style.pointerEvents = 'none'
+                                } else {
+                                    appletMask.style.opacity = 1
+                                    appletMask.style.pointerEvents = 'auto'
+                                    infoMask.style.opacity = 0;
+                                    infoMask.style.pointerEvents = 'none';
+                                    if (instance == null) {
+                                        getAppletSettings(appletManifest['Applet Browser'].folderUrl).then((browser) => {
+                                           
+                                            let config = {
+                                                hide: [],
+                                                applets: Object.keys(appletManifest).map(async (key) => {
+                                                    return await getAppletSettings(appletManifest[key].folderUrl)
+                                                }),
+                                                presets: presetManifest,
+        
+                                                // OLD
+                                                appletIdx: appletIdx,
+                                                showPresets: false,
+                                                displayMode: 'tight'
+                                            }
+        
+                                            Promise.all(config.applets).then((resolved) => {
+                                                config.applets=resolved
+                                                let instance  = new Application(browser, appletMask, this.session, [config])
+
+                                              // FIX
+                                                instance.init()
+                                                
+                                                thisApplet.deinit = (() => {
+                                                    var defaultDeinit = thisApplet.deinit;
+                                                
+                                                    return function() {    
+                                                        instance.deinit()
+                                                        appletDiv.querySelector(`.option-brainsatplay-browser`).click()                              
+                                                        let result = defaultDeinit.apply(this, arguments);                              
+                                                        return result;
+                                                    };
+                                                })()
+                                            })
+                                        })
+                                    }
+                                }
+                        }},
+                        
+                        // {header: 'options-menu', content: `Drag`, onload: (el) => {
+                        //     let swapped = null
+                        //     el.classList.add("draggable")
+                        //     console.log(el)
+                        //     el.addEventListener('dragstart', () => {
+                        //         appletDiv.classList.add("dragging")
+                        //         console.log('dragging')
+                        //     })
+                        //     el.addEventListener('dragend', () => {
+                        //         appletDiv.classList.remove("dragging")
+                        //     })
+                    
+                        //     appletDiv.addEventListener('dragover', (e) => {
+                        //         e.preventDefault()
+                        //         if (this.prevHovered != appletDiv){
+                        //             let dragging = document.querySelector('.dragging')
+                        //             if (dragging){
+                        //                 let draggingGA = dragging.style.gridArea
+                        //                 let hoveredGA = appletDiv.style.gridArea
+                        //                 appletDiv.style.gridArea = draggingGA
+                        //                 dragging.style.gridArea = hoveredGA
+                        //                 this.responsive()
+                        //                 this.prevHovered = appletDiv
+                        //                 if (appletDiv != dragging){
+                        //                     this.lastSwapped = appletDiv
+                        //                 }
+                        //             }
+                        //         }
+                        //         appletDiv.classList.add('hovered')
+                        //     })
+                    
+                        //     appletDiv.addEventListener('dragleave', (e) => {
+                        //         e.preventDefault()
+                        //         appletDiv.classList.remove('hovered')
+                        //     })
+                    
+                        //     appletDiv.addEventListener("drop", (event) => {
+                        //         event.preventDefault();
+                        //         if (this.lastSwapped){
+                        //         let dragging = document.querySelector('.dragging')
+                        //         let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                        //             let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
+                        //             let _temp = draggingApplet.appletIdx;
+                        //             draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
+                        //             lastSwappedApplet.appletIdx = _temp;
+                        //             this.showOptions()
+                        //         }
+
+                        //         for (let hovered of document.querySelectorAll('.hovered')){
+                        //             hovered.classList.remove('hovered')
+                        //         }
+                                
+                        //     }, false);
+                        // }},
+                        {header: 'options-menu', content: `<div class="toggle"><img src="${expandSVG}"></div><p>Toggle Fullscreen</p>`, onclick: (el) => {
+                            const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                            if (!fullscreenElement) {
+                                if (appletDiv.requestFullscreen) {
+                                    appletDiv.requestFullscreen()
+                                } else if (appletDiv.webkitRequestFullscreen) {
+                                    appletDiv.webkitRequestFullscreen()
+                                }
+                            } else {
+                                if (document.exitFullscreen) {
+                                    document.exitFullscreen()
+                                } else if (document.webkitExitFullscreen) {
+                                    document.webkitExitFullscreen()
+                                }
+                            }
+                        }},
+                        {header: 'options-menu', content: `<div class="toggle">?</div><p>Show Tutorial</p>`, onload: (el) => {
+                            
+                            if (thisApplet.tutorialManager != null) {
+                                thisApplet.tutorialManager.clickToOpen(el)
+                            } else {
+                                el.remove()
+                            }
+            
+                        }},
+                    ]
+
+                    let dropdown = new Dropdown(container, headers, options, {hidden: true})
 
                     let htmlString = `
-            <div id="${appletDiv.id}-brainsatplay-default-ui" class="brainsatplay-default-interaction-menu" style="position: absolute; right: 0px; top: 0px; padding: 15px 15px 30px 30px; font-size: 80%; display:flex; z-index: 1000; opacity: 0.0;" onMouseOver="this.style.opacity = 1;" onMouseOut="this.style.opacity = 0.0;">
-                <div class="brainsatplay-default-info-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <p><strong>i</strong></p>
-                </div>
-                <div class="brainsatplay-default-editor-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <img src="${nodeSVG}" 
-                    style="box-sizing: border-box; 
-                    filter: invert(1);
-                    cursor: pointer;
-                    padding: 7px;">
-                </div>
-                <div class="brainsatplay-default-applet-toggle" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <img src="${appletSVG}" 
-                    style="box-sizing: border-box; 
-                    filter: invert(1);
-                    cursor: pointer;
-                    padding: 7px;">
-                </div>
-                <div class="brainsatplay-default-drag-icon"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <img src="${dragSVG}" 
-                    style="box-sizing: border-box; 
-                    filter: invert(1);
-                    cursor: pointer;
-                    padding: 7px;">
-                </div>
-                <div class="brainsatplay-default-fullscreen-icon"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <img src="${expandSVG}" 
-                    style="box-sizing: border-box; 
-                    filter: invert(1);
-                    cursor: pointer;
-                    padding: 7px;">
-                </div>
-                <div class="brainsatplay-default-help-toggle"  style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 25px; height: 25px; border: 1px solid white; border-radius: 50%; margin: 2.5px; background: black;">
-                    <p><strong>?</strong></p>
-                </div>
-            </div>
             <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
             </div>
             <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%; overflow: scroll;">
@@ -448,171 +557,15 @@ export class AppletManager {
                     let defaultUI = appletDiv.querySelector(`.brainsatplay-default-interaction-menu`)
 
                     // Flash UI
-                    defaultUI.style.WebkitTransition = 'opacity 3s';
-                    defaultUI.style.MozTransition = 'opacity 3s';
                     setTimeout(() => {
                         defaultUI.style.opacity = 1.0
                     setTimeout(() => {
-                        defaultUI.style.opacity = 0.0
-                        setTimeout(() => {
-                            defaultUI.style.MozTransition = 'opacity 0.5s';
-                            defaultUI.style.WebkitTransition = 'opacity 0.5s';
-                        }, 1000) // Wait to Reset Transition Time (on hover)
+                        defaultUI.style.opacity = ''
                     }, 3000) // Wait to Fade Out 
                 }, 1000)
 
-                    let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
-                    let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
-                    let dragIcon = appletDiv.querySelector('.brainsatplay-default-drag-icon')
-                    let fullscreenIcon = appletDiv.querySelector('.brainsatplay-default-fullscreen-icon')
-                    let editorIcon = appletDiv.querySelector('.brainsatplay-default-editor-toggle')
-
-
-                    if (!(appnode.classinstance instanceof Application)) editorIcon.style.display = 'none'
-
-
-                    let instance = null;
-                    appletDiv.querySelector('.brainsatplay-default-applet-toggle').onclick = async (e) => {
-                        if (appletMask.style.opacity != 0) {
-                            appletMask.style.opacity = 0
-                            appletMask.style.pointerEvents = 'none'
-                        } else {
-                            appletMask.style.opacity = 1
-                            appletMask.style.pointerEvents = 'auto'
-                            infoMask.style.opacity = 0;
-                            infoMask.style.pointerEvents = 'none';
-                            if (instance == null) {
-                                await getApplet(await getAppletSettings(appletManifest['Applet Browser'].folderUrl)).then((browser) => {
-                                   
-                                    let config = {
-                                        hide: [],
-                                        applets: Object.keys(appletManifest).map(async (key) => {
-                                            return await getAppletSettings(appletManifest[key].folderUrl)
-                                        }),
-                                        presets: presetManifest,
-
-                                        // OLD
-                                        appletIdx: appletIdx,
-                                        showPresets: false,
-                                        displayMode: 'tight'
-                                    }
-
-                                    Promise.all(config.applets).then((resolved) => {
-                                        config.applets=resolved
-                                        let instance = new browser(appletMask, this.session, [config])
-
-                                      // FIX
-                                        instance.init()
-
-                                        thisApplet.deinit = (() => {
-                                            var defaultDeinit = thisApplet.deinit;
-                                        
-                                            return function() {    
-                                                instance.deinit()
-                                                appletDiv.querySelector('.brainsatplay-default-applet-toggle').click()                              
-                                                let result = defaultDeinit.apply(this, arguments);                              
-                                                return result;
-                                            };
-                                        })()
-                                    })
-                                })
-                            }
-                        }
-                    }
-
-                    let infoToggle = appletDiv.querySelector('.brainsatplay-default-info-toggle')
-                    infoToggle.onclick = (e) => {
-                        if (infoMask.style.opacity != 0) {
-                            infoMask.style.opacity = 0
-                            infoMask.style.pointerEvents = 'none'
-                        } else {
-                            infoMask.style.opacity = 1
-                            infoMask.style.pointerEvents = 'auto'
-                            appletMask.style.opacity = 0;
-                            appletMask.style.pointerEvents = 'none';
-                        }
-                    }
-
-                    let tutorialButton = appletDiv.querySelector('.brainsatplay-default-help-toggle')
-                    if (thisApplet.tutorialManager != null) {
-                        thisApplet.tutorialManager.clickToOpen(tutorialButton)
-                    } else {
-                        tutorialButton.remove()
-                    }
-            
-                    // Drag functionality
-                    // appletDiv.draggable = true
-
-                    let swapped = null
-                    dragIcon.classList.add("draggable")
-                    dragIcon.addEventListener('dragstart', () => {
-                        appletDiv.classList.add("dragging")
-                    })
-                    dragIcon.addEventListener('dragend', () => {
-                        appletDiv.classList.remove("dragging")
-                    })
-            
-                    appletDiv.addEventListener('dragover', (e) => {
-                        e.preventDefault()
-                        if (this.prevHovered != appletDiv){
-                            let dragging = document.querySelector('.dragging')
-                            if (dragging){
-                                let draggingGA = dragging.style.gridArea
-                                let hoveredGA = appletDiv.style.gridArea
-                                appletDiv.style.gridArea = draggingGA
-                                dragging.style.gridArea = hoveredGA
-                                this.responsive()
-                                this.prevHovered = appletDiv
-                                if (appletDiv != dragging){
-                                    this.lastSwapped = appletDiv
-                                }
-                            }
-                        }
-                        appletDiv.classList.add('hovered')
-                    })
-            
-                    appletDiv.addEventListener('dragleave', (e) => {
-                        e.preventDefault()
-                        appletDiv.classList.remove('hovered')
-                    })
-            
-                    appletDiv.addEventListener("drop", (event) => {
-                        event.preventDefault();
-                        if (this.lastSwapped){
-                        let dragging = document.querySelector('.dragging')
-                        let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
-                            let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
-                            let _temp = draggingApplet.appletIdx;
-                            draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
-                            lastSwappedApplet.appletIdx = _temp;
-                            this.showOptions()
-                        }
-
-                        for (let hovered of document.querySelectorAll('.hovered')){
-                            hovered.classList.remove('hovered')
-                        }
-                        
-                    }, false);
-            
-                    // Fullscreen Functionality
-                    fullscreenIcon.addEventListener('click', () => {
-                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-                        if (!fullscreenElement) {
-                            if (appletDiv.requestFullscreen) {
-                                appletDiv.requestFullscreen()
-                            } else if (appletDiv.webkitRequestFullscreen) {
-                                appletDiv.webkitRequestFullscreen()
-                            }
-                        } else {
-                            if (document.exitFullscreen) {
-                                document.exitFullscreen()
-                            } else if (document.webkitExitFullscreen) {
-                                document.webkitExitFullscreen()
-                            }
-                        }
-                    });
-
-
+                let appletMask = appletDiv.querySelector('.brainsatplay-default-applet-mask')
+                let infoMask = appletDiv.querySelector('.brainsatplay-default-info-mask')
                 })
             }
         }
@@ -641,8 +594,6 @@ export class AppletManager {
         return new Promise(resolve => {
             let parentNode = document.getElementById("applets")
             if (appletCls === Application){
-                resolve(new Application(info, parentNode, this.session, config))
-            } else {
                 if (info.name === 'Applet Browser'){
                     config = {
                         hide: [],
@@ -653,11 +604,13 @@ export class AppletManager {
                     }
                     Promise.all(config.applets).then((resolved) => {
                         config.applets=resolved
-                        resolve(new appletCls(parentNode, this.session, [config], info))
+                        resolve(new Application(info, parentNode, this.session, [config]))
                     })
                 } else {
-                    resolve(new appletCls(parentNode, this.session, config))
+                    resolve(new Application(info, parentNode, this.session, config))
                 }
+            } else {
+                resolve(new appletCls(parentNode, this.session, config))
             }
         })
     }
@@ -692,6 +645,7 @@ export class AppletManager {
                 }
             })
             this.appletsSpawned++;
+
             this.enforceLayout();
             this.responsive();
         }

@@ -9,27 +9,34 @@ export class DataManager{
         this.paramOptions = {}
 
         this.ports = {
-            default:{},
-            log:{},
-            get:{},
-            csv:{},
-            latest:{},
+            log:{
+                input: {type: undefined},
+                output: {type: null},
+            },
+            get:{
+                input: {type: 'boolean'},
+                output: {type: Object},
+            },
+            csv:{
+                input: {type: 'boolean'},
+                output: {type: null},
+            },
+            latest:{
+                input: {type: 'boolean'},
+                output: {type: Object},
+            },
         }
 
         this.props = {}
     }
 
     init = () => {
-        if (this.ports.latest.active){
-            this.session.graph.runSafe(this,'latest',[{data: true, meta: `${this.label}_init`}])
+        if (this.ports.latest.output.active){
+            this.session.graph.runSafe(this,'latest',[{data: true}])
         }
     }
 
     deinit = () => {}
-
-    default = (userData) => {
-        this.session.atlas.graph.runSafe(this,'log', userData)
-    }
 
     log = (userData) => {
         let u = userData[0]
@@ -50,8 +57,7 @@ export class DataManager{
     csv = (userData) => {
         let trigger = userData[0].data
         if (trigger) {
-            // this.session.dataManager.writeToCSV()
-            this.session.dataManager.saveEEGdata()
+            this.session.dataManager.save()
         }
     }
 

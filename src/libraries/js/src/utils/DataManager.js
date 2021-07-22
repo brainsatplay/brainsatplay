@@ -28,7 +28,6 @@ const BFSBuffer = BrowserFS.BFSRequire('buffer').Buffer;
 export class DataManager {
     constructor(session=new Session(), onload = this.onload) {
         this.session = session;
-        this.atlas = this.session.atlas;
         this.state = new StateManager({
             autosaving: true,
             saveChunkSize: 2000,
@@ -55,21 +54,32 @@ export class DataManager {
     }
 
     readyHEGDataForWriting = (from=0,to='end') => {
-        let data = this.atlas.readyHEGDataForWriting(from,to);
+        let data = this.session.atlas.readyHEGDataForWriting(from,to);
         return data;
     }
 
     readyEEGDataForWriting = (from=0,to='end',getFFTs=true) => {
-        let data = this.atlas.readyEEGDataForWriting(from,to,getFFTs);
+        let data = this.session.atlas.readyEEGDataForWriting(from,to,getFFTs);
+        // console.log(data)
         return data;
     }
 
     saveHEGdata = (from=0,to='end') => {
-        CSV.saveCSV(this.atlas.readyHEGDataForWriting(from,to),this.toISOLocal(new Date())+"_heg");
+        let data = this.session.atlas.readyHEGDataForWriting(from,to)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date())+"_heg");
     }
 
     saveEEGdata = (from=0,to='end',getFFTs=true) => {
-        CSV.saveCSV(this.atlas.readyEEGDataForWriting(from,to,getFFTs),this.toISOLocal(new Date())+"_eeg");
+        let data = this.session.atlas.readyEEGDataForWriting(from,to,getFFTs)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date())+"_eeg");
+    }
+
+    save = (from=0,to='end',getFFTs=true) => { 
+        let data = this.session.atlas.readyDataForWriting(from,to,getFFTs)
+        data = data.join('')
+        CSV.saveCSV(data,this.toISOLocal(new Date()));
     }
 
     mean(arr){
@@ -313,10 +323,10 @@ export class DataManager {
 
                         if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
                             this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "eeg_" + deviceName+deviceIdx;
-                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                                if (e) throw e;
-                                this.listFiles();
-                            }); //+"_c"+State.data.sessionChunks
+                            // fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                            //     if (e) throw e;
+                            //     this.listFiles();
+                            // }); //+"_c"+State.data.sessionChunks
                         } 
                         console.log(deviceName)
                         this.session.subscribe(deviceIdx, thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
@@ -354,10 +364,10 @@ export class DataManager {
                         
                         if (this.state.data['sessionName'+deviceName+deviceIdx] === '') { 
                             this.state.data['sessionName'+deviceName+deviceIdx] = this.toISOLocal(new Date()) + "heg_" + deviceName+deviceIdx;
-                            fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
-                                if (e) throw e;
-                                this.listFiles();
-                            }); //+"_c"+State.data.sessionChunks
+                            // fs.appendFile('/data/' + this.state.data['sessionName'+deviceName+deviceIdx], '', (e) => {
+                            //     if (e) throw e;
+                            //     this.listFiles();
+                            // }); //+"_c"+State.data.sessionChunks
                             
                         }   
                         this.session.subscribe(deviceIdx, hegindex, undefined, (row) => {
@@ -482,11 +492,12 @@ export class DataManager {
         }
     }
 
-    saveFileText(text, path){
+    // Assumes content is text
+    saveFile(content, path){
         return new Promise(resolve => {
-            fs.writeFile(path,text,(e)=>{
+            fs.writeFile(path,content,(e)=>{
                 if(e) throw e;
-                resolve(text)
+                resolve(content)
             });
         })
     }

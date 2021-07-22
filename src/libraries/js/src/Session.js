@@ -130,7 +130,7 @@ export class Session {
 
 		if(initFS) this.initFS();
 		
-		this.projects = new ProjectManager(this.dataManager)
+		this.projects = new ProjectManager(this)
 	}
 
 	/**
@@ -1369,7 +1369,7 @@ else {
 
 	// App Management
 	initApp(settings, parentNode=document.body, session=this, config=[]){
-		return new Application(settings,parentNode,session,config)
+		return new Application(settings, parentNode, session, config)
 	}
 
 
@@ -1667,7 +1667,7 @@ else {
 					let keys = Object.keys(o)
 					let appMessage = ((o[keys[0]] == '') ? 'Idle' : `Currently in ${o[keys[0]]}`)
 					if (o[keys[1]] !== this.info.auth.username) {
-						userDiv.innerHTML.insertAdjacentHTML('beforeend', `
+						userDiv.insertAdjacentHTML('beforeend', `
 						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
 						<p style="font-size: 60%;">${o[keys[2]]}</p>
 						<p>${o[keys[1]]}</p>
@@ -1755,36 +1755,41 @@ else {
 
 		let template = `
 		<div id="${applet.props.id}IntroFragment">
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 6;"><div>
-			<h1>${applet.info.name}</h1>
-			<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
-			<div class="brainsatplay-intro-loadingbar" style="z-index: 6;"></div>
-			</div>
-			</div>
-
-			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 5"><div>
-				<h2>Game Mode</h2>
-				<div style="display: flex; align-items: center;">
-						<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
-						<div id="${applet.props.id}multiplayer-button" class="brainsatplay-default-button">Multiplayer</div>
+			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 100;">
+				<div>
+					<h1>${applet.info.name}</h1>
+					<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
+					<div class="brainsatplay-intro-loadingbar" style="z-index: 100;"></div>
 				</div>
-			</div></div>
+			</div>
 
-			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 3"><div>
-				<div id='${applet.props.id}multiplayerDiv'">
-				<div style="
-				display: flex;
-				align-items: center;
-				column-gap: 15px;
-				grid-template-columns: repeat(2,1fr)">
-					<h2>Choose a Session</h2>
-					<div>
-						<button id='${applet.props.id}createSession' class="brainsatplay-default-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
+			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 99;">
+				<div>
+					<h2>Game Mode</h2>
+					<div style="display: flex; align-items: center;">
+							<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
+							<div id="${applet.props.id}multiplayer-button" class="brainsatplay-default-button">Multiplayer</div>
 					</div>
 				</div>
+			</div>
+
+			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 98;">
+				<div>
+					<div id='${applet.props.id}multiplayerDiv'">
+						<div style="
+						display: flex;
+						align-items: center;
+						column-gap: 15px;
+						grid-template-columns: repeat(2,1fr)">
+							<h2>Choose a Session</h2>
+							<div>
+								<button id='${applet.props.id}createSession' class="brainsatplay-default-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
+							</div>
+						</div>
+					</div>
 				</div>
-			</div></div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:1;">Exit Session</div>
+			</div>
+			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:95;">Exit Session</div>
 			</div>
 			`
 
@@ -1989,7 +1994,7 @@ else {
 		} else {
 			this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
 				let loginPage = document.getElementById(`${this.id}login-page`)
-				loginPage.style.zIndex = 4
+				loginPage.style.zIndex = 98;
 			}, onsocketopen)
 		}
 	} else {

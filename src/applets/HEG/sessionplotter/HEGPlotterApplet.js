@@ -1,6 +1,6 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
-import {uPlotMaker} from '../../../platform/js/frontend/UX/eegvisuals'
+import {uPlotMaker} from '../../../libraries/js/src/ui/eegvisuals'
 import {CSV} from '../../../libraries/js/src/utils/csv'
 import * as settingsFile from './settings'
 

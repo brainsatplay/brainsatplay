@@ -20,12 +20,11 @@ export const settings = {
       id: 'benchmark',
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'My Algorithm', class: brainsatplay.plugins.algorithms.Blink},
+        {id: 'My Model', class: brainsatplay.plugins.models.Blink},
         {id: 'scheduler', class: brainsatplay.plugins.utilities.Scheduler, params:{interTrialInterval: 2}},
         {id: 'Train UI', class: Train},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        {id: 'motorimagery', class: brainsatplay.plugins.machinelearning.LDA},
         {id: 'Test UI', class: Test},
       ],
       edges: [
@@ -33,7 +32,7 @@ export const settings = {
         // Set Up Your Algorithm
         {
           source: 'eeg:atlas', 
-          target: 'My Algorithm'
+          target: 'My Model'
         },
         // {
         //   source: 'My Algorithm', 
@@ -59,11 +58,11 @@ export const settings = {
         // Log App Events
         {
           source: 'spacebar', 
-          target: 'data'
+          target: 'data:log'
         },
         {
           source: 'Test UI:performance', 
-          target: 'data'
+          target: 'data:log'
         },{
           source: 'scheduler:state', 
           target: 'data:log'
@@ -77,12 +76,6 @@ export const settings = {
         {
           source: 'scheduler:done', 
           target: 'data:csv'
-        },
-
-        // Train Model
-        {
-          source: 'data:latest',
-          target: 'motorimagery'
         },
 
         // Test your Model

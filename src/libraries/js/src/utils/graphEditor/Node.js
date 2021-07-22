@@ -5,6 +5,13 @@ export class Node {
         this.nodeInfo = nodeInfo
         this.parentNode = this.graph.parentNode ?? document.body
         this.element = this.createElement(this.nodeInfo)
+
+        // Set Transform based on Settings
+        if (this.nodeInfo.style) {
+            let transform = this.nodeInfo.style.split('transform: ')[1].split(';')[0]
+            this.element.style.transform = transform
+        }
+
         this.edges = []
     }
 
@@ -62,6 +69,17 @@ export class Node {
         })
     }
 
+    removePort(port) {
+        // let node = this.nodeInfo.instance
+        let input = this[`inputPorts`].querySelector(`.port-${port}`)
+        input.parentNode.remove()
+        let output = this[`outputPorts`].querySelector(`.port-${port}`)
+        output.parentNode.remove()
+        let label = this.portLabels.querySelector(`[name="${port}"]`)
+        label.remove()
+        this.resize()
+    }
+
     addPort(port) {
         let node = this.nodeInfo.instance
         let portTypes = ['target', 'source']
@@ -70,8 +88,9 @@ export class Node {
             let inorout = (s == 'target') ? 'input' : 'output'
             let nodeType
 
-            nodeType = node.ports[port][inorout].type
-            if (nodeType instanceof Object) nodeType = node.ports[port][inorout].name ?? nodeType.name
+            let portInfo = node.ports[port][inorout]
+            nodeType = portInfo?.type
+            if (nodeType instanceof Object) nodeType = portInfo.name ?? nodeType?.name
             let portWrapper = document.createElement('div')
             portWrapper.classList.add(`node-port-wrapper`)
             let portElement = document.createElement('div')
@@ -92,7 +111,6 @@ export class Node {
             portWrapper.insertAdjacentElement('beforeend', portElement)
             this[`${inorout}Ports`].insertAdjacentElement('beforeend', portWrapper)
         })
-
         this.resize()
     }
 
@@ -127,12 +145,18 @@ export class Node {
             this.addPort(port)
         }
 
-        element.insertAdjacentHTML('beforeend', `
-        <div class="node-text">
+        let nodeText = document.createElement('div')
+        nodeText.classList.add('node-text')
+        nodeText.innerHTML = `
             <h3>${node.constructor.name}</h3>
             <p>${node.label}<p>
-        </div>
-        `)
+        `
+
+        this.latencyDisplay = document.createElement('div')
+        this.latencyDisplay.classList.add('latency-display')
+        nodeText.insertAdjacentElement('beforeend', this.latencyDisplay)
+
+        element.insertAdjacentElement('beforeend', nodeText)
 
         element.insertAdjacentElement('beforeend', this.portManager)
         this.nodeDiv.insertAdjacentElement('beforeend', element)
@@ -149,7 +173,7 @@ export class Node {
         let minWidth = 100
         let minHeight = 0
         for (let container of portContainers) {
-            minHeight = Math.max(minHeight, container.offsetHeight)
+            minHeight = Math.max(minHeight, container.clientHeight)
         }
         minWidth = Math.max(minWidth, this.portLabels.offsetWidth)
 

@@ -448,14 +448,16 @@ if(JSON.stringifyFast === undefined) {
                 } else {
                     while (idx-- >= 0) {
                     prev = parents[idx];
-                    if (prev[key] === value) {
-                        idx += 2;
-                        parents.length = idx;
-                        path.length = idx;
-                        --idx;
-                        parents[idx] = value;
-                        path[idx] = key;
-                        break;
+                    if (prev){
+                        if (prev[key] === value) {
+                            idx += 2;
+                            parents.length = idx;
+                            path.length = idx;
+                            --idx;
+                            parents[idx] = value;
+                            path[idx] = key;
+                            break;
+                        }
                     }
                     }
                 }
@@ -467,7 +469,7 @@ if(JSON.stringifyFast === undefined) {
             if (value != null) {
                 if (typeof value === "object") {
                     //if (key) { updateParents(key, value); }
-                    let c = value.constructor.name;
+                    let c = value.constructor?.name;
                     if (key && c === 'Object') {updateParents(key, value); }
 
                     let other = refs.get(value);
@@ -499,7 +501,7 @@ if(JSON.stringifyFast === undefined) {
                                     obj[prop] = value[prop].slice(value[prop].length-20); 
                                 else obj[prop] = value[prop];
                             } //deal with arrays in nested objects (e.g. means, slices)
-                            else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
+                            else if (value[prop].constructor?.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
                                 obj[prop] = {};
                                 for(const p in value[prop]) {
                                     if(Array.isArray(value[prop][p])) {
@@ -509,8 +511,8 @@ if(JSON.stringifyFast === undefined) {
                                     }
                                     else { 
                                         if (value[prop][p] != null){
-                                            let con = value[prop][p].constructor.name;
-                                            if (con.includes("Set")) {
+                                            let con = value[prop][p].constructor?.name;
+                                            if (con && con.includes("Set")) {
                                                 obj[prop][p] = Array.from(value[prop][p])
                                             } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
                                                 obj[prop][p] = "instanceof_"+con; //3-deep nested objects are cut off
@@ -524,7 +526,7 @@ if(JSON.stringifyFast === undefined) {
                                 }
                             }
                             else { 
-                                let con = value[prop].constructor.name;
+                                let con = value[prop].constructor?.name;
                                 if (con.includes("Set")) {
                                     obj[prop] = Array.from(value[prop])
                                 } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
@@ -586,14 +588,16 @@ if(JSON.stringifyWithCircularRefs === undefined) {
         } else {
             while (idx-- >= 0) {
             prev = parents[idx];
-            if (prev[key] === value) {
-                idx += 2;
-                parents.length = idx;
-                path.length = idx;
-                --idx;
-                parents[idx] = value;
-                path[idx] = key;
-                break;
+            if (prev){
+                if (prev[key] === value) {
+                    idx += 2;
+                    parents.length = idx;
+                    path.length = idx;
+                    --idx;
+                    parents[idx] = value;
+                    path[idx] = key;
+                    break;
+                }
             }
             }
         }

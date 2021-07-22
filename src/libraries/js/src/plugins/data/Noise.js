@@ -9,18 +9,54 @@ export class Noise{
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            type: {default: 'random', options: ['random', 'perlin', 'simplex']},
-            intensity: {default: 1},
-            interval: {default: 1000/60},
-            delta: {default: .01}
-        }
-
         this.ports = {
             default: {
-                types: {
-                    in: null,
-                    out: 'number'
+                input: {type: null},
+                output: {type: 'number'},
+                onUpdate: () => {
+                    this.params.delta = Number.parseFloat(this.params.delta)
+                    if (!isNaN(this.params.delta)) this.props.pointer += Number.parseFloat(this.params.delta)
+                    if (Date.now() - this.props.lastTime >= this.params.interval){
+                        if (this.params.type === 'random') this.props.lastSample = 2*Math.random() - 1
+                        if (this.params.type === 'perlin') this.props.lastSample = this.props.noise.perlin2(this.props.pointer, 1)
+                        if (this.params.type === 'simplex') this.props.lastSample = this.props.noise.simplex2(this.props.pointer, 1);
+                        this.props.lastSample*=Number.parseFloat(this.params.intensity)
+                        this.props.lastTime = Date.now()
+                    }
+                    return [{data: this.props.lastSample, meta: {label: this.label}}]
+                }
+            },
+            type: {
+                default: 'perlin',
+                options: ['random', 'perlin', 'simplex'],
+                input: {type: 'string'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.type = userData[0].data
+                }
+            },
+            intensity: {
+                default: 1,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.intensity = userData[0].data
+                }
+            },
+            interval: {
+                default: 1000/60,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.interval = userData[0].data
+                }
+            },
+            delta: {
+                default: 0.01,
+                input: {type: 'number'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    this.params.delta = userData[0].data
                 }
             }
         }
@@ -49,18 +85,5 @@ export class Noise{
 
     deinit = () => {
         this.props.looping = false
-    }
-
-    default = () => {
-        this.params.delta = Number.parseFloat(this.params.delta)
-        if (!isNaN(this.params.delta)) this.props.pointer += Number.parseFloat(this.params.delta)
-        if (Date.now() - this.props.lastTime >= this.params.interval){
-            if (this.params.type === 'random') this.props.lastSample = 2*Math.random() - 1
-            if (this.params.type === 'perlin') this.props.lastSample = this.props.noise.perlin2(this.props.pointer, 1)
-            if (this.params.type === 'simplex') this.props.lastSample = this.props.noise.simplex2(this.props.pointer, 1);
-            this.props.lastSample*=Number.parseFloat(this.params.intensity)
-            this.props.lastTime = Date.now()
-        }
-        return [{data: this.props.lastSample, meta: {label: this.label}}]
     }
 }
