@@ -827,7 +827,7 @@ select {
 }
 
 
-.node-sidebar-content > div > div input{
+.node-sidebar-content > div > div input, .node-sidebar-content > div > div textarea{
     background: black;
     color: white;
     padding: 5px;
@@ -1236,7 +1236,7 @@ select {
     font-size: 75%;
 }
 
-.training-prompt button.disabled {
+button.disabled {
     opacity: 50%;
     pointer-events: none;
 }

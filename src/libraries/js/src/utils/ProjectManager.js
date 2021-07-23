@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplayLocal from '../../brainsatplay'
 
-let latest = '0.0.31'
+let latest = '0.0.32'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './blobUtils'
@@ -296,7 +296,7 @@ app.init()`)
             }
         }
 
-        info = JSON.stringifyWithCircularRefs(info)
+        info = JSON.stringifyWithCircularRefs(info, '\t')
 
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;
@@ -487,8 +487,13 @@ app.init()`)
                     var re = /brainsatplay\.([^\.\,}]+)\.([^\.\,}]+)\.([^\.\,}]+)/g;
                     let m2;
 
-                    let version = info.settings.match(/"version":"([^"]+)/)[1]
-                    let library = await this.getLibraryVersion(version)
+                    let library;
+                    let version = info.settings.match(/"version":\s?"([^"]+)/)
+                    if (version){
+                        library = await this.getLibraryVersion(version[1])
+                    } else {
+                        library = await this.getLibraryVersion('experimental')
+                    }
 
                     do {
                         m2 = re.exec(info.settings);

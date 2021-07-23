@@ -9,6 +9,16 @@ export const settings = {
       production: false,
       development: false
     },
+
+    intro: {
+      title: false,
+      mode: 'solo', // 'solo', 'multiplayer'
+      login: null,
+      domain: null,
+      session: null,
+      spectating: false,
+  },
+
     // App Logic
     graph:
     {

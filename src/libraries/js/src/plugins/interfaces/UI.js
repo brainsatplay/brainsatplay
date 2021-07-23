@@ -84,15 +84,15 @@ export class UI{
                                     keep.push(n2.parentNode)
                                 }
             
-                                // Remove Specified Elements
-                                keep.forEach(target => {
-                                    toRemove.find((el,i) => {
-                                        if (target === el) {
-                                            toRemove.splice(i,1)
-                                            return true
-                                        }
-                                    })
+                            // Remove Specified Elements from the Removal Array
+                            keep.forEach(target => {
+                                toRemove.find((el,i) => {
+                                    if (target === el) {
+                                        toRemove.splice(i,1)
+                                        return true
+                                    }
                                 })
+                            })
                         }
                     })
                 })
@@ -117,6 +117,7 @@ export class UI{
                     Array.from(node.querySelectorAll("*")).forEach(el => {
                         if (el.id !=- null) noDescendentWithID = false
                     })
+                    
                     // node.innerHTML.trim() === ''
                     if (node.id && noDescendentWithID){ // Create ports for blank elements with IDs
                         removedIds.delete(node.id) // Actually still there

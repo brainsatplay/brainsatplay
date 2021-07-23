@@ -298,9 +298,9 @@ export class LiveEditor {
         } else if (this.props.language === 'glsl'){
             if (this.target){
                 this.head = 'WebGL Shader';
-                this.body = this.target[this.key].replace(new RegExp(";", "g"), ";\n")
-                .replace(new RegExp("{", "g"), "{\n")
-                .replace(new RegExp("}", "g"), "}\n");
+                this.body = this.target[this.key].replace(new RegExp(";(?!\n)", "g"), ";\n")
+                .replace(new RegExp("{(?!\n)", "g"), "{\n")
+                .replace(new RegExp("}(?!\n)", "g"), "}\n");
                 this.copy = this.body
             } else {
                 console.warn('settings file does not contain a target...')

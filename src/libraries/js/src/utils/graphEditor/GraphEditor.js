@@ -39,7 +39,7 @@ export class GraphEditor{
             id: String(Math.floor(Math.random()*1000000)),
         }
 
-        this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT']
+        this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT', 'TEXTAREA']
     
         if (this.plugins){
 
@@ -115,10 +115,12 @@ export class GraphEditor{
                 this.insertProjects()
 
                 // Publish Button
-                document.getElementById(`${this.props.id}publish`).onclick = () => {
+                let publishButton = document.getElementById(`${this.props.id}publish`)
+                publishButton.onclick = () => {
                     this.app.updateGraph()
                     this.app.session.projects.publish(this.app)
                 }
+                publishButton.classList.add('disabled')
 
                 // Search for Toggle
                 let tries = 0
@@ -343,7 +345,8 @@ export class GraphEditor{
         // Get Template Files
         let templateSet = []
 
-        if (this.local){
+        // if (this.local){
+        try {
             for (let key in appletManifest){
                 let o = appletManifest[key]
                 let settings = await getAppletSettings(o.folderUrl)
@@ -352,7 +355,8 @@ export class GraphEditor{
                     else templateSet.push({destination: 'Examples', settings})
                 }
             }
-        }
+        } catch (e) {console.log('Applets not found', e)}
+        // }
 
         Promise.allSettled([...projects,...templateSet]).then(set => {
 
@@ -583,28 +587,48 @@ export class GraphEditor{
                 description: "",
                 categories: [],
                 instructions: "",
-                image: '',
-                version: '',
+                image: null,
+                version: this.app.session.projects.version,
 
                 display: {
                   production: false,
                   development: false
                 },
-            
-                editor: {
-                  create: false
+
+                intro: {
+                    title: false,
+                    mode: 'solo', // 'solo', 'multiplayer'
+                    login: null,
+                    domain: null,
+                    session: null,
+                    spectating: false,
+                },
+
+                // editor: {
+                //     create: false,
+                //     parentId: null,
+                //     show: false,
+                //     style: '',
+                // },
+
+                connect: {
+                    filter:[],
+                    toggle: '',
+                    onconnect: () => {}
                 },
             
                 // App Logic
-                graph:
-                {
-                  nodes: [],
-                  edges: []
-                },
+                // graph:
+                // {
+                //   nodes: [],
+                //   edges: []
+                // },
             }
 
             Object.keys(dummySettings).forEach(key => {
 
+                console.log(settings[key], dummySettings[key])
+                if (settings[key] == null) settings[key] = dummySettings[key]
                 toParse[key] = {default: settings[key]}
                 toParse[key].input =  {type: typeof settings[key]}
 
@@ -620,10 +644,13 @@ export class GraphEditor{
                         if (type === 'object') if (Array.isArray(settings[key])) type = Array
                         toParse[key].input =  {type}
                 }
-                                
-                let inputContainer = this.createInput(toParse, key, settings)
-                if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
 
+                let includeButDontShow = ['display', 'version']
+                 
+                if (!includeButDontShow.includes(key)){
+                    let inputContainer = this.createInput(toParse, key, settings)
+                    if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
+                }
             })
         }
 
@@ -934,7 +961,7 @@ export class GraphEditor{
 
             // console.log(defaultType)
         // Cannot Handle Objects or Elements
-        if (defaultType != 'undefined' && defaultType != 'object' && defaultType != 'Element'){
+        if (defaultType != 'undefined' && defaultType != 'Element'){
 
 
             if (optionsType == 'object' && specifiedOptions != null){
@@ -951,7 +978,7 @@ export class GraphEditor{
                 let container = document.createElement('div')
                 container.style.width = '100%'
                 container.style.fontSize = `75%`
-
+                
                 let insertOption = (v) => {
                     let option = document.createElement('div')
                     option.style.padding = '6px 0px'
@@ -1005,6 +1032,9 @@ export class GraphEditor{
                 input.insertAdjacentElement('beforeend',div)
 
 
+            } else if (defaultType === 'object'){
+                input = document.createElement('textarea')
+                input.value = JSON.stringify(toEdit[key], null, '\t')
             } else if (defaultType === 'boolean'){
                 input = document.createElement('input')
                 input.type = 'checkbox'
@@ -1119,7 +1149,6 @@ export class GraphEditor{
                             reader.readAsDataURL(file);
                         }
                     })
-                } 
                 
                 if (toEdit[key] != null){
                     img.src = toEdit[key]
@@ -1129,8 +1158,8 @@ export class GraphEditor{
                     img.style.display = 'none'
                     button.style.display = ''
                 }
-
                 inputContainer.insertAdjacentElement('beforeend',img)
+            } 
                 inputContainer.insertAdjacentElement('beforeend',button)
 
                 img.onclick = button.onclick = () => {
@@ -1157,7 +1186,12 @@ export class GraphEditor{
                 // Change Live Params with Input Changes
                 let changeFunc = (e) => {
                     if (this.elementTypesToUpdate.includes(input.tagName)){
-                        if (input.type === 'checkbox') toEdit[key] = input.checked
+                        if (input.tagName === 'TEXTAREA') {
+                            try{
+                                toEdit[key] = JSON.parse(input.value)
+                            } catch (e) {console.warn('JSON not parseable', e)}
+                        }
+                        else if (input.type === 'checkbox') toEdit[key] = input.checked
                         else if (input.type === 'file') toEdit[key] = input.files;
                         else if (['number','range'].includes(input.type)) {
                             toEdit[key] = Number.parseFloat(input.value)
@@ -1167,7 +1201,7 @@ export class GraphEditor{
                         }
                         else toEdit[key] = input.value
                         if (plugin && toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: toEdit[key], forceUpdate: true}])
-                        if (!['number','range', 'text', 'color'].includes(input.type)) input.blur()
+                        if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
                     }
                 }
 
@@ -1175,25 +1209,32 @@ export class GraphEditor{
 
                 // Listen for Non-GUI Changes to Params when Viewing
                 delete this.state.data[`activeGUINode`]
-                this.state.addToState(`activeGUINode`, toEdit, () => {
 
-                    let oldValue
-                    let newValue
-                    if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
-                        if (input.type === 'checkbox') {
-                            oldValue = input.checked
-                            input.checked = toEdit[key]
-                            newValue = input.checked
+                if (defaultType !== 'object'){ // Don't Listen to Objects Changed with a Port
+                    this.state.addToState(`activeGUINode`, toEdit, () => {
+
+                        let oldValue
+                        let newValue
+                        if (this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
+                            if (input.type === 'checkbox') {
+                                oldValue = input.checked
+                                input.checked = toEdit[key]
+                                newValue = input.checked
+                            }
+                            else {
+                                oldValue = input.value
+                                input.value = toEdit[key]
+
+                                if (input.tagName === 'TEXTAREA') {
+                                    newValue = JSON.stringify(input.value, null, '\t')
+                                }
+                                else newValue = input.value
+                            }
                         }
-                        else {
-                            oldValue = input.value
-                            input.value = toEdit[key]
-                            newValue = input.value
-                        }
-                    }
-                    
-                    if (oldValue != newValue) changeFunc()
-                })
+                        
+                        if (oldValue != newValue) changeFunc()
+                    })
+                }
                 return containerDiv
             }
         }
@@ -1411,7 +1452,12 @@ export class GraphEditor{
     }
 
     matchOptions = () => {
-        let regex = new RegExp(`^${this.search.value}`, 'i')
+        let regex;
+        try {
+            regex = new RegExp(`^${this.search.value}`, 'i')
+        } catch (e) {
+            console.error('Invalid search value')
+        }
 
         let matchedHeaderTypes = []
 
@@ -1421,7 +1467,7 @@ export class GraphEditor{
             for (let cls of header.classList){
                 if (cls.includes('nodetype-')){
                     let type = cls.replace('nodetype-','')
-                    let labelMatch = regex.test(type)
+                    let labelMatch = (regex != null) ? regex.test(type) : false
                     if (labelMatch) {
                         matchedHeaderTypes.push(type)
                     }
@@ -1442,12 +1488,12 @@ export class GraphEditor{
                 if (matchedHeaderTypes.includes(nodetype)) show = true // Show header if matched
                 else {
                     // Check Label
-                    let labelMatch = regex.test(o.label)
+                    let labelMatch = (regex != null) ? regex.test(o.label) : false
                     if (labelMatch || o.label == 'Add New Plugin') show = true
                     
                     // Check Types
                     o.types.forEach(type => {
-                        let typeMatch = regex.test(type)
+                        let typeMatch = (regex != null) ? regex.test(type) : false
                         if (typeMatch) show = true
                     })
                 }
@@ -1493,6 +1539,7 @@ export class GraphEditor{
         let label = classInfo.label
         if (('class' in classInfo)) classInfo = classInfo.class
 
+        
         let options = this.selectorMenu.querySelector(`.node-options`)
         let contentOfType = options.querySelector(`.option-type-content.nodetype-${type}`)
         if (contentOfType == null) {
@@ -1512,6 +1559,7 @@ export class GraphEditor{
                 count.classList.add('count')
                 count.classList.add(`${type}-count`)
                 count.innerHTML = 0
+                selectedType.style.display = 'none' // Initialily hide the header
 
                 selectedType.insertAdjacentElement('beforeend',count)
                 options.insertAdjacentElement('beforeend',selectedType)
@@ -1539,7 +1587,6 @@ export class GraphEditor{
             if (classInfo.hidden && !this.local) element.remove()
             else {
                 if (classInfo.hidden) element.classList.add("experimental")
-           
 
                 // Add Instance Details to Plugin Registry
                 let types = new Set()
@@ -1554,8 +1601,13 @@ export class GraphEditor{
                 if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
 
                 let count = options.querySelector(`.${type}-count`)
-                if (count) count.innerHTML = Number.parseFloat(count.innerHTML) + 1
-            }
+                let header = options.querySelector(`.nodetype-${type}`)
+                if (count) {
+                    count.innerHTML = Number.parseFloat(count.innerHTML) + 1
+                    if (Number.parseFloat(count.innerHTML) === 0) header.style.display = 'none'
+                    else header.style.display = ''
+                }
+            } 
         }
     }
 

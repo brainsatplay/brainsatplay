@@ -57,7 +57,7 @@ export class AlphaBattleApplet {
 
                         let basePos = {};
                         let arcRotation = 0;
-                        if (data.username === this.session.info.auth.username){
+                        if (data.id === this.session.info.auth.id){
                             basePos.x = p.width*data.position.x
                             p.textAlign(p.RIGHT, p.CENTER)
                         } else {
@@ -83,7 +83,7 @@ export class AlphaBattleApplet {
                         if (data.fireballs){
                             data.fireballs.array.forEach(ball => {
                                 let ballPosX;
-                                if (data.username === this.session.info.auth.username){
+                                if (data.id === this.session.info.auth.id){
                                     ballPosX = basePos.x + (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)
                                 } else {
                                     ballPosX = basePos.x - (p.width - data.position?.x)*ball.velocity*(Date.now() - ball.spawnTime)

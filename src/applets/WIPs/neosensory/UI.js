@@ -46,7 +46,7 @@ class UI{
     }
 
     _activateButtonPort = () => {
-            this.session.graph.runSafe(this,'button', [{data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.username}`}}])
+            this.session.graph.runSafe(this,'button', [{data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.id}`}}])
     }
 
     default = (userData) => {

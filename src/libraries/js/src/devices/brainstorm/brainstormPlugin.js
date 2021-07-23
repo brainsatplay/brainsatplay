@@ -31,8 +31,9 @@ export class brainstormPlugin {
             let onAuth = () => {
                 this.session.createBrainstormBrowser(document.body,(userData)=>{
                 this.subscription = userData
-                this.setupAtlas(info,pipeToAtlas);
-                resolve(true)
+                this.setupAtlas(info,pipeToAtlas, () => {
+                    resolve(true)
+                });
             })
         }
             if (!this.session.info.auth.connected){
@@ -49,7 +50,7 @@ export class brainstormPlugin {
         let animate = () => {
 
             // Grab Data
-            let data = this.session.getBrainstormData(this.subscription.username,'user')
+            let data = this.session.getBrainstormData(this.subscription.id,'user')
             if(this.info.useAtlas) {
                 if (data.length > 0){
                     data.forEach(d => {
@@ -77,18 +78,17 @@ export class brainstormPlugin {
     disconnect = () => {
         this.ondisconnect();
         if (this.ui) this.ui.deleteNode()
-        this.session.unsubscribeFromUser(this.subscription.username)
+        this.session.unsubscribeFromUser(this.subscription.id)
         window.cancelAnimationFrame(this.animation)
-        this.atlas.settings.deviceConnected = false;
+        if (this.atlas) this.atlas.settings.deviceConnected = false;
     }
 
-    setupAtlas = (info,pipeToAtlas) => {
+    setupAtlas = (info,pipeToAtlas, onsuccess) => {
 
+        if (Object.keys(this.subscription.props).length > 0){
          info.sps = this.subscription.props.sps
          info.deviceType = this.subscription.props.deviceType
          info.eegChannelTags = this.subscription.props.eegChannelTags
-
-         console.log(info.eegChannelTags)
  
          // FOR EEG ONLY
          if(pipeToAtlas === true) { //New Atlas
@@ -122,7 +122,11 @@ export class brainstormPlugin {
                  }
              });
          }
-         
+         onsuccess()
+        } else {
+            console.error('user is not streaming an EEG device to subscribe to.')
+            this.disconnect()
+        }
     }
 
     //externally set callbacks

@@ -833,11 +833,11 @@ void main(){
                         }
                     }
                             
-                    if(newResult.hostname) {
-                        if(this.session.info.auth.username === newResult.hostname && !this.isHost) {
+                    if(newResult.host) {
+                        if(this.session.info.auth.id === newResult.host && !this.isHost) {
                             this.isHost = true;
                             document.getElementById(this.props.id+'submitconfig').style.display = '';
-                        } else if (this.session.info.auth.username !== newResult.hostname && this.isHost) {
+                        } else if (this.session.info.auth.id !== newResult.host && this.isHost) {
                             this.isHost = false;
                             document.getElementById(this.props.id+'submitconfig').style.display = 'none';
                         }
