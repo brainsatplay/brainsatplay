@@ -232,8 +232,10 @@ export class Session {
 		newStream.ondisconnect = () => {
 			ondisconnect(newStream);
 			this.ondisconnected();
-			this.deviceStreams[i].device.atlas.deinit()
-			this.deviceStreams.splice(i, 1);
+			if (this.deviceStreams[i]) {
+				this.deviceStreams[i].device.atlas.deinit()
+				this.deviceStreams.splice(i, 1);
+			}
 			this.state.removeState(stateId)
 
 			if (this.deviceStreams.length > 1) this.atlas = this.deviceStreams[0].device.atlas;
@@ -775,15 +777,15 @@ export class Session {
 		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
 			if(sessionId) {
-				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:[{username:this.info.auth.username}]};
+				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:[{id:this.info.auth.id}]};
 				if (this.state.data[sessionId].userData){
 					let found = this.state.data[sessionId].userData.find((o)=>{
-						if(o.username === this.info.auth.username) {
+						if(o.id === this.info.auth.id) {
 							o[id] = newData; 
 							return true;
 						}
 					});
-					if(!found) this.state.data[sessionId].userData.push({username:this.info.auth.username, [id]:newData});
+					if(!found) this.state.data[sessionId].userData.push({id:this.info.auth.id, [id]:newData});
 				}
 			}
 		});
@@ -965,6 +967,7 @@ else {
 					if (typeof newResult === 'object') {
 						if (newResult.msg === 'resetUsername') {
 							this.info.auth.username = newResult.username
+							this.info.auth.id = newResult.id
 							this.state.unsubscribe('commandResult', sub);
 							onsuccess(newResult)
 						}
@@ -972,6 +975,7 @@ else {
 				});
 			});
 		} else {
+			onsuccess()
 			return this.info.auth
 		}
 	}
@@ -1042,22 +1046,22 @@ else {
 
 		if (parsed.msg === 'userData') {
 			for (const prop in parsed.userData) {
-				this.state.updateState("userData_" + parsed.username + "_" + prop, parsed.userData[prop])
+				this.state.updateState("userData_" + parsed.id + "_" + prop, parsed.userData[prop])
 			}
 		}
 		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
 
-			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.username === this.info.auth.username) return true;});
+			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.id === this.info.auth.id) return true;});
 			let settings = this.state.data[parsed.id]?.settings;
 			this.state.data[parsed.id] = parsed;
 			if(thisuser) this.state.data[parsed.id].userData.push(thisuser);
 			if(settings) this.state.data[parsed.id].settings = settings;
 
 			parsed.userData.forEach((o, i) => {
-				let user = o.username
-				if (user != this.info.auth.username){
+				let user = o.id
+				if (user != this.info.auth.id){
 					for (const prop in o) {
-						if (prop !== 'username') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
+						if (prop !== 'username' && prop !== 'id') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
 					}
 				}
 			});
@@ -1077,7 +1081,7 @@ else {
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
 			this.state.data.sessionInfo = parsed.sessionInfo;
-			if(this.state.data[parsed.id] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
+			if(this.state.data[parsed.session] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
 			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
@@ -1176,46 +1180,46 @@ else {
 		})
 	}
 
-	subscribeToUser(username = '', userProps = [], onsuccess = (newResult) => { }) { // if successful, props will be available in state under this.state.data['username_prop']
+	subscribeToUser(id = '', userProps = [], onsuccess = (newResult) => { }) { // if successful, props will be available in state under this.state.data['username_prop']
 		//check if user is subscribable
 		if (this.socket !== null && this.socket.readyState === 1) {
-			this.sendBrainstormCommand(['getUserData', username]);
+			this.sendBrainstormCommand(['getUserData', id]);
 			userProps.forEach((prop) => {
 				let p = prop;
 				if (Array.isArray(p)) p = prop.join("_"); //if props are given like ['eegch','FP1']
-				this.state.updateState(username + "_" + p, null)
+				this.state.updateState(id + "_" + p, null)
 			});
 			//wait for result, if user found then add the user
 			let sub = this.state.subscribe('commandResult', (newResult) => {
 				if (typeof newResult === 'object') {
 					if (newResult.msg === 'getUserDataResult') {
-						if (newResult.username === username) {
-							this.sendBrainstormCommand(['subscribeToUser', username, userProps]);
+						if (newResult.id === id) {
+							this.sendBrainstormCommand(['subscribeToUser', id, userProps]);
 							for (const [prop, value] of Object.entries(newResult.userData.props)) {
-								this.state.updateState("userData_" + username + "_" + prop, value)
+								this.state.updateState("userData_" + id + "_" + prop, value)
 							}
 						}
 						onsuccess(newResult.userData);
 						this.state.unsubscribe('commandResult', sub);
 					}
-					else if (newResult.msg === 'userNotFound' && newResult.username === username) {
+					else if (newResult.msg === 'userNotFound' && newResult.id === id) {
 						this.state.unsubscribe('commandResult', sub);
-						console.log("User not found: ", username);
+						console.log("User not found: ", id);
 					}
 				}
 			});
 		}
 	}
 
-	unsubscribeFromUser(username = '', userProps = null, onsuccess = (newResult) => { }) { //unsubscribe from user entirely or just from specific props
+	unsubscribeFromUser(id = '', userProps = null, onsuccess = (newResult) => { }) { //unsubscribe from user entirely or just from specific props
 		//send unsubscribe command
 		if (this.socket !== null && this.socket.readyState === 1) {
-			this.sendBrainstormCommand(['unsubscribeFromUser', username, userProps]);
+			this.sendBrainstormCommand(['unsubscribeFromUser', id, userProps]);
 
 			let sub = this.state.subscribe('commandResult', (newResult) => {
-				if (newResult.msg === 'unsubscribed' && newResult.username === username) {
+				if (newResult.msg === 'unsubscribed' && newResult.id === id) {
 					for (const prop in this.state.data) {
-						if (prop.indexOf(username) > -1) {
+						if (prop.indexOf(id) > -1) {
 							this.state.removeState(prop)
 						}
 					}
@@ -1653,43 +1657,32 @@ else {
 				transition: 0.5s;
 			`
 
-				let onMouseOver = () => {
-					this.style.background = 'rgb(35,35,35)';
-					this.style.cursor = 'pointer';
-				}
-
-				let onMouseOut = () => {
-					this.style.background = 'rgb(20,20,20)';
-					this.style.cursor = 'default';
-				}
-
 				users.forEach(o => {
-					let keys = Object.keys(o)
-					let appMessage = ((o[keys[0]] == '') ? 'Idle' : `Currently in ${o[keys[0]]}`)
-					if (o[keys[1]] !== this.info.auth.username) {
-						userDiv.insertAdjacentHTML('beforeend', `
-						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}" onMouseOver="(${onMouseOver})()" onMouseOut="(${onMouseOut})()">
-						<p style="font-size: 60%;">${o[keys[2]]}</p>
-						<p>${o[keys[1]]}</p>
-						<p style="font-size: 80%;">${appMessage}</p>
-						</div>`)
-					} else {
-						userDiv.insertAdjacentHTML('afterbegin',`
-						<div  id="${this.id}-user-${o[keys[1]]}" class="brainstorm-user" style="${brainstormUserStyle}">
-							<p style="font-size: 60%;">${o[keys[2]]}</p>
-							<p>${o[keys[1]]}</p>
-							<p style="font-size: 80%;">${appMessage}</p>
-						</div>`)
-					}
-				})
-
-				let divs = userDiv.querySelectorAll(".brainstorm-user")
-				for (let div of divs) {
-					let name = div.id.split(`${this.id}-user-`)[1]
-					if (name !== this.info.auth.username) {
-						div.onclick = (e) => {
+					let keys = Object.keys(o) //['sessions', 'username', 'origin', 'id']
+					let appMessage = ((o[keys[0]] == '') ? 'No App Specified' : `Currently in ${o[keys[0]]}`)
+					
+					let user = document.createElement('div')
+					user.setAttribute('data-id', keys[3])
+					user.id = `${this.id}-user-${o[keys[1]]}`
+					user.classList.add('brainstorm-user')
+					user.style = brainstormUserStyle
+					user.insertAdjacentHTML('beforeend', `
+					<p style="font-size: 60%;">${o[keys[2]]}</p>
+					<p>${o[keys[1]]}</p>
+					<p style="font-size: 80%;">${appMessage}</p>`)
+					
+					if (o[keys[2]] != 'brainsatplay.js') {
+						user.onmouseover = () => {
+							user.style.background = 'rgb(35,35,35)';
+							user.style.cursor = 'pointer';
+						}
+						user.onmouseout = () => {
+							user.style.background = 'rgb(20,20,20)';
+							user.style.cursor = 'default';
+						}
+						user.onclick = (e) => {
 							if (mode == 'ws'){
-								this.subscribeToUser(name, [], (userData) => {
+								this.subscribeToUser(o[keys[3]], [], (userData) => {
 									onsubscribe(userData)
 								})
 							} else if (mode == 'osc'){
@@ -1697,8 +1690,12 @@ else {
 							}
 							closeUI()
 						}
+						userDiv.insertAdjacentElement('beforeend', user)
+					} else {
+						userDiv.insertAdjacentElement('afterbegin', user)
+						user.style.background = 'rgb(10,10,10)';
 					}
-				}
+				})
 			}
 
 			// Display All Users on Brainstorm
@@ -1908,16 +1905,16 @@ else {
 				if (!autoId || autoId == null){
 					
 					result.sessions.forEach((g, i) => {
-						if (g.usernames.length < 10) { // Limit connections to the same session server
-							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + g.usernames.length + `</p>
-							<div style="display: flex; padding-top: 5px;">
-								<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button">Play</button>
-								<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
-							</div>
-							</div>`
-						} else {
-							result.sessions.splice(i, 1)
-						}
+						let numUsers = Object.keys(g.users).length
+						let disabled = ''
+
+						if (numUsers >= 10) disabled = 'disabled' // Limit connections to the same session server
+						gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + numUsers + `</p>
+						<div style="display: flex; padding-top: 5px;">
+							<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button ${disabled}">Play</button>
+							<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
+						</div>
+						</div>`
 					});
 
 					document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
@@ -1939,12 +1936,14 @@ else {
 		// Login Screen
 		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
 			let onsocketopen = () => {
+				console.log(this.socket.readyState)
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
 
 					let sub1 = this.state.subscribe('commandResult', (newResult) => {
 
+						console.log(newResult)
 						if (newResult.msg === 'appNotFound') {
 							createSession.click()
 
@@ -1977,6 +1976,7 @@ else {
 			// Auto-set username with Google Login
 			if (this.info.googleAuth != null) {
 				this.info.googleAuth.refreshCustomData().then(data => {
+					console.log(data)
 					this.info.auth.username = data.username
 				})
 			}
@@ -1989,7 +1989,7 @@ else {
 		// Prompt Login or Skip
 		if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
 
-		if (applet.info.intro.login === false){
+		if (applet.info.intro.login === false || this.socket?.readyState == 1){
 			this.login(true, this.info.auth, onsocketopen)
 		} else {
 			this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
@@ -2135,7 +2135,7 @@ else {
 	async sendBrainstormCommand(command = '', dict = {}) {
 
 		// Create Message
-		let o = { cmd: command, username: this.info.auth.username };
+		let o = { cmd: command, id: this.info.auth.id };
 		Object.assign(o, dict);
 		let json = JSON.stringify(o);
 
@@ -2143,7 +2143,7 @@ else {
 		if (this.socket.readyState !== 1) {
 			// Try to Send Message
 			try {
-				await waitForOpenConnection(this.socket)
+				await this.waitForOpenConnection(this.socket)
 				this.socket.send(json)
 			} catch (err) { console.error(err) }
 		} else {
@@ -2177,7 +2177,8 @@ else {
 	onconnectionLost(response) { //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.subscriptions.find((o, i) => {
-			if (o.username === response.username) {
+			console.log(o, response)
+			if (o.id === response.id) {
 				found = true;
 				return true;
 			}
@@ -2211,26 +2212,25 @@ else {
 	getHostData(appid){
 		let state = this.state.data[appid];
 		if (state.msg === 'sessionData' && state.id === appid){
-			if(state.hostData) return {data: state.hostData, username: state.hostname}
-			return {data: state.userData.find((o)=>{if(o.username === state.hostname) return true;}), username: state.hostname}
+			if(state.hostData) return {data: state.hostData, id: state.host}
+			return {data: state.userData.find((o)=>{if(o.id === state.host) return true;}), id: state.host}
 		}
 	}
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
-		let usernameInd;
-		let propInd;
-		let structureFilter;
+		let sessionInd,idInd,propInd,structureFilter
 
 		if (type === 'user') {
-			usernameInd = 1
+			idInd = 1
 			propInd = 2
 			structureFilter = (input) => {
 				let val = input.split('_')[0] 
 				return val === 'userData'
 			}
 		} else {
-			usernameInd = 2
+			sessionInd = 1
+			idInd = 2
 			propInd = 3
 			structureFilter = (input) => {
 				return input.split('_')[0] !== 'userData'
@@ -2241,6 +2241,7 @@ else {
 
 		if (query != null) {
 			var regex = new RegExp(query);
+
 			let returnedStates = Object.keys(this.state.data).filter(k => {
 
 				// Query is True
@@ -2262,19 +2263,23 @@ else {
 
 			let usedNames = []
 
+
 			returnedStates.forEach(str => {
 
 				const strArr = str.split('_')
-				const username = strArr[usernameInd]
-				if (username != this.info.auth.username){ // Ignore yourself in state
-					if (!usedNames.includes(username)) {
-						usedNames.push(username)
-						arr.push({ username })
+				const id = strArr[idInd]
+
+				let username = (sessionInd) ? this.state.data[`${strArr[0]}_${strArr[1]}`]?.users[id] : null
+
+				if (id != this.info.auth.id){ // Ignore yourself in state
+					if (!usedNames.includes(id)) {
+						usedNames.push(id)
+						arr.push({ id , username})
 					}
 
 					arr.find(o => {
 						let prop = strArr.slice(propInd).join('_') // Other User Data
-						if (o.username === username) {
+						if (o.id === id) {
 
 							// Plugin Format
 							if (format === 'plugin'){
@@ -2283,7 +2288,6 @@ else {
 									o.meta = this.state.data[str][0].meta
 								} else {
 									let u = arr.splice(arr.length - 1,1)
-									console.error('Misformatted data for user ' + u.username)
 								}
 							} 
 							
@@ -2297,7 +2301,7 @@ else {
 			})
 
 			let i = arr.length
-			arr.push({ username: this.info.auth.username})
+			arr.push({ id: this.info.auth.id})
 			props.forEach(prop => {
 
 				// Plugin Format
@@ -2307,7 +2311,7 @@ else {
 						arr[i].meta = this.state.data[prop][0].meta
 					} else {
 						let u = arr.splice(arr.length - 1,1)
-						console.error('Misformatted data for user ' + u.username)
+						console.error('Misformatted data for user ' + u.id, 'me')
 					}
 				} 
 				
@@ -2319,6 +2323,8 @@ else {
 		} else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
+
+		console.log(arr)
 
 		return arr
 	}
@@ -2681,7 +2687,7 @@ class streamSession {
 
 	streamLoop = (prev = {}) => {
 		let streamObj = {
-			username: this.info.auth.username,
+			id: this.info.auth.id,
 			userData: {}
 		}
 		if (this.info.streaming === true && this.socket.readyState === 1) {

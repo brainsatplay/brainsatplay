@@ -22,6 +22,7 @@ export class HEG{
 
         this.ports = {
             atlas: {
+                edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,
@@ -36,6 +37,7 @@ export class HEG{
         // Auto-Generate Ports
         keys.forEach(key => {
             this.ports[key] = {
+                edit: false,
                 default: [],
                 input: {type:null},
                 output: {type:Array},

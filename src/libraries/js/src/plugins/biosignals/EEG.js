@@ -23,6 +23,7 @@ export class EEG{
 
         this.ports = {
             atlas: {
+                edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
                 default: this.session.atlas.data,
@@ -37,6 +38,7 @@ export class EEG{
         // Auto-Generate Ports
         keys.forEach(key => {
             this.ports[key] = {
+                edit: false,
                 input: {type:null},
                 output: {type:Array},
                 onUpdate: (userData) => {

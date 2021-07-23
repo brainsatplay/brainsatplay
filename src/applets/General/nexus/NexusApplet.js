@@ -605,7 +605,7 @@ this.three.getGeolocation = () => {
             currentUser.neurofeedbackGroup.getObjectByName(key).scale.set(nfscale,nfscale,nfscale)
         })
 
-        // if (userData.username === this.session.info.auth.username){
+        // if (userData.id === this.session.info.auth.id){
         //     this.glitchPass.glitchFrequency = Math.pow((1-coherence),3)*60
         // }
     }

@@ -108,9 +108,10 @@ server.on('upgrade', async (request, socket, head) => {
         return;
       }
 
-      username = res.msg
+      username = res.msg.username
+      id = res.msg.id
       wss.handleUpgrade(request, socket, head, function (ws) {
-        wss.emit('connection', ws, {username,origin}, request);
+        wss.emit('connection', ws, {username,id,origin}, request);
       });
     })
 });
@@ -119,12 +120,9 @@ server.on('upgrade', async (request, socket, head) => {
 // Connect Websocket
 wss.on('connection', function (ws, msg, req) {
 
-  let username = msg.username;
-  let origin = msg.origin;
-
   // add user
-  dataServer.addUser(username, origin, ws);
-  ws.send(JSON.stringify({msg:'resetUsername',username:username}))
+  dataServer.addUser(msg, ws);
+  ws.send(JSON.stringify({msg:'resetUsername', username: msg.username, id: msg.id}))
   });
   
 
@@ -143,6 +141,7 @@ const authenticate = async (auth, mongodb) => {
     let username = auth.username
     const dbName = "brainsatplay";
     let dict = {result:'incomplete',msg:'no message set'};
+    let id = uuid.v4();
 
     try {
       const db = mongodb.db(dbName);
@@ -152,20 +151,18 @@ const authenticate = async (auth, mongodb) => {
             if (username !== '' && username != 'guest'){
             let numDocs = await db.collection('profiles').find({ username: username }).count();
             if (numDocs == 0){
-                dict = { result: 'OK', msg: username }
+                dict = { result: 'OK', msg: {username, id} }
             } else {
                 dict = { result: 'incomplete', msg: 'profile exists with this username. please choose a different ID.' }
             }
             } else {
-            username = uuid.v4();
-            dict = { result: 'OK', msg: username}
+              if (username === '') username = 'guest'
+              dict = { result: 'OK', msg: {username, id}}
             }
         } 
     } catch {
-        if (username === '' || username === 'guest'){
-            username = uuid.v4();
-        }
-        dict = { result: 'OK', msg: username}
+        if (username === '') username = 'guest'
+        dict = { result: 'OK', msg: {username, id}}
     }
 return dict
 }

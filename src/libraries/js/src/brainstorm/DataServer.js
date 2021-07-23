@@ -30,13 +30,14 @@ class DataServer {
         this.subscriptionLoop();
 	}
 
-	addUser(username='', origin, socket=null,availableProps=[]) {
+	addUser(info, socket=null,availableProps=[]) {
 
-        socket = this.setWSBehavior(username, socket)
+        socket = this.setWSBehavior(info, socket)
         
-        if (!this.userData.has(username)){
-            this.userData.set(username, {
-                username:username,
+        if (!this.userData.has(info.id)){
+            this.userData.set(info.id, {
+                id: info.id,
+                username:info.username,
                 sessions:[],
                 robot: new RobotManager(),
                 sockets: {
@@ -48,31 +49,31 @@ class DataServer {
                 lastUpdate:Date.now(),
                 lastTransmit:0,
                 latency:0,
-                origins: [origin],
+                origins: [info.origin],
             })
             availableProps.forEach((prop,i) => {
-                this.userData.get(username).props[prop] = '';
+                this.userData.get(info.id).props[prop] = '';
             });
         }
         else { 
-            let u = this.userData.get(username);
+            let u = this.userData.get(info.id);
             u.lastUpdate = Date.now();
             if(socket.url !== u.sockets.ws.url) { //handle same user on new port
                 u.sockets.ws.close();
                 u.sockets.ws = socket;
             }
-            u.origins.push(origin)
+            u.origins.push(info.origin)
             availableProps.forEach((prop,i) => {
                 u.props[prop] = '';
             });
         }
     }
 
-    getUserData(username='') {
-        return this.userData.get(username);
+    getUserData(id='') {
+        return this.userData.get(id);
     }
     
-    setWSBehavior(username, socket){
+    setWSBehavior(info, socket){
 
         if (socket != null){
 
@@ -81,24 +82,24 @@ class DataServer {
             });
 
             socket.on('close', (s) => {
-                this.removeUser(username)
+                this.removeUser(info.id)
             });
         }
         return socket
     }
 
-    removeUser(username='username') {
+    removeUser(id) {
 
-        let user = this.userData.get(username)
+        let user = this.userData.get(id)
         // Close OSC Sockets
         user.sockets.osc.remove()
 
         // Remove User Subscriptions
-        user.sessions.forEach(id => {
-            this.removeUserFromSession(id,username)
+        user.sessions.forEach(sessionId => {
+            this.removeUserFromSession(sessionId,id)
         })
 
-        this.userData.delete(username)
+        this.userData.delete(id)
     }
 
     removeUserToUserStream(listener,source,propnames=null) { //delete stream or just particular props
@@ -121,14 +122,12 @@ class DataServer {
         return found;
     }
 
-    removeUserFromSession(id='',username='') {
+    removeUserFromSession(sessionId='',id='') {
         let found = false;
         let app = this.appSubscriptions.find((o,i) => {
-            if(o.id === id) {
-                let uidx = o.usernames.indexOf(username);
-                if(uidx > -1) o.usernames.splice(uidx,1);
-                let sidx = o.spectators.indexOf(username);
-                if(sidx > -1) o.spectators.splice(sidx,1);
+            if(o.id === sessionId) {
+                delete o.users[id]
+                delete o.spectators[id]
                 found = true;
                 return o;
             }
@@ -136,11 +135,9 @@ class DataServer {
 
         if(!found) {
             app = this.hostSubscriptions.find((o,i) => {
-                if(o.id === id) {
-                    let uidx = o.usernames.indexOf(username);
-                    if(uidx > -1) o.usernames.splice(uidx,1);
-                    let sidx = o.spectators.indexOf(username);
-                    if(sidx > -1) o.spectators.splice(sidx,1);
+                if(o.id === sessionId) {
+                    delete o.users[id]
+                    delete o.spectators[id]
                     found = true;
                     return o;
                 }
@@ -149,23 +146,24 @@ class DataServer {
 
         if (found) {
             // Send Info About User Leaving
-            let sessionData =this.getSessionData(id)
-            sessionData.userLeft = username
-            let allUsernames = [...app.usernames,...app.spectators]
-            allUsernames.forEach(u => {
+            let sessionData =this.getSessionData(sessionId)
+            sessionData.userLeft = id
+            let allIds = Object.assign({}, app.users)
+            allIds = Object.assign(allIds, app.spectators)
+            Object.keys(allIds).forEach(u => {
                 let filteredObj = this.removeUserData(u, sessionData)
                 this.userData.get(u).sockets.ws.send(JSON.stringify(filteredObj));
             })
 
             // Remove Session from User Info
-            let oldSessions = this.userData.get(username).sessions
+            let oldSessions = this.userData.get(id).sessions
             let toKeep = []
             oldSessions.forEach((session,i) => {
-                if (session !== id){
-                    toKeep.push(id)
+                if (session !== sessionId){
+                    toKeep.push(sessionId)
                 }
             })
-            this.userData.get(username).sessions = toKeep
+            this.userData.get(id).sessions = toKeep
         }
 
         return found;
@@ -197,8 +195,8 @@ class DataServer {
             if(hasData) {
                 this.updateUserData(parsed);
             }
-            else if(parsed.username && parsed.cmd) {
-                this.processUserCommand(parsed.username,parsed.cmd);
+            else if(parsed.id && parsed.cmd) {
+                this.processUserCommand(parsed.id,parsed.cmd);
             }
            
         }
@@ -212,8 +210,8 @@ class DataServer {
     }
 
     
-    processUserCommand(username='',commands=[]) { //Commands should be an array of arguments 
-        let u = this.userData.get(username);
+    processUserCommand(id='',commands=[]) { //Commands should be an array of arguments 
+        let u = this.userData.get(id);
         if (u != null) u.lastUpdate = Date.now();
         //u.socket.send(JSON.stringify({msg:commands}));
 
@@ -221,14 +219,14 @@ class DataServer {
             let userData = [];
             this.userData.forEach((o) => {
                 let filtered = {}
-                let propsToGet = ['sessions','username','origins']
+                let propsToGet = ['sessions','username','origins', 'id']
 
                 propsToGet.forEach(p => {
                     filtered[p] = o[p]
                 })
 
                 if(commands[1] != null) {
-                    if(o.username === commands[1]) {
+                    if(o.id === commands[1]) {
                         userData.push(filtered);
                     }
                 }
@@ -345,20 +343,20 @@ class DataServer {
             }
         }
         else if(commands[0] === 'subscribeToUser') {  //User to user stream
-            if(commands[3]) this.streamBetweenUsers(username,commands[1],commands[2]);
-            else this.streamBetweenUsers(username,commands[1]);
+            if(commands[3]) this.streamBetweenUsers(id,commands[1],commands[2]);
+            else this.streamBetweenUsers(id,commands[1]);
         }
         else if(commands[0] === 'subscribeToSession') { //Join session
-            this.subscribeUserToSession(username,commands[1],commands[2]);
+            this.subscribeUserToSession(id,commands[1],commands[2]);
         }
         else if(commands[0] === 'subscribeToHostSession') { //Join session
-            this.subscribeUserToHostSession(username,commands[1],commands[2],commands[3]);
+            this.subscribeUserToHostSession(id,commands[1],commands[2],commands[3]);
         }
         else if(commands[0] === 'unsubscribeFromUser') {
             let found = undefined;
-            if(commands[2]) found = this.removeUserToUserStream(username,commands[1],commands[2]);
-            else found = this.removeUserToUserStream(username,commands[1]);
-            if(found) {  u.sockets.ws.send(JSON.stringify({msg:'unsubscribed',username:commands[1],props:commands[2]}));}
+            if(commands[2]) found = this.removeUserToUserStream(id,commands[1],commands[2]);
+            else found = this.removeUserToUserStream(id,commands[1]);
+            if(found) {  u.sockets.ws.send(JSON.stringify({msg:'unsubscribed',id:commands[1],props:commands[2]}));}
             else { u.sockets.ws.send(JSON.stringify({msg:'userNotFound'}));}
         } 
         else if (commands[0] === 'logout') {
@@ -368,7 +366,7 @@ class DataServer {
         else if(commands[0] === 'leaveSession') {
             let found = undefined;
             if(commands[2]) found = this.removeUserFromSession(commands[1],commands[2]);
-            else found = this.removeUserFromSession(commands[1],u.username);
+            else found = this.removeUserFromSession(commands[1],u.id);
             if(found) {  u.sockets.ws.send(JSON.stringify({msg:'leftSession',id:commands[1]}));}
             else { u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:commands[1]}));}
         }
@@ -409,11 +407,11 @@ class DataServer {
     }
 
 	//Received a message from a user socket, now parse it into system
-	updateUserData(data={username:'',userData:{}}){ 
+	updateUserData(data={id:'',userData:{}}){ 
 		//Send previous data off to storage
-        if (this.userData.has(data.username)){
+        if (this.userData.has(data.id)){
 
-            let u = this.userData.get(data.username);
+            let u = this.userData.get(data.id);
 
             for(const prop in data.userData) {
                 u.props[prop] = data.userData[prop];
@@ -426,21 +424,26 @@ class DataServer {
             u.lastUpdate = now;
 
             this.userSubscriptions.forEach((o,i) => {
-                if(o.source === data.username) {
+                if(o.source === data.id) {
                     o.newData = true;
                 }
             });
 
             this.appSubscriptions.forEach((o,i) => {
 
-                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
-                    o.updatedUsers.push(data.username);
+                let u = o.users[data.id]
+                let s = o.spectators[data.id]
+                if(u != null && o.updatedUsers.indexOf(data.id) < 0 && s == null) {
+                    o.updatedUsers.push(data.id);
                 }
             });
 
             this.hostSubscriptions.forEach((o,i) => {
-                if(o.usernames.indexOf(data.username) > -1 && o.updatedUsers.indexOf(data.username) < 0 && o.spectators.indexOf(data.username) < 0) {
-                    o.updatedUsers.push(data.username);
+                let u = o.users[data.id]
+                let s = o.spectators[data.id]
+
+                if(u != null && o.updatedUsers.indexOf(data.id) < 0 && s == null) {
+                    o.updatedUsers.push(data.id);
                 }
             });
 
@@ -450,6 +453,8 @@ class DataServer {
 	}
 
 	streamBetweenUsers(listenerUser,sourceUser,propnames=[]) {
+
+        console.log(listenerUser, sourceUser)
         let idx = undefined;
         let sub = this.userSubscriptions.find((o,i) => {
             if(o.listener === listenerUser && o.source === sourceUser) {
@@ -476,11 +481,12 @@ class DataServer {
                     newData:false,
                     lastTransmit:0
                 });
+                console.log('subscribed to user')
                 u.sockets.ws.send(JSON.stringify({msg:'subscribedToUser', sub:this.userSubscriptions[this.userSubscriptions.length-1]}))
                 return this.userSubscriptions[this.userSubscriptions.length-1];
             }
             else {
-                u.sockets.ws.send(JSON.stringify({msg:'userNotFound', username:sourceUser}));
+                u.sockets.ws.send(JSON.stringify({msg:'userNotFound', id:sourceUser}));
             }
             
         }
@@ -506,12 +512,12 @@ class DataServer {
                     appname:appname,
                     devices:devices,
                     id:appname+"_"+Math.floor(Math.random()*10000000),
-                    usernames:[],
+                    users:{},
                     updatedUsers:[], //users with new data available (clears when read from subcription)
                     newUsers:[], //indicates users that just joined and have received no data yet
-                    spectators:[], //usernames of spectators
+                    spectators:{}, //usernames of spectators
                     propnames:propnames,
-                    hostname:'',
+                    host:'',
                     settings:[],
                     lastTransmit:Date.now()
                 });
@@ -560,19 +566,20 @@ class DataServer {
                     devices:sub.devices,
                     id:sub.id,
                     propnames:sub.propnames,
-                    usernames:sub.usernames,
-                    hostname:sub.hostname,
+                    users:sub.users,
+                    host:sub.host,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    spectators:[]
+                    spectators:{}
                 };
                 
-                let allUsernames = [...sub.usernames,...sub.spectators]
-                allUsernames.forEach((user,j) => { //get current relevant data for all players in session
-                    if(sub.spectators.indexOf(user) < 0){
+                let allIds = Object.assign({}, sub.users)
+                allIds = Object.assign(allIds, sub.spectators)
+                Object.keys(allIds).forEach((user,j) => { //get current relevant data for all players in session
+                    if(sub.spectators[user] == null){
                         let userObj = {
-                            username:user
+                            id:user
                         }
                         let listener = this.userData.get(user);
                         if(listener) {
@@ -593,23 +600,23 @@ class DataServer {
         return sessionData;
     }
 
-	subscribeUserToSession(username,id,spectating=false) {
+	subscribeUserToSession(id,sessionId,spectating=false) {
 
-        let g = this.getAppSubscription(id);
-        let u = this.userData.get(username);
+        let g = this.getAppSubscription(sessionId);
+        let u = this.userData.get(id);
 
 		if(g !== undefined && u !== undefined) {
 
-            if (g.usernames.length === 0 && !spectating){
-                g.hostname = username;
+            if (Object.keys(g.users).length === 0 && !spectating){
+                g.host = id;
             }
 
-            if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
-                if(spectating === true) g.spectators.push(username);
+            if( g.users[id] == null && g.spectators[id] == null) { 
+                if(spectating === true) g.spectators[id] = u.username
                 else {
-                    g.usernames.push(username);
-                    g.newUsers.push(username);
-                    g.updatedUsers.push(username);
+                    g.users[id] = u.username
+                    g.newUsers.push(id);
+                    g.updatedUsers.push(id);
                 }
             }
 			
@@ -617,28 +624,28 @@ class DataServer {
                 if(!(prop in u.props)) u.props[prop] = '';
             });
             
-            u.sessions.push(id);
+            u.sessions.push(sessionId);
             
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:id,sessionInfo:g}));
+			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:sessionId,sessionInfo:g}));
 		}
 		else {
-			u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:id}));
+			u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:sessionId}));
         }
 	}
 
-    createHostSubscription(appname='',devices=[],propnames=[], hostname='', hostprops=[]) {
+    createHostSubscription(appname='',devices=[],propnames=[], host='', hostprops=[]) {
         this.hostSubscriptions.push({
             appname:appname,
             devices:devices,
             id:appname+"_"+Math.floor(Math.random()*10000000),
-            hostname:hostname,
+            host:host,
             hostprops:hostprops,
             settings:[],
-            usernames:[],
+            users:{},
             updatedUsers:[], //users with new data available (clears when read from subcription)
             newUsers:[], //indicates users that just joined and have received no data yet
-            spectators:[], //usernames of spectators
+            spectators:{}, //usernames of spectators
             propnames:propnames,
             lastTransmit:Date.now()
         });
@@ -682,22 +689,23 @@ class DataServer {
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
-                    hostname:sub.hostname,
+                    host:sub.host,
                     hostprops:sub.hostprops,
                     propnames:sub.propnames,
-                    usernames:sub.usernames,
+                    users:sub.users,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     hostData:{},
                     userData:[],
-                    spectators:[]
+                    spectators:{}
                 };
                 
-                let allUsernames = [...sub.usernames,...sub.spectators]
-                allUsernames.forEach((user,j) => { //get current relevant data for all players in game
-                    if(sub.spectators.indexOf(user) < 0){
+                let allIds = Object.assign({}, sub.users)
+                allIds = Object.assign(allIds, sub.spectators)
+                Object.keys(allIds).forEach((user,j) => { //get current relevant data for all players in game
+                    if(sub.spectators[user] == null){
                         let userObj = {
-                            username:user
+                            id:user
                         }
                         let listener = this.userData.get(user);
                         if(listener) {
@@ -712,7 +720,7 @@ class DataServer {
                     }
                 });
 
-                let host = this.userData.get(sub.hostname);
+                let host = this.userData.get(sub.host);
                 if(host) {
                     sub.hostprops.forEach((prop,j) => {
                         updateObj.hostData[prop] = host.props[prop];
@@ -726,26 +734,26 @@ class DataServer {
         return sessionData;
     }
 
-	subscribeUserToHostSession(username,id,spectating=false,hosting=false) {
-		let g = this.getHostSubscription(id);
-        let u = this.userData.get(username);
+	subscribeUserToHostSession(id,sessionId,spectating=false,hosting=false) {
+		let g = this.getHostSubscription(sessionId);
+        let u = this.userData.get(id);
 		if(g !== undefined && u !== undefined) {
-            if( g.usernames.indexOf(username) < 0 && g.spectators.indexOf(username) < 0) { 
-                if(spectating === true) g.spectators.push(username);
+            if( g.users[id] == null && g.spectators[id] == null ) { 
+                if(spectating === true) g.spectators[id] = u.username
                 else {
-                    g.usernames.push(username);
-                    g.newUsers.push(username);
-                    g.updatedUsers.push(username);
+                    g.users[id] = u.username
+                    g.newUsers.push(id);
+                    g.updatedUsers.push(id);
                 }
             }
 
-            if(hosting === true) g.hostname = username;
+            if(hosting === true) g.host = id;
 			
 			g.propnames.forEach((prop,j) => {
 				if(!(prop in u.props)) u.props[prop] = '';
 			});
 			//Now send to the user which props are expected from their client to the server on successful subscription
-			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:appname,devices:g.devices,propnames:g.propnames,hostname:g.hostname,hostprops:g.hostprops}));
+			u.sockets.ws.send(JSON.stringify({msg:'subscribedToSession',id:appname,devices:g.devices,propnames:g.propnames,host:g.host,hostprops:g.hostprops}));
 		}
 		else {
 			u.sockets.ws.send(JSON.stringify({msg:'sessionNotFound',id:appname}));
@@ -765,8 +773,8 @@ class DataServer {
                 else if(sub.newData === true) {
                     let dataToSend = {
                         msg:'userData',
-                        username:sub.source,
-                        id:sub.id,
+                        id:sub.source,
+                        session: sub.id, // TO FIX
                         userData:{}
                     };
                     sub.propnames.forEach((prop,j) => {
@@ -782,19 +790,19 @@ class DataServer {
     } 
 
 
-    removeUserData(username, updateObj){
+    removeUserData(id, updateObj){
         // Don't Receive Your Own Data
         let objToFilter = JSON.parse(JSON.stringify(updateObj))
-        let idx = objToFilter.userData.findIndex((d) => d.username == username)
+        let idx = objToFilter.userData.findIndex((d) => d.id == id)
         if (idx >= 0) objToFilter.userData.splice(idx,1)
         return objToFilter
     }
 
 
     getFullUserData(user,sub) {
-        if(sub.spectators.indexOf(user) < 0) {
+        if(sub.spectators[user] == null) {
             let userObj = {
-                username:user
+                id:user
             }
             let listener = this.userData.get(user);
             if(listener){ 
@@ -809,7 +817,7 @@ class DataServer {
     updateAppSubscriptions = (time) => {
         this.appSubscriptions.forEach((sub,i) => {
             if(time - sub.lastTransmit > this.subUpdateInterval){
-                
+
                 //let t = this.userData.get('guest');
                 //if(t!== undefined) t.sockets.ws.send(JSON.stringify(sub));
 
@@ -819,21 +827,22 @@ class DataServer {
                     devices:sub.devices,
                     id:sub.id,
                     propnames:sub.propnames,
-                    usernames:sub.usernames,
+                    users:sub.users,
                     spectators:sub.spectators,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
                     userData:[],
-                    hostname: sub.hostname
+                    host: sub.host
                 };
 
                 if(sub.newUsers.length > 0) { //If new users, send them all of the relevant props from other users
 
                     let fullUserData = [];
 
-                    let allUsernames = [...sub.usernames,...sub.spectators]
+                    let allIds = Object.assign({}, sub.users)
+                    allIds = Object.assign(allIds, sub.spectators)
 
-                    allUsernames.forEach((user, j) => {
+                    Object.keys(allIds).forEach((user, j) => {
                         let userObj = this.getFullUserData(user, sub)
                         if (userObj != null) fullUserData.push(userObj)
                     });
@@ -850,10 +859,8 @@ class DataServer {
                             u.sockets.ws.send(JSON.stringify(filteredObj));
                         }
                         else {
-                            sub.usernames.splice(sub.usernames.indexOf(user),1);
-                            if(sub.spectators.indexOf(user) > -1) {
-                                sub.spectators.splice(sub.spectators.indexOf(user),1);
-                            }
+                            delete sub.users[user]
+                            delete sub.spectators[user]
                         }
                     });
 
@@ -866,10 +873,11 @@ class DataServer {
                             userObj = this.getFullUserData(user, sub)
                             if (userObj != null) updateObj.userData.push(userObj)
                         } else { // Grab updated data for old users
-                            if(sub.spectators.indexOf(user) < 0){
+                            if(sub.spectators[user] == null){
                                 let userObj = {
-                                    username:user
+                                    id:user
                                 }
+
                                 let listener = this.userData.get(user);
                                 if(listener.props.devices) userObj.devices = listener.props.devices;
                                 if(listener) {
@@ -883,19 +891,19 @@ class DataServer {
                         }
                     });
 
-                    let allUsernames = [...sub.usernames,...sub.spectators]
-                    allUsernames.forEach((user,j) => {
+                    let allIds = Object.assign({}, sub.users)
+                    allIds = Object.assign(allIds, sub.spectators)
+
+                    Object.keys(allIds).forEach((user,j) => {
                         if(sub.newUsers.indexOf(user) < 0) { //new users will get a different data struct with the full data from other users
                             let u = this.userData.get(user);
                             if(u !== undefined) {
-                                let filteredObj = this.removeUserData(u.username, updateObj)
+                                let filteredObj = this.removeUserData(user, updateObj)
                                 u.sockets.ws.send(JSON.stringify(filteredObj));
                                 u.lastUpdate = time; //prevents timing out for long spectator sessions
                             } else {
-                                sub.usernames.splice(sub.usernames.indexOf(user),1);
-                                if(sub.spectators.indexOf(user) > -1) {
-                                    sub.spectators.splice(sub.spectators.indexOf(user),1);
-                                }
+                                delete sub.users[user]
+                                delete sub.spectators[user]
                             }
                         }
                     });
@@ -921,10 +929,10 @@ class DataServer {
                     appname:sub.appname,
                     devices:sub.devices,
                     id:sub.id,
-                    hostname:sub.hostname,
+                    host:sub.host,
                     hostprops:sub.hostprops,
                     propnames:sub.propnames,
-                    usernames:sub.usernames,
+                    users:sub.users,
                     spectators:sub.spectators,
                     updatedUsers:sub.updatedUsers,
                     newUsers:sub.newUsers,
@@ -935,7 +943,7 @@ class DataServer {
                 
                 let hostUpdateObj = Object.assign({},updateObj);
 
-                let host = this.userData.get(sub.hostname);
+                let host = this.userData.get(sub.host);
                 if(host) {
                     sub.hostprops.forEach((prop,j) => {
                         updateObj.hostData[prop] = host.props[prop];
@@ -945,9 +953,9 @@ class DataServer {
                 if(host) {
                     if(sub.updatedUsers.length > 0) { //only send data if there are updates
                         sub.updatedUsers.forEach((user,j) => {
-                            if(sub.spectators.indexOf(user) < 0 && sub.newUsers.indexOf(user) < 0){
+                            if(sub.spectators[user] == null && sub.newUsers.indexOf(user) < 0){
                                 let userObj = {
-                                    username:user
+                                    id:user
                                 }
                                 let listener = this.userData.get(user);
                                 if(listener.props.devices) userObj.devices = listener.props.devices;
@@ -963,9 +971,9 @@ class DataServer {
                     }
 
                     sub.newUsers.forEach((user,j) => {
-                        if(sub.spectators.indexOf(user) < 0){
+                        if(sub.spectators[user] == null){
                             let userObj = {
-                                username:user
+                                id:user
                             }
                             let listener = this.userData.get(user);
                             if(listener) {
@@ -976,23 +984,23 @@ class DataServer {
                             }
                         }
                     });
-                    let filteredObj = this.removeUserData(u.username, hostUpdateObj)
+                    let filteredObj = this.removeUserData(u.id, hostUpdateObj)
                     host.sockets.ws.send(JSON.stringify(filteredObj));
                 }
 
                 //send latest host data to users
-                let allUsernames = [...sub.usernames,...sub.spectators]
-                allUsernames.forEach((user,j) => {
+                let allIds = Object.assign({}, sub.users)
+                allIds = Object.assign(allIds, sub.spectators)
+                Object.keys(allIds).forEach((user,j) => {
                     let u = this.userData.get(user);
                     if(u !== undefined) {
-                        let filteredObj = this.removeUserData(u.username, updateObj) 
+                        let filteredObj = this.removeUserData(u.id, updateObj) 
                         u.sockets.ws.send(JSON.stringify(filteredObj));
                         u.lastUpdate = time; //prevents timing out for long spectator sessions
                     } else {
-                        sub.usernames.splice(sub.usernames.indexOf(user),1);
-                        if(sub.spectators.indexOf(user) > -1) {
-                            sub.spectators.splice(sub.spectators.indexOf(user),1);
-                        }
+                        delete sub.users[user]
+                        delete sub.spectators[user]
+
                     }
                 });
 
@@ -1019,7 +1027,7 @@ class DataServer {
             u.updatedPropnames = [];
             if(time - u.lastUpdate > this.serverTimeout) {
                 this.userData.sockets.ws.close();
-                this.userData.delete(u.username);
+                this.userData.delete(u.id);
             }
         })
 

@@ -100,7 +100,7 @@ export class Buzz{
         if (this.props.device){   
             let run = false
             // Check User Requests
-            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.username) run = true})
+            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.id) run = true})
             if (run){ // Run if you
                 let motorCommand = [this.params.motor1,this.params.motor2,this.params.motor3,this.params.motor4]
                 this.props.device.vibrateMotors([motorCommand,[0,0,0,0]])

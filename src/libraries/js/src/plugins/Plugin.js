@@ -16,6 +16,7 @@ export class Plugin{
         // Data May Be Passed Through Ports (automatically assigned to an parameter)
         this.ports = {
             default: {
+                edit: false,
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (userData) => {
@@ -37,6 +38,7 @@ export class Plugin{
                 }
             },
             element: {
+                edit: false,
                 input: {type: null},
                 output: {type: Element},
                 default: this.props.container,
