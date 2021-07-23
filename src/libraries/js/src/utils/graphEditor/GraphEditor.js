@@ -655,6 +655,12 @@ export class GraphEditor{
                     if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
                 }
             })
+
+            this.state.addToState(`activeSettingsFile`, settings, () => {
+                if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+            })
+
+
         }
 
 
@@ -1251,6 +1257,8 @@ export class GraphEditor{
             }
         }
     }
+
+    listenForInputs
 
     createFile(target, name){
         if (name == null || name === '') name = `${target.name}`
