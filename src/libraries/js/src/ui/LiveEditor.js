@@ -87,6 +87,7 @@ export class LiveEditor {
 
 
             this.input = document.getElementById(`${this.props.id}editor`)
+
             let reset = document.getElementById(`${this.props.id}reset`)
             let close = document.getElementById(`${this.props.id}close`)
             let submitElement = document.getElementById(`${this.props.id}submit`)
@@ -122,6 +123,7 @@ export class LiveEditor {
             this.input.oninput = () => {
                 this._updateDisplay(this.input.value)
                 this._syncScroll(this.input)
+                this.onInput(this.input.value)
             }
 
             if (this.props.shortcuts == null || this.props.shortcuts.save != false){
@@ -247,6 +249,10 @@ export class LiveEditor {
     _updateSettings(settings){
         if (settings.onSave){
             this.onSave = settings.onSave
+        }
+
+        if (settings.onInput){
+            this.onInput = settings.onInput
         }
 
         if (settings.onOpen){
