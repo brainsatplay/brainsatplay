@@ -656,6 +656,7 @@ export class GraphEditor{
                 }
             })
 
+            delete this.state.data[`activeSettingsFile`]
             this.state.addToState(`activeSettingsFile`, settings, () => {
                 if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
             })
