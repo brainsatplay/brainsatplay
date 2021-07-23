@@ -37,17 +37,18 @@ class Parser{
                 output: {type: null},
                 onUpdate: (userData) => {
 
+                    console.log(userData)
                     this.props.label.innerHTML = userData[0].meta.label
                     let coherenceReadouts = this.props.readout.querySelectorAll(`.readout`)
             
-                    let nameRegistry = new Set(userData.map(u => u.username))
+                    let idRegistry = new Set(userData.map(u => u.id))
             
                     for (let readout of coherenceReadouts){
                         if (Array.isArray(userData)){
-                            let username = readout.id.replace(`${this.props.id}-`,'')
-                            let found = userData.find(u => u.username === username)
+                            let id = readout.id.replace(`${this.props.id}-`,'')
+                            let found = userData.find(u => u.id === id)
                             if (found) {
-                                nameRegistry.delete(found.username)
+                                idRegistry.delete(found.id)
                                 readout.innerHTML = `${found.username}: ${found.data}`
                             } else {
                                 readout.remove()
@@ -55,11 +56,11 @@ class Parser{
                         }
                     }
             
-                    nameRegistry.forEach(name => {
-                        let u = userData.find(u => u.username === name)
+                    idRegistry.forEach(id => {
+                        let u = userData.find(u => u.id === id)
                         let value = u.data
                         if (typeof value === "number") value = value.toFixed(2)
-                        this.props.readout.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.data}</p>`
+                        this.props.readout.innerHTML += `<p id="${this.props.id}-${u.id}" class="readout" >${u.username}: ${u.data}</p>`
                     })
             },
             

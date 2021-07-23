@@ -535,9 +535,22 @@ select {
     background: rgb(0,0,0);
   }
 
+
   .brainsatplay-node-editor-tabs > .tab > .tablinks {
     position: relative;
   }
+
+  .brainsatplay-node-editor-tabs > .tab > .tablinks.edited .closeIcon {
+    background: white;
+    border-radius: 50%;
+    opacity: 1;
+    width: 10px;
+    height: 10px;
+    padding-right: 0;
+    margin-right: 14px;
+    color: transparent;
+  }
+
 
   .closeIcon {
     position: absolute;
@@ -545,15 +558,22 @@ select {
     top: 50%;
     transform: translateY(-50%);
     opacity: 0.3;
-    cursor: pointer;
     padding-right: 15px;
-    transition: 0.3s;
+    transition: opacity 0.3s;
     font-size: 130%;
   }
 
-  .closeIcon:hover {
+  .brainsatplay-node-editor-tabs > .tab > .tablinks .closeIcon:hover {
     opacity: 0.5;
-    /* transition: 0.1s; */
+    color: white;
+    cursor: pointer;
+    padding-right: 15px;
+    margin-right: 0px;
+    width: auto;
+    height: auto;
+    background: transparent;
+    border-radius: 0%;
+    transition: opacity 0.1s;
   }
   
   /* Style the buttons that are used to open the tab content */

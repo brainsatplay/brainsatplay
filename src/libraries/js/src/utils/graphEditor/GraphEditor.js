@@ -477,6 +477,7 @@ export class GraphEditor{
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
         let save = document.getElementById(`${this.props.id}save`)
         let onsave = () => {
+            this.files['Graph Editor'].tab.classList.remove('edited')
             this.app.updateGraph()
             this.app.session.projects.save(this.app)
             this.lastSavedProject = this.app.info.name
@@ -499,11 +500,13 @@ export class GraphEditor{
 
     addCloseIcon(parent, callback){
         let closeIcon = document.createElement('div')
-        closeIcon.innerHTML = 'x'
         closeIcon.classList.add('closeIcon')
 
-        closeIcon.onclick = () => {
-            callback()
+        if (callback){
+            closeIcon.innerHTML = 'x'
+            closeIcon.onclick = () => {
+                callback()
+            }
         }
 
         if (parent.style.position != 'absolute') parent.style.position = 'relative'
@@ -525,6 +528,8 @@ export class GraphEditor{
                     editorTab.click()
                 }
                 this.addCloseIcon(tab,onClose)
+            } else {
+                this.addCloseIcon(tab)
             }
 
             tab.onclick = () => {
@@ -626,8 +631,6 @@ export class GraphEditor{
             }
 
             Object.keys(dummySettings).forEach(key => {
-
-                console.log(settings[key], dummySettings[key])
                 if (settings[key] == null) settings[key] = dummySettings[key]
                 toParse[key] = {default: settings[key]}
                 toParse[key].input =  {type: typeof settings[key]}
@@ -652,6 +655,13 @@ export class GraphEditor{
                     if (inputContainer) settingsContainer.insertAdjacentElement('beforeend', inputContainer)
                 }
             })
+
+            delete this.state.data[`activeSettingsFile`]
+            this.state.addToState(`activeSettingsFile`, settings, () => {
+                if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+            })
+
+
         }
 
 
@@ -798,6 +808,8 @@ export class GraphEditor{
 
     addEdge = async (e) => {
 
+        if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+
         if (e.source) e.source = e.source.replace(':default', '')
         if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
@@ -847,6 +859,10 @@ export class GraphEditor{
     }
 
     addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
+        
+        
+        if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
         if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
@@ -1232,13 +1248,18 @@ export class GraphEditor{
                             }
                         }
                         
-                        if (oldValue != newValue) changeFunc()
+                        if (oldValue != newValue) {
+                            changeFunc()
+                            if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+                        }
                     })
                 }
                 return containerDiv
             }
         }
     }
+
+    listenForInputs
 
     createFile(target, name){
         if (name == null || name === '') name = `${target.name}`
@@ -1256,6 +1277,7 @@ export class GraphEditor{
         if (this.files[filename] == null){
             this.files[filename] = {}
 
+            let tab
             let settings = {}
             let container = this.createView(undefined, 'brainsatplay-node-code', '')
             settings.language = 'javascript'
@@ -1264,9 +1286,14 @@ export class GraphEditor{
                 container.style.opacity = '1'
             }
 
+            settings.onInput = () => {
+                if (tab) tab.classList.add('edited')
+            }
+
             settings.onSave = (cls) => {
                 let instanceInfo = this.manager.instantiateNode({id:cls.name,class: cls})
                 let instance = instanceInfo.instance
+                tab.classList.remove('edited')
 
                 if (activeNode){
                     Object.getOwnPropertyNames( instance ).forEach(k => {
@@ -1307,7 +1334,7 @@ export class GraphEditor{
             settings.showClose = false
 
             let editor = new LiveEditor(settings,container)
-            let tab = this.addTab(filename, container.id, settings.onOpen)
+            tab = this.addTab(filename, container.id, settings.onOpen)
             this.files[filename].container = container
             this.files[filename].tab = tab
             this.files[filename].editor = editor
