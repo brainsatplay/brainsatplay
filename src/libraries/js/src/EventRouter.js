@@ -14,6 +14,7 @@ export class EventRouter{
             }
         }
         this.apps = {}
+        this.ui = []
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -88,7 +89,7 @@ export class EventRouter{
 
                         // Declare Callback and Subscribe
                         let deviceCallback = (o) => {
-                            console.log(o)
+                            // console.log(o)
                             this.update(o, this.routes.registry[state.meta.id])
                         }
 
@@ -101,7 +102,7 @@ export class EventRouter{
 
     deinit = () => {
         this.state.removeState(this.props.deviceSub)
-        if (this.ui) this.ui.deleteNode()
+        if (this.ui) this.ui.forEach(frag => frag.deleteNode())
     }
 
     // Route Events to Atlas
@@ -269,12 +270,48 @@ export class EventRouter{
                 this.updateRouteDisplay()
             }
 
-            this.ui = new DOMFragment(
+            this.ui.push(new DOMFragment(
                 template,
                 parentNode,
                 undefined,
                 setup
-            )
+            ))
+        }
+    }
+
+    addDebugger = (parentNode=document.body) => {
+        
+        if (Object.keys(this.device.states).length > 0){
+            let template = () => {
+                return `
+                <br>
+                <div id='${this.id}debugger' style="padding: 10px;">
+                    <h4>Debugger</h4>
+                    <hr>
+                    <div class='brainsatplay-debugger' style="display: flex; flex-wrap: wrap;">
+                    </div>
+                </div>
+                `;
+            }
+
+            let setup = () => {
+
+                let container = parentNode.querySelector('.brainsatplay-debugger')
+                let blink = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
+
+                if (blink){
+                    this.device.atlas.graph.updateParams(blink, {debug: true})
+                    container.insertAdjacentElement('beforeend', blink.props.container)
+                }
+
+            }
+
+            this.ui.push(new DOMFragment(
+                template,
+                parentNode,
+                undefined,
+                setup
+            ))
         }
     }
 

@@ -124,7 +124,7 @@ export class Blink{
 
         let HTMLtemplate = () => {
             return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 300px; height: 150px; position: absolute; top: 0px; right: 0px; z-index: 2;'>
+            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 150px;'>
             </div>`
         }
 
