@@ -25,7 +25,7 @@ export class Neurofeedback{
             },
             output: {
                 default: 'Mean',
-                options: ['Mean']
+                options: ['Mean', 'Channels']
             }
         }
 
@@ -149,8 +149,8 @@ export class Neurofeedback{
             }       
             
             // Output to User Data Object
-            if (this.params.output === 'Mean') u.data = this.session.atlas.mean(arr)
-            else u.data = arr
+            if (this.params.output === 'Channels') u.data = arr
+            else u.data = this.session.atlas.mean(arr)
 
             u.meta.label = this.params.metric
         })
