@@ -307,8 +307,13 @@ export class BCIAppManager {
 
         let toggle = app.querySelector('#sidebar-toggle')
         toggle.onclick = () => {
-            sidebar.classList.toggle('toggled')
+            app.querySelector('#sidebar-container').classList.toggle('toggled')
         }
+
+        app.querySelector('#sidebar-container').querySelector('.overlay').onclick = () => {
+            toggle.click()
+        }
+
 
 
         this.uiFragments.page = new DOMFragment(
