@@ -156,7 +156,7 @@ export class Ramchurn{
             controlVideo: {
                 input: {type: null},
                 output: {type: 'file'},
-                default: [],
+                // default: [],
                 onUpdate: (userData) => {
                     // Get Combination
                     let combination = userData[0].data
@@ -170,7 +170,7 @@ export class Ramchurn{
             setAudio: {
                 input: {type: null},
                 output: {type: 'file'},
-                default: [],
+                // default: [],
                 onUpdate: (userData) => {
                     return [{data: userData[0].data}]
                 }
@@ -178,7 +178,7 @@ export class Ramchurn{
             controlAudio: {
                 input: {type: null},
                 output: {type: Array},
-                default: [],
+                // default: [],
                 onUpdate: (userData) => {
                     let combination = userData[0].data
                     let arr = []
@@ -189,7 +189,7 @@ export class Ramchurn{
                     })
 
                     console.log('SENDING ARRAY FROM MANAGER', arr)
-                    return [{data: arr, forceUpdate: true}]
+                    return [{data: arr}]
                 }
             },
 

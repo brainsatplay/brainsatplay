@@ -41,7 +41,6 @@ export class Mixer{
                         })
 
                         Promise.all(audioPromises).then(() => {
-                            console.log('ALL LOADED')
                             resolve([{data: true}])
                         })
                     }
@@ -68,13 +67,12 @@ export class Mixer{
                 output: {type: null},
                 default: [],
                 onUpdate: (userData) => {
-                    console.log('RECEIVED',userData)
                     let selections = userData[0].data
-                    console.log(this.props.audio,selections)
                     selections.forEach(f => {
-                        console.log(f)
-                        let node = this.props.audio.find(n => n.params.name === f.name)
-                        console.log('FOUND', node)
+                        let node = this.props.audio.find(n => {
+                            if (n.instance.params.file.name === f.name) return n
+                        })
+                        node.instance.props.sourceNode.start(0)
                     })
                 }
             }

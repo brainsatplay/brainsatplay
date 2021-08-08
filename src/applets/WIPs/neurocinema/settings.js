@@ -34,7 +34,7 @@ export const settings = {
         {id:'manager', class: Ramchurn},
 
         // Video Player
-        {id:'video', class: brainsatplay.plugins.interfaces.Video, params: {cut: true}},
+        {id:'video', class: brainsatplay.plugins.interfaces.Video, params: {cut: true, files: []}},
 
         // Audio
         // {id:'audio', class: brainsatplay.plugins.audio.Audio},

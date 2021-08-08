@@ -348,7 +348,6 @@ export class GraphManager{
             if (node.ports[port].output.type === null) connected = true
             if (node.ports[port].input.type === null) connected = true
 
-            console.log(node)
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
             if ((inputCopy.length > 0 || forceRun) && ((connected || forceUpdate))){
                 let result
@@ -367,8 +366,7 @@ export class GraphManager{
                     }
                 }
 
-                console.log('SENT THROUGH NODE')
-
+                console.log('result',result)
 
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
@@ -440,12 +438,16 @@ export class GraphManager{
             }
             })
 
+            console.log('pass',!allEqual, forced, node.stateUpdates)
+
             if ((!allEqual || forced) && node.stateUpdates){
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
+                console.log('stringify', stringify)
                 if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.states[port])) // Do not send huge objects
-                node.stateUpdates.manager.setState(updateObj)
+                console.log(updateObj)
+                node.stateUpdates.manager.setState(updateObj, false)
             }
         }
     }
@@ -694,10 +696,11 @@ export class GraphManager{
             // Pass Data from Source to Target
             let _onTriggered = (o) => {
 
+                console.log('triggered', o, o.value ?? source.states[sourcePort])
                 if (this.applets[appId]){
                     if (o.trigger){
                         let input = o.value ?? source.states[sourcePort]
-                        input.forEach(u => {
+                         input.forEach(u => {
                             if (!u.meta) u.meta = {}
                             if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                             u.meta.session = applet.sessionId
