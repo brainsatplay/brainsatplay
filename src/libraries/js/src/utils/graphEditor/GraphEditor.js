@@ -704,7 +704,7 @@ export class GraphEditor{
         if (this.shown){
             if (latencyArr) {
                 latencyArr.forEach(o => {
-                    this.animateLatency(o.node,o.latency)
+                    this.animateLatency(o.node,o.port,o.latency)
                 })
             }
             this.animateNode(source,'source')
@@ -734,7 +734,7 @@ export class GraphEditor{
         // or output as hex if preferred
     };
 
-    animateLatency(node,latency){
+    animateLatency(node, port, latency){
         let instance = this.graph.nodes[node.label]
         let pct = Math.min(1,latency/1)
 
@@ -744,8 +744,9 @@ export class GraphEditor{
             { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
         ];
         
-        instance.latencyDisplay.style.width = `${pct*100}%`
-        instance.latencyDisplay.style.background = this.getColorfromMap(pct, map)
+        let el = instance.portLabels.querySelector(`.latency-display[name="${port}"]`)
+        el.style.width = `${pct*100}%`
+        el.style.background = this.getColorfromMap(pct, map)
     }
 
     animateNode(node,type){

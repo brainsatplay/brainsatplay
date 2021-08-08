@@ -89,7 +89,10 @@ export class GraphManager{
         node.uuid = this._getRandomId()
 
         // Setup Info Object
-        if (!(node.uuid in this.info.latencies)) this.info.latencies[node.uuid] = {label: node.label}
+        if (!(node.uuid in this.info.latencies)) {
+            this.info.latencies[node.uuid] = {}
+            for (let port in node.ports) this.info.latencies[node.uuid][port] = {}
+        }
 
         if (node.ports != null){
             for (let port in node.ports){
@@ -207,7 +210,6 @@ export class GraphManager{
             })
         } else {
             this.setUI(node, nodeInfo)
-
         }
 
         // Update Event Registry
@@ -308,7 +310,7 @@ export class GraphManager{
     }
 
     // Input Must Be An Array
-    runSafe(node, port='default',input=[{}], internal=false){
+    async runSafe(node, port='default',input=[{}], internal=false){
 
         let tick = performance.now()
  
@@ -346,6 +348,7 @@ export class GraphManager{
             if (node.ports[port].output.type === null) connected = true
             if (node.ports[port].input.type === null) connected = true
 
+            console.log(node)
             // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
             if ((inputCopy.length > 0 || forceRun) && ((connected || forceUpdate))){
                 let result
@@ -364,6 +367,9 @@ export class GraphManager{
                     }
                 }
 
+                console.log('SENT THROUGH NODE')
+
+
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
                     result.then((r) =>{
@@ -379,8 +385,9 @@ export class GraphManager{
         let tock = performance.now()
         let latency = tock - tick
         if (this.info.latencies[node.uuid] == null) this.info.latencies[node.uuid] = {}
-        if (this.info.latencies[node.uuid].average == null) this.info.latencies[node.uuid].average = latency
-        else this.info.latencies[node.uuid].average = (this.info.latencies[node.uuid].average + latency)/2
+        if (this.info.latencies[node.uuid][port] == null) this.info.latencies[node.uuid][port] = {}
+        if (this.info.latencies[node.uuid][port].average == null) this.info.latencies[node.uuid][port].average = latency
+        else this.info.latencies[node.uuid][port].average = (this.info.latencies[node.uuid][port].average + latency)/2
 
         return node.states[port]
     }
@@ -701,8 +708,8 @@ export class GraphManager{
                             {label:source.label, port: sourcePort},
                             {label:target.label, port: targetPort}, 
                             [
-                                {node: source, latency: this.info.latencies[source.uuid].average},
-                                {node: target, latency: this.info.latencies[target.uuid].average},
+                                {node: source, port: sourcePort, latency: this.info.latencies[source.uuid][sourcePort].average},
+                                {node: target, port: targetPort, latency: this.info.latencies[target.uuid][targetPort].average},
                             ])
 
                         return returned
