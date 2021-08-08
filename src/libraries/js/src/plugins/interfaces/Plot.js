@@ -43,6 +43,8 @@ class Plot{
             type: {default: 'line', options: ['line','bar']}
         }
 
+        this.dependencies = ['https://cdn.plot.ly/plotly-2.0.0.min.js']
+
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -109,12 +111,6 @@ class Plot{
         }
 
         let setupHTML = () => {
-
-            const script = document.createElement("script");
-        script.src = 'https://cdn.plot.ly/plotly-2.0.0.min.js'
-        script.async = true;
-
-        script.onload = () => {
             this.props.container = document.getElementById(`${this.props.id}`)
             Plotly.newPlot( this.props.container, [{
             x: [],
@@ -133,8 +129,6 @@ class Plot{
                 setTimeout(animate, 1000/2)
             }
             animate()
-        }
-        document.body.appendChild(script);
         }
 
         return {HTMLtemplate, setupHTML}

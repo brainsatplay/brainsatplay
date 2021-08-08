@@ -1318,6 +1318,7 @@ export class GraphEditor{
                                         'input', 
                                         'output',
                                     ]
+                                    
                                     keys.forEach(str => {
                                         if (!typeKeys.includes(str)) activeNode.instance.ports[port][str] = instance.ports[port][str]
                                         else {

@@ -64,6 +64,10 @@ export class Audio{
         this.stopAudio();
     }
 
+    // preload = () => {
+
+    // }
+
     decodeAudio = (file) => {
         //read and decode the file into audio array buffer 
         var fr = new FileReader();

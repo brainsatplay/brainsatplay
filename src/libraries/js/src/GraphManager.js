@@ -23,6 +23,7 @@ export class GraphManager{
         // Metadata
         this.settings = settings
         this.registry = {local: {}, brainstorm: {}}
+        this.dependencies = []
 
         this.info = {
             latencies: {}
@@ -62,7 +63,10 @@ export class GraphManager{
         return node.ports
     }
 
+
     instantiateNode(nodeInfo,session=this.session){
+
+        // return new Promise(resolve => {
 
         let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
         let controlsToBind = []
@@ -98,8 +102,24 @@ export class GraphManager{
         if (node.analysis) toAnalyze.add(...node.analysis)
         nodeInfo.analysis.push(...Array.from(toAnalyze))
         nodeInfo.instance = node;
+
+        // Download Dependencies
+        if ('dependencies' in node){
+            node.dependencies.forEach((url,i) => {
+                const script = document.createElement("script");
+                script.src = url
+                script.async = true;
+
+                let promise = new Promise(resolve => {
+                    script.onload = () => {
+                        resolve(url)
+                    }
+                    document.body.appendChild(script);
+                })
+                node.dependencies[i] = promise
+            })
+        } else node.dependencies = []
         return nodeInfo
-        // return {instance: node, controls: controlsToBind, analysis: toAnalyze}
     }
 
     removeNode(appId,label, resize=true){
@@ -177,11 +197,27 @@ export class GraphManager{
 
         if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
 
-        // Run Init Function and Instantiate Some Additional Nodes
-        let ui = node.init(nodeInfo.params)
-
         // Grab Configure Function
         nodeInfo.configure = node.configure
+
+        // Run Init Function and Instantiate Some Additional Nodes
+        if (node.dependencies.length > 0){
+            Promise.allSettled(node.dependencies).then(res => {
+                this.setUI(node, nodeInfo)
+            })
+        } else {
+            this.setUI(node, nodeInfo)
+
+        }
+
+        // Update Event Registry
+        this.updateApp(appId)
+
+        return nodeInfo
+    }
+
+    setUI = (node,nodeInfo) => {
+        let ui = node.init(nodeInfo.params)
 
         // Grab Created UI Functions
         if (ui != null) {
@@ -213,12 +249,6 @@ export class GraphManager{
             if (ui.HTMLtemplate instanceof Function) ui.HTMLtemplate = ui.HTMLtemplate()
             nodeInfo.ui = ui
         }
-
-
-        // Update Event Registry
-        this.updateApp(appId)
-
-        return nodeInfo
     }
 
     updateApp(appId){
@@ -421,6 +451,7 @@ export class GraphManager{
     }
 
     init(app){
+        
         let id = app.props.id
         let settings = app.info
 
@@ -465,7 +496,6 @@ export class GraphManager{
         }
 
         this.applets[id].setupCallbacks = setupCallbacks
-
         return this.applets[id]
     }
 

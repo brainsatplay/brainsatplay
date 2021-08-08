@@ -121,6 +121,10 @@ export class Ramchurn{
 
                     this.props.videos = this.shuffle(this.props.videos) // Shuffle videos
                     this.setScene(this.props.currentScene)
+
+                    // LOAD ALL
+
+                    // START AFTER PROMISES RESOLVE
                     this.session.graph.runSafe(this,'start', [{data: true}])
                 }
             },
