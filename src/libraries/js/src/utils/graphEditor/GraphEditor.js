@@ -4,7 +4,7 @@ import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
 
 // Project Selection
-import {appletManifest} from '../../../../../platform/appletManifest'
+import {appletManifest} from '../../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
 import { getApplet, getAppletSettings } from "../../../../../platform/js/general/importUtils"
 
 // Node Interaction
@@ -1305,9 +1305,24 @@ export class GraphEditor{
                             for (let port in instance.ports){
                                 if (activeNode.instance.ports[port] == null) activeNode.instance.ports[port] = instance.ports[port]
                                 else {
-                                    let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
+                                    let keys = [
+                                        'default', 
+                                        'options', 
+                                        'meta', 
+                                        'input', 
+                                        'output', 
+                                        'onUpdate'
+                                    ]
+
+                                    let typeKeys = [
+                                        'input', 
+                                        'output',
+                                    ]
                                     keys.forEach(str => {
-                                        activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                        if (!typeKeys.includes(str)) activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                        else {
+                                            activeNode.instance.ports[port][str]['type'] = instance.ports[port][str]['type']
+                                        }
                                     })
                                 }
                             }
