@@ -78,17 +78,31 @@ export class Ramchurn{
             this.session.graph.runSafe(this,'load', [{data: this.props.input.files}])
         }
 
-        this.props.button = document.createElement('button')
-        this.props.button.classList.add('brainsatplay-default-button')
-        this.props.button.style.maxWidth = '50%'
-        this.props.button.style.transition = 'opacity 0.5s'
+        this.props.buttons = []
 
-        this.props.button.innerHTML = 'Load Film'
-        this.props.button.onclick = () => {
+
+        let load = document.createElement('div')
+        load.style = `
+            height: 100%; 
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        `
+
+        load.innerHTML = '<button class="brainsatplay-default-button" style="width: 80%; flex-grow: 0;">Load Film</button>'
+        load.onclick = () => {
             this.props.input.click()
         }
+        this.props.container.insertAdjacentElement('beforeend', load)
+        this.props.buttons.push(load)
 
-        this.props.container.insertAdjacentElement('beforeend', this.props.button)
+        let design = document.createElement('div')
+        design.style.cssText = load.style.cssText
+        design.innerHTML = '<button class="brainsatplay-default-button disabled" style="width: 80%; flex-grow: 0;">Design Film</button>'
+        this.props.container.insertAdjacentElement('beforeend', design)
+        this.props.buttons.push(design)
 
         this.ports = {
 
@@ -127,7 +141,7 @@ export class Ramchurn{
                         }
                     })
 
-                    this.props.button.style.opacity = '0'
+                    this.props.buttons.forEach(el => el.style.opacity = '0')
                     this.props.container.innerHTML = ''
 
                     let loaderContainer = document.createElement('div')
@@ -140,7 +154,7 @@ export class Ramchurn{
                     let loadingAnimation = document.createElement('div')
                     loadingAnimation.classList.add('loading-animation')
                     let loadingMessage = document.createElement('p')
-                    loadingMessage.innerHTML = `Preloading ${this.props.assets.audio.length} audio files. Please wait...`
+                    loadingMessage.innerHTML = `Loading ${this.props.assets.audio.length + this.props.assets.video.length} files. Please wait...`
 
                     loaderContainer.insertAdjacentElement('beforeend', loadingAnimation)
                     loaderContainer.insertAdjacentElement('beforeend', loadingMessage)
@@ -182,13 +196,11 @@ export class Ramchurn{
                 onUpdate: (userData) => {
                     let combination = userData[0].data
                     let arr = []
-                    console.log(combination)
                     this.props.keys.forEach(key => {
                         if (combination[key]?.audio) arr.push(combination[key].audio)
                         if (combination[key]?.vox) arr.push(combination[key].vox)
                     })
 
-                    console.log('SENDING ARRAY FROM MANAGER', arr)
                     return [{data: arr}]
                 }
             },
@@ -251,7 +263,7 @@ export class Ramchurn{
         this.props.scenes[i].lastCut = null
         this.props.scenes[i].cutSlow = null
 
-        this.session.graph.runSafe(this, 'controlVideo', [{data: this.props.scenes[i].combination}])
+        this.session.graph.runSafe(this, 'controlVideo', [{data: this.props.scenes[i].combination, meta: {replace: true}}])
         this.session.graph.runSafe(this, 'controlAudio', [{data: this.props.scenes[i].combination}])
     }
 
@@ -305,7 +317,6 @@ export class Ramchurn{
         // Only Choose New Sources
         let choices = this.props.assets.video
         if (prevScene) {
-            console.log(prevScene)
             let currentSources = [prevScene.combination.primary.video, prevScene.combination.secondary.video]
             choices = choices.filter(f => !currentSources.includes(f))
             let randomChoice = Math.floor(Math.random() * choices.length)

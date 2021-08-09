@@ -41,7 +41,10 @@ export class Mixer{
                         })
 
                         Promise.all(audioPromises).then(() => {
-                            resolve([{data: true}])
+                            setTimeout(() => {
+                                this.props.audio.forEach(n => n.instance.props.sourceNode.start(0)) // Start all audio
+                                resolve([{data: true}])
+                            }, 5000)
                         })
                     }
 
@@ -68,11 +71,10 @@ export class Mixer{
                 default: [],
                 onUpdate: (userData) => {
                     let selections = userData[0].data
-                    selections.forEach(f => {
-                        let node = this.props.audio.find(n => {
-                            if (n.instance.params.file.name === f.name) return n
-                        })
-                        node.instance.props.sourceNode.start(0)
+                    let sNames = selections.map(f => f.name)
+                    this.props.audio.forEach(n => {
+                        if (sNames.includes(n.instance.params.file.name)) n.instance.ports.volume.onUpdate([{data: 1}])
+                        else n.instance.ports.volume.onUpdate([{data: 0}])
                     })
                 }
             }
@@ -85,7 +87,6 @@ export class Mixer{
     }
 
     deinit = () => {
-        console.log(this.props.audio)
         this.props.audio.forEach((n) => {n.deinit()})
     }
 }

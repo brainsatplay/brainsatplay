@@ -10,6 +10,7 @@ export class Audio{
         this.params = params
 
         this.props = {
+            sourceGain: null,
             sourceNode: null,
             status: 0,
             maxVol: 0.5,
@@ -30,7 +31,7 @@ export class Audio{
                             if (file instanceof FileList || Array.isArray(file)) file = file[0]
                             this.params.file = file
                             this.decodeAudio(this.params.file, () => {
-                                resolve([{data: true}]) // Indicate when fully loaded
+                                resolve([{data: true}]) 
                             })
                         }
                     })
@@ -53,7 +54,7 @@ export class Audio{
                 step: 0.01,
                 onUpdate: (userData) => {
                     let volume = userData[0].data*this.props.maxVol
-                    window.audio.gainNode.gain.setValueAtTime(volume, window.audio.ctx.currentTime);
+                    this.props.sourceGain.gain.setValueAtTime(volume, window.audio.ctx.currentTime);
                 }
             },
             toggle: {
@@ -98,8 +99,9 @@ export class Audio{
             window.audio.ctx.decodeAudioData(fileResult, (buffer) => {
                 window.audio.finishedLoading([buffer]);
                 this.props.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1];
+                this.props.sourceGain = window.audio.sourceGains[window.audio.sourceList.length-1];
 
-                window.audio.gainNode.gain.setValueAtTime(this.props.maxVol, window.audio.ctx.currentTime);
+                this.props.sourceGain.gain.setValueAtTime(this.props.maxVol, window.audio.ctx.currentTime);
                 this.props.sourceNode.onended = () => {
                     this.endAudio();
                 };
@@ -113,7 +115,6 @@ export class Audio{
             console.error('Failed to read the file!', e);
         };
         //assign the file to the reader
-        console.log('Starting to read the file')
         fr.readAsArrayBuffer(file);
     }
         

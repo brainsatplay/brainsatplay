@@ -365,9 +365,7 @@ export class GraphManager{
                         result = node['default'](inputCopy) 
                     }
                 }
-
-                console.log('result',result)
-
+                
                 // Handle Promises
                 if (!!result && typeof result.then === 'function'){
                     result.then((r) =>{
@@ -438,15 +436,11 @@ export class GraphManager{
             }
             })
 
-            console.log('pass',!allEqual, forced, node.stateUpdates)
-
             if ((!allEqual || forced) && node.stateUpdates){
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
-                console.log('stringify', stringify)
                 if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.states[port])) // Do not send huge objects
-                console.log(updateObj)
                 node.stateUpdates.manager.setState(updateObj, false)
             }
         }
@@ -695,8 +689,6 @@ export class GraphManager{
 
             // Pass Data from Source to Target
             let _onTriggered = (o) => {
-
-                console.log('triggered', o, o.value ?? source.states[sourcePort])
                 if (this.applets[appId]){
                     if (o.trigger){
                         let input = o.value ?? source.states[sourcePort]
