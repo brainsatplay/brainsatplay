@@ -1,4 +1,4 @@
-class Test{
+class Results{
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -169,4 +169,4 @@ class Test{
     deinit = () => {}
 }
 
-export {Test}
+export {Results}

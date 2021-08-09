@@ -22,6 +22,28 @@ export class Event{
                 }
             },
 
+            // // Set type of control
+            // type: {
+            //     edit: false,
+            //     default: 'event',
+            //     options: ['event', 'p300', 'ssvep'],
+            //     input: {type: null},
+            //     output: {type: null},
+            //     onUpdate: (userData) => {
+            //         this.params.type = userData[0].data
+            //     }
+            // },
+
+            // // Pass commands to downstream element
+            // command: {
+            //     edit: false,
+            //     input: {type: null},
+            //     output: {type: 'boolean'},
+            //     onUpdate: (userData) => {
+            //         return [{data: userData[0].data}]
+            //     }
+            // },
+
             keycode: {
                 default: 'Space',
                 input: {type: 'string'},

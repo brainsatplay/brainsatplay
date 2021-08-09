@@ -11,7 +11,7 @@ export class Scheduler{
             mode: {default: 'Auto', options: ['Auto', 'Manual']},
             duration: {default: 2},
             trialCount: {default: 10},
-            trialTypes: {default:['Blink Left', 'Blink Right', "Don't Blink", 'Blink Both'], show: false},
+            trialTypes: {default:['1', '2', "3"], show: false},
             progression: {default: null, show: false},
             interTrialInterval: {default: 0},
         }

@@ -1,13 +1,12 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
-import {Algorithm} from './Algorithm'
 
 export const settings = {
-    name: "Data Science Playground",
+    name: "SSVEP Template",
     devices: ["EEG"],
-    author: "Aya x Garrett",
-    description: "Get started working with real-time EEG data!",
+    author: "Garrett Flynn",
+    description: "Select flashing objects with your brain.",
     categories: ["learn"],
     instructions:"Coming soon...",
     display: {
@@ -25,7 +24,6 @@ export const settings = {
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'manager', class: Manager, params: {}},
-        // {id: 'algorithm', class: Algorithm, params: {}},
       ],
 
       edges: [
