@@ -17,11 +17,24 @@ class Manager{
         }
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
-        this.props.container.style = 'width: 100%; padding: 0px 10%;'
         this.props.container.innerHTML = `
-            <h1 id="${this.props.id}-label"></h1>
-            <p id="${this.props.id}-readout"></p>
-            <div id="${this.props.id}-bar" style="background: transparent; height: 7px; width: 100%; border: 1px solid white; ">
+            <div style="width: 100%; text-align: center;">
+                <p id="${this.props.id}-readout" style="  
+                display:inline-block;
+                width:25px;
+                height:25px;
+                
+                background:
+                linear-gradient(#fff,#fff),
+                linear-gradient(#fff,#fff),
+                #000;
+                background-position:center;
+                background-size: 100% 2px,2px 100%; /*thickness = 2px, length = 50% (25px)*/
+                background-repeat:no-repeat;
+                "></p>
+            </div>
+            <h3 id="${this.props.id}-label"></h3>
+            <div id="${this.props.id}-bar" style="background: transparent; height: 7px; width: 100%; position: absolute; bottom: 0; left: 0;">
                 <div style="background: white; height: 100%; width: 100%;">
             </div>`
 
@@ -57,7 +70,7 @@ class Manager{
                     // Fill a Progress Bar
                     let fillBar = barDiv.querySelector('div')
                     if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'
-                    else fillBar.style.background = 'lime'
+                    else fillBar.style.background = '#00FF00'
             
                     if (statePercentage > 1) statePercentage = 1
                     fillBar.style.width = `${statePercentage*100}%`
