@@ -11,9 +11,10 @@ export class Scheduler{
             mode: {default: 'Auto', options: ['Auto', 'Manual']},
             duration: {default: 2},
             trialCount: {default: 10},
-            trialTypes: {default:['1', '2', "3"], show: false},
+            trialTypes: {default: new Set('1', '2', "3"), show: false},
             progression: {default: null, show: false},
             interTrialInterval: {default: 0},
+            allowConsecutive: {default: true},
         }
 
         this.ports = {
@@ -104,9 +105,19 @@ export class Scheduler{
         if (this.params.progression == null) {
             this.params.progression = []
             // Create Random Progression
+            let prevChoice
             for (let i = 0; i < this.params.trialCount; i++){
-                    let choice = Math.floor(this.params.trialTypes.length * Math.random())
-                    this.params.progression.push(this.params.trialTypes[choice])
+                let options = new Set(this.params.trialTypes)
+                if (!this.params.allowConsecutive) options.delete(prevChoice)
+                let choice = Math.floor(options.size * Math.random())
+                let ind = 0
+                options.forEach((val) => {
+                    if (ind === choice) {
+                        this.params.progression.push(val)
+                        prevChoice = val
+                    }
+                    ind++
+                })
             }
         } else {
             this.params.trialCount = this.params.progression.length

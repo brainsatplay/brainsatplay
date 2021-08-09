@@ -25,14 +25,15 @@ export const settings = {
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'manager', class: Manager, params: {}},
-        {id: 'algorithm', class: brainsatplay.plugins.algorithms.Neurofeedback},
         {
           id: 'scheduler', 
           class: brainsatplay.plugins.utilities.Scheduler, 
           params:{
-            progression: ['Eyes Open', 'Eyes Closed'],
-            duration: 10,
-            interTrialInterval: 2
+            trialTypes: ['Eyes Open', 'Eyes Closed'],
+            trialCount: 2,
+            duration: 60,
+            interTrialInterval: 2,
+            allowConsecutive: false
           }},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         // {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
@@ -74,11 +75,7 @@ export const settings = {
         // Set Up Your Algorithm
         {
           source: 'eeg:atlas', 
-          target: 'algorithm'
-        },
-        {
-          source: 'algorithm', 
-          target: 'manager:data'
+          target: 'manager'
         },
 
         // Schedule an Experiment 
@@ -98,6 +95,10 @@ export const settings = {
         // },
 
         // Log App Events
+        {
+          source: 'manager:data', 
+          target: 'data:log'
+        },
         // {
         //   source: 'spacebar', 
         //   target: 'data:log'

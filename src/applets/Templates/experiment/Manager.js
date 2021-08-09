@@ -9,6 +9,8 @@ class Manager{
         this.session = session
         this.params = {}
 
+        this.analysis = ['eegfft']
+
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),            
@@ -36,10 +38,11 @@ class Manager{
                     userData.forEach(u => {
                         let data = u.data
                         console.log(data)
-                        // data.eeg.forEach(o => {
-                        //     console.log(o)
-                        // })
+                        data.eeg.forEach(o => {
+                            console.log(o)
+                        })
                     })
+                    // return [{data: null}] // Return Alpha
                 }
             }, 
 
