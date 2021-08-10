@@ -1,3 +1,5 @@
+import {SSVEP} from '../../../libraries/js/src/utils/ssvep/SSVEP'
+
 class Manager{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -9,18 +11,28 @@ class Manager{
         this.session = session
         this.params = {}
 
+        this.analysis = ['eegfft']
+
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random()*1000000)),
-            state: null
+            id: String(Math.floor(Math.random() * 1000000)),            
         }
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+
+        this.props.grid = document.createElement('div')
+        this.props.grid.style = 'width: min(80vw,80vh); height: min(80vw,80vh); padding: 50px; display:grid;'
+        this.props.container.insertAdjacentElement('beforeend',this.props.grid)
+
+
+        this.props.n = 4
+        this.props.objects = null; 
+        this.props.SSVEPManager = new SSVEP(this.session)
+        this.props.freqRange = [4,16]
 
         // Port Definition
         this.ports = {
-            // default: {
-            //     output: {type: null}
-            // },
-            data: {
+            default: {
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (userData) => {
@@ -31,73 +43,78 @@ class Manager{
                             console.log(o)
                         })
                     })
+                    // return [{data: null}] // Return Alpha
                 }
             }, 
-            // color: {
-            //     output: {type: null}
-            // }
+
+            schedule: {
+                input: {type: 'string'},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    let labelDiv = document.getElementById(`${this.props.id}-label`)
+                    labelDiv.innerHTML = userData[0].meta.state
+                    let barDiv = document.getElementById(`${this.props.id}-bar`)
+                    let statePercentage = userData[0].meta.stateTimeElapsed / userData[0].meta.stateDuration
+                    // Fill a Progress Bar
+                    let fillBar = barDiv.querySelector('div')
+                    if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'
+                    else fillBar.style.background = '#00FF00'
+            
+                    if (statePercentage > 1) statePercentage = 1
+                    fillBar.style.width = `${statePercentage*100}%`
+                }
+            },
+
+            element: {
+                edit: false,
+                input: {type: null},
+                output: {type: Element},
+                default: this.props.container,
+                onUpdate: () => {
+                    this.params.element = this.props.container
+                    return [{data: this.params.element}]
+                }
+            }
         }
     }
 
     init = () => {
 
+        this.props.SSVEPManager.init().then((response) => {
+
+            this.props.objects = Array.from({length: this.props.n}, (e,i) => {return {element: null, 
+                // f: 1 + (i)*((this.props.SSVEPManager.refreshRate/2)/(this.props.n+2))
+                f: this.props.freqRange[0] + i*(this.props.freqRange[1] - this.props.freqRange[0])/(this.props.n-1)
+            }})
+            
+            let gridLength = Math.ceil(Math.sqrt(this.props.objects.length))
+            this.props.grid.style.gridTemplateRows = `repeat(${gridLength},1fr)`
+            this.props.grid.style.gridTemplateColumns = `repeat(${gridLength},1fr)`
+
+
+            let objectStyle = `
+                background: white;
+                box-sizing: border-box;
+                margin: 25%;
+                border-radius: 50%;
+            `
+
+            this.props.objects.forEach((o,i) => {
+                let newElement = document.createElement('div')
+                newElement.id = i
+                newElement.style = objectStyle
+                this.props.grid.appendChild(newElement)
+                o.element = newElement
+            })
+            this.props.SSVEPManager.addObjects(this.props.objects)
+            this.props.SSVEPManager.start()
+        })
     }
 
-    // default = (input) => {
-    //     return input
-    // }
+    deinit = () => {
+        this.props.SSVEPManager.stop()
 
-    // // Write UI using Graph Ports
-    // readout = (userData) => {
-
-    //     let labelDiv = document.getElementById(`${this.props.id}-label`)
-    //     labelDiv.innerHTML = userData[0].meta.label
-    //     let outputDiv = document.getElementById(`${this.props.id}-readout`)
-    //     let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
-
-    //     let nameRegistry = new Set(userData.map(u => u.username))
-
-    //     for (let readout of coherenceReadouts){
-    //         if (Array.isArray(userData)){
-    //             let username = readout.id.replace(`${this.props.id}-`,'')
-    //             let found = userData.find(u => u.username === username)
-    //             if (found) {
-    //                 nameRegistry.delete(found.username)
-    //                 readout.innerHTML = `${found.username}: ${found.data}`
-    //             } else {
-    //                 readout.remove()
-    //             }
-    //         }
-    //     }
-
-    //     nameRegistry.forEach(name => {
-    //         let u = userData.find(u => u.username === name)
-    //         let value = u.data
-    //         if (typeof value === "number") value = value.toFixed(2)
-    //         outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.data}</p>`
-    //     })
-
-    //     return userData
-    // }
-
-    // color = (userData) => {
-
-    //     let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
-    //     if (Array.isArray(userData)){
-    //         userData.forEach(u =>{
-    //         for (let readout of coherenceReadouts){
-    //             if (readout.id.replace(`${this.props.id}-`,'') === u.username){
-    //                 readout.style = (u.data ? "color: red;" : "")
-    //             }
-    //         }
-    //     })
-
-    //     return userData
-    // }
-    // }
-    
-
-    deinit = () => {}
+    }
 }
 
 export {Manager}

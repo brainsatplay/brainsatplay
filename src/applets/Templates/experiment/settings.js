@@ -62,7 +62,8 @@ export const settings = {
             justify-content: center;
           }
           `
-        }}
+        }
+      }
       ],
 
       edges: [
@@ -96,7 +97,7 @@ export const settings = {
 
         // Log App Events
         {
-          source: 'manager:data', 
+          source: 'manager', 
           target: 'data:log'
         },
         // {

@@ -41,10 +41,7 @@ class Manager{
 
         // Port Definition
         this.ports = {
-            // default: {
-            //     output: {type: null}
-            // },
-            data: {
+            default: {
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (userData) => {
