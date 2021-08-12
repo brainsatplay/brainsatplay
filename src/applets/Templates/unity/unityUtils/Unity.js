@@ -22,17 +22,6 @@ export class Unity{
         this.props.canvas.style = `width: 100%; height: 100%;`
 
         this.ports = {
-            default: {
-                input: {type: undefined},
-                output: {type: null},
-                onUpdate: (userData) => {
-                    // userData.forEach((u,i) => {
-                        let data = userData[0].data
-                        console.log(data)
-                        if (this.props.instance) this.props.instance.SendMessage('System', 'UpdateData', data);
-                    // })
-                }
-            },
             element: {
                 default: this.props.canvas,
                 input: {type: undefined},
@@ -68,6 +57,20 @@ export class Unity{
 
             }).catch(onError);
         }
+
+        this.params.commands.forEach(o => {
+            this.session.graph.addPort(this, o.function, {
+                input: {type: o.type},
+                output: {type: null},
+                onUpdate: (userData) => {
+                    // userData.forEach((u,i) => {
+                        let data = userData[0].data
+                        console.log(data)
+                        if (this.props.instance) this.props.instance.SendMessage(o.object, o.function, data);
+                    // })
+                }
+            })
+        })
         
     }
 
