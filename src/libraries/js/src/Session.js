@@ -2219,6 +2219,8 @@ else {
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
+
+		// console.log(this.state, this.info)
 		let sessionInd,idInd,propInd,structureFilter
 
 		if (type === 'user') {
