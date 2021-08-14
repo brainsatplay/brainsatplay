@@ -337,6 +337,7 @@ export class GraphManager{
                 // Or Add Metadata
                 else {
                     if (!inputCopy[i].username) inputCopy[i].username = this.session?.info?.auth?.username
+                    if (!inputCopy[i].id) inputCopy[i].id = this.session?.info?.auth?.id
                     if (!inputCopy[i].meta) inputCopy[i].meta = {}
                     if (!internal) inputCopy[i].meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
                 }
