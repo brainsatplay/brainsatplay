@@ -45,7 +45,7 @@ export class Neurofeedback{
 
     deinit = () => {}
 
-    default = (userData) => {
+    default = (user) => {
                     
             let arr = []
             let data = (user.data != null) ? user.data : this.session.atlas.data

@@ -62,22 +62,20 @@ export class Brainstorm {
 
                                     this._addUserSubscription(this.session.info.auth.id, label, sessionId, _brainstormCallback, this.session.info.auth.username) // Subscribe to yourself
 
-                                    console.log(this.session.state.data, this.session.state.data[sessionId])
-
-                                    // console.log(this.session.state)
-
                                     // Subscribe to each user as they are added to the session
                                     if (this.session.state.data[sessionId]){
+
                                         let subId2 = this.session.state.subscribe(sessionId, (sessionInfo) => {
                                             
                                             if (sessionInfo.userLeft) {
                                                 let key = (sessionInfo.userLeft === this.session.info.auth.id) ? `${label}` : `${sessionId}_${sessionInfo.userLeft}_${label}`
+                                                
+                                                if (this.params.onUserDisconnected instanceof Function) this.params.onUserDisconnected({id: sessionInfo.userLeft, username:this.props.users[sessionInfo.userLeft].username})
+
                                                 // Unsubscribe from all keys
                                                 Object.keys(this.props.users[sessionInfo.userLeft]).forEach(label => {
-                                                    this.session.state.unsubscribe(key, this.props.users[sessionInfo.userLeft][label])
+                                                    if (label != 'username') this.session.state.unsubscribe(key, this.props.users[sessionInfo.userLeft][label])
                                                 })
-
-                                                if (this.params.onUserDisconnected instanceof Function) this.params.onUserDisconnected({id: sessionInfo.userLeft})
                                             }
 
                                             // Add Subscription to Each User in the Game
@@ -105,8 +103,9 @@ export class Brainstorm {
 
     _addUserSubscription = (userId, label, sessionId, callback, username) => {
 
-        let _sendData = (user) => {
-            let copy = this.session.graph.runSafe(this, label, user)
+        let _sendData = (userData) => {
+            // console.log(userData)
+            let copy = this.session.graph.runSafe(this, label, userData[0])
             callback(copy)
         }
 
@@ -114,9 +113,18 @@ export class Brainstorm {
         if (!(label in this.props.users[userId])){
 
             let key = (userId === this.session.info.auth.id) ? `${label}` : `${sessionId}_${userId}_${label}`
-            let toPass = ('data' in this.session.state.data[key]) ? this.session.state.data[key] : {id: userId, username, meta: {}}
+
+            let toPass = (this.session.state.data[key][0]?.data) ? this.session.state.data[key][0] : {}
+
+            // Default Info
+            if (!('id' in toPass)) toPass.id = userId
+            if (!('username' in toPass)) toPass.username = username
+            if (!('meta' in toPass)) toPass.meta = {}
+
             if (this.params.onUserConnected instanceof Function) this.params.onUserConnected(toPass)
-            if ('data' in toPass[0]) _sendData(toPass) // NOTE: Might send twice
+            if ('data' in toPass) _sendData(toPass) // NOTE: Might send twice
+            this.props.users[userId].username = username
+
             this.props.users[userId][label] = this.session.state.subscribe(key, _sendData)
         }
     }

@@ -373,14 +373,18 @@ export class GraphManager{
             let forced = false
             let stringify = true
 
-            if (node.states[port] == null) node.states[port] = {}
+            if (node.states[port] == null) node.states[port] = [{}]
 
             // result.forEach((o,i) => {
+
+            let setState = (state, result) => {
+                state[0] = result // Replace full dictionary in state
+            }
 
                 // Check if Forced Update
                 if (result.forceUpdate) {
                     forced = true
-                    node.states[port] = result
+                    setState(node.states[port],result)
                 }
 
                 // Otherwise Check If Current State === Previous State
@@ -388,22 +392,22 @@ export class GraphManager{
                     if (node.states[port]){ 
                             let case1, case2
                             if (typeof result.data === 'object' || typeof result.data === 'function'){
-                                case1 = node.states[port]
+                                case1 = node.states[port][0]
                                 case2 = result
                                 stringify = false
                             } else {
-                                case1 = JSON.stringifyFast(node.states[port])
+                                case1 = JSON.stringifyFast(node.states[port][0])
                                 case2 = JSON.stringifyFast(result)
                             }                            
 
                             let thisEqual = case1 === case2
 
                             if (!thisEqual){
-                                node.states[port] = result
+                                setState(node.states[port],result)
                                 allEqual = false
                             }
                     } else {
-                        node.states[port] = result
+                        setState(node.states[port],result)
                         allEqual = false
                     }
             }
@@ -413,7 +417,7 @@ export class GraphManager{
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
-                if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.states[port])) // Do not send huge objects
+                if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.states[port][0])) // Do not send huge objects
                 node.stateUpdates.manager.setState(updateObj, false)
             }
         }
@@ -422,7 +426,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports){
-            this.runSafe(node,port, [{forceRun: true, forceUpdate: true}])
+            this.runSafe(node,port, {forceRun: true, forceUpdate: true})
         }
     }
 
@@ -508,13 +512,13 @@ export class GraphManager{
         if (defaultVal !== undefined) {
             let user = {data: defaultVal}
             if (node.ports[port].meta != null) user.meta = node.ports[port].meta
-            node.states[port] = user
-            node.states[port].forceRun = true
-            node.states[port].forceUpdate = true
+            node.states[port][0] = user
+            node.states[port][0].forceRun = true
+            node.states[port][0].forceUpdate = true
         }
 
         // Derive Control Structure
-        let firstUserDefault= node.states[port]
+        let firstUserDefault= node.states[port][0]
         if (
             node instanceof this.plugins.controls.Event
             // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
@@ -654,7 +658,7 @@ export class GraphManager{
                     eval(t).states[eval(`${t}Port`)] = [{}]
                     let registryEntry = this.registry.local[eval(t).label].registry
                     if (registryEntry[eval(`${t}Port`)] == null){
-                        registryEntry[eval(`${t}Port`)] = {}
+                        registryEntry[eval(`${t}Port`)] = [{}]
                         registryEntry[eval(`${t}Port`)].state = eval(t).states[eval(`${t}Port`)]
                     }
                 }
@@ -664,7 +668,7 @@ export class GraphManager{
             let _onTriggered = (o) => {
                 if (this.applets[appId]){
                     if (o.trigger){
-                        let u = o.value ?? source.states[sourcePort]
+                        let u = o.value ?? source.states[sourcePort][0]
                         if (!u.meta) u.meta = {}
                         if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                         u.meta.session = applet.sessionId
@@ -690,10 +694,10 @@ export class GraphManager{
                 applet.streams.add(label) // Keep track of streams
 
                 // Initialize Port
-                if (source.states[sourcePort].meta == null) source.states[sourcePort].meta = {}
-                source.states[sourcePort].meta.source = label
-                source.states[sourcePort].meta.session = applet.sessionId
-                this.runSafe(target, 'default', source.states[sourcePort], true) // Register port
+                if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
+                source.states[sourcePort][0].meta.source = label
+                source.states[sourcePort][0].meta.session = applet.sessionId
+                this.runSafe(target, 'default', source.states[sourcePort][0], true) // Register port
             } 
 
             // And Listen for Local Changes
@@ -724,13 +728,13 @@ export class GraphManager{
                 // Add Default Metadata
                 let pass
                 // source.states[sourcePort].forEach(o => {
-                    if (source.states[sourcePort].meta == null) source.states[sourcePort].meta = {}
-                    source.states[sourcePort].meta.source = label
-                    source.states[sourcePort].meta.session = applet.sessionId
-                    if (source.states[sourcePort].forceUpdate || source.states[sourcePort].data) pass = true
+                    if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
+                    source.states[sourcePort][0].meta.source = label
+                    source.states[sourcePort][0].meta.session = applet.sessionId
+                    if (source.states[sourcePort][0].forceUpdate || source.states[sourcePort][0].data) pass = true
                 // })
 
-                if (pass) this.runSafe(target, targetPort, source.states[sourcePort], true)
+                if (pass) this.runSafe(target, targetPort, source.states[sourcePort][0], true)
             }
             if (sendOutput) {
                 sendFunction()
