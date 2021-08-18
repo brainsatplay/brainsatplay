@@ -21,8 +21,8 @@ export class CSP{
             train: {
                 input: {type: Object},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let data = userData[0].data
+                onUpdate: (user) => {
+                    let data = user.data
                     let keys = Object.keys(data)
                     this.props.model = this.props.bci.cspLearn(data[keys[0]], data[keys[1]]);
                 }
@@ -30,8 +30,8 @@ export class CSP{
             features: {
                 input: {type: Array},
                 output: {type: Array},
-                onUpdate: (userData) => {
-                    return eegmath.transpose([this._computeFeatures(this.props.model, userData[0].data)])
+                onUpdate: (user) => {
+                    return eegmath.transpose([this._computeFeatures(this.props.model, user.data)])
                 }
             }
         }

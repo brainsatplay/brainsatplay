@@ -35,12 +35,12 @@ export class Breath{
                 input: {type: null},
                 output: {type},
                 onUpdate: () => {
-                    return [{data: this.props.capture.output[port]}]
+                    return {data: this.props.capture.output[port]}
                 }
             }
 
             this.props.capture.state.subscribe(port, (data) => {
-                this.session.graph.runSafe(this, port, [{data: true}])
+                this.session.graph.runSafe(this, port, {data: true})
             })
         }
     }

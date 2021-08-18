@@ -24,13 +24,11 @@ export class Filter{
             default: {
                 input: {type: Array},
                 output: {type: Array},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        u.data = u.data.map(d => {
-                            data.push(this.props.filter.apply(d))
-                        })
+                onUpdate: (user) => {
+                    user.data = user.data.map(d => {
+                        data.push(this.props.filter.apply(d))
                     })
-                    return userData
+                    return user
                 }
             }
         }

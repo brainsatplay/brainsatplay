@@ -46,11 +46,9 @@ export class Neurofeedback{
     deinit = () => {}
 
     default = (userData) => {
-        
-        userData.forEach(u => {
-            
+                    
             let arr = []
-            let data = (u.data != null) ? u.data : this.session.atlas.data
+            let data = (user.data != null) ? user.data : this.session.atlas.data
 
             try {
                 
@@ -148,11 +146,11 @@ export class Neurofeedback{
             }       
             
             // Output to User Data Object
-            if (this.params.output === 'Channels') u.data = arr
-            else u.data = this.session.atlas.mean(arr)
+            if (this.params.output === 'Channels') user.data = arr
+            else user.data = this.session.atlas.mean(arr)
 
-            u.meta.label = this.params.metric
-        })
-        return userData
+            user.meta.label = this.params.metric
+
+        return user
     }
 }

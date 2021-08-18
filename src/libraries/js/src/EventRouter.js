@@ -300,6 +300,12 @@ export class EventRouter{
                 let blink = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
 
                 if (blink){
+
+                    if (parentNode === document.body) {
+                        blink.props.container.style.position = 'absolute'
+                        blink.props.container.style.top = 0
+                        blink.props.container.style.right = 0
+                    }
                     this.device.atlas.graph.updateParams(blink, {debug: true})
                     container.insertAdjacentElement('beforeend', blink.props.container)
                 }

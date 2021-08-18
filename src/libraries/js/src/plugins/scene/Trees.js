@@ -30,15 +30,15 @@ class Trees{
                 input: {type: null},
                 output: {type: Object, name: 'Mesh'},
                 onUpdate: () => {
-                    return [{data: this.props.groups}]
+                    return {data: this.props.groups}
                 }
             },
             count: {
                 default: 1,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.count = userData[0].data
+                onUpdate: (user) => {
+                    this.params.count = user.data
                 }
             },
         }

@@ -27,10 +27,8 @@ export class Canvas{
             draw: {
                 input: {type: Object},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        if (u.data.function instanceof Function) this.props.drawObjects.push(u.data)
-                    })
+                onUpdate: (user) => {
+                    if (user.data.function instanceof Function) this.props.drawObjects.push(user.data)
                 }
             },
             element: {
@@ -39,7 +37,7 @@ export class Canvas{
                 output: {type: Element},
                 onUpdate: () => {
                     this.params.element = this.props.container
-                    return [{data: this.params.element}]
+                    return {data: this.params.element}
                 }
             }
         }

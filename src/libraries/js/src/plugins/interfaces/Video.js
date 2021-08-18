@@ -43,15 +43,15 @@ export class Video {
                 input: { type: 'file', accept: "video/*", multiple: true },
                 output: { type: null },
                 default: defaultVideoURLs,
-                onUpdate: (userData) => {
-                    if (userData[0].data){
+                onUpdate: (user) => {
+                    if (user.data){
                         this.props.focusVideo = 0
-                        this.params.files = this.shuffle(Array.from(userData[0].data))
+                        this.params.files = this.shuffle(Array.from(user.data))
 
                         // Create Videos
                         let prevTimes = []
                         this.props.videos.forEach(el => {
-                            // if (userData[0].meta.replace === true) 
+                            // if (user.meta.replace === true) 
                             prevTimes.push(el.currentTime)
                             el.remove()
                         })
@@ -99,14 +99,14 @@ export class Video {
                 default: this.container,
                 onUpdate: () => {
                     this.params.element = this.container
-                    return [{data: this.container}]
+                    return {data: this.container}
                 }
             },
             change: {
                 input: { type: 'boolean' },
                 output: { type: null },
-                onUpdate: (userData) => {
-                    if (userData[0].data && this.params.cut) {
+                onUpdate: (user) => {
+                    if (user.data && this.params.cut) {
 
                         // Increment Counters
                         this.props.focusVideo++
@@ -222,8 +222,8 @@ export class Video {
                 default: o.default,
                 input: { type: 'boolean' },
                 output: { type: null },
-                onUpdate: (userData) => {
-                    this.params[o.name] = userData[0].data
+                onUpdate: (user) => {
+                    this.params[o.name] = user.data
                     o.onUpdate()
                 }
             }
@@ -308,10 +308,10 @@ export class Video {
         effects.forEach(str => {
             let el = document.getElementById(this.props.id + `use${str}`)
             el.onclick = () => {
-                this.session.graph.runSafe(this, str, [{ data: !this.params[str] }])
+                this.session.graph.runSafe(this, str, { data: !this.params[str] })
                 el.blur()
             }
-            this.session.graph.runSafe(this, str, [{ data: this.params[str] }]) // Pass default values
+            this.session.graph.runSafe(this, str, { data: this.params[str] }) // Pass default values
         })
 
         this.timeSlider.addEventListener("change", () => {
@@ -354,7 +354,7 @@ export class Video {
         }
 
         this.looping = true;
-        this.session.graph.runSafe(this, 'files', [{ data: this.params.files }]) // Initialize default files
+        this.session.graph.runSafe(this, 'files', { data: this.params.files }) // Initialize default files
         this.initVideos();
     }
 
@@ -425,7 +425,7 @@ export class Video {
 
     localFileVideoPlayer = () => {
         var playSelectedFiles = (event) => {
-            this.session.graph.runSafe(this, 'files', [{ data: event.target.files }])
+            this.session.graph.runSafe(this, 'files', { data: event.target.files })
             inputNode.blur()
         }
         var inputNode = document.getElementById(this.props.id + 'fs');

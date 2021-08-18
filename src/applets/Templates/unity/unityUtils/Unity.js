@@ -62,9 +62,9 @@ export class Unity{
             this.session.graph.addPort(this, o.function, {
                 input: {type: o.type},
                 output: {type: null},
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
                     // userData.forEach((u,i) => {
-                        let data = userData[0].data
+                        let data = user.data
                         console.log(data)
                         if (this.props.instance) this.props.instance.SendMessage(o.object, o.function, data);
                     // })

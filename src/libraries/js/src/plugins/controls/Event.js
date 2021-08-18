@@ -15,10 +15,9 @@ export class Event{
                 meta: {label: `${this.params.keycode}`},
                 input: {type: 'boolean'},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
-                    // console.log(userData)
+                onUpdate: (user) => {
                     // this.params.default = userData[0].data
-                    return userData
+                    return user
                 }
             },
 
@@ -29,8 +28,8 @@ export class Event{
             //     options: ['event', 'p300', 'ssvep'],
             //     input: {type: null},
             //     output: {type: null},
-            //     onUpdate: (userData) => {
-            //         this.params.type = userData[0].data
+            //     onUpdate: (user) => {
+            //         this.params.type = user.data
             //     }
             // },
 
@@ -39,8 +38,8 @@ export class Event{
             //     edit: false,
             //     input: {type: null},
             //     output: {type: 'boolean'},
-            //     onUpdate: (userData) => {
-            //         return [{data: userData[0].data}]
+            //     onUpdate: (user) => {
+            //         return user
             //     }
             // },
 
@@ -48,8 +47,8 @@ export class Event{
                 default: 'Space',
                 input: {type: 'string'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.keycode = userData[0].data
+                onUpdate: (user) => {
+                    this.params.keycode = user.data
                 }
             }
         }
@@ -66,22 +65,14 @@ export class Event{
     }
 
     handleKeyDown = (e) => {
-        if (this.matchKey(e.code) && this.states['default'][0].data != true){
-            this.session.graph.runSafe(this,'default',[{data: true, meta: {label: `key_${e.code}`}}])
-            // let updateObj  = {}
-            // updateObj[this.label] = true
-            // this.stateUpdates.manager.setSequentialState(updateObj)
-            // this.states['default'] = [{data: true, meta: {label: `key_${e.code}`}}]
+        if (this.matchKey(e.code) && this.states['default'].data != true){
+            this.session.graph.runSafe(this,'default',{data: true, meta: {label: `key_${e.code}`}})
         } 
     }
     
     handleKeyUp = (e) => {
         if (this.matchKey(e.code)){
-                // let updateObj  = {}
-                // updateObj[this.label] = true
-                // this.stateUpdates.manager.setSequentialState(updateObj)
-                // this.states['default'] = [{data: false, meta: {label: `key_${e.code}`}}]
-                this.session.graph.runSafe(this,'default', [{data: false, meta: {label: `key_${e.code}`}}])
+                this.session.graph.runSafe(this,'default', {data: false, meta: {label: `key_${e.code}`}})
         }
     }
 

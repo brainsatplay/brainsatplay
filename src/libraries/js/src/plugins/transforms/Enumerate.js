@@ -11,27 +11,25 @@ export class Enumerate{
             default: {
                 input: {type: Object},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        if (u.data != null){
+                onUpdate: (user) => {
+                        if (user.data != null){
                             // Objects
-                            let keys = Object.keys(u.data)
+                            let keys = Object.keys(user.data)
                             keys.forEach(k => {
                                 if (this.ports[k] == null){
                                     let portInfo = {
-                                        default: u.data[k],
+                                        default: user.data[k],
                                         input: {type: null},
-                                        output: this.session.graph.getTypeDict(u.data[k]),
-                                        onUpdate: (userData) => {
-                                            return userData
+                                        output: this.session.graph.getTypeDict(user.data[k]),
+                                        onUpdate: (user) => {
+                                            return user
                                         }
                                     }
                                     this.session.graph.addPort(this,k,portInfo)
                                 }
-                                this.session.graph.runSafe(this,k, [{data: u.data[k]}])
+                                this.session.graph.runSafe(this,k, {data: user.data[k]})
                             })
                         }
-                    })
                 }
             }
         }

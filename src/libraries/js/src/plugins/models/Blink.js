@@ -14,36 +14,26 @@ export class Blink{
             default: {
                 input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
-                onUpdate: (userData) => {
-                    let leftBlinks = this.session.atlas.graph.runSafe(this,'left',userData)
-                    let rightBlinks = this.session.atlas.graph.runSafe(this,'right',userData)
-                    userData.forEach((u,i) => {
-                        u.data = [leftBlinks[i].data, rightBlinks[i].data]
-                        u.meta.label = 'blink'
-                    })        
-                    return userData
+                onUpdate: (user) => {
+                    let leftBlinks = this.session.atlas.graph.runSafe(this,'left',user)
+                    let rightBlinks = this.session.atlas.graph.runSafe(this,'right',user)
+                    user.data = [leftBlinks[i].data, rightBlinks[i].data]
+                    user.meta.label = 'blink'
+                    return user
                 }
             },
             left: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        u.data = this._calculateBlink(u,this.props.tags.left)
-                        u.meta.label = 'blink_left'
-                    })
-                    return userData
+                onUpdate: (user) => {
+                    return {data: this._calculateBlink(user,this.props.tags.left), meta: {label: 'blink_left'}}
                 }
             },
             right: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        u.data = this._calculateBlink(u,this.props.tags.right)
-                        u.meta.label = 'blink_right'
-                    })
-                    return userData
+                onUpdate: (user) => {
+                    return {data: this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
                 }
             }
         }

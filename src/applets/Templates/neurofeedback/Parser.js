@@ -39,13 +39,10 @@ class Parser{
             default: {
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.props.label.innerHTML = userData[0].meta.label    
-                    
-                    userData.forEach(u => {
-                        let readout = document.getElementById(`${this.props.id}-${u.id}`)
-                        readout.innerHTML = `${u.username}: ${u.data}`
-                    })
+                onUpdate: (user) => {
+                    this.props.label.innerHTML = user.meta.label    
+                    let readout = document.getElementById(`${this.props.id}-${user.id}`)
+                    readout.innerHTML = `${user.username}: ${user.data}`
             },
             
         }, 
@@ -61,17 +58,13 @@ class Parser{
 
     deinit = () => {}
 
-    _userAdded = (userData) => {
-        let u = userData[0]
-        console.log(userData)
-        this.props.readouts.innerHTML += `<p id="${this.props.id}-${u.id}" class="readout" >${u.username}: ${u.data ?? ''}</p>`
+    _userAdded = (user) => {
+        this.props.readouts.innerHTML += `<p id="${this.props.id}-${user.id}" class="readout" >${user.username}: ${user.data ?? ''}</p>`
         this._updateUI()
     }
 
-    _userRemoved = (userData) => {
-        let u = userData[0]
-        console.log(userData)
-        let readout = document.getElementById(`${this.props.id}-${u.id}`)
+    _userRemoved = (user) => {
+        let readout = document.getElementById(`${this.props.id}-${user.id}`)
         readout.remove()
         this._updateUI()
     }

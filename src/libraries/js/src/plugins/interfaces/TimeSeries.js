@@ -58,16 +58,15 @@ export class TimeSeries{
                 edit: false,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let u = userData[0]
+                onUpdate: (user) => {
                     let data = []
                     switch (this.params.style){
                         case 'Smoothie':
-                            data = [u.data]
+                            data = [user.data]
                             this.props.helper.bulkAppend(data)
                             break
                         case 'uPlot':
-                            data = [Date.now(), u.data]
+                            data = [Date.now(), user.data]
                             data.forEach((val,i) => {this.props.helper.uPlotData.push(val)})
                             if (this.props.helper.plot) this.props.helper.plot.setData(this.props.helper.uPlotData);
                             break
@@ -79,14 +78,14 @@ export class TimeSeries{
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {
-                    return [{data: this.props.canvas}]
+                    return {data: this.props.canvas}
                 }
             }
         }
     }
 
     init = () => {
-        this.session.graph.runSafe(this,'style', [{forceRun: true}])
+        this.session.graph.runSafe(this,'style', {forceRun: true})
     }
 
     deinit = () => {

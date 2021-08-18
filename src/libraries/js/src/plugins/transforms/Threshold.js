@@ -12,11 +12,9 @@ export class Threshold{
                 default: false,
                 input: {type: 'number'},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        u.data = u.data > this.params.threshold
-                    })
-                    return userData
+                onUpdate: (user) => {
+                    user.data = user.data > this.params.threshold
+                    return user
                 }
             },
 
@@ -24,8 +22,8 @@ export class Threshold{
                 default: 0.5,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.threshold = userData[0].data
+                onUpdate: (user) => {
+                    this.params.threshold = user.data
                 }
             }
         }

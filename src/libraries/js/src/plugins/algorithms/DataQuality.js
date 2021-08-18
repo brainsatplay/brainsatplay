@@ -46,14 +46,13 @@ export class DataQuality{
         // MUST DISCONNECT STREAM
     }
 
-    default = (userData) => {
-        userData.forEach(u => {
+    default = (user) => {
             
             let dict = {}
             let arr = []
 
             // Grab Atlas by Default (if not passed already)
-            let data = u.data //(u.data != null) ? u.data : this.session.atlas.data
+            let data = user.data //(user.data != null) ? user.data : this.session.atlas.data
 
             try {
                 let channels = data.eegshared.eegChannelTags
@@ -89,11 +88,10 @@ export class DataQuality{
             }       
             
             // Output to User Data Object
-            if (this.params.output === 'Mean') u.data = this.session.atlas.mean(arr)
-            else u.data = dict
-            u.meta.label = `${this.label}_${this.params.metric}`
-        })
+            if (this.params.output === 'Mean') user.data = this.session.atlas.mean(arr)
+            else user.data = dict
+            user.meta.label = `${this.label}_${this.params.metric}`
 
-        return userData
+        return user
     }
 }

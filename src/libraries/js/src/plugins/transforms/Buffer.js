@@ -33,11 +33,11 @@ export class Buffer{
         this.props.looping = false
     }
 
-    default = (userData) => {
-        this.props.buffer.push(userData[0].data)
+    default = (user) => {
+        this.props.buffer.push(user.data)
         if (this.props.buffer.length > this.params.size) this.props.buffer.shift()
-        userData[0].data = this.props.buffer
-        userData[0].meta.label = this.label
-        return userData
+        user.data = this.props.buffer
+        user.meta.label = this.label
+        return user
     }
 }

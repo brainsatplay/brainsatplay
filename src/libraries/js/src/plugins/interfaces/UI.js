@@ -36,8 +36,8 @@ export class UI{
                 min: 0,
                 max: 1,
                 step: 0.01,
-                onUpdate:(userData) => {
-                    let val = userData[0].data
+                onUpdate:(user) => {
+                    let val = user.data
                     this.props.container.style.opacity = val
                 }
              },
@@ -45,11 +45,11 @@ export class UI{
 
         // Dynamically Add Ports
         let ports = [
-            {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: `<div id='content'></div>`, onUpdate: (userData) => {
+            {key: 'html', input: {type: 'HTML'}, output: {type: null}, default: `<div id='content'></div>`, onUpdate: (user) => {
                 
                 let newContainer = document.createElement('div')
 
-                newContainer.insertAdjacentHTML('beforeend', userData[0].data)
+                newContainer.insertAdjacentHTML('beforeend', user.data)
 
                 let newEls = Array.from(newContainer.querySelectorAll("*"))
                 let oldEls = Array.from(this.props.container.querySelectorAll("*"))
@@ -124,8 +124,8 @@ export class UI{
                         this.session.graph.addPort(this,node.id, {
                             input: {type: undefined},
                             output: {type: null},
-                            onUpdate: (userData) => {
-                                let data = userData[0].data
+                            onUpdate: (user) => {
+                                let data = user.data
                                 if (data instanceof Function) data = data()
 
                                 node.innerHTML = ''
@@ -149,7 +149,7 @@ export class UI{
 
                         // Fill Width/Height by Default
                         if (!this.params.style.includes(`#${node.id}`)) {
-                            this.session.graph.runSafe(this, 'style', [{data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`}])
+                            this.session.graph.runSafe(this, 'style', {data: this.params.style + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`})
                         }
 
                     }
@@ -161,7 +161,7 @@ export class UI{
                 })
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, default: document.body}, 
-            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (userData) => {
+            {key: 'style', input: {type: 'CSS'}, output: {type: null}, default: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (user) => {
                 
                 if (this.app.AppletHTML){ // Wait for HTML to Exist
                     if (this.props.style == null){
@@ -172,7 +172,7 @@ export class UI{
                     }
 
                     // Scope the CSS (add ID scope)
-                    let styleArray = userData[0].data.split(/[{}]/).filter(String).map(function(str){
+                    let styleArray = user.data.split(/[{}]/).filter(String).map(function(str){
                         return str.trim(); 
                     });
 
@@ -196,9 +196,9 @@ export class UI{
                 input: o.input,
                 output: o.output,
                 default: o.default,
-                onUpdate: (userData) => {
-                    this.params[o.key] = userData[0].data
-                    o.onUpdate(userData)
+                onUpdate: (user) => {
+                    this.params[o.key] = user.data
+                    o.onUpdate(user)
                 }
             }
             
@@ -213,7 +213,7 @@ export class UI{
         this.props.container.id = this.props.id
         this.props.container.classList.add('brainsatplay-ui-container')
         this.props.container.style = this.params.containerStyle
-        this.session.graph.runSafe(this,'html', [{data: this.params.html}])
+        this.session.graph.runSafe(this,'html', {data: this.params.html})
 
         // Create Stylesheet
         let HTMLtemplate = this.props.container
@@ -223,7 +223,7 @@ export class UI{
 
                 // Wait to Reference AppletHTML
                 setTimeout(() => {
-                    this.session.graph.runSafe(this,'style', [{data: this.params.style}])
+                    this.session.graph.runSafe(this,'style', {data: this.params.style})
                 }, 250)
         }
 

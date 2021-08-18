@@ -27,7 +27,7 @@ export class Microphone{
                     } else {
                         audioDat = new Array(256).fill(0);
                     }
-                    return [{data: audioDat, meta: {}}]
+                    return {data: audioDat, meta: {}}
                 }
             }, 
         }
@@ -63,7 +63,7 @@ export class Microphone{
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'fft',[{data: true}])
+                this.session.graph.runSafe(this,'fft',{data: true})
                 setTimeout(() => {animate()}, 1000/60)
             }
         }

@@ -12,10 +12,8 @@ export class ERP{
             default: {
                 input: {type: undefined},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach((u,i) => {
-                        console.log(u.username,u.data,u.meta,u)
-                    })
+                onUpdate: (user) => {
+                    
                 }
             }
         }

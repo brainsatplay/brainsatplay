@@ -34,8 +34,8 @@ export class Train{
                 output: {type: null},
                 default: 'Motor Imagery',
                 options: ['Motor Imagery', 'Other'],
-                onUpdate: (userData) => {
-                    this.params.mode = userData[0].data
+                onUpdate: (user) => {
+                    this.params.mode = user.data
                 }
             },
             element: {
@@ -43,7 +43,7 @@ export class Train{
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {
-                    return [{data: this.props.container}]
+                    return {data: this.props.container}
                 }
             }
         }

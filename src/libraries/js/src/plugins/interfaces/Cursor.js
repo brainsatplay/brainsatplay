@@ -104,26 +104,23 @@ export class Cursor{
         })
     }
 
-    click = (userData) => {
-        let decision = this._getDecision(userData)
+    click = (user) => {
+        let decision = this._getDecision(user)
         if (decision) this._mouseClick()
     }
 
-    dx = (userData) => {
-        let choices = userData.map(u => Number(u.data))
-        let meanDiff = this.session.atlas.mean(choices)
-        this._moveMouse(meanDiff,0)
+    dx = (user) => {
+        let choice = Number(user.data)
+        this._moveMouse(choice,0)
     }
 
-    dy = (userData) => {
-        let choices = userData.map(u => Number(u.data))
-        let meanDiff = this.session.atlas.mean(choices)
-        this._moveMouse(0,meanDiff)
+    dy = (user) => {
+        let choice = Number(user.data)
+        this._moveMouse(0,choice)
     }
 
-    _getDecision(userData, command){
-        let choices = userData.map(u => Number(u.data))
-        let mean = this.session.atlas.mean(choices)
+    _getDecision(user, command){
+        let mean = Number(user.data)
         if (command) this.props[command] = (mean >= 0.5)
         return (mean >= 0.5)
     }

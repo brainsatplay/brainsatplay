@@ -39,11 +39,8 @@ class UI {
                 default: 0,
                 input: {type: undefined},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    // console.error(userData[0])
-                    let choices = userData.map(u => Number(u.data))
-                    // console.log(choices,userData[0])
-                    let mean = this.session.atlas.mean(choices)
+                onUpdate: (user) => {
+                    let mean = Number(user.data)
             
                     let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})
             
@@ -52,9 +49,8 @@ class UI {
                     this.session.graph.runSafe(this,'error', [{forceRun: true, forceUpdate: true}])
             
                     // Replace User Data with Mean
-                    userData = [{data: mean}]
-            
-                    return userData
+                    user.data = mean
+                    return user
                 }
             },
             error: {
@@ -65,7 +61,7 @@ class UI {
                     let error = change > 0
 
                     // nullify if not in your direction
-                    if (this.props.ball.direction === -1) return [{data: error, forceUpdate: true}]
+                    if (this.props.ball.direction === -1) return {data: error, forceUpdate: true}
                 }
             }
         }

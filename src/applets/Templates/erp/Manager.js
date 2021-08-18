@@ -23,13 +23,11 @@ class Manager{
             data: {
                 input: {type: undefined},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        let data = u.data
-                        console.log(data)
-                        data.eeg.forEach(o => {
-                            console.log(o)
-                        })
+                onUpdate: (user) => {
+                    let data = user.data
+                    console.log(data)
+                    data.eeg.forEach(o => {
+                        console.log(o)
                     })
                 }
             }, 

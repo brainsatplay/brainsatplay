@@ -32,20 +32,19 @@ export class DataManager{
 
     init = () => {
         if (this.ports.latest.output.active){
-            this.session.graph.runSafe(this,'latest',[{data: true}])
+            this.session.graph.runSafe(this,'latest',{data: true})
         }
     }
 
     deinit = () => {}
 
-    log = (userData) => {
-        let u = userData[0]
-        this.session.atlas.makeNote(`${u.meta.label} ${u.data}`)
+    log = (user) => {
+        this.session.atlas.makeNote(`${user.meta.label} ${user.data}`)
     }
 
-    get = (userData) => {
+    get = (user) => {
         return new Promise((resolve) => {
-            let trigger = userData[0].data
+            let trigger = user.data
             if (trigger) {
                 this.session.dataManager.readFromDB(undefined, undefined,undefined, (data) => {
                     resolve(data)
@@ -55,7 +54,7 @@ export class DataManager{
     }
 
     csv = (userData) => {
-        let trigger = userData[0].data
+        let trigger = user.data
         if (trigger) {
             this.session.dataManager.save()
         }
@@ -71,7 +70,7 @@ export class DataManager{
             this.session.dataManager.readFromDB(filename, 0,size, (data,file) => {
                 this.session.dataManager.getCSVHeader(filename, (header)=> { 
                 loaded = this.session.dataManager.parseDBData(data,header.split(','),file,true);
-                resolve([{data: loaded, meta:{label: `${this.label}_loaded`}}])
+                resolve({data: loaded, meta:{label: `${this.label}_loaded`}})
             });
             })
             })
