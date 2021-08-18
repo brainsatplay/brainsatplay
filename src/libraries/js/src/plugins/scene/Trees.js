@@ -30,6 +30,7 @@ class Trees{
                 input: {type: null},
                 output: {type: Object, name: 'Mesh'},
                 onUpdate: () => {
+                    console.log('ADDING TREE')
                     return {data: this.props.groups}
                 }
             },
@@ -180,7 +181,7 @@ class Trees{
         }
 
         this.ports.add.default = this.props.groups
-        this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
+        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
     }
 
     deinit = () => {}

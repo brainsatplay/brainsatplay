@@ -33,8 +33,8 @@ export class Scheduler{
                             } else {
                                 user.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
                             }
-                            u.meta.stateDuration = this.params.duration*1000
-                            u.meta.trialCount = this.params.trialCount
+                            user.meta.stateDuration = this.params.duration*1000
+                            user.meta.trialCount = this.params.trialCount
                         return user
                     }
                 }

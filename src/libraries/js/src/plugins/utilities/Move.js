@@ -78,7 +78,7 @@ export class Move{
     }
 
     left = (user) => {
-        if (userData) this._getDecision(user, 'left')
+        if (user) this._getDecision(user, 'left')
         if (this.props['left']) this._move(-this.params.speed,0)
         return user
     }
