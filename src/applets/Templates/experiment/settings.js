@@ -18,6 +18,8 @@ export const settings = {
     // intro: {
     //   title:false
     // },
+    // analysis: ['eegfft'],
+    "analysis": ['eegcoherence'],
 
     // App Logic
     graph:
@@ -31,7 +33,7 @@ export const settings = {
           params:{
             trialTypes: ['Eyes Open', 'Eyes Closed'],
             trialCount: 2,
-            duration: 60,
+            duration: 10,
             interTrialInterval: 2,
             allowConsecutive: false
           }},
@@ -95,6 +97,12 @@ export const settings = {
         //   target: 'Test UI:click'
         // },
 
+        // Track State Changes
+        {
+          source: 'scheduler:state', 
+          target: 'manager:state'
+        },
+
         // Log App Events
         {
           source: 'manager', 
@@ -121,6 +129,11 @@ export const settings = {
         {
           source: 'scheduler:done', 
           target: 'data:csv'
+        },
+
+        {
+          source: 'scheduler:done', 
+          target: 'manager:done'
         },
 
         // Show Results

@@ -9,12 +9,14 @@ class Manager{
         this.session = session
         this.params = {}
 
-        this.analysis = ['eegfft']
-
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random() * 1000000)),            
+            id: String(Math.floor(Math.random() * 1000000)), 
+            states: {},
+            lastAtlas: null  ,
+            prevState: null        
         }
+        
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
         this.props.container.innerHTML = `
@@ -45,11 +47,10 @@ class Manager{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    let data = user.data
-                    console.log(data)
-                    data.eeg.forEach(o => {
-                        console.log(o)
-                    })
+                    this.props.lastAtlas = user.data
+                    // this.props.lastAtlas.eeg.forEach(o => {
+                    //     console.log(o)
+                    // })
                     // return [{data: null}] // Return Alpha
                 }
             }, 
@@ -80,6 +81,51 @@ class Manager{
                 onUpdate: () => {
                     this.params.element = this.props.container
                     return {data: this.params.element}
+                }
+            },
+
+            state: {
+                edit: false,
+                input: {type: 'string'},
+                output: {type: null},
+                onUpdate: (user) => {
+
+                    if (user.data != null){
+                        let state = (user.data != 'ITI') ? user.data : this.props.prevState
+                        if (this.props.states[state] == null) this.props.states[state] = new Set()
+                        this.props.states[state].add(this.props.lastAtlas.eeg[0].fftCount)
+                        this.props.prevState = state
+                    }
+                }
+            },
+
+            done: {
+                edit: false,
+                input: {type: undefined},
+                output: {type: null},
+                onUpdate: (user) => {
+                    console.log(user)
+                    
+                    let alphaMeans = {}
+                        Object.keys(this.props.states).forEach((key,i) => {
+
+                        alphaMeans[key] = {}
+                        this.props.lastAtlas.eeg.forEach(coord => {
+
+                            let i1 = this.props.states[key][0]
+                            let i2 = this.props.states[key][1]
+                            
+                            let a1 = coord.means.alpha1.slice(i1, i2)
+                            let a2 = coord.means.alpha2.slice(i1, i2)
+                            console.log(i1, i2, a1, a2)
+                            let a = (this.session.atlas.mean(a1) + this.session.atlas.mean(a2)) / 2
+                            alphaMeans[key][coord.tag] = a
+                        })
+                    })
+
+                    console.log(this.props.lastAtlas)
+
+                    console.log(alphaMeans)
                 }
             }
         }
