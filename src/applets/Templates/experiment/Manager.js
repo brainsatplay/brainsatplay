@@ -90,7 +90,7 @@ class Manager{
                 output: {type: null},
                 onUpdate: (user) => {
 
-                    if (user.data != null){
+                    if (user.data != null){ 
                         let state = (user.data != 'ITI') ? user.data : this.props.prevState
                         if (this.props.states[state] == null) this.props.states[state] = new Set()
                         this.props.states[state].add(this.props.lastAtlas.eeg[0].fftCount)
@@ -104,23 +104,22 @@ class Manager{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    console.log(user)
-                    console.log(this.props.states)
+
                     let alphaMeans = {}
-                        Object.keys(this.props.states).forEach((key,i) => {
+                        Object.keys(this.props.states).forEach(key => {
                         
-                        console.log(key) // index acting weird, always just first value of first key?
                         alphaMeans[key] = {}
                         this.props.lastAtlas.eeg.forEach(coord => {
 
-                            let i1 = this.props.states[key][0]
-                            console.log(i1)
-                            let i2 = this.props.states[key][1]
-                            console.log(i2)
-                            
+                            const iterator = this.props.states[key].values()
+
+                            let i1 = iterator.next().value
+                            let i2 = iterator.next().value
+
                             let a1 = coord.means.alpha1.slice(i1, i2)
                             let a2 = coord.means.alpha2.slice(i1, i2)
                             console.log(i1, i2, a1, a2)
+                            
                             let a = (this.session.atlas.mean(a1) + this.session.atlas.mean(a2)) / 2
                             alphaMeans[key][coord.tag] = a
                         })
