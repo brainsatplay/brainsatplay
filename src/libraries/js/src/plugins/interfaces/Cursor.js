@@ -9,9 +9,9 @@ export class Cursor{
         this.session = session
         this.params = params
 
-        this.paramOptions = {
-            robot: {default: false}
-        }
+        // this.paramOptions = {
+        //      robot: {default: false}
+        // }
 
         this.props = {
             cursorSize: {
@@ -81,9 +81,9 @@ export class Cursor{
             if (this.props.looping){
 
                 // Start Robot if Required
-                if (this.params.robot && !this.session.info.connected){
-                    this._startRobot()
-                }
+                // if (this.params.robot && !this.session.info.connected){
+                //     this._startRobot()
+                // }
                 setTimeout(() => {animate()}, 1000/10)
             }
         }
@@ -127,19 +127,19 @@ export class Cursor{
 
     _mouseClick = () => {          
         // gets the object on image cursor position
-        if (this.params.robot){
-            this.session.sendBrainstormCommand(['mouseClick'])
-        } else {
-            var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
-            if (tmp){
-                this.props.mutex = true;
-                let event = new MouseEvent('click');
-                tmp.dispatchEvent(event);
+        // if (this.params.robot){
+        //     this.session.sendBrainstormCommand(['mouseClick'])
+        // } else {
+        //     var tmp = document.elementFromPoint(this.props.x + this.props.px, this.props.y + this.props.py); 
+        //     if (tmp){
+        //         this.props.mutex = true;
+        //         let event = new MouseEvent('click');
+        //         tmp.dispatchEvent(event);
 
-                this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
-                this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
-            }
-        }
+        //         this.props.cursor.style.left = (this.props.px + this.props.x) + "px";
+        //         this.props.cursor.style.top = (this.props.py + this.props.y) + "px";
+        //     }
+        // }
     }
 
 
@@ -222,11 +222,11 @@ export class Cursor{
     } catch{}
     }
     
-    _startRobot(){
-        if (this.params.robot && !this.session.info.connected){
-            this.session.login(undefined, undefined, (res) => {
-                console.log('connected')
-            })
-        }
-    }
+    // _startRobot(){
+    //     if (this.params.robot && !this.session.info.connected){
+    //         this.session.login(undefined, undefined, (res) => {
+    //             console.log('connected')
+    //         })
+    //     }
+    // }
 }
