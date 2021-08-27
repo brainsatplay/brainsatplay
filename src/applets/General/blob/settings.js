@@ -51,18 +51,18 @@ export const settings = {
           edges: [
             {
               source: 'eeg:atlas', 
-              target: 'neurofeedback'
+              target: 'neurofeedback' //sends user obj
             },
             { 
               source: 'neurofeedback', 
-              target: 'blob'
+              target: 'blob'           //changes blob noise
             },
             {
               source: 'blob:element', 
-              target: 'ui:content'
+              target: 'ui:content'  //updates on UI
             },
             {
-                source: 'neurofeedback:element', 
+                source: 'neurofeedback:element', //updates the target of the protocol selector on state change
                 target: 'ui:selector'
               },
           ]
