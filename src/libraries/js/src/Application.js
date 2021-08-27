@@ -66,8 +66,6 @@ export class Application{
 
         // Create App Intro Sequence
         this.session.createIntro(this, (sessionInfo) => {
-
-            console.log(sessionInfo)
             // this.tutorialManager.init();
             // setupHTML()
 

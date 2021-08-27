@@ -29,15 +29,117 @@ export class Neurofeedback{
             }
         }
 
-        // Defaults
+        this.props = {
+            feedbackInfo: {
+
+                    'Select your neurofeedback': {
+                        disabled: true,
+                        function: () => {return 1}
+                    },
+
+                                        
+                    // Coherence Neurofeedback
+                    'Alpha Coherence': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getCoherenceScore(ch,'alpha1')
+                    },
+
+                    // Custom Neurofeedback
+                    'Focus': {
+                        type: 'custom',
+                        function: (data) => {
+                            let arr = []
+                            let frontalData = this.session.atlas.getFrontalData(data)
+                            frontalData.forEach(ch => {
+                                arr.push(Math.min(1/this.session.atlas.getThetaBetaRatio(ch), 1))
+                            })
+                            return arr
+                        }
+                    },
+
+                    // 'ASoC Induction': { 
+
+                    // },
+
+                    // Per-Channel EEG Neurofeedback
+                    'Alpha Beta Ratio': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getAlphaBetaRatio(ch)
+                    },
+                    'Alpha Theta Ratio': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getAlphaThetaRatio(ch)
+                    },
+                    'Theta Beta Ratio': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getThetaBetaRatio(ch)
+                    },
+                    'Alpha Ratio': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getAlphaRatio(ch)
+                    },
+                    'Gamma Peak': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.get40HzGamma(ch)
+                    },
+                    'Low Gamma Score': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getLowGammaScore(ch)
+                    },
+
+                    // Per-Channel HEG Neurofeedback
+                    'HEG Score': {
+                        type: 'coherence',
+                        function: (ch) => this.session.atlas.getHEGRatioScore(ch)
+                    },
+
+            }
+        }
+
+        this.props.selector = document.createElement('select')
+        Object.keys(this.props.feedbackInfo).forEach(key => {
+                let o = this.props.feedbackInfo[key]
+                if (o.disabled) this.props.selector.insertAdjacentHTML('beforeend', `<option value="${key}" disabled>${key}</option>`)
+                else this.props.selector.insertAdjacentHTML('beforeend', `<option value="${key}">${key}</option>`)
+            });
+
+
+        this.props.selector.onchange = (e) => {
+            this.params.metric = e.target.value
+        }
+
+        // Ports
         this.ports = {
             default: {
                 analysis: ['eegcoherence'],
-                default: 0,
+                default: 1,
                 meta: {label: `neurofeedback`},
                 input: {type: Object, name: 'DataAtlas'},
                 output: {type: 'number'},
-            }, 
+            },  
+
+
+            metric: {
+                edit: false,
+                default: 'Alpha Coherence', 
+                options: Object.keys(this.props.feedbackInfo),
+                input: {type: null},
+                output: {type: null},
+            },
+
+            output: {
+                edit: false,
+                default: 'Mean',
+                options: ['Mean', 'Channels'],
+                input: {type: null},
+                output: {type: null},
+            },
+
+            element: {
+                default: this.props.selector,
+                input: {type: null},
+                output: {type: Element},
+            }
         } 
     }
 
@@ -51,97 +153,18 @@ export class Neurofeedback{
             let data = (user.data != null) ? user.data : this.session.atlas.data
 
             try {
-                
-                /* 
-                
-                EEG Neurofeedback
 
-                */
-
-                let eegMetrics = [
-                    'Alpha Beta Ratio',
-                    'Alpha Theta Ratio',
-                    'Theta Beta Ratio',
-                    'Alpha Ratio',
-                    'Gamma Peak',
-                    'Low Gamma Score'
-                ]
-
-                if (eegMetrics.includes(this.params.metric)){
-                    data.eeg.forEach(ch => {
-                        if (this.params.metric === 'Alpha Beta Ratio'){
-                            arr.push(this.session.atlas.getAlphaBetaRatio(ch))
-                        } else if (this.params.metric === 'Alpha Theta Ratio'){
-                            arr.push(this.session.atlas.getAlphaThetaRatio(ch))
-                        } else if (this.params.metric === 'Theta Beta Ratio'){
-                            arr.push(this.session.atlas.getThetaBetaRatio(ch))
-                        } else if (this.params.metric === 'Alpha Ratio'){
-                            arr.push(this.session.atlas.getAlphaRatio(ch))
-                        } else if (this.params.metric === 'Gamma Peak'){
-                            arr.push(this.session.atlas.get40HzGamma(ch))
-                        } else if (this.params.metric === 'Low Gamma Score'){
-                            arr.push(this.session.atlas.getLowGammaScore(ch))
-                        } else {
-                            arr.push(0)
-                        }
+                let type = this.props.feedbackInfo[this.params.metric].type
+                if (type === 'custom'){
+                    arr = this.props.feedbackInfo[this.params.metric].function(data) ?? []
+                } else {
+                    data[type].forEach(o => {
+                        arr.push(this.props.feedbackInfo[this.params.metric].function(o) ?? 0)
                     })
                 }
 
-                /* 
-
-                    Coherence Neurofeedback
-
-                */
-                let coherenceMetrics = [
-                    'Alpha Coherence'
-                ]
-
-                if (coherenceMetrics.includes(this.params.metric)){
-                    data.coherence.forEach(e => {
-                        if (this.params.metric === 'Alpha Coherence'){
-                            let value = this.session.atlas.getCoherenceScore(e,'alpha1')
-                            arr.push(value)
-                        }
-                    })
-                }
-
-                /* 
-
-                    HEG Neurofeedback
-
-                */
-
-                let hegMetrics = [
-                    'HEG Score'
-                ]
-
-                if (hegMetrics.includes(this.params.metric)){
-
-                    data.heg.forEach(ch => {
-                        if (this.params.metric === 'HEG Score'){
-                            arr.push(this.session.atlas.getHEGRatioScore(ch))
-                        } else {
-                            arr.push(0)
-                        }
-                    })
-                }
-
-
-                /* 
-
-                    Custom Neurofeedback
-
-                */
-
-                if (this.params.metric === 'Focus'){
-                    let frontalData = this.session.atlas.getFrontalData()
-                    frontalData.forEach(ch => {
-                        arr.push(Math.min(1/this.session.atlas.getThetaBetaRatio(ch), 1))
-                    })
-                }
-
-            } catch {
-                console.error('input not compatible')
+            } catch (e) {
+                console.error(e)
                 arr.push(0)
             }       
             
