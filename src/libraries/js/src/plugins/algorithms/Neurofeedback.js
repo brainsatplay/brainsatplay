@@ -206,7 +206,7 @@ export class Neurofeedback{
             // Output to User Data Object
             if (this.params.output === 'Channels') user.data = arr
             else user.data = this.session.atlas.mean(arr)
-            console.log(user.data)
+            // console.log(user.data)
 
             user.meta.label = this.params.metric
 

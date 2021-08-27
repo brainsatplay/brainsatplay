@@ -40,28 +40,42 @@ class Blob{
         this.props.container.style = `height:100%; width:100%; `
         this.props.container.onresize = this.responsive
 
+        this.normalize = (val, valmin, valmax, max, min) => { return (val - valmin) / (valmax-valmin) * (max-min) + min; }
+        this.feedbackHistory = []
+
         // Port Definition
         this.ports = {
             default: {
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {      
-                    if (this.props.material) {
-                        if (user.meta.label === "ASoC Induction") {
-                            this.props.material.uniforms.uNoiseIntensity.value = 10-user.data // update blob noise given new feedback samples
-
-                        } else {
-                            this.props.material.uniforms.uNoiseIntensity.value = 1-user.data // update blob noise given new feedback samples
-                        }
-                 
-                    }        
+                    if (this.props.material) { 
+                        this.feedbackHistory.push(user.data)
+                        let updateValue = this.params.upperBound-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.params.upperBound, this.params.lowerBound)
+                        console.log(updateValue)
+                        this.props.material.uniforms.uNoiseIntensity.value = updateValue 
+                    } // update blob noise given new feedback samples      
                 },
-        }, 
-        element: {
-            default: this.props.container,
-            input: {type: null},
-            output: {type: Element},
-        }
+            },
+
+            upperBound: {
+                default: 1,
+                input: {type: 'number'},
+                output: {type: null},
+            },
+
+            lowerBound: {
+                default: 0,
+                input: {type: 'number'},
+                output: {type: null},
+            },
+
+
+            element: {
+                default: this.props.container,
+                input: {type: null},
+                output: {type: Element},
+            }
         }
     }
 
