@@ -60,13 +60,11 @@ export class Scene{
             add: {
                 input: {type: Object},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        if (!Array.isArray(u.data)) u.data = [u.data]
-                        u.data.forEach(mesh => {
-                            if (mesh instanceof THREE.Object3D) this.props.scene.add(mesh)
-                            // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
-                        })
+                onUpdate: (user) => {
+                    if (!Array.isArray(user.data)) user.data = [user.data]
+                    user.data.forEach(mesh => {
+                        if (mesh instanceof THREE.Object3D) this.props.scene.add(mesh)
+                        // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
                     })
                 }
             },
@@ -76,7 +74,7 @@ export class Scene{
                 output: {type: Element},
                 onUpdate: () => {
                     this.params.element = this.props.container
-                    return [{data: this.params.element}]
+                    return {data: this.params.element}
                 }
             }
         }

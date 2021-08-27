@@ -34,7 +34,7 @@ export class Sine{
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{forceRun: true}])
+                this.session.graph.runSafe(this,'default',{forceRun: true})
                 setTimeout(animate,1000/Number.parseFloat(this.params.rate))
             }
         }
@@ -51,6 +51,6 @@ export class Sine{
         let t = Date.now()/1000
         let phase = Number.parseFloat(this.params.phase)
         let value = this.params.center + this.params.scale*Number.parseFloat(this.params.amplitude)*Math.sin(angularVelocity*t + phase)
-        return [{data: value, meta: {label: this.label}}]
+        return {data: value, meta: {label: this.label}}
     }
 }

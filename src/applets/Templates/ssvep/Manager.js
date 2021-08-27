@@ -35,13 +35,11 @@ class Manager{
             default: {
                 input: {type: undefined},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    userData.forEach(u => {
-                        let data = u.data
-                        console.log(data)
-                        data.eeg.forEach(o => {
-                            console.log(o)
-                        })
+                onUpdate: (user) => {
+                    let data = user.data
+                    console.log(data)
+                    data.eeg.forEach(o => {
+                        console.log(o)
                     })
                     // return [{data: null}] // Return Alpha
                 }
@@ -50,14 +48,14 @@ class Manager{
             schedule: {
                 input: {type: 'string'},
                 output: {type: null},
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
                     let labelDiv = document.getElementById(`${this.props.id}-label`)
-                    labelDiv.innerHTML = userData[0].meta.state
+                    labelDiv.innerHTML = user.meta.state
                     let barDiv = document.getElementById(`${this.props.id}-bar`)
-                    let statePercentage = userData[0].meta.stateTimeElapsed / userData[0].meta.stateDuration
+                    let statePercentage = user.meta.stateTimeElapsed / user.meta.stateDuration
                     // Fill a Progress Bar
                     let fillBar = barDiv.querySelector('div')
-                    if (userData[0].meta.state === 'ITI') fillBar.style.background = 'red'
+                    if (user.meta.state === 'ITI') fillBar.style.background = 'red'
                     else fillBar.style.background = '#00FF00'
             
                     if (statePercentage > 1) statePercentage = 1
@@ -72,7 +70,7 @@ class Manager{
                 default: this.props.container,
                 onUpdate: () => {
                     this.params.element = this.props.container
-                    return [{data: this.params.element}]
+                    return {data: this.params.element}
                 }
             }
         }

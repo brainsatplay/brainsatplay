@@ -24,11 +24,11 @@ export class Thread{
             default: {
                 input: {type: undefined},
                 output: {type: undefined},
-                onUpdate: (userData) => {
-                    if (userData[0].meta.source != this.label){
-                        this._postData(userData[0].data)
+                onUpdate: (user) => {
+                    if (user.meta.source != this.label){
+                        this._postData(user.data)
                     } else {
-                        return userData
+                        return user
                     }
                 }
             },
@@ -47,7 +47,7 @@ export class Thread{
         if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 		this.props.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
         window.workers.workerResponses.push(this._onMessage);
-        this.session.graph.runSafe(this, 'function', [{forceRun: true}])
+        this.session.graph.runSafe(this, 'function', {forceRun: true})
     }
 
     deinit = () => {
@@ -56,7 +56,7 @@ export class Thread{
 
     _onMessage = (msg) => {
         if (msg.origin === this.props.id){
-            this.session.graph.runSafe(this, 'default', [{data: msg.output}])
+            this.session.graph.runSafe(this, 'default', {data: msg.output})
             this.props.workerWaiting = false;
         }
     }

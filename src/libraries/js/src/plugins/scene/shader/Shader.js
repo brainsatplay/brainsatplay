@@ -20,12 +20,11 @@ export class Shader{
                 meta: {label: this.label, uniforms: this.props.uniforms},
                 input: {type: 'GLSL'},
                 output: {type: 'GLSL'},
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    if (typeof u.data === 'string'){
-                        this.params.default = u.data
+                onUpdate: (user) => {
+                    if (typeof user.data === 'string'){
+                        this.params.default = user.data
                         this._setDynamicPorts(this.params.default)
-                        return [{data: this.params.default, meta: {label: this.label, uniforms: this.props.uniforms}}]
+                        return {data: this.params.default, meta: {label: this.label, uniforms: this.props.uniforms}}
                     }
                 }
             }
@@ -36,7 +35,7 @@ export class Shader{
         if (this.params.uniforms && typeof this.params.uniforms === 'object') {
             this.props.uniforms = this.params.uniforms // JSON.parse(JSON.stringify(this.params.uniforms))
         }
-        this.session.graph.runSafe(this,'default',[{data:this.params.default, forceUpdate: true}])
+        this.session.graph.runSafe(this,'default',{data:this.params.default, forceUpdate: true})
     }
 
     deinit = () => {}
@@ -65,10 +64,9 @@ export class Shader{
             input: {type},
             default: this.props.uniforms[name].value,
             output: {type: null},
-            onUpdate: (userData) => {
-                let u = userData[0]
-                if (!isNaN(u.data)) {
-                    this.props.uniforms[name].value = u.data // Passed by reference at the beginning
+            onUpdate: (user) => {
+                if (!isNaN(user.data)) {
+                    this.props.uniforms[name].value = user.data // Passed by reference at the beginning
                 }
             }
         })

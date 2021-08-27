@@ -19,9 +19,9 @@ export class Plugin{
                 edit: false,
                 input: {type: undefined},
                 output: {type: undefined},
-                onUpdate: (userData) => {
-                    console.log(userData, this.params.number)
-                    return userData
+                onUpdate: (user) => {
+                    console.log(user, this.params.number)
+                    return user
                 }
             },
             number: {
@@ -32,9 +32,8 @@ export class Plugin{
                 // min: 0,
                 // max: 100,
                 // step: 0.01,
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    this.params.number = u.data // Auto-assigned parameter
+                onUpdate: (user) => {
+                    this.params.number = user.data // Auto-assigned parameter
                 }
             },
             element: {
@@ -44,7 +43,7 @@ export class Plugin{
                 default: this.props.container,
                 onUpdate: () => {
                     this.params.element = this.props.container
-                    return [{data: this.params.element}]
+                    return {data: this.params.element}
                 }
             }
         }

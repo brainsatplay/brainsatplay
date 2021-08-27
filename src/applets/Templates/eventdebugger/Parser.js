@@ -38,7 +38,7 @@ class Parser{
         // Port Definition
         this.ports = {
             default: {
-                input: {type: 'number'},
+                input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
                     this.props.label.innerHTML = user.meta.label    

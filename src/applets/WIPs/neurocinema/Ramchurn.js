@@ -75,7 +75,7 @@ export class Ramchurn{
         this.props.input.multiple = true
 
         this.props.input.oninput = () => {
-            this.session.graph.runSafe(this,'load', [{data: this.props.input.files}])
+            this.session.graph.runSafe(this,'load', {data: this.props.input.files})
         }
 
         this.props.buttons = []
@@ -110,8 +110,8 @@ export class Ramchurn{
             start: {
                 input: {type: 'boolean'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    if (userData[0].data === true){
+                onUpdate: (user) => {
+                    if (user.data === true){
                         this.props.looping = true
                         this.props.container.style.opacity = '0'
                         this.setScene(this.props.currentScene)
@@ -124,8 +124,8 @@ export class Ramchurn{
             load: {
                 input: {type: 'file', multiple: true, accept: "video/mp4, audio/mpeg"},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let files = Array.from(userData[0].data)
+                onUpdate: (user) => {
+                    let files = Array.from(user.data)
                     files.forEach(f => {
                         if (f.type === 'audio/mpeg'){
                             if (f.name.toLowerCase().includes('vox')){
@@ -162,7 +162,7 @@ export class Ramchurn{
 
                     this.props.assets.audio = this.shuffle(this.props.assets.audio) // Shuffle videos
                     this.props.assets.video = this.shuffle(this.props.assets.video) // Shuffle videos
-                    this.session.graph.runSafe(this, 'setAudio', [{data: this.props.assets.audio}]) // Preload audio in mixer
+                    this.session.graph.runSafe(this, 'setAudio', {data: this.props.assets.audio}) // Preload audio in mixer
                 }
             },
 
@@ -171,14 +171,14 @@ export class Ramchurn{
                 input: {type: null},
                 output: {type: 'file'},
                 // default: [],
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
                     // Get Combination
-                    let combination = userData[0].data
+                    let combination = user.data
                     let arr = []
                     this.props.keys.forEach(key => {
                         if (combination[key]?.video) arr.push(combination[key].video)
                     })
-                    return [{data: arr}]
+                    return {data: arr}
                 }
             },
             setAudio: {
@@ -186,32 +186,32 @@ export class Ramchurn{
                 output: {type: 'file'},
                 // default: [],
                 onUpdate: (userData) => {
-                    return [{data: userData[0].data}]
+                    return {data: user.data}
                 }
             },
             controlAudio: {
                 input: {type: null},
                 output: {type: Array},
                 // default: [],
-                onUpdate: (userData) => {
-                    let combination = userData[0].data
+                onUpdate: (user) => {
+                    let combination =user.data
                     let arr = []
                     this.props.keys.forEach(key => {
                         if (combination[key]?.audio) arr.push(combination[key].audio)
                         if (combination[key]?.vox) arr.push(combination[key].vox)
                     })
 
-                    return [{data: arr}]
+                    return {data: arr}
                 }
             },
 
             cut: {
                 input: {type: 'boolean'},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
                     this.logCut(this.props.scenes[this.props.currentScene])
                     this.props.selectedKey = (this.props.selectedKey + 1) % 2
-                    return userData
+                    return user
                 }
             },
 
@@ -263,8 +263,8 @@ export class Ramchurn{
         this.props.scenes[i].lastCut = null
         this.props.scenes[i].cutSlow = null
 
-        this.session.graph.runSafe(this, 'controlVideo', [{data: this.props.scenes[i].combination, meta: {replace: true}}])
-        this.session.graph.runSafe(this, 'controlAudio', [{data: this.props.scenes[i].combination}])
+        this.session.graph.runSafe(this, 'controlVideo', {data: this.props.scenes[i].combination, meta: {replace: true}})
+        this.session.graph.runSafe(this, 'controlAudio', {data: this.props.scenes[i].combination})
     }
 
     endScene = (scene) => {

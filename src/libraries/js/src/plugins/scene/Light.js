@@ -41,7 +41,7 @@ export class Light{
                         this.props.mesh.target.position.set( 0, 0, - 2 );
                     }
                     this.props.mesh.position.set( this.params.x, this.params.y, this.params.z );
-                    return [{data: this.props.mesh, meta: {params: this.params}}]
+                    return {data: this.props.mesh, meta: {params: this.params}}
                 }
             },
             radius: {
@@ -69,7 +69,6 @@ export class Light{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
             if (Date.now() - this.props.lastRendered > 500){
-                // this.session.graph.runSafe(this,'add',[{forceRun: true}])
                 this.props.lastRendered = Date.now()
             }
         })
@@ -86,25 +85,25 @@ export class Light{
         }
     }
     
-    radius = (userData) => {
-        this.params.radius = Math.abs(Number.parseFloat(userData[0].data))
+    radius = (user) => {
+        this.params.radius = Math.abs(Number.parseFloat(user.data))
     }
 
-    dx = (userData) => {
-        let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
+    dx = (user) => {
+        let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(user.data)
         if (desiredX > 0){
             this.params.x = desiredX
         }
     }
 
-    dy = (userData) => {
-        let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
+    dy = (user) => {
+        let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(user.data)
         if (desiredY > 0){
             this.params.y = desiredY
         }
     }
 
-    color = (userData) => {
-        this.params.color = userData[0].data
+    color = (user) => {
+        this.params.color = user.data
     }
 }

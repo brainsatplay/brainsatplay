@@ -62,7 +62,7 @@ export class Buzz{
 
         let added = (k) => {
             this._subscribeToDevices(k,['buzz'])
-            this.session.graph.runSafe(this,'status',[{forceRun: true}])
+            this.session.graph.runSafe(this,'status',{forceRun: true})
         }
 
         let removed = (k) => {
@@ -84,7 +84,7 @@ export class Buzz{
         this.props.device = this.session.getDevice('buzz')
         if (!this.props.device)  console.log('Must connect your Buzz first')
         else this.props.device = this.props.device.device.device
-        this.session.graph.runSafe(this,'status',[{forceRun: true}])
+        this.session.graph.runSafe(this,'status',{forceRun: true})
     }
 
     deinit = () => {
@@ -92,16 +92,14 @@ export class Buzz{
     }
 
     status() {
-        return [{data: (this.session.getDevice('buzz') != null), meta:{}}]
+        return {data: (this.session.getDevice('buzz') != null), meta:{}}
     }
 
     // Expects True/False
-    motors = (userData) => { 
+    motors = (user) => { 
         if (this.props.device){   
-            let run = false
             // Check User Requests
-            userData.forEach(u => {if (u.data == true && u.meta.user === this.session.info.auth.id) run = true})
-            if (run){ // Run if you
+            if (user.data == true && user.meta.user === this.session.info.auth.id){ // Run if you
                 let motorCommand = [this.params.motor1,this.params.motor2,this.params.motor3,this.params.motor4]
                 this.props.device.vibrateMotors([motorCommand,[0,0,0,0]])
             }
@@ -109,17 +107,14 @@ export class Buzz{
     }
 
     // Expects True/False
-    leds = (userData) => {
+    leds = (user) => {
         if (this.props.device){
 
-            let run = false
             // Check User Requests
-            userData.forEach(u => {if (u.data == true) run = true})
-
             let c1 = [0,0,0]
             let c2 = [0,0,0]
             let c3 = [0,0,0]
-            if (run){
+            if (user.data == true){
                 c1 = this._hexToRgb(this.params.led1color)
                 c2 = this._hexToRgb(this.params.led2color)
                 c3 = this._hexToRgb(this.params.led3color)
@@ -133,16 +128,15 @@ export class Buzz{
     }
 
     // Expects an FFT
-    audioToMotors = (userData) => {
-        if (this.props.device)this.props.device.vibrateMotors([this.props.device.mapFrequencies(userData[0].data)])
+    audioToMotors = (user) => {
+        if (this.props.device)this.props.device.vibrateMotors([this.props.device.mapFrequencies(user.data)])
     }
 
     // Expects a value between 0-1
-    mapOnBand = (userData) => {
+    mapOnBand = (user) => {
         if (this.props.device){
-            let u = userData[0]
-            if (u.data != false){
-                let position = (userData[0].data == true) ? this.params.position : userData[0].data
+            if (user.data != false){
+                let position = (user.data == true) ? this.params.position : user.data
                 this.props.device.vibrateMotors([this.props.device.getIllusionActivations(position)])
             } else {
                 this.props.device.vibrateMotors([0,0,0,0])
@@ -150,7 +144,7 @@ export class Buzz{
         }
     }
 
-    fillLEDs = (userData) => {
+    fillLEDs = (user) => {
         if (this.props.device){
 
             let c1 = this._hexToRgb(this.params.led1color)
@@ -158,8 +152,7 @@ export class Buzz{
             let c3 = this._hexToRgb(this.params.led3color)
             
             // Fills the Lights (Multi User)
-            let flattenedData = userData.map(u=> u.data)
-            let mean = this.session.atlas.mean(flattenedData)
+            let mean = user.data
 
             let i1 = Math.min(mean/.33,1)
             let i2 = (i1 === 1 ? Math.min((mean-.33)/.33,1) : 0)

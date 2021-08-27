@@ -36,7 +36,7 @@ class UI{
         this.ports = {
             default: {
                 defaults: {
-                    input: [{username: 'Username', data: 'Value', meta: {label: 'Waiting for Data'}}]
+                    input: {username: 'Username', data: 'Value', meta: {label: 'Waiting for Data'}}
                 }
             }
         }
@@ -118,8 +118,8 @@ class UI{
 
     // Ports
 
-    default = (userData) => {
-        return userData
+    default = (user) => {
+        return user
     }
 
     // Helper Functions

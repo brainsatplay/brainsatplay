@@ -23,47 +23,43 @@ export class Scheduler{
                 meta: {label: this.label},
                 input: {type:null},
                 output: {type: 'string'},
-                onUpdate: (userData) => { 
+                onUpdate: (user) => { 
                     if (this.props.currentTrial >= 0){
-                        userData.forEach(u => {
-                            u.data = this.props.currentTrial
-                            u.meta.label = this.label
-                            u.meta.state = this.props.state;
-                            if (u.meta.state != 'ITI'){
-                                u.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+                        user.data = this.props.currentTrial
+                        user.meta.label = this.label
+                        user.meta.state = this.props.state;
+                            if (user.meta.state != 'ITI'){
+                                user.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
                             } else {
-                                u.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+                                user.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
                             }
-                            u.meta.stateDuration = this.params.duration*1000
-                            u.meta.trialCount = this.params.trialCount
-                        })
-                        return userData
+                            user.meta.stateDuration = this.params.duration*1000
+                            user.meta.trialCount = this.params.trialCount
+                        return user
                     }
                 }
             }, 
             state: {
                 input: {type:null},
                 output: {type: 'string'},
-                onUpdate: (userData) => { 
-                    return userData.map(u => {
-                        u.data = this.props.state;
-                        u.meta.label = this.label
-                        return u
-                    })
+                onUpdate: (user) => { 
+                    user.data = this.props.state;
+                    user.meta.label = this.label
+                    return user
                 }
             }, 
             done: {
                 input: {type:null},
                 output: {type: 'boolean'},
-                onUpdate: (userData) => { 
-                    return [{data:true, forceUpdate: true}]
+                onUpdate: (user) => { 
+                    return {data:true, forceUpdate: true}
                 }
             },
             update: {
                 input: {type:'boolean'},
                 output: {type: null},
-                onUpdate: (userData) => { 
-                    let trigger = userData[0].data
+                onUpdate: (user) => { 
+                    let trigger = user.data
                     if (trigger && this.params.mode === 'Manual') {
                         this._taskUpdate(false, true)
                     }
@@ -72,12 +68,12 @@ export class Scheduler{
             reset: {
                 input: {type:'boolean'},
                 output: {type: null},
-                onUpdate: (userData) => { 
-                    let trigger = userData[0].data
+                onUpdate: (user) => { 
+                    let trigger = user.data
                     if (trigger) {
-                        if ('params' in userData[0].meta){
-                            for (let param in userData[0].meta.params){
-                                this.params[param] = userData[0].meta.params[param]
+                        if ('params' in user.meta){
+                            for (let param in user.meta.params){
+                                this.params[param] = user.meta.params[param]
                             }
                         }
                         this.init()
@@ -150,8 +146,8 @@ export class Scheduler{
                 // Stop on Last Trial
                 if (this.props.currentTrial >= this.params.trialCount){ // Stop Loop
                     this.props.state = ''
-                    this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
-                    this.session.atlas.graph.runSafe(this,'done',[{forceRun: true, forceUpdate: true}])
+                    this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
+                    this.session.atlas.graph.runSafe(this,'done',{forceRun: true, forceUpdate: true})
                 }
             } 
 
@@ -159,13 +155,13 @@ export class Scheduler{
             else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
                 this.props.iti = true
-                this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
+                this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
             }
         } else {
             this._startNewTrial()
         }
 
-        this.session.atlas.graph.runSafe(this,'default', [{forceRun: true, forceUpdate: true}])
+        this.session.atlas.graph.runSafe(this,'default', {forceRun: true, forceUpdate: true})
         if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -174,6 +170,6 @@ export class Scheduler{
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
         this.props.state = this.params.progression[this.props.currentTrial]
-        this.session.atlas.graph.runSafe(this,'state',[{forceRun: true, forceUpdate: true}])
+        this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
     }
 }

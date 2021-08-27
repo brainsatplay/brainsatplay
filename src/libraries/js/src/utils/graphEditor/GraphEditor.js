@@ -1636,7 +1636,7 @@ export class GraphEditor{
                 let types = new Set()
                 let ports = this.app.session.graph.getPortsFromClass({class:classInfo})
                 for(let port in ports){
-                    let type = ports[port].input.type
+                    let type = ports[port]?.input?.type
                     if (type instanceof Object) types.add(type.name)
                     else types.add(type)
                 }

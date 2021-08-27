@@ -23,7 +23,7 @@ export class Noise{
                         this.props.lastSample*=Number.parseFloat(this.params.intensity)
                         this.props.lastTime = Date.now()
                     }
-                    return [{data: this.props.lastSample, meta: {label: this.label}}]
+                    return {data: this.props.lastSample, meta: {label: this.label}}
                 }
             },
             type: {
@@ -31,32 +31,32 @@ export class Noise{
                 options: ['random', 'perlin', 'simplex'],
                 input: {type: 'string'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.type = userData[0].data
+                onUpdate: (user) => {
+                    this.params.type = user.data
                 }
             },
             intensity: {
                 default: 1,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.intensity = userData[0].data
+                onUpdate: (user) => {
+                    this.params.intensity = user.data
                 }
             },
             interval: {
                 default: 1000/60,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.interval = userData[0].data
+                onUpdate: (user) => {
+                    this.params.interval = user.data
                 }
             },
             delta: {
                 default: 0.01,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.delta = userData[0].data
+                onUpdate: (user) => {
+                    this.params.delta = user.data
                 }
             }
         }
@@ -75,7 +75,7 @@ export class Noise{
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',[{forceRun: true}])
+                this.session.graph.runSafe(this,'default',{forceRun: true})
                 setTimeout(animate, Math.min(100, this.params.interval))
             }
         }

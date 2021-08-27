@@ -23,9 +23,8 @@ export class Spectrogram{
                 edit: false,
                 input: {type: Array},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    this.props.helper.latestData = u.data
+                onUpdate: (user) => {
+                    this.props.helper.latestData = user.data
                     this.props.helper.draw();
                 }
             },
@@ -34,7 +33,7 @@ export class Spectrogram{
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {
-                    return [{data: this.props.canvas}]
+                    return {data: this.props.canvas}
                 }
             }
         }

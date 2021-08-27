@@ -142,45 +142,36 @@ const moveSnake = () => {
         canvas.height = squareLength
     }
 
-    up = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true){
-                this.props.dy = -this.props.speed
-                this.props.dx = 0
-            }
-        })
-        return userData
+    up = (user) => {
+        if (user.data === true){
+            this.props.dy = -this.props.speed
+            this.props.dx = 0
+        }
+        return user
     }
 
-    down = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true){
-                this.props.dy = this.props.speed
-                this.props.dx = 0
-            }
-
-        })
-        return userData
+    down = (user) => {
+        if (user.data === true){
+            this.props.dy = this.props.speed
+            this.props.dx = 0
+        }
+        return user
     }
 
-    left = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true){
+    left = (user) => {
+            if (user.data === true){
                 this.props.dx = -this.props.speed
                 this.props.dy = 0
             }
-        })
-        return userData
+        return user
     }
 
-    right = (userData) => {
-        userData.forEach(u => {
-            if (u.data === true){
-                this.props.dx = this.props.speed
-                this.props.dy = 0
-            }
-        })
-        return userData
+    right = (user) => {
+        if (user.data === true){
+            this.props.dx = this.props.speed
+            this.props.dy = 0
+        }
+        return user
     }
     
 

@@ -29,15 +29,14 @@ export class FFT{
 
     deinit = () => {}
 
-    default = (userData) => {
-        let u = userData[0]
-        let arr = userData[0].data
+    default = (user) => {
+        let arr =user.data
 
         // Pass to Worker
         if (u.meta.label != this.label){
             if (Array.isArray(arr)){
                 this._analysisFunction(arr)
-                u.meta.label = this.label
+                user.meta.label = this.label
             }else {
                 console.log('invalid type')
             }
@@ -45,8 +44,7 @@ export class FFT{
         
         // Pass from Worker
         else {
-            userData = [u]
-            return userData
+            return user
         }
     }
 
@@ -60,6 +58,6 @@ export class FFT{
 
     _workerOnMessage = (res) => {
         this.waiting = false
-        this.session.graph.runSafe(this,'default', [{data:res.output[1][0], meta: {label: this.label}}])
+        this.session.graph.runSafe(this,'default', {data:res.output[1][0], meta: {label: this.label}})
     }
 }

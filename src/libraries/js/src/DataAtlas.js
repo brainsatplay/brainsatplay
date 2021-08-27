@@ -680,15 +680,15 @@ export class DataAtlas {
 	}
 
 	//return data object for FP1 to FP2 (AF7 to AF8 on Muse)
-	getFrontalData = () => {
+	getFrontalData = (atlas_data) => {
 		let frontalData = [];
-		if(this.settings.eeg) {
+		// if(this.settings.eeg) {
 			let regex = new RegExp('([F]|[F][A-Za-z]|[A-Za-z][F])([0-9]|[0-9][0-9])','i')
-			let frontalTags = this.data.eegshared.eegChannelTags.filter(({tag}) => tag.match(regex))
+			let frontalTags = atlas_data.eegshared.eegChannelTags.filter(({tag}) => tag.match(regex))
 			frontalTags.forEach((o) => {
-				frontalData.push(this.getEEGDataByTag(o.tag))
+				frontalData.push(this.getEEGDataByTag(o.tag, atlas_data))
 			})
-        }
+        // }
 		return frontalData;
 	}
 

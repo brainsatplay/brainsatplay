@@ -49,13 +49,13 @@ class UI{
             this.session.graph.runSafe(this,'button', [{data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.id}`}}])
     }
 
-    default = (userData) => {
+    default = (user) => {
         let container = document.getElementById(`${this.props.id}`)
         let button = document.getElementById(`${this.props.id}buzz`)
 
         // Change Text Based on Status
         let statusDiv = document.getElementById(`${this.props.id}status`)
-        if (userData[0].data){
+        if (user.data){
             statusDiv.innerHTML = `Buzz Connected`
 
             // When the Button is Clicked, Activate the "button" Port and Pass My Username
@@ -70,11 +70,11 @@ class UI{
             button.style.opacity = 0.3
             button.removeEventListener('click', this._activateButtonPort)
         }
-        return userData
+        return user
     }
 
-    button = (userData) => {
-        return userData
+    button = (user) => {
+        return user
     }
 
     deinit = () => {}

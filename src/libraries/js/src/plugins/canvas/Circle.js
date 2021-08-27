@@ -20,7 +20,7 @@ export class Circle{
                 input: {type: null},
                 output: {type: Object},
                 onUpdate: () => {
-                    return [{data: this.props.function}]
+                    return {data: this.props.function}
                 }
             },
             radius: {
@@ -30,8 +30,8 @@ export class Circle{
                 step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.radius = userData[0].data
+                onUpdate: (user) => {
+                    this.params.radius = user.data
                 },
             },
             x: {
@@ -41,8 +41,8 @@ export class Circle{
                 step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.x = Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.params.x = Number.parseFloat(user.data)
                 }
             },
             y: {
@@ -52,32 +52,32 @@ export class Circle{
                 step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.y = Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.params.y = Number.parseFloat(user.data)
                 }
             },
             dx: {
                 default: 0,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.x = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.params.x = Number.parseFloat(this.params.x) + Number.parseFloat(user.data)
                 }
             },
             dy: {
                 default: 0,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.y = Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.params.y = Number.parseFloat(this.params.y) + Number.parseFloat(user.data)
                 }
             },
             color: {
                 default: '#ffffff',
                 input: {type: 'color'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.color = userData[0].data
+                onUpdate: (user) => {
+                    this.params.color = user.data
                 }
             },
             radiusOffset: {
@@ -87,16 +87,16 @@ export class Circle{
                 step: 0.001,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.radiusOffset = Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.params.radiusOffset = Number.parseFloat(user.data)
                 }
             },
             offsetScale: {
                 default: 1,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.offsetScale = userData[0].data
+                onUpdate: (user) => {
+                    this.params.offsetScale = user.data
                 }
             }
         }

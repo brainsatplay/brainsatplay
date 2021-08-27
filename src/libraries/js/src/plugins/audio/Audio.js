@@ -23,15 +23,15 @@ export class Audio{
                 input: {type: 'file', accept:'audio/*'}, // Single file only
                 output: {type: 'boolean'},
                 default: [],
-                onUpdate: async (userData) => {
+                onUpdate: async (user) => {
                     return new Promise(resolve => {
-                        if (userData[0].data){
+                        if (user.data){
                             this.deinit()
-                            let file = userData[0].data
+                            let file = user.data
                             if (file instanceof FileList || Array.isArray(file)) file = file[0]
                             this.params.file = file
                             this.decodeAudio(this.params.file, () => {
-                                resolve([{data: true}]) 
+                                resolve({data: true}) 
                             })
                         }
                     })
@@ -52,17 +52,17 @@ export class Audio{
                 min: 0,
                 max: this.props.maxVol,
                 step: 0.01,
-                onUpdate: (userData) => {
-                    let volume = userData[0].data*this.props.maxVol
+                onUpdate: (user) => {
+                    let volume = user.data*this.props.maxVol
                     this.props.sourceGain.gain.setValueAtTime(volume, window.audio.ctx.currentTime);
                 }
             },
             toggle: {
                 input: {type: 'boolean'},
                 output: {type: null},
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
 
-                    if (userData[0].data === true){
+                    if (user.data === true){
                         if (this.props.status === 1){
                             this.deinit()
                             this.props.status = 0

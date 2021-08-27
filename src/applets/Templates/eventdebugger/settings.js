@@ -3,7 +3,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Parser} from './Parser'
 
 export const settings = {
-    name: "Neurofeedback Template",
+    name: "Event Debugger",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Get started building a neurofeedback app!",
@@ -22,8 +22,7 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
+        {id: 'event', class: brainsatplay.plugins.controls.Event},
         {id: 'brainstorm', class: brainsatplay.plugins.networking.Brainstorm, params: {
 
           onUserConnected: (u) => {
@@ -58,16 +57,12 @@ export const settings = {
       ],
 
       edges: [
-        {
-          source: 'eeg:atlas', 
-          target: 'neurofeedback'
-        },
         { 
-          source: 'neurofeedback', 
+          source: 'event', 
           target: 'brainstorm'
         },
         {
-          source: 'brainstorm:neurofeedback', 
+          source: 'brainstorm:event', 
           target: 'parser'
         },
         {

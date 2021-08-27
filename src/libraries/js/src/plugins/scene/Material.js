@@ -52,7 +52,7 @@ export class Material{
                     this.props.material.depthWrite = this.params.depthWrite
                     this.props.material.alphaTest = this.params.alphaTest
             
-                    return [{data: this.props.material}]
+                    return {data: this.props.material}
                 }
             },
             type: {
@@ -68,9 +68,9 @@ export class Material{
                 default: blankFragment,
                 input: {type: 'GLSL'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.fragmentShader = userData[0].data
-                    this._updateUniforms(userData[0].meta.uniforms)
+                onUpdate: (user) => {
+                    this.params.fragmentShader = user.data
+                    this._updateUniforms(user.meta.uniforms)
                     this._passShaderMaterial()
                 }
             },
@@ -78,9 +78,9 @@ export class Material{
                 default: vertexShader,
                 input: {type: 'GLSL'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                        this.params.vertexShader = userData[0].data
-                        this._updateUniforms(userData[0].meta.uniforms)
+                onUpdate: (user) => {
+                        this.params.vertexShader = user.data
+                        this._updateUniforms(user.meta.uniforms)
                         this._passShaderMaterial()
                 }
             },
@@ -97,7 +97,7 @@ export class Material{
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.params, () => {
                 this.props.lastRendered = Date.now()
-                this.session.graph.runSafe(this,'default',[{forceRun: true, forceUpdate: true}])
+                this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         })
         
         this._passShaderMaterial()
@@ -145,7 +145,7 @@ export class Material{
     _passShaderMaterial = () => {
         if (this.params.vertexShader && this.params.fragmentShader) {
             this.params.type = 'ShaderMaterial'
-            this.session.graph.runSafe(this,'default',[{forceRun: true, forceUpdate: true}])
+            this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         }
         else this.params.type = 'MeshStandardMaterial'
     }
