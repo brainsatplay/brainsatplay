@@ -46,8 +46,16 @@ class Blob{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {      
-                    if (this.props.material) this.props.material.uniforms.uNoiseIntensity.value = 1-user.data
-            },
+                    if (this.props.material) {
+                        if (user.meta.label === "ASoC Induction") {
+                            this.props.material.uniforms.uNoiseIntensity.value = 10-user.data // update blob noise given new feedback samples
+
+                        } else {
+                            this.props.material.uniforms.uNoiseIntensity.value = 1-user.data // update blob noise given new feedback samples
+                        }
+                 
+                    }        
+                },
         }, 
         element: {
             default: this.props.container,

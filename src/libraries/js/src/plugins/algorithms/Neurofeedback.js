@@ -29,6 +29,17 @@ export class Neurofeedback{
             }
         }
 
+        this.getBandFreqs = (frequencies) => {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
+            let oneto20freqs = [[],[]]
+            frequencies.forEach((item,idx) => {
+                if((item >= 1) && (item <= 20)){
+                    oneto20freqs[0].push(item); oneto20freqs[1].push(idx);
+                }
+            });
+            return oneto20freqs
+        }
+    
+
         this.props = {
             feedbackInfo: {
 
@@ -57,9 +68,29 @@ export class Neurofeedback{
                         }
                     },
 
-                    // 'ASoC Induction': { 
+                    'ASoC Induction': { 
+                        type: 'custom',
+                        function: (data) => {
 
-                    // },
+                            let arr = []
+                            data.eeg.forEach(ch => {
+                                
+                                let fft = ch.ffts[ch.ffts.length - 1]
+                                if (fft) {
+                                    // console.log(fft)
+                                    let oneto20freqs = this.getBandFreqs(data.eegshared.frequencies)
+        
+                                    if(oneto20freqs[1].length > 0){
+                                        arr.push(this.session.atlas.mean(fft.slice( oneto20freqs[1][0], oneto20freqs[1][oneto20freqs[1].length-1]+1)));
+                                    }
+                                }
+                            })
+
+                            // console.log(arr)
+                            return arr
+
+                        }
+                    },
 
                     // Per-Channel EEG Neurofeedback
                     'Alpha Beta Ratio': {
@@ -96,7 +127,7 @@ export class Neurofeedback{
             }
         }
 
-        this.props.selector = document.createElement('select')
+        this.props.selector = document.createElement('select') // creates a new selector element with all of the above protocols
         Object.keys(this.props.feedbackInfo).forEach(key => {
                 let o = this.props.feedbackInfo[key]
                 if (o.disabled) this.props.selector.insertAdjacentHTML('beforeend', `<option value="${key}" disabled>${key}</option>`)
@@ -105,7 +136,7 @@ export class Neurofeedback{
 
 
         this.props.selector.onchange = (e) => {
-            this.params.metric = e.target.value
+            this.params.metric = e.target.value //changes metric to the one that is picked
         }
 
         // Ports
@@ -152,13 +183,15 @@ export class Neurofeedback{
             let arr = []
             let data = (user.data != null) ? user.data : this.session.atlas.data
 
+            // console.log(data)
+
             try {
 
                 let type = this.props.feedbackInfo[this.params.metric].type
-                if (type === 'custom'){
-                    arr = this.props.feedbackInfo[this.params.metric].function(data) ?? []
+                if (type === 'custom'){ // takes whole data array
+                    arr = this.props.feedbackInfo[this.params.metric].function(data) ?? [] // returns empty array if left side is undefined
                 } else {
-                    data[type].forEach(o => {
+                    data[type].forEach(o => { //iterates over channels
                         arr.push(this.props.feedbackInfo[this.params.metric].function(o) ?? 0)
                     })
                 }
@@ -167,10 +200,13 @@ export class Neurofeedback{
                 console.error(e)
                 arr.push(0)
             }       
+
+            // console.log(arr)
             
             // Output to User Data Object
             if (this.params.output === 'Channels') user.data = arr
             else user.data = this.session.atlas.mean(arr)
+            console.log(user.data)
 
             user.meta.label = this.params.metric
 

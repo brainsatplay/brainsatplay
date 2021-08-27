@@ -776,7 +776,7 @@ export class DataAtlas {
 	//Calculate the latest theta/beta ratio from bandpower averages
 	getThetaBetaRatio = (eeg_data) => {
 		if(eeg_data.fftCount > 0) {
-			let ratio = eeg_data.means.theta[eeg_data.fftCount-1] / eeg_data.means.beta[eeg_data.fftCount-1];
+			let ratio = eeg_data.means.theta[eeg_data.fftCount-1] / eeg_data.means.beta[eeg_data.fftCount-1]; // takes last fft average for each band
 			return ratio;
 		} else return 0;
 	}
