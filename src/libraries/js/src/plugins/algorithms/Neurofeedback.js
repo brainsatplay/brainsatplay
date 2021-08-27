@@ -38,7 +38,9 @@ export class Neurofeedback{
             });
             return oneto20freqs
         }
-    
+
+        this.normalize = (val, valmin, valmax, max, min) => { return (val - valmin) / (valmax-valmin) * (max-min) + min; }
+        this.fbHistory = []
 
         this.props = {
             feedbackInfo: {
@@ -64,7 +66,9 @@ export class Neurofeedback{
                             frontalData.forEach(ch => {
                                 arr.push(Math.min(1/this.session.atlas.getThetaBetaRatio(ch), 1))
                             })
-                            return arr
+
+                            if (this.params.output === 'Channels') return arr
+                            else return this.session.atlas.mean(arr)
                         }
                     },
 
@@ -86,8 +90,13 @@ export class Neurofeedback{
                                 }
                             })
 
-                            // console.log(arr)
-                            return arr
+                            let nfbValue = null
+                            if (this.params.output === 'Channels') arr
+                            else nfbValue = this.session.atlas.mean(arr)
+
+                            this.fbHistory.push(nfbValue)
+
+                            return 1-this.normalize(nfbValue, Math.min(...this.fbHistory), Math.max(...this.fbHistory), 1, 0)
 
                         }
                     },
@@ -189,23 +198,26 @@ export class Neurofeedback{
 
                 let type = this.props.feedbackInfo[this.params.metric].type
                 if (type === 'custom'){ // takes whole data array
-                    arr = this.props.feedbackInfo[this.params.metric].function(data) ?? [] // returns empty array if left side is undefined
+                    user.data = this.props.feedbackInfo[this.params.metric].function(data) ?? 0 
                 } else {
                     data[type].forEach(o => { //iterates over channels
                         arr.push(this.props.feedbackInfo[this.params.metric].function(o) ?? 0)
                     })
+                    
+                    if (this.params.output === 'Channels') user.data = arr
+                    else user.data = this.session.atlas.mean(arr)
                 }
 
             } catch (e) {
                 console.error(e)
                 arr.push(0)
+                if (this.params.output === 'Channels') user.data = arr
+                else user.data = this.session.atlas.mean(arr)
             }       
 
             // console.log(arr)
             
             // Output to User Data Object
-            if (this.params.output === 'Channels') user.data = arr
-            else user.data = this.session.atlas.mean(arr)
             // console.log(user.data)
 
             user.meta.label = this.params.metric

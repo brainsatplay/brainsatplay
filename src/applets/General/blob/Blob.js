@@ -40,9 +40,6 @@ class Blob{
         this.props.container.style = `height:100%; width:100%; `
         this.props.container.onresize = this.responsive
 
-        this.normalize = (val, valmin, valmax, max, min) => { return (val - valmin) / (valmax-valmin) * (max-min) + min; }
-        this.feedbackHistory = []
-
         // Port Definition
         this.ports = {
             default: {
@@ -50,10 +47,10 @@ class Blob{
                 output: {type: null},
                 onUpdate: (user) => {      
                     if (this.props.material) { 
-                        this.feedbackHistory.push(user.data)
-                        let updateValue = this.params.upperBound-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.params.upperBound, this.params.lowerBound)
-                        console.log(updateValue)
-                        this.props.material.uniforms.uNoiseIntensity.value = updateValue 
+                        // this.feedbackHistory.push(user.data)
+                        // let updateValue = this.params.upperBound-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.params.upperBound, this.params.lowerBound)
+                        console.log(user.data)
+                        this.props.material.uniforms.uNoiseIntensity.value = user.data 
                     } // update blob noise given new feedback samples      
                 },
             },
