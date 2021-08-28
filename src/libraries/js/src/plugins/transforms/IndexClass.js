@@ -12,13 +12,12 @@ export class Index{
                 edit: false,
                 input: {type: Array},
                 output: {type: undefined},
-                onUpdate: (userData) => {
-                    let u = userData[0]
+                onUpdate: (user) => {
                     let idx;
-                    if (u.data){
+                    if (user.data){
                         if (this.params.method == 'first') idx = 0
-                        if (this.params.method == 'last') idx = u.data.length - 1
-                        return [{data: u.data[idx]}]
+                        if (this.params.method == 'last') idx = user.data.length - 1
+                        return {data: user.data[idx]}
                     }
                 }
             },
@@ -27,9 +26,8 @@ export class Index{
                 input: {type: 'string'},
                 output: {type: null},
                 options: ['first','last'],
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    if (this.ports.method.options.includes(u.data)) this.params.method = u.data
+                onUpdate: (user) => {
+                    if (this.ports.method.options.includes(user.data)) this.params.method = user.data
                 }
             }
         }

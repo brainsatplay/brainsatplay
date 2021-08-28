@@ -12,9 +12,9 @@ export class Number{
                 default: 5,
                 input: {type: 'number'},
                 output: {type: 'number'},
-                onUpdate: (userData) => {
-                    this.params.value = userData[0].data
-                    return userData
+                onUpdate: (user) => {
+                    this.params.value = user.data
+                    return user
                 }
             }
         }

@@ -1936,14 +1936,11 @@ else {
 		// Login Screen
 		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
 			let onsocketopen = () => {
-				console.log(this.socket.readyState)
 				if (this.socket.readyState === 1) {
 					sessionSearch.click()
 					let loginScreen = document.getElementById(`${this.id}login-page`)
 
 					let sub1 = this.state.subscribe('commandResult', (newResult) => {
-
-						console.log(newResult)
 						if (newResult.msg === 'appNotFound') {
 							createSession.click()
 
@@ -1976,7 +1973,6 @@ else {
 			// Auto-set username with Google Login
 			if (this.info.googleAuth != null) {
 				this.info.googleAuth.refreshCustomData().then(data => {
-					console.log(data)
 					this.info.auth.username = data.username
 				})
 			}
@@ -2219,6 +2215,7 @@ else {
 
 	getBrainstormData(query, props=[], type = 'app', format = 'default') {
 
+
 		let sessionInd,idInd,propInd,structureFilter
 
 		if (type === 'user') {
@@ -2413,6 +2410,7 @@ class deviceStream {
 
 	configureRoutes = (parentNode=document.body) => {
 		this.info.events.addControls(parentNode);
+		this.info.events.addDebugger(parentNode);
     }
 
 	disconnect = () => {

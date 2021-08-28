@@ -4,7 +4,7 @@ import { DOMFragment } from '../../ui/DOMFragment'
 import { StateManager } from '../../ui/StateManager'
 
 // Project Selection
-import {appletManifest} from '../../../../../platform/appletManifest'
+import {appletManifest} from '../../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
 import { getApplet, getAppletSettings } from "../../../../../platform/js/general/importUtils"
 
 // Node Interaction
@@ -704,7 +704,7 @@ export class GraphEditor{
         if (this.shown){
             if (latencyArr) {
                 latencyArr.forEach(o => {
-                    this.animateLatency(o.node,o.latency)
+                    this.animateLatency(o.node,o.port,o.latency)
                 })
             }
             this.animateNode(source,'source')
@@ -734,7 +734,7 @@ export class GraphEditor{
         // or output as hex if preferred
     };
 
-    animateLatency(node,latency){
+    animateLatency(node, port, latency){
         let instance = this.graph.nodes[node.label]
         let pct = Math.min(1,latency/1)
 
@@ -744,8 +744,9 @@ export class GraphEditor{
             { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
         ];
         
-        instance.latencyDisplay.style.width = `${pct*100}%`
-        instance.latencyDisplay.style.background = this.getColorfromMap(pct, map)
+        let el = instance.portLabels.querySelector(`.latency-display[name="${port}"]`)
+        el.style.width = `${pct*100}%`
+        el.style.background = this.getColorfromMap(pct, map)
     }
 
     animateNode(node,type){
@@ -1305,9 +1306,25 @@ export class GraphEditor{
                             for (let port in instance.ports){
                                 if (activeNode.instance.ports[port] == null) activeNode.instance.ports[port] = instance.ports[port]
                                 else {
-                                    let keys = ['default', 'options', 'meta', 'input', 'output', 'onUpdate']
+                                    let keys = [
+                                        'default', 
+                                        'options', 
+                                        'meta', 
+                                        'input', 
+                                        'output', 
+                                        'onUpdate'
+                                    ]
+
+                                    let typeKeys = [
+                                        'input', 
+                                        'output',
+                                    ]
+                                    
                                     keys.forEach(str => {
-                                        activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                        if (!typeKeys.includes(str)) activeNode.instance.ports[port][str] = instance.ports[port][str]
+                                        else {
+                                            activeNode.instance.ports[port][str]['type'] = instance.ports[port][str]['type']
+                                        }
                                     })
                                 }
                             }
@@ -1619,7 +1636,7 @@ export class GraphEditor{
                 let types = new Set()
                 let ports = this.app.session.graph.getPortsFromClass({class:classInfo})
                 for(let port in ports){
-                    let type = ports[port].input.type
+                    let type = ports[port]?.input?.type
                     if (type instanceof Object) types.add(type.name)
                     else types.add(type)
                 }

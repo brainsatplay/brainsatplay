@@ -43,6 +43,8 @@ class Plot{
             type: {default: 'line', options: ['line','bar']}
         }
 
+        this.dependencies = ['https://cdn.plot.ly/plotly-2.0.0.min.js']
+
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -109,12 +111,6 @@ class Plot{
         }
 
         let setupHTML = () => {
-
-            const script = document.createElement("script");
-        script.src = 'https://cdn.plot.ly/plotly-2.0.0.min.js'
-        script.async = true;
-
-        script.onload = () => {
             this.props.container = document.getElementById(`${this.props.id}`)
             Plotly.newPlot( this.props.container, [{
             x: [],
@@ -134,8 +130,6 @@ class Plot{
             }
             animate()
         }
-        document.body.appendChild(script);
-        }
 
         return {HTMLtemplate, setupHTML}
     }
@@ -143,16 +137,15 @@ class Plot{
     responsive = () => {
     }
 
-    show = (userData) => {
-        let show = userData[0].data
+    show = (user) => {
+        let show = user.data
         if (show) this.props.container.style.display = 'flex'
-        return [{data: true, meta: {label: `${this.label}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}]
+        return {data: true, meta: {label: `${this.label}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}
     }
 
-    default = (userData) => {
-        this.props.userData = userData
-        let u = userData[0]
-        let data = ('data' in u.data) ? u.data.data : u.data
+    default = (user) => {
+        this.props.userData = user
+        let data = ('data' in user.data) ? user.data.data : user.data
         let query
 
         let restrictedStates = ['notes','times', 'noteTimes', 'noteIndices', 'fftTimes', 'fftFreqs']
@@ -295,7 +288,7 @@ class Plot{
 
         this.props.container.style.opacity = 1
 
-        return userData
+        return user
     }
 
     deinit = () => {}

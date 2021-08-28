@@ -62,12 +62,11 @@ class UI{
         return {HTMLtemplate, setupHTML}
     }
 
-    left = (userData) => {
+    left = (user) => {
         let leftEye = document.getElementById(this.props.id+"-left")
         if (leftEye){
-            userData.forEach(u => {
-                let leftOpacity = 1-(u.data? 1 : 0)
-                if(!u.data) { 
+                let leftOpacity = 1-(user.data? 1 : 0)
+                if(!user.data) { 
                     this.leftred-=0.5;    
                     leftEye.style.background = 'rgb(255,'+this.leftred+','+this.leftred+')';
                 } else {
@@ -81,18 +80,16 @@ class UI{
                     leftOpacity = 0;
                 }
                 leftEye.style.opacity = leftOpacity;
-            })
         }
-        return userData
+        return user
     }
 
-    right = (userData) => {
+    right = (user) => {
 
         let rightEye = document.getElementById(this.props.id+"-right")
         if (rightEye){
-            userData.forEach(u => {
-                let rightOpacity = 1-(u.data? 1 : 0)
-                if(!u.data) {
+                let rightOpacity = 1-(user.data? 1 : 0)
+                if(!user.data) {
                     this.rightred-=0.5;
                     rightEye.style.background = 'rgb(255,'+this.rightred+','+this.rightred+')';
                 } else {
@@ -106,14 +103,13 @@ class UI{
                     rightOpacity = 0;
                 }
                 rightEye.style.opacity = rightOpacity;
-            })
     }
-        return userData
+        return user
     }
 
-    default = (userData) => {
+    default = (user) => {
         // this.session.atlas.getBlink()
-        return userData
+        return user
     }
 
     deinit = () => {

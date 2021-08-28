@@ -47,16 +47,15 @@ export class Object3D{
                 onUpdate: () => {
                     this._setObject()
                     this._updateProps()
-                    return [{data: this.props.mesh}]
+                    return {data: this.props.mesh}
                 }
             },
             material: {
                 edit: false,
                 input: {type: Object, name: 'Material'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    this.props.material = u.data
+                onUpdate: (user) => {
+                    this.props.material = user.data
                     if (this.props.mesh){
                         this.props.mesh.material.dispose()
                         this.props.mesh.material = this.props.material
@@ -67,9 +66,8 @@ export class Object3D{
                 edit: false,
                 input: {type: Object, name: 'Geometry'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let u = userData[0]
-                    this.props.geometry = u.data
+                onUpdate: (user) => {
+                    this.props.geometry = user.data
                     if (this.props.mesh){
                         this.props.mesh.geometry.dispose()
                         this.props.mesh.geometry = this.props.geometry
@@ -79,23 +77,23 @@ export class Object3D{
             scale: {
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.params.scalex = this.params.scaley = this.params.scalez = Math.abs(Number.parseFloat(userData[0].data))
+                onUpdate: (user) => {
+                    this.params.scalex = this.params.scaley = this.params.scalez = Math.abs(Number.parseFloat(user.data))
                 }
             },
             scaleOffset: {
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.props.scaleOffset = Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    this.props.scaleOffset = Number.parseFloat(user.data)
                     this._updateProps()
                 }
             },
             dx: {
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    let desiredX = Number.parseFloat(this.params.x) + Number.parseFloat(user.data)
                     if (desiredX > 0){
                         this.params.x = desiredX
                     }
@@ -104,8 +102,8 @@ export class Object3D{
             dy: {
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(userData[0].data)
+                onUpdate: (user) => {
+                    let desiredY =  Number.parseFloat(this.params.y) + Number.parseFloat(user.data)
                     if (desiredY > 0){
                         this.params.y = desiredY
                     }
@@ -124,12 +122,12 @@ export class Object3D{
 
             // Replace Mesh if Necessary
             if (this.props.prevType != this.params.type) {
-                this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
+                this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
                 this.props.prevType = this.params.type
             }
         })
 
-        this.session.graph.runSafe(this,'add',[{forceRun: true, forceUpdate: true}])
+        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
         this.props.prevType = this.params.type
 
         let animate = () => {

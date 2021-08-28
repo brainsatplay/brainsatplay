@@ -28,14 +28,14 @@ export class Line{
                 input: {type: null},
                 output: {type: Object},
                 onUpdate: () => {
-                    return [{data: this.props.function}]
+                    return {data: this.props.function}
                 }
             },
             set: {
                 input: {type: Array},
                 output: {type: null},
-                onUpdate: (userData) => {
-                    this.props.data = userData[0].data
+                onUpdate: (user) => {
+                    this.props.data = user.data
                 }
             }
         }

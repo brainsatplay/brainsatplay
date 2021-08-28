@@ -43,13 +43,18 @@ export class Video {
                 input: { type: 'file', accept: "video/*", multiple: true },
                 output: { type: null },
                 default: defaultVideoURLs,
-                onUpdate: (userData) => {
-                    if (userData[0].data){
+                onUpdate: (user) => {
+                    if (user.data){
                         this.props.focusVideo = 0
-                        this.params.files = this.shuffle(Array.from(userData[0].data))
+                        this.params.files = this.shuffle(Array.from(user.data))
 
                         // Create Videos
-                        this.props.videos.forEach(el => el.remove())
+                        let prevTimes = []
+                        this.props.videos.forEach(el => {
+                            // if (user.meta.replace === true) 
+                            prevTimes.push(el.currentTime)
+                            el.remove()
+                        })
                         this.props.videos = []
                         this.props.filePool = []
                         this.params.files.forEach((file, i) => {
@@ -79,6 +84,9 @@ export class Video {
                             this.container.insertAdjacentElement('beforeend', video)
                             this.startVideoFile(video, this.props.filePool[i])
                             if (i != this.props.focusVideo) video.style.opacity = 0
+                            video.addEventListener('loadedmetadata', function() {
+                                video.currentTime = prevTimes[i] ?? 0
+                            }, false);
                         }
 
                         this.responsive()
@@ -91,14 +99,14 @@ export class Video {
                 default: this.container,
                 onUpdate: () => {
                     this.params.element = this.container
-                    return [{data: this.container}]
+                    return {data: this.container}
                 }
             },
             change: {
                 input: { type: 'boolean' },
                 output: { type: null },
-                onUpdate: (userData) => {
-                    if (userData[0].data && this.params.cut) {
+                onUpdate: (user) => {
+                    if (user.data && this.params.cut) {
 
                         // Increment Counters
                         this.props.focusVideo++
@@ -115,9 +123,7 @@ export class Video {
             // Update Fade Parameters and Button
             {
                 name: 'ui', onUpdate: () => {
-
-                    console.log(this.params.ui)
-                    if (this.params.ui == false) {
+                    if (!this.params.ui) {
                         document.getElementById(this.props.id + "useui").innerHTML = "Show UI";
                         document.getElementById(this.props.id + "useui").style.opacity = 0.3
                         document.getElementById(this.props.id + "vidbuttons").style.display = "none";
@@ -134,7 +140,7 @@ export class Video {
                 }
             },
             {
-                name: 'fade', onUpdate: () => {
+                name: 'fade', default: false, onUpdate: () => {
                     if (this.params.fade == false) {
                         this.alpha = 0;
                         document.getElementById(this.props.id + "usefade").style.opacity = "0.3";
@@ -145,7 +151,7 @@ export class Video {
 
             // Update Speed Parameters and Button
             {
-                name: 'speed', onUpdate: () => {
+                name: 'speed', default: false, onUpdate: () => {
                     if (this.params.speed == false) {
                         this.playRate = 1;
                         document.getElementById(this.props.id + "usespeed").style.opacity = "0.3";
@@ -162,7 +168,7 @@ export class Video {
 
             // Update Volume Parameters and Button
             {
-                name: 'volume', onUpdate: () => {
+                name: 'volume', default: false, onUpdate: () => {
                     if (this.params.volume == false) {
                         this.params.volume = false;
                         this.volume = 0;
@@ -182,7 +188,7 @@ export class Video {
 
             // Update Time Parameters and Button
             {
-                name: 'time', onUpdate: () => {
+                name: 'time', default: false, onUpdate: () => {
                     if (this.params.time == false) {
                         this.playRate = 1;
                         document.getElementById(this.props.id + "usetime").style.opacity = "0.3";
@@ -198,7 +204,7 @@ export class Video {
             },
 
             {
-                name: 'cut', onUpdate: () => {
+                name: 'cut', default: false, onUpdate: () => {
                     if (this.params.cut == false) {
                         document.getElementById(this.props.id + "usecut").style.opacity = "0.3";
                     }
@@ -213,11 +219,11 @@ export class Video {
         portInfo.forEach(o => {
             this.ports[o.name] = {
                 edit: true, // false
-                default: false,
+                default: o.default,
                 input: { type: 'boolean' },
                 output: { type: null },
-                onUpdate: (userData) => {
-                    this.params[o.name] = userData[0].data
+                onUpdate: (user) => {
+                    this.params[o.name] = user.data
                     o.onUpdate()
                 }
             }
@@ -278,6 +284,8 @@ export class Video {
     }
 
     setup = () => {
+        if (this.params.ui === false) document.getElementById(this.props.id + "useui").style.display = 'none'
+
         this.c = document.getElementById(this.props.id + 'canvas');
         this.gl = this.c.getContext("webgl");
         this.timeSlider = document.getElementById(this.props.id + "timeSlider");
@@ -300,10 +308,10 @@ export class Video {
         effects.forEach(str => {
             let el = document.getElementById(this.props.id + `use${str}`)
             el.onclick = () => {
-                this.session.graph.runSafe(this, str, [{ data: !this.params[str] }])
+                this.session.graph.runSafe(this, str, { data: !this.params[str] })
                 el.blur()
             }
-            this.session.graph.runSafe(this, str, [{ data: this.params[str] }]) // Pass default values
+            this.session.graph.runSafe(this, str, { data: this.params[str] }) // Pass default values
         })
 
         this.timeSlider.addEventListener("change", () => {
@@ -346,7 +354,7 @@ export class Video {
         }
 
         this.looping = true;
-        this.session.graph.runSafe(this, 'files', [{ data: this.params.files }]) // Initialize default files
+        this.session.graph.runSafe(this, 'files', { data: this.params.files }) // Initialize default files
         this.initVideos();
     }
 
@@ -417,7 +425,7 @@ export class Video {
 
     localFileVideoPlayer = () => {
         var playSelectedFiles = (event) => {
-            this.session.graph.runSafe(this, 'files', [{ data: event.target.files }])
+            this.session.graph.runSafe(this, 'files', { data: event.target.files })
             inputNode.blur()
         }
         var inputNode = document.getElementById(this.props.id + 'fs');

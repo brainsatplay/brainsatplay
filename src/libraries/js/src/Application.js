@@ -67,6 +67,7 @@ export class Application{
         // Create App Intro Sequence
         this.session.createIntro(this, (sessionInfo) => {
             // this.tutorialManager.init();
+            // setupHTML()
 
             // Multiplayer Configuration
             if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
