@@ -159,17 +159,17 @@ export class Audio{
     }
         
     endAudio = () => {
-        this.stopAudio();
-        this.props.status = 0;
-        if(window.audio.sourceList.length > 0) {try {
-            this.sourceNode.stop(0);
-        } catch(er){}}
+            this.stopAudio();
+            this.props.status = 0;
+            if(window.audio.sourceList.length > 0) {try {
+                this.sourceNode.stop(0);
+            } catch(er){}}
     }
 
     stopAudio = () => {
         if(window.audio != undefined){
-            if (window.audio?.sourceList?.length > 0 && this.props.sourceNode) {
-                this.props.sourceNode.stop(0);
+            if (window.audio?.sourceList?.length > 0 && this.props.sourceNode && this.props.status === 1) {
+                try {this.props.sourceNode.stop(0)} catch(er){}
             }
         }
     }
