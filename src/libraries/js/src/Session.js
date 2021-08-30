@@ -1744,10 +1744,12 @@ else {
 				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
 				if (cmd.mode != null) applet.info.intro.mode = cmd.mode
 				if (cmd.session != null) applet.info.intro.session = cmd.session
+				if (cmd.exitSession != null) applet.info.intro.exitSession = cmd.exitSession
 				if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
 			}
 		})
 
+		let exitSession = applet.info.intro.exitSession
 		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
 		let template = `
@@ -1786,8 +1788,6 @@ else {
 					</div>
 				</div>
 			</div>
-			<div id='${applet.props.id}exitSession' class="brainsatplay-default-button" style="position: absolute; bottom: 25px; right: 25px; z-index:95;">Exit Session</div>
-			</div>
 			`
 
 		let setup = () => {
@@ -1795,7 +1795,18 @@ else {
 		// Setup HTML References
 		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
 		let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
-		let exitSession = document.getElementById(`${applet.props.id}exitSession`)
+
+
+		if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
+		if (exitSession == null) {
+			exitSession = document.createElement(`div`) // EDIT
+			exitSession.classList.add('brainsatplay-default-button')
+			exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
+			exitSession.innerHTML = 'Exit Session'
+			document.getElementById(`${applet.props.id}IntroFragment`).insertAdjacentElement('afterend', exitSession)
+		}
+
+
 		const hero = document.getElementById(`${applet.props.id}appHero`)
 		const loadingBarElement = document.querySelector('.brainsatplay-intro-loadingbar')
 

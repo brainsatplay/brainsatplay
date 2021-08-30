@@ -302,7 +302,9 @@ export class GraphManager{
     async runSafe(node, port='default',input={}, internal=false){
 
         let tick = performance.now()
- 
+
+        input.sent = true
+
         try {
             // Shallow Copy State before Repackaging
             let inputCopy = {}
@@ -489,7 +491,7 @@ export class GraphManager{
             if (sessionId != null) applet.sessionId = sessionId
             else applet.sessionId = appId
 
-            applet.setupCallbacks.forEach(f => f())
+            applet.setupCallbacks.forEach(f => {if (f instanceof Function) f()})
             // applet.nodes.forEach(this.triggerAllActivePorts)
         }
 
@@ -725,21 +727,28 @@ export class GraphManager{
             // Update Applet
             this.updateApp(appId)
 
+
+            let input = source.states[sourcePort][0]
+
+            // Check Last State
+            let lastStateSent = input.sent
+            let hasData = input.data
+            let forceSend = input.forceUpdate
+
+            let isElement = source.states[sourcePort][0].data instanceof Element || source.states[sourcePort][0].data instanceof HTMLDocument
+
             // Send Last State to New Edge Target
             let sendFunction = () => {
 
                 // Add Default Metadata
-                let pass
-                if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
-                source.states[sourcePort][0].meta.source = label
-                source.states[sourcePort][0].meta.session = applet.sessionId
-                if (source.states[sourcePort][0].forceUpdate || source.states[sourcePort][0].data) pass = true
-
-                if (pass) this.runSafe(target, targetPort, source.states[sourcePort][0], true)
+                if (input.meta == null) input.meta = {}
+                input.meta.source = label
+                input.meta.session = applet.sessionId
+                this.runSafe(target, targetPort, input, true)
             }
 
-            if (sendOutput) sendFunction()
-            else return sendFunction
+            if (sendOutput && isElement) sendFunction() // If new connection must pass an element
+            else if ((forceSend || hasData) && !lastStateSent) return sendFunction // Else if there is data on initialization
         }
     }
 
