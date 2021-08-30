@@ -30,10 +30,11 @@ export class Scheduler{
                         user.meta.state = this.props.state;
                             if (user.meta.state != 'ITI'){
                                 user.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+                                user.meta.stateDuration = this.params.duration*1000
                             } else {
                                 user.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+                                user.meta.stateDuration = this.params.interTrialInterval*1000
                             }
-                            user.meta.stateDuration = this.params.duration*1000
                             user.meta.trialCount = this.params.trialCount
                         return user
                     }

@@ -2,6 +2,7 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 import {Results} from './Results'
+import audioCue from './audioCue.mp3'
 
 export const settings = {
     name: "Experiment Template",
@@ -33,10 +34,12 @@ export const settings = {
           params:{
             trialTypes: ['Eyes Open', 'Eyes Closed'],
             trialCount: 2,
-            duration: 60,
+            duration: 5,
             interTrialInterval: 2,
             allowConsecutive: false
           }},
+
+        {id: 'audioCue', class: brainsatplay.plugins.audio.Audio, params: {file: audioCue}},
         {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
         // {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
         // {id: 'results', class: Results},
@@ -101,6 +104,17 @@ export const settings = {
         {
           source: 'scheduler:state', 
           target: 'manager:state'
+        },
+
+        // Audio Cue
+        {
+          source: 'scheduler:state', 
+          target: 'audioCue:toggle'
+        },
+
+        {
+          source: 'scheduler:done', 
+          target: 'audioCue:toggle'
         },
 
         // Log App Events

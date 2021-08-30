@@ -91,6 +91,8 @@ class Manager{
                 onUpdate: (user) => {
 
                     if (user.data != null){ 
+
+                        console.error(user.data)
                         let state = (user.data != 'ITI') ? user.data : this.props.prevState
                         if (this.props.states[state] == null) this.props.states[state] = new Set()
                         this.props.states[state].add(this.props.lastAtlas.eeg[0].fftCount)

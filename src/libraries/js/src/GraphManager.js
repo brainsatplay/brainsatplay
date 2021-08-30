@@ -246,12 +246,15 @@ export class GraphManager{
     }
 
     getNode(id,name){
-        let node = this.applets[id].nodes.find(n => {
-            if (n.id == name){
-                return true
-            }
-        })
-        return node.instance
+        let appInfo = this.applets[id]
+        if (appInfo){
+            let node = appInfo.nodes.find(n => {
+                if (n.id == name){
+                    return true
+                }
+            })
+            return node.instance
+        }
     }
 
     updateParams(node,params) {
@@ -469,7 +472,7 @@ export class GraphManager{
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
                     try {
-                    setupCallbacks.push(this.addEdge(id, edge, false))
+                        setupCallbacks.push(this.addEdge(id, edge, false))
                     } catch (e) {console.log('Failed to Create Edge', e)}
                 })
             }
@@ -727,18 +730,15 @@ export class GraphManager{
 
                 // Add Default Metadata
                 let pass
-                // source.states[sourcePort].forEach(o => {
-                    if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
-                    source.states[sourcePort][0].meta.source = label
-                    source.states[sourcePort][0].meta.session = applet.sessionId
-                    if (source.states[sourcePort][0].forceUpdate || source.states[sourcePort][0].data) pass = true
-                // })
+                if (source.states[sourcePort][0].meta == null) source.states[sourcePort][0].meta = {}
+                source.states[sourcePort][0].meta.source = label
+                source.states[sourcePort][0].meta.session = applet.sessionId
+                if (source.states[sourcePort][0].forceUpdate || source.states[sourcePort][0].data) pass = true
 
                 if (pass) this.runSafe(target, targetPort, source.states[sourcePort][0], true)
             }
-            if (sendOutput) {
-                sendFunction()
-            }
+
+            if (sendOutput) sendFunction()
             else return sendFunction
         }
     }

@@ -53,7 +53,7 @@ export class DataManager{
         })
     }
 
-    csv = (userData) => {
+    csv = (user) => {
         let trigger = user.data
         if (trigger) {
             this.session.dataManager.save()

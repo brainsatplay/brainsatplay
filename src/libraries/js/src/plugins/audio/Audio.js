@@ -58,36 +58,47 @@ export class Audio{
                 }
             },
             toggle: {
-                input: {type: 'boolean'},
+                // input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => {
 
-                    if (user.data === true){
-                        if (this.props.status === 1){
-                            this.deinit()
-                            this.props.status = 0
-                        }
-                        else {
-                            this.props.sourceNode.start(0);
-                            this.props.status = 1
-                        }
+                    if (user.data){
+                        this.triggerAudio()
                     }
                 }
             }
         }
     }
 
-    init = () => {}
+    init = () => {
+
+        (async () => {
+
+            if (typeof this.params.file === 'string'){
+
+                await fetch(this.params.file).then(r => r.blob()).then(blobFile => {
+                    let name = this.params.file.split('/')
+                    name = name[name.length -1]
+                    let file = new File([blobFile], name)
+                    this.ports.file.onUpdate({data: [file]})
+                })
+            }
+
+        })()
+
+    }
 
     deinit = () => {
-        this.stopAudio();
+        this.endAudio();
     }
 
     // preload = () => {
 
     // }
 
-    decodeAudio = (file, callback) => {
+    decodeAudio = (file, callback= () => {}) => {
+
+        return new Promise(resolve => {
         //read and decode the file into audio array buffer 
         var fr = new FileReader();
 
@@ -96,32 +107,63 @@ export class Audio{
             if (window.audio.ctx === null) {
                 return;
             };
-            window.audio.ctx.decodeAudioData(fileResult, (buffer) => {
-                window.audio.finishedLoading([buffer]);
-                this.props.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1];
-                this.props.sourceGain = window.audio.sourceGains[window.audio.sourceList.length-1];
 
-                this.props.sourceGain.gain.setValueAtTime(this.props.maxVol, window.audio.ctx.currentTime);
-                this.props.sourceNode.onended = () => {
-                    this.endAudio();
-                };
+            let createAudio = () => {
+                window.audio.ctx.decodeAudioData(fileResult, (buffer) => {
 
-                callback()
-            }, (e) => {
-                console.error('Failed to decode the file!', e);
-            });
+                    let onDecode = () => {
+                        window.audio.finishedLoading([buffer]);
+                        this.props.sourceNode = window.audio.sourceList[window.audio.sourceList.length-1];
+                        this.props.sourceGain = window.audio.sourceGains[window.audio.sourceList.length-1];
+
+                        this.props.sourceGain.gain.setValueAtTime(this.props.maxVol, window.audio.ctx.currentTime);
+
+                        this.props.sourceNode.onended = () => {
+                            if (this.props.status === 1){
+                                this.endAudio()
+                                this.decodeAudio(this.params.file)
+                            }
+                        };
+
+                        resolve()
+                    }
+
+                    onDecode()
+                    callback()
+                }, (e) => {
+                    console.error('Failed to decode the file!', e);
+                });
+            }
+            createAudio()
+
         };
         fr.onerror = (e) => {
             console.error('Failed to read the file!', e);
         };
         //assign the file to the reader
         fr.readAsArrayBuffer(file);
+    })
+    }
+
+    triggerAudio = async () => {
+        
+        if (this.props.sourceNode){
+            if (this.props.status === 1){
+                this.deinit()
+                await this.decodeAudio(this.params.file)
+            }
+
+            this.props.sourceNode.start(0);
+            this.props.status = 1
+        }
     }
         
     endAudio = () => {
         this.stopAudio();
         this.props.status = 0;
-        if(window.audio.sourceList.length > 0) {try {this.sourceNode.stop(0);} catch(er){}}
+        if(window.audio.sourceList.length > 0) {try {
+            this.sourceNode.stop(0);
+        } catch(er){}}
     }
 
     stopAudio = () => {
