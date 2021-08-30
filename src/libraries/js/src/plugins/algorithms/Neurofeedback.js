@@ -137,6 +137,7 @@ export class Neurofeedback{
         }
 
         this.props.selector = document.createElement('select') // creates a new selector element with all of the above protocols
+        // this.props.selector.style.zIndex = 100
         Object.keys(this.props.feedbackInfo).forEach(key => {
                 let o = this.props.feedbackInfo[key]
                 if (o.disabled) this.props.selector.insertAdjacentHTML('beforeend', `<option value="${key}" disabled>${key}</option>`)

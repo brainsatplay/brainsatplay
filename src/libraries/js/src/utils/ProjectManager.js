@@ -35,7 +35,7 @@ export class ProjectManager {
 
         // Set Server Connection Variables
         this.serverResolved = true
-        this.publishURL = (this.local) ? 'http://localhost/apps' : 'https://brainsatplay.com/apps'
+        this.publishURL = (this.local) ? 'http://localhost/apps' : 'https://server.brainsatplay.com/apps'
 
         this.createDefaultHTML = (script) => {
             return `

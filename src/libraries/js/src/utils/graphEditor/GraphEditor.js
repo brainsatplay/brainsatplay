@@ -1469,7 +1469,7 @@ export class GraphEditor{
                     let cls = this.classRegistry[type][key]
                         if (!usedClasses.includes(cls.id)){
                             // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                            this.addNodeOption({id: cls.id, label:cls.name, class: cls}, type, () => {
+                            this.addNodeOption({id: cls.id, label:key, class: cls}, type, () => {
                                 this.addNode({class:cls})
                                 this.selectorToggle.click()
                             })

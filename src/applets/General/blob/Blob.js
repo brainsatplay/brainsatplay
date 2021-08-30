@@ -79,7 +79,7 @@ class Blob{
     init = () =>  {    
 
         let canvas = this.props.container.querySelector('canvas.brainsatplay-threejs-webgl')
-        canvas.style.opacity = '0'
+        canvas.style.opacity = '1.0'
         canvas.style.transition = 'opacity 1s'
         
         /**

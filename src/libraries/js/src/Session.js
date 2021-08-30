@@ -2173,7 +2173,6 @@ else {
 	onconnectionLost(response) { //If a user is removed from the server
 		let found = false; let idx = 0;
 		let c = this.info.subscriptions.find((o, i) => {
-			console.log(o, response)
 			if (o.id === response.id) {
 				found = true;
 				return true;
@@ -2321,7 +2320,7 @@ else {
 			console.error('please specify a query for the Brainstorm (app, username, prop)')
 		}
 
-		console.log(arr)
+		// console.log(arr)
 
 		return arr
 	}
