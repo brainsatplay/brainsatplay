@@ -20,7 +20,7 @@ export class Plugin{
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    console.log(user, this.params.number)
+                    console.log(user, this.ports.number.data)
                     return user
                 }
             },
@@ -33,7 +33,7 @@ export class Plugin{
                 // max: 100,
                 // step: 0.01,
                 onUpdate: (user) => {
-                    this.params.number = user.data // Auto-assigned parameter
+                    this.ports.number.data = user.data // Auto-assigned parameter
                 }
             },
             element: {
@@ -42,8 +42,8 @@ export class Plugin{
                 output: {type: Element},
                 default: this.props.container,
                 onUpdate: () => {
-                    this.params.element = this.props.container
-                    return {data: this.params.element}
+                    this.ports.element.data = this.props.container
+                    return {data: this.ports.element.data}
                 }
             }
         }

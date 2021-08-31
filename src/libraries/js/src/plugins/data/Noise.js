@@ -14,13 +14,13 @@ export class Noise{
                 input: {type: null},
                 output: {type: 'number'},
                 onUpdate: () => {
-                    this.params.delta = Number.parseFloat(this.params.delta)
-                    if (!isNaN(this.params.delta)) this.props.pointer += Number.parseFloat(this.params.delta)
-                    if (Date.now() - this.props.lastTime >= this.params.interval){
-                        if (this.params.type === 'random') this.props.lastSample = 2*Math.random() - 1
-                        if (this.params.type === 'perlin') this.props.lastSample = this.props.noise.perlin2(this.props.pointer, 1)
-                        if (this.params.type === 'simplex') this.props.lastSample = this.props.noise.simplex2(this.props.pointer, 1);
-                        this.props.lastSample*=Number.parseFloat(this.params.intensity)
+                    this.ports.delta.data = Number.parseFloat(this.ports.delta.data)
+                    if (!isNaN(this.ports.delta.data)) this.props.pointer += Number.parseFloat(this.ports.delta.data)
+                    if (Date.now() - this.props.lastTime >= this.ports.interval.data){
+                        if (this.ports.type.data === 'random') this.props.lastSample = 2*Math.random() - 1
+                        if (this.ports.type.data === 'perlin') this.props.lastSample = this.props.noise.perlin2(this.props.pointer, 1)
+                        if (this.ports.type.data === 'simplex') this.props.lastSample = this.props.noise.simplex2(this.props.pointer, 1);
+                        this.props.lastSample*=Number.parseFloat(this.ports.intensity.data)
                         this.props.lastTime = Date.now()
                     }
                     return {data: this.props.lastSample, meta: {label: this.label}}
@@ -32,7 +32,7 @@ export class Noise{
                 input: {type: 'string'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.type = user.data
+                    this.ports.type.data = user.data
                 }
             },
             intensity: {
@@ -40,7 +40,7 @@ export class Noise{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.intensity = user.data
+                    this.ports.intensity.data = user.data
                 }
             },
             interval: {
@@ -48,7 +48,7 @@ export class Noise{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.interval = user.data
+                    this.ports.interval.data = user.data
                 }
             },
             delta: {
@@ -56,7 +56,7 @@ export class Noise{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.delta = user.data
+                    this.ports.delta.data = user.data
                 }
             }
         }
@@ -76,7 +76,7 @@ export class Noise{
         let animate = () => {
             if (this.props.looping){
                 this.session.graph.runSafe(this,'default',{forceRun: true})
-                setTimeout(animate, Math.min(100, this.params.interval))
+                setTimeout(animate, Math.min(100, this.ports.interval.data))
             }
         }
 

@@ -9,13 +9,10 @@ export class LDA{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
-
-        this.paramOptions = {
-            threshold: {default: 0.1, min: 0, max: 1, step: 0.01}
-        }
 
         this.ports = {
+            threshold: {data: 0.1, min: 0, max: 1, step: 0.01},
+
             train: {
                 input: {type: undefined},
                 output: {type: 'number'},
@@ -122,8 +119,8 @@ export class LDA{
     _classify = (feature) => {
         let projection = this.props.bci.ldaProject(this.props.models.lda, feature);
         // Filter out values between -0.5 and 0.5 as unknown classes
-        if(projection < this.params.threshold) return 0;
-        if(projection > this.params.threshold) return 1;
+        if(projection < this.ports.threshold.data) return 0;
+        if(projection > this.ports.threshold.data) return 1;
         return -1;
     }
 

@@ -34,7 +34,7 @@ export class TimeSeries{
                 input: {type: null},
                 output: {type: null},
                 onUpdate: () => {
-                    switch (this.params.style){
+                    switch (this.ports.style.data){
                         case 'Smoothie':
                             this.props.helper = new SmoothieChartMaker(1, this.props.canvas);
                             break
@@ -60,7 +60,7 @@ export class TimeSeries{
                 output: {type: null},
                 onUpdate: (user) => {
                     let data = []
-                    switch (this.params.style){
+                    switch (this.ports.style.data){
                         case 'Smoothie':
                             data = [user.data]
                             this.props.helper.bulkAppend(data)

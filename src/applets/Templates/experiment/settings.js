@@ -36,7 +36,8 @@ export const settings = {
             trialCount: 2,
             duration: 60,
             interTrialInterval: 2,
-            allowConsecutive: false
+            allowConsecutive: false,
+            start: false
           }},
 
         {id: 'audioCue', class: brainsatplay.plugins.audio.Audio, params: {file: audioCue}},
@@ -88,6 +89,12 @@ export const settings = {
         {
           source: 'scheduler', 
           target: 'manager:schedule'
+        },
+
+        // Start Experiment
+        {
+          source: 'manager:start', 
+          target: 'scheduler:start'
         },
 
         // Declare User Commands

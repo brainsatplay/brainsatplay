@@ -216,7 +216,7 @@ export class Ramchurn{
             },
 
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
                 output: {type: Element}
             }

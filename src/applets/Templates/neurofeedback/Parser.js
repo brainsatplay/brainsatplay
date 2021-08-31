@@ -41,13 +41,14 @@ class Parser{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
+                    console.error('PARSER',user)
                     this.props.label.innerHTML = user.meta.label    
                     this.props.userReadouts[user.id].innerHTML = `${user.username}: ${user.data}`
             },
             
         }, 
         element: {
-            default: this.props.container,
+            data: this.props.container,
             input: {type: null},
             output: {type: Element},
         }

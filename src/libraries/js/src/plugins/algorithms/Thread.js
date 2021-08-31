@@ -37,7 +37,7 @@ export class Thread{
                 input: {type: Function},
                 output: {type: null},
                 onUpdate: () => {
-                    this._postToWorker({foo:'addfunc', input:['myfunction', this.params.function], origin:this.props.id})
+                    this._postToWorker({foo:'addfunc', input:['myfunction', this.ports.function.data], origin:this.props.id})
                 }
             }
         }

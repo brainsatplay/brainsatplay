@@ -18,7 +18,7 @@ export class PCA{
                     user.forEach((u,i) => {
                         console.log(u.username,u.data,u.meta,u, eegmath)
                         let components = eegmath.pca(u.data) // Get Principal Components
-                        u.data = components[this.params.numComponenents]
+                        u.data = components[this.ports.numComponenents.data]
                     })
                     return user
                 }
@@ -28,7 +28,7 @@ export class PCA{
                 input: {type: 'number'},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    this.params.numComponents = user.data
+                    this.ports.numComponents.data = user.data
                 }
             }
         }

@@ -23,15 +23,20 @@ export class Unity{
 
         this.ports = {
             element: {
-                default: this.props.canvas,
+                data: this.props.canvas,
                 input: {type: undefined},
                 output: {type: Element},
             },
             webbuild: {
-                default: webbuild,
+                data: webbuild,
                 input: {type: null},
                 output: {type: null},
-            }
+            },
+            commands: {
+                data: [],
+                input: {type: Array},
+                output: {type: null},
+            },
         }
     }
 
@@ -40,8 +45,8 @@ export class Unity{
         let onError = () => { };
         
         //Add whatever else you need to initialize
-        if (this.params.webbuild){
-            this.params.webbuild.createUnityInstance(this.props.canvas, webconfig.config, () =>
+        if (this.ports.webbuild.data){
+            this.ports.webbuild.data.createUnityInstance(this.props.canvas, webconfig.config, () =>
             { }).then((unityInstance) =>
             {
                 this.props.instance = unityInstance;
@@ -58,7 +63,7 @@ export class Unity{
             }).catch(onError);
         }
 
-        this.params.commands.forEach(o => {
+        this.ports.commands.data.forEach(o => {
             this.session.graph.addPort(this, o.function, {
                 input: {type: o.type},
                 output: {type: null},

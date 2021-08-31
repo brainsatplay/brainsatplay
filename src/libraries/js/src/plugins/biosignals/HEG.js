@@ -25,10 +25,7 @@ export class HEG{
                 edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
-                default: this.session.atlas.data,
-                onUpdate: () => {
-                    return {data: this.session.atlas.data}
-                }
+                data: this.session.atlas.data
             }
         }
 
@@ -38,7 +35,7 @@ export class HEG{
         keys.forEach(key => {
             this.ports[key] = {
                 edit: false,
-                default: [],
+                data: [],
                 input: {type:null},
                 output: {type:Array},
                 onUpdate: (user) => {

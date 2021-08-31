@@ -21,7 +21,7 @@ export class WebRTC{
                 onUpdate: (user) => {
                     let valid = this.validURL(user.data)
                     if (valid){
-                        this.params.url = user.data
+                        this.ports.url.data = user.data
                         this.session.graph.runSafe(this,'connected', {data: true, forceUpdate: true})
                     }
                 }
@@ -34,7 +34,7 @@ export class WebRTC{
                     return new Promise(resolve => {
                         let choice = user.data
                         if (choice){
-                            let url = new URL(this.params.url)
+                            let url = new URL(this.ports.url.data)
                             if (this.props.channel == null){
                                 this._createWebRTCConnection(url, () => {
                                     resolve({data: true})
@@ -88,7 +88,7 @@ export class WebRTC{
         dataChannel.addEventListener('open', event => {
             console.log('WebRTC opened')
             this.props.channel = dataChannel
-            this.params.connected = true
+            this.ports.connected.data = true
             connectCallback()
         });
         
@@ -96,7 +96,7 @@ export class WebRTC{
         dataChannel.addEventListener('close', event => {
             console.log('WebRTC closed')
             this.props.channel = null
-            this.params.connected = false
+            this.ports.connected.data = false
         });
 
         window.onkeypress = () => {

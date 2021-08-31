@@ -16,26 +16,27 @@ export class Shader{
 
         this.ports = {
             default: {
-                default: fragmentShader, 
+                data: fragmentShader, 
                 meta: {label: this.label, uniforms: this.props.uniforms},
                 input: {type: 'GLSL'},
                 output: {type: 'GLSL'},
                 onUpdate: (user) => {
                     if (typeof user.data === 'string'){
-                        this.params.default = user.data
-                        this._setDynamicPorts(this.params.default)
-                        return {data: this.params.default, meta: {label: this.label, uniforms: this.props.uniforms}}
+                        this.ports.default.data = user.data
+                        this._setDynamicPorts(this.ports.default.data)
+                        return {data: this.ports.default.data, meta: {label: this.label, uniforms: this.props.uniforms}}
                     }
                 }
-            }
+            },
+            uniforms: {}
         }
     }
 
     init = () => {
-        if (this.params.uniforms && typeof this.params.uniforms === 'object') {
-            this.props.uniforms = this.params.uniforms // JSON.parse(JSON.stringify(this.params.uniforms))
+        if (this.ports.uniforms.data && typeof this.ports.uniforms.data === 'object') {
+            this.props.uniforms = this.ports.uniforms.data // JSON.parse(JSON.stringify(this.ports.uniforms.data))
         }
-        this.session.graph.runSafe(this,'default',{data:this.params.default, forceUpdate: true})
+        this.session.graph.runSafe(this,'default',{data:this.ports.default.data, forceUpdate: true})
     }
 
     deinit = () => {}
@@ -56,13 +57,11 @@ export class Shader{
         
         // Set Uniform
         if (this.props.uniforms[name] == null) this.props.uniforms[name] = {value: 0}
-        // Set Param
-        this.params[name] = this.props.uniforms[name].value
 
         // Set Port
         this.session.graph.addPort(this,name, {
             input: {type},
-            default: this.props.uniforms[name].value,
+            data: this.props.uniforms[name].value,
             output: {type: null},
             onUpdate: (user) => {
                 if (!isNaN(user.data)) {

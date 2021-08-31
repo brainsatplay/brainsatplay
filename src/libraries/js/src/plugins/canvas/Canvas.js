@@ -36,8 +36,8 @@ export class Canvas{
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {
-                    this.params.element = this.props.container
-                    return {data: this.params.element}
+                    this.ports.element.data = this.props.container
+                    return {data: this.ports.element.data}
                 }
             }
         }
@@ -48,7 +48,7 @@ export class Canvas{
         this.props.context = this.props.canvas.getContext("2d");
 
         // Set Default Port Output
-        this.ports.element.default = this.props.container
+        this.ports.element.data = this.props.container
 
         // Set Looping
         this.props.looping = true

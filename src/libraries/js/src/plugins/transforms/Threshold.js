@@ -13,7 +13,7 @@ export class Threshold{
                 input: {type: 'number'},
                 output: {type: 'boolean'},
                 onUpdate: (user) => {
-                    user.data = user.data > this.params.threshold
+                    user.data = user.data > this.ports.threshold.data
                     return user
                 }
             },
@@ -23,7 +23,7 @@ export class Threshold{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.threshold = user.data
+                    this.ports.threshold.data = user.data
                 }
             }
         }

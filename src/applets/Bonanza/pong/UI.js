@@ -27,16 +27,13 @@ class UI {
             canvas: null
         }
 
-        this.paramOptions = {
-            difficulty: {default: 0.5, min: 0, max: 1, step: 0.01},
-            paddlespeed: {default: 5, min: 0, max: 25, step: 0.01},
-            ballspeed: {default: 5, min: 0, max: 10, step: 0.01}
-        }
-
         // Port Definition
         this.ports = {
+            difficulty: {data: 0.5, min: 0, max: 1, step: 0.01},
+            paddlespeed: {data: 5, min: 0, max: 25, step: 0.01},
+            ballspeed: {data: 5, min: 0, max: 10, step: 0.01},
             dy: {
-                default: 0,
+                data: 0,
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -45,7 +42,7 @@ class UI {
                     let paddle = this.props.paddles.find(o => {if (o.username == 'me') return true})
             
                     // Update Paddle Position
-                    this._movePaddle(paddle,mean*this.params.paddlespeed)
+                    this._movePaddle(paddle,mean*this.ports.paddlespeed.data)
                     this.session.graph.runSafe(this,'error', [{forceRun: true, forceUpdate: true}])
             
                     // Replace User Data with Mean
@@ -156,7 +153,7 @@ class UI {
                     clearCanvas()
 
                     // Move Ball
-                    let dx = this.params.ballspeed * this.props.ball.direction
+                    let dx = this.ports.ballspeed.data * this.props.ball.direction
                     this.props.ball.x += dx
 
                     this.props.ball.y += Math.tan(this.props.ball.angle)*dx
@@ -168,7 +165,7 @@ class UI {
 
                     // Control Opponent AI
                     let opponent = this.props.paddles.find(o => {if (o.username == 'opponent') return true})
-                    this._movePaddle(opponent, (this.params.difficulty) * this.params.ballspeed * Math.sign(this.props.ball.y - opponent.y))
+                    this._movePaddle(opponent, (this.ports.difficulty.data) * this.ports.ballspeed.data * Math.sign(this.props.ball.y - opponent.y))
 
                     // Draw All Paddles
                     this.props.paddles.forEach(drawPaddle);

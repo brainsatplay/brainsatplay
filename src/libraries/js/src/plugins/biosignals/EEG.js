@@ -26,10 +26,7 @@ export class EEG{
                 edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
-                default: this.session.atlas.data,
-                onUpdate: () => {
-                    return {data: this.session.atlas.data}
-                }
+                data: this.session.atlas.data
             }
         }
 

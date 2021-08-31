@@ -35,14 +35,11 @@ export class Blink{
                 onUpdate: (user) => {
                     return {data: this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
                 }
-            }
-        }
+            },
 
-        // Operator Configuration 
-        this.paramOptions = {
 
             model: {
-                default: 'Threshold', 
+                data: 'Threshold', 
                 options: [
                     'Threshold', 
                     // 'LDA', 
@@ -50,10 +47,10 @@ export class Blink{
                 ]
             }, 
 
-            debug: {default: false},
+            debug: {data: false},
 
             blinkWindow: {
-                default: 25,
+                data: 25,
                 options: null,
                 min: 0,
                 max: 2000,
@@ -61,7 +58,7 @@ export class Blink{
             },
 
             blinkDuration: {
-                default: 250,
+                data: 250,
                 options: null,
                 min: 0,
                 max: 2000,
@@ -69,7 +66,7 @@ export class Blink{
             }, 
             
             blinkThreshold: {
-                default: 150,
+                data: 150,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -77,7 +74,7 @@ export class Blink{
             }, 
 
             qualityThreshold: {
-                default: 75,
+                data: 75,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -129,7 +126,7 @@ export class Blink{
                     forceUpdate: true,
                     data: {active: true, function: (ctx) => {
                         if (this.props.looping){
-                            if (this.params.debug){
+                            if (this.ports.debug.data){
                                 this._drawSignal(ctx)
                             } else {
                                 this.props.container.style.opacity = 0
@@ -189,7 +186,7 @@ export class Blink{
                     let direction = [1,-1]
                     direction.forEach(d => {
                         ctx.beginPath(); // Draw a new path
-                        let thresholdArray = [d*this.params.blinkThreshold,d*this.params.blinkThreshold]
+                        let thresholdArray = [d*this.ports.blinkThreshold.data,d*this.ports.blinkThreshold.data]
                         dx = width/(thresholdArray.length - 1)
                         thresholdArray.forEach((y,i) => ctx.lineTo(dx*i,-Number.parseFloat(scale)*y + Number.parseFloat(height*yInt)))
                         ctx.strokeStyle = ` #808080`; // Pick a color
@@ -220,11 +217,11 @@ export class Blink{
 
     _calculateBlink = (user, tags) => {
         let blink = false
-        this.props.dataquality.params.qualityThreshold = this.params.qualityThreshold
+        this.props.dataquality.params.qualityThreshold = this.ports.qualityThreshold.data
         this.props.channelQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
         tags.forEach(tag => {
             let side = this._getTagSide(tag)
-            if (Date.now() - this.lastBlink[side] > this.params.blinkDuration){
+            if (Date.now() - this.lastBlink[side] > this.ports.blinkDuration.data){
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
                 if (tryBlink == true) {
                     blink = true // Only update blink if true (FIX: Sum up multiple channels if exists)
@@ -245,8 +242,8 @@ export class Blink{
                 let processedData = data.filtered // Try Filtered
                 if (processedData.length === 0) processedData = data.raw // Try Raw
                 if (processedData.length > 0){
-                    let durationLength = (this.params.blinkDuration/1000)*user.data.eegshared.sps
-                    let windowLength = (this.params.blinkWindow/1000)*user.data.eegshared.sps
+                    let durationLength = (this.ports.blinkDuration.data/1000)*user.data.eegshared.sps
+                    let windowLength = (this.ports.blinkWindow.data/1000)*user.data.eegshared.sps
                     this.props.blinkData[tag] = processedData.slice(processedData.length-durationLength)
 
                     let dataWindow = this.props.blinkData[tag].slice(this.props.blinkData[tag].length - Math.min(windowLength, durationLength))
@@ -254,7 +251,7 @@ export class Blink{
                     
                     // Only Count Blink if Above Quality Threshold
                     if (data != null && chQ >= 1) {
-                        blink = (max > this.params.blinkThreshold)
+                        blink = (max > this.ports.blinkThreshold.data)
                     }
                  }
             }

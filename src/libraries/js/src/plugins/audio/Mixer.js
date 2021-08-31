@@ -22,19 +22,19 @@ export class Mixer{
                         if (user.data.length > 0){
 
                         this.deinit()
-                        this.params.files = Array.from(user.data)
+                        this.ports.files.data = Array.from(user.data)
 
 
                         let audioPromises = []
                         let resolved = 0
-                        this.params.files.forEach(async (f, i) => {
+                        this.ports.files.data.forEach(async (f, i) => {
                             let audio = this.session.graph.instantiateNode({id: `audio${i}`, class: Audio})
                             audio.instance.init()
                             let promise = audio.instance.ports.file.onUpdate({data: f})
                             audioPromises.push(promise)
                             Promise.all([promise]).then(() => {
                                 resolved++
-                                console.log(`${resolved}/${this.params.files.length} files loaded`)
+                                console.log(`${resolved}/${this.ports.files.data.length} files loaded`)
                             })
 
                             this.props.audio.push(audio)
@@ -48,7 +48,7 @@ export class Mixer{
                         })
                     }
 
-                    // this.params.files.forEach((f,i) => {
+                    // this.ports.files.data.forEach((f,i) => {
                     //     this.session.graph.addPort(this,`track${i}`, {
                     //         input: {type: 'number'},
                     //         output: {type: null},

@@ -26,12 +26,9 @@ export class AppletBrowser {
 
         this.ports = {
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
-                output: {type: Element},
-                onUpdate: () => {
-                    return [{data: this.props.container}]
-                }
+                output: {type: Element}
             }
         }
 

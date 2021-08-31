@@ -48,7 +48,7 @@ class Blob{
                 onUpdate: (user) => {      
                     if (this.props.material) { 
                         // this.feedbackHistory.push(user.data)
-                        // let updateValue = this.params.upperBound-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.params.upperBound, this.params.lowerBound)
+                        // let updateValue = this.ports.upperBound.data-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.ports.upperBound.data, this.ports.lowerBound.data)
                         console.log(user.data)
                         this.props.material.uniforms.uNoiseIntensity.value = user.data 
                     } // update blob noise given new feedback samples      
@@ -56,20 +56,20 @@ class Blob{
             },
 
             upperBound: {
-                default: 1,
+                data: 1,
                 input: {type: 'number'},
                 output: {type: null},
             },
 
             lowerBound: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: null},
             },
 
 
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
                 output: {type: Element},
             }

@@ -13,7 +13,7 @@ export class Number{
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
-                    this.params.value = user.data
+                    this.ports.value.data = user.data
                     return user
                 }
             }
@@ -21,7 +21,7 @@ export class Number{
     }
 
     init = () => {
-        // this.session.graph.runSafe(this, 'default', [{data: this.params.default, forceUpdate: true}])
+        // this.session.graph.runSafe(this, 'default', [{data: this.ports.default.data, forceUpdate: true}])
     }
 
     deinit = () => {}

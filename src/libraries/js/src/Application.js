@@ -70,12 +70,8 @@ export class Application{
             // setupHTML()
 
             // Multiplayer Configuration
-            if(sessionInfo && this.props.sessionId !== sessionInfo.id){    
-                this.sessionId = sessionInfo.id;
-            }
-
-            this.session.startApp(this.props.id, this.sessionId)
-
+            this.session.startApp(this.props.id, sessionInfo?.id ?? this.sessionId)
+            
             if (!('editor' in this.info)){
                 this.info.editor = {}
                 this.info.editor.parentId = this.parentNode.id

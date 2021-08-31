@@ -31,7 +31,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.radius = user.data
+                    this.ports.radius.data = user.data
                 },
             },
             x: {
@@ -42,7 +42,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.x = Number.parseFloat(user.data)
+                    this.ports.x.data = Number.parseFloat(user.data)
                 }
             },
             y: {
@@ -53,7 +53,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.y = Number.parseFloat(user.data)
+                    this.ports.y.data = Number.parseFloat(user.data)
                 }
             },
             dx: {
@@ -61,7 +61,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.x = Number.parseFloat(this.params.x) + Number.parseFloat(user.data)
+                    this.ports.x.data = Number.parseFloat(this.ports.x.data) + Number.parseFloat(user.data)
                 }
             },
             dy: {
@@ -69,7 +69,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.y = Number.parseFloat(this.params.y) + Number.parseFloat(user.data)
+                    this.ports.y.data = Number.parseFloat(this.ports.y.data) + Number.parseFloat(user.data)
                 }
             },
             color: {
@@ -77,7 +77,7 @@ export class Circle{
                 input: {type: 'color'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.color = user.data
+                    this.ports.color.data = user.data
                 }
             },
             radiusOffset: {
@@ -88,7 +88,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.radiusOffset = Number.parseFloat(user.data)
+                    this.ports.radiusOffset.data = Number.parseFloat(user.data)
                 }
             },
             offsetScale: {
@@ -96,7 +96,7 @@ export class Circle{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.offsetScale = user.data
+                    this.ports.offsetScale.data = user.data
                 }
             }
         }
@@ -118,13 +118,13 @@ export class Circle{
 
         ctx.beginPath();
         ctx.arc(
-            width*this.params.x, 
-            height*this.params.y, 
-            Math.abs(relRadiusBase*Number.parseFloat(this.params.radius) + relRadiusBase*Number.parseFloat(this.params.radiusOffset)*Number.parseFloat(this.params.offsetScale)),
+            width*this.ports.x.data, 
+            height*this.ports.y.data, 
+            Math.abs(relRadiusBase*Number.parseFloat(this.ports.radius.data) + relRadiusBase*Number.parseFloat(this.ports.radiusOffset.data)*Number.parseFloat(this.ports.offsetScale.data)),
             0, 
             Math.PI*2
             );
-        ctx.fillStyle = this.params.color;
+        ctx.fillStyle = this.ports.color.data;
         ctx.fill();
         ctx.closePath();
     }

@@ -29,8 +29,8 @@ export class Audio{
                             this.deinit()
                             let file = user.data
                             if (file instanceof FileList || Array.isArray(file)) file = file[0]
-                            this.params.file = file
-                            this.decodeAudio(this.params.file, () => {
+                            this.ports.file.data = file
+                            this.decodeAudio(this.ports.file.data, () => {
                                 resolve({data: true}) 
                             })
                         }
@@ -74,10 +74,10 @@ export class Audio{
 
         (async () => {
 
-            if (typeof this.params.file === 'string'){
+            if (typeof this.ports.file.data === 'string'){
 
-                await fetch(this.params.file).then(r => r.blob()).then(blobFile => {
-                    let name = this.params.file.split('/')
+                await fetch(this.ports.file.data).then(r => r.blob()).then(blobFile => {
+                    let name = this.ports.file.data.split('/')
                     name = name[name.length -1]
                     let file = new File([blobFile], name)
                     this.ports.file.onUpdate({data: [file]})
@@ -121,7 +121,7 @@ export class Audio{
                         this.props.sourceNode.onended = () => {
                             if (this.props.status === 1){
                                 this.endAudio()
-                                this.decodeAudio(this.params.file)
+                                this.decodeAudio(this.ports.file.data)
                             }
                         };
 
@@ -150,7 +150,7 @@ export class Audio{
         if (this.props.sourceNode){
             if (this.props.status === 1){
                 this.deinit()
-                await this.decodeAudio(this.params.file)
+                await this.decodeAudio(this.ports.file.data)
             }
 
             this.props.sourceNode.start(0);
