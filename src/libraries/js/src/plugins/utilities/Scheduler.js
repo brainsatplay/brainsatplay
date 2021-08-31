@@ -61,7 +61,7 @@ export class Scheduler{
                 onUpdate: (user) => { 
                     let trigger = user.data
                     if (trigger) {
-                        if ('params' in user.meta){ // FIX
+                        if ('params' in user.meta){
                             for (let param in user.meta.params){
                                 this.ports[param].data = user.meta.params[param]
                             }
@@ -81,7 +81,6 @@ export class Scheduler{
             interTrialInterval: {data: 0, input: {type: null}, output: {type: null}},
             allowConsecutive: {data: true, input: {type: null}, output: {type: null}},
             start: {data: true, output: {type: null}, onUpdate: (user) => {
-                console.log(user)
                 if (user.data){
                     this.init(user.data)
                 }
@@ -98,8 +97,6 @@ export class Scheduler{
     }
 
     init = (trigger) => {
-
-        console.log(trigger)
         if (this.ports.start.data || trigger){
             this.props.currentTrial = -1
             this.props.taskData = []

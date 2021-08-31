@@ -8,7 +8,7 @@ export class Breath{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             calibrate: {

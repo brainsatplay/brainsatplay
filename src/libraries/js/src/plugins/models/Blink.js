@@ -8,16 +8,16 @@ export class Blink{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
                 input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
-                onUpdate: (user) => {
-                    let leftBlinks = this.session.atlas.graph.runSafe(this,'left',user)
-                    let rightBlinks = this.session.atlas.graph.runSafe(this,'right',user)
-                    user.data = [leftBlinks[i].data, rightBlinks[i].data]
+                onUpdate: async (user) => {
+                    let leftBlinks = await this.session.atlas.graph.runSafe(this,'left',user)
+                    let rightBlinks = await this.session.atlas.graph.runSafe(this,'right',user)
+                    user.data = [leftBlinks.data, rightBlinks.data]
                     user.meta.label = 'blink'
                     return user
                 }
@@ -25,15 +25,15 @@ export class Blink{
             left: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (user) => {
-                    return {data: this._calculateBlink(user,this.props.tags.left), meta: {label: 'blink_left'}}
+                onUpdate: async (user) => {
+                    return {data: await this._calculateBlink(user,this.props.tags.left), meta: {label: 'blink_left'}}
                 }
             },
             right: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (user) => {
-                    return {data: this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
+                onUpdate: async (user) => {
+                    return {data: await this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
                 }
             },
 
@@ -120,7 +120,7 @@ export class Blink{
             this.props.canvas.instance.init()
             this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
-            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
+            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
                 {  
                     forceRun: true,
                     forceUpdate: true,
@@ -135,7 +135,7 @@ export class Blink{
                         }
                     }}
                 }
-            ])
+            )
         }
 
         return { HTMLtemplate, setupHTML}
@@ -215,10 +215,13 @@ export class Blink{
         }
     }
 
-    _calculateBlink = (user, tags) => {
+    _calculateBlink = async (user, tags) => {
         let blink = false
-        this.props.dataquality.params.qualityThreshold = this.ports.qualityThreshold.data
-        this.props.channelQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
+        this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
+        
+        this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
+        this.props.channelQuality = this.props.channelQuality.data
+
         tags.forEach(tag => {
             let side = this._getTagSide(tag)
             if (Date.now() - this.lastBlink[side] > this.ports.blinkDuration.data){
@@ -255,7 +258,7 @@ export class Blink{
                     }
                  }
             }
-        } catch (e) {console.error('input not formatted properly')}
+        } catch (e) {console.error(e)}
 
         return blink
     }

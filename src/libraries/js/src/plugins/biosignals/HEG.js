@@ -9,7 +9,7 @@ export class HEG{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             state: new StateManager(),

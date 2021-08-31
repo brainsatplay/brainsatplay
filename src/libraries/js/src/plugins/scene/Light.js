@@ -30,7 +30,7 @@ export class Light{
                         this.props.mesh.target.position.set( 0, 0, - 2 );
                     }
                     this.props.mesh.position.set( this.ports.x.data, this.ports.y.data, this.ports.z.data );
-                    return {data: this.props.mesh, meta: {params: this.params}}
+                    return {data: this.props.mesh}
                 }
             },
             radius: {
@@ -77,9 +77,6 @@ export class Light{
             decay: {data: 1, min: 0, max:10, step: 0.01},
         }
 
-    }
-
-    init = () => {
 
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.ports, () => {
@@ -87,8 +84,9 @@ export class Light{
                 this.props.lastRendered = Date.now()
             }
         })
-
     }
+
+    init = () => {}
 
     deinit = () => {
         if (this.props.mesh){

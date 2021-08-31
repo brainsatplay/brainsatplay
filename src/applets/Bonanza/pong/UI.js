@@ -7,7 +7,6 @@ class UI {
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = {}
 
         // UI Identifier
         this.props = {
@@ -43,7 +42,7 @@ class UI {
             
                     // Update Paddle Position
                     this._movePaddle(paddle,mean*this.ports.paddlespeed.data)
-                    this.session.graph.runSafe(this,'error', [{forceRun: true, forceUpdate: true}])
+                    this.session.graph.runSafe(this,'error', {forceRun: true, forceUpdate: true})
             
                     // Replace User Data with Mean
                     user.data = mean

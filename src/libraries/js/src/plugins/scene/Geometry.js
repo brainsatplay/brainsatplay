@@ -68,15 +68,17 @@ export class Geometry{
             segments: {data: 32, min: 0, max:100, step: 1},
             count: {data: 100, min: 0, max: 10000, step:1.0},
         }
-    }
 
-    init = () => {
         // Subscribe to Changes in Parameters
+        this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+
         this.props.state.addToState('params', this.ports, () => {
             this.props.lastRendered = Date.now()
             this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         })
-        this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+    }
+
+    init = () => {
 
     }
 

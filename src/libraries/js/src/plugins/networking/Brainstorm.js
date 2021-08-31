@@ -5,7 +5,7 @@ export class Brainstorm {
     constructor(label, session, params = {}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             subscriptions: {},

@@ -5,7 +5,7 @@ export class Websocket{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             socket: null,
@@ -101,7 +101,7 @@ export class Websocket{
 
         socket.onmessage = (msg) => {
             console.log('Message recieved', msg.data)
-            this.session.graph.runSafe(this,'message', [{data: msg.data, forceUpdate: true}])
+            this.session.graph.runSafe(this,'message', {data: msg.data, forceUpdate: true})
         }
 
         socket.onclose = (msg) => {

@@ -8,7 +8,7 @@ export class PCA{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             data: {
@@ -24,7 +24,7 @@ export class PCA{
                 }
             },
             numComponenents: {
-                default: 5,
+                data: 5,
                 input: {type: 'number'},
                 output: {type: undefined},
                 onUpdate: (user) => {

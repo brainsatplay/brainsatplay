@@ -9,7 +9,6 @@ class UI{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = {}
 
         // UI Identifier
         this.props = {
@@ -67,7 +66,7 @@ class UI{
     }
 
     _activateButtonPort = () => {
-            this.session.graph.runSafe(this,'button', [{data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.id}`}}])
+            this.session.graph.runSafe(this,'button', {data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.id}`}})
     }
 
     deinit = () => {}

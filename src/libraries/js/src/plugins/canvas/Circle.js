@@ -5,7 +5,7 @@ export class Circle{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -16,7 +16,7 @@ export class Circle{
 
         this.ports = {
             draw: {
-                default: this.props.function,
+                data: this.props.function,
                 input: {type: null},
                 output: {type: Object},
                 onUpdate: () => {
@@ -24,7 +24,7 @@ export class Circle{
                 }
             },
             radius: {
-                default: 0.5,
+                data: 0.5,
                 min: 0,
                 max: 2,
                 step: 0.001,
@@ -35,7 +35,7 @@ export class Circle{
                 },
             },
             x: {
-                default: 0.5,
+                data: 0.5,
                 min: 0,
                 max: 1,
                 step: 0.001,
@@ -46,7 +46,7 @@ export class Circle{
                 }
             },
             y: {
-                default: 0.5,
+                data: 0.5,
                 min: 0,
                 max: 1,
                 step: 0.001,
@@ -57,7 +57,7 @@ export class Circle{
                 }
             },
             dx: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -65,7 +65,7 @@ export class Circle{
                 }
             },
             dy: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -73,7 +73,7 @@ export class Circle{
                 }
             },
             color: {
-                default: '#ffffff',
+                data: '#ffffff',
                 input: {type: 'color'},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -81,7 +81,7 @@ export class Circle{
                 }
             },
             radiusOffset: {
-                default: 0.0,
+                data: 0.0,
                 min: -1,
                 max: 1,
                 step: 0.001,
@@ -92,7 +92,7 @@ export class Circle{
                 }
             },
             offsetScale: {
-                default: 1,
+                data: 1,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {

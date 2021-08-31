@@ -5,7 +5,7 @@ export class Index{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
@@ -22,7 +22,7 @@ export class Index{
                 }
             },
             method: {
-                default: 'first',
+                data: 'first',
                 input: {type: 'string'},
                 output: {type: null},
                 options: ['first','last'],

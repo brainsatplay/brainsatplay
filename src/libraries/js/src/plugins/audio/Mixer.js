@@ -7,7 +7,7 @@ export class Mixer{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {audio: []}
 
@@ -15,7 +15,7 @@ export class Mixer{
             files: {
                 input: {type: 'file', accept:'audio/*'},
                 output: {type: 'boolean'},
-                default: [],
+                data: [],
                 onUpdate: async (user) => {
 
                     return new Promise(resolve => {
@@ -52,7 +52,7 @@ export class Mixer{
                     //     this.session.graph.addPort(this,`track${i}`, {
                     //         input: {type: 'number'},
                     //         output: {type: null},
-                    //         default: this.props.maxVol,
+                    //         data: this.props.maxVol,
                     //         min: 0,
                     //         max: this.props.maxVol,
                     //         step: 0.01,
@@ -68,12 +68,12 @@ export class Mixer{
             control: {
                 input: {type: Array},
                 output: {type: null},
-                default: [],
+                data: [],
                 onUpdate: (user) => {
                     let selections = user.data
                     let sNames = selections.map(f => f.name)
                     this.props.audio.forEach(n => {
-                        if (sNames.includes(n.instance.params.file.name)) n.instance.ports.volume.onUpdate({data: 1})
+                        if (sNames.includes(n.instance.ports.file.data.name)) n.instance.ports.volume.onUpdate({data: 1})
                         else n.instance.ports.volume.onUpdate({data: 0})
                     })
                 }

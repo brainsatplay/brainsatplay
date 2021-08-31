@@ -9,7 +9,7 @@ export class Filter{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         let uvPerStep = 1e6;
         let sps = 256

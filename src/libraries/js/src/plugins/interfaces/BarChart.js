@@ -7,7 +7,7 @@ export class BarChart{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -30,12 +30,9 @@ export class BarChart{
                 }
             },
             element: {
-                default: this.props.canvas,
+                data: this.props.canvas,
                 input: {type: null},
-                output: {type: Element},
-                onUpdate: () => {
-                    return {data: this.props.canvas}
-                }
+                output: {type: Element}
             }
         }
     }

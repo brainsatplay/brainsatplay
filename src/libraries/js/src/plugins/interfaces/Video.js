@@ -5,7 +5,7 @@ export class Video {
     constructor(label, session, params = {}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
 
         this.props = {
@@ -31,18 +31,18 @@ export class Video {
 
         this.ports = {
             url: {
-                default: defaultVideoURLs[0],
+                data: defaultVideoURLs[0],
                 input: { type: 'string' },
                 output: { type: null },
-                onUpdate: (userData) => {
-                    this.ports.url.data = userData[0].data
+                onUpdate: (user) => {
+                    this.ports.url.data = user.data
                     this.session.graph.runSafe(this, 'files', { data: [this.ports.url.data] })
                 }
             },
             files: {
                 input: { type: 'file', accept: "video/*", multiple: true },
                 output: { type: null },
-                default: defaultVideoURLs,
+                data: defaultVideoURLs,
                 onUpdate: (user) => {
                     if (user.data){
                         this.props.focusVideo = 0
@@ -96,7 +96,7 @@ export class Video {
             element: {
                 input: { type: null },
                 output: { type: Element },
-                default: this.container,
+                data: this.container,
                 onUpdate: () => {
                     this.ports.element.data = this.container
                     return {data: this.container}
@@ -140,7 +140,7 @@ export class Video {
                 }
             },
             {
-                name: 'fade', default: false, onUpdate: () => {
+                name: 'fade', data: false, onUpdate: () => {
                     if (this.ports.fade.data == false) {
                         this.alpha = 0;
                         document.getElementById(this.props.id + "usefade").style.opacity = "0.3";
@@ -151,7 +151,7 @@ export class Video {
 
             // Update Speed Parameters and Button
             {
-                name: 'speed', default: false, onUpdate: () => {
+                name: 'speed', data: false, onUpdate: () => {
                     if (this.ports.speed.data == false) {
                         this.playRate = 1;
                         document.getElementById(this.props.id + "usespeed").style.opacity = "0.3";
@@ -168,7 +168,7 @@ export class Video {
 
             // Update Volume Parameters and Button
             {
-                name: 'volume', default: false, onUpdate: () => {
+                name: 'volume', data: false, onUpdate: () => {
                     if (this.ports.volume.data == false) {
                         this.ports.volume.data = false;
                         this.volume = 0;
@@ -188,7 +188,7 @@ export class Video {
 
             // Update Time Parameters and Button
             {
-                name: 'time', default: false, onUpdate: () => {
+                name: 'time', data: false, onUpdate: () => {
                     if (this.ports.time.data == false) {
                         this.playRate = 1;
                         document.getElementById(this.props.id + "usetime").style.opacity = "0.3";
@@ -204,7 +204,7 @@ export class Video {
             },
 
             {
-                name: 'cut', default: false, onUpdate: () => {
+                name: 'cut', data: false, onUpdate: () => {
                     if (this.ports.cut.data == false) {
                         document.getElementById(this.props.id + "usecut").style.opacity = "0.3";
                     }
@@ -219,7 +219,7 @@ export class Video {
         portInfo.forEach(o => {
             this.ports[o.name] = {
                 edit: true, // false
-                default: o.default,
+                data: o.data,
                 input: { type: 'boolean' },
                 output: { type: null },
                 onUpdate: (user) => {

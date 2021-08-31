@@ -777,7 +777,7 @@ export class Session {
 		let sub = this.state.subscribe(id, (newData) => {
 			this.state.data[id + "_flag"] = true;
 			if(sessionId) {
-				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:[{id:this.info.auth.id}]};
+				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:{id:this.info.auth.id}};
 				if (this.state.data[sessionId].userData){
 					let found = this.state.data[sessionId].userData.find((o)=>{
 						if(o.id === this.info.auth.id) {

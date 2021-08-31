@@ -5,11 +5,11 @@ export class Number{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             value: {
-                default: 5,
+                data: 5,
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
@@ -21,7 +21,7 @@ export class Number{
     }
 
     init = () => {
-        // this.session.graph.runSafe(this, 'default', [{data: this.ports.default.data, forceUpdate: true}])
+        // this.session.graph.runSafe(this, 'default',{data: this.ports.default.data, forceUpdate: true})
     }
 
     deinit = () => {}

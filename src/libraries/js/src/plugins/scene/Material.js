@@ -10,7 +10,7 @@ export class Material{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -95,7 +95,7 @@ export class Material{
     init = () => {
 
         // Subscribe to Changes in Parameters
-        this.props.state.addToState('params', this.params, () => {
+        this.props.state.addToState('params', this.ports, () => {
                 this.props.lastRendered = Date.now()
                 this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         })

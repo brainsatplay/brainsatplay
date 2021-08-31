@@ -7,7 +7,7 @@ export class Audio{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             sourceGain: null,
@@ -22,7 +22,7 @@ export class Audio{
             file: {
                 input: {type: 'file', accept:'audio/*'}, // Single file only
                 output: {type: 'boolean'},
-                default: [],
+                data: [],
                 onUpdate: async (user) => {
                     return new Promise(resolve => {
                         if (user.data){
@@ -48,7 +48,7 @@ export class Audio{
             volume: {
                 input: {type: 'number'},
                 output: {type: null},
-                default: this.props.maxVol,
+                data: this.props.maxVol,
                 min: 0,
                 max: this.props.maxVol,
                 step: 0.01,

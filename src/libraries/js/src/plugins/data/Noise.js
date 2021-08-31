@@ -7,7 +7,7 @@ export class Noise{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
@@ -27,7 +27,7 @@ export class Noise{
                 }
             },
             type: {
-                default: 'perlin',
+                data: 'perlin',
                 options: ['random', 'perlin', 'simplex'],
                 input: {type: 'string'},
                 output: {type: null},
@@ -36,7 +36,7 @@ export class Noise{
                 }
             },
             intensity: {
-                default: 1,
+                data: 1,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -44,7 +44,7 @@ export class Noise{
                 }
             },
             interval: {
-                default: 1000/60,
+                data: 1000/60,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
@@ -52,7 +52,7 @@ export class Noise{
                 }
             },
             delta: {
-                default: 0.01,
+                data: 0.01,
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {

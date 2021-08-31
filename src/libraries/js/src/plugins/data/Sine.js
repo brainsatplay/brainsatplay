@@ -11,6 +11,13 @@ export class Sine{
             default: {
                 input: {type: null},
                 output: {type: 'number'},
+                onUpdate: () => {
+                    let angularVelocity = 2*Math.PI*(Number.parseFloat(this.ports.frequency.data))
+                    let t = Date.now()/1000
+                    let phase = Number.parseFloat(this.ports.phase.data)
+                    let value = this.ports.center.data + this.ports.scale.data*Number.parseFloat(this.ports.amplitude.data)*Math.sin(angularVelocity*t + phase)
+                    return {data: value, meta: {label: this.label}}
+                }
             },
             amplitude: {data: 1, min: 0, max: 1000, step: 0.1},
             frequency: {data: 1},
@@ -40,13 +47,5 @@ export class Sine{
 
     deinit = () => {
         this.props.looping = false
-    }
-
-    default = () => {
-        let angularVelocity = 2*Math.PI*(Number.parseFloat(this.ports.frequency.data))
-        let t = Date.now()/1000
-        let phase = Number.parseFloat(this.ports.phase.data)
-        let value = this.ports.center.data + this.ports.scale.data*Number.parseFloat(this.ports.amplitude.data)*Math.sin(angularVelocity*t + phase)
-        return {data: value, meta: {label: this.label}}
     }
 }

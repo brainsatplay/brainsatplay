@@ -130,7 +130,7 @@ export class Neurofeedback{
         this.ports = {
 
             metric: {
-                edit: false,
+                // edit: false,
                 data: 'Alpha Coherence', 
                 options: Object.keys(this.props.feedbackInfo),
                 input: {type: null},
@@ -138,7 +138,7 @@ export class Neurofeedback{
             },
 
             output: {
-                edit: false,
+                // edit: false,
                 data: 'Mean',
                 options: ['Mean', 'Channels'],
                 input: {type: null},

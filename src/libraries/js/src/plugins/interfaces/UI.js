@@ -25,7 +25,7 @@ export class UI{
                 output: {type: Element},
                 data: document.createElement('div'),
                 onUpdate: () => {
-                    return [{data: this.props.container}]
+                    return {data: this.props.container}
                 },
             },
              opacity: {
@@ -202,8 +202,8 @@ export class UI{
                 output: o.output,
                 data: o.data,
                 onUpdate: (user) => {
-                    this.ports[o.key].data = user.data
-                    o.onUpdate(user)
+                    if (o.onUpdate) o.onUpdate(user)
+                    return user
                 }
             }
             

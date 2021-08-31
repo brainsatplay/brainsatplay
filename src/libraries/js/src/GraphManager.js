@@ -51,7 +51,7 @@ export class GraphManager{
             //     // }
             // }
             if (node.params[port] == null) {
-                node.params[port] = node.ports[port].default
+                node.params[port] = node.ports[port].data
             }
         }
         return node.params
@@ -68,12 +68,12 @@ export class GraphManager{
 
         // return new Promise(resolve => {
 
-        let node = new nodeInfo.class(nodeInfo.id, session, nodeInfo.params)
+        let node = new nodeInfo.class(nodeInfo.id, session)
         let controlsToBind = []
         let toAnalyze = new Set()
 
         // Set Default Parameters
-        for (let param in nodeInfo.params) if (node.ports[param]) node.ports[param].data = nodeInfo.params[param]
+        this.updateParams(node, nodeInfo.params)
 
         // for (let param in node.paramOptions){
         //     console.log(nodeInfo, param, node.ports)
@@ -262,7 +262,8 @@ export class GraphManager{
     }
 
     updateParams(node,params) {
-        for (let param in params) node.params[param] = params[param]
+        
+        for (let param in params) node.ports[param].data = params[param]
     }
 
     shallowCopy(input){
@@ -538,10 +539,10 @@ export class GraphManager{
             ){
             let controlDict = {}
             controlDict.format = typeof firstUserDefault.data
-            controlDict.label = this.getLabel(node,port) // Display Label
+            controlDict.label = this.getLabel(node,'default') // Display Label
             controlDict.target = {
                 state: node.ports,
-                port: port
+                port: 'default'
             } // FIX
             controls.push(controlDict)
         }

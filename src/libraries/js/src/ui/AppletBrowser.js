@@ -11,7 +11,6 @@ export class AppletBrowser {
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
 
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random() * 1000000)), //Keep random ID,

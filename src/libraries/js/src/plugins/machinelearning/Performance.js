@@ -6,7 +6,7 @@ export class Performance{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             history: []

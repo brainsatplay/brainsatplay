@@ -17,7 +17,7 @@ export class Line{
 
         this.ports = {
             default: {
-                default: this.props.function,
+                data: this.props.function,
                 input: {type: null},
                 output: {type: Object},
                 onUpdate: () => {

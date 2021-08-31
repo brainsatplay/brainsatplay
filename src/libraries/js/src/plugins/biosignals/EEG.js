@@ -7,7 +7,7 @@ export class EEG{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             state: new StateManager(),

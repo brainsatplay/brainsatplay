@@ -12,7 +12,7 @@ export class Unity{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),

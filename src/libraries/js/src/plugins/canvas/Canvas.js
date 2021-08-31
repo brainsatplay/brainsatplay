@@ -5,7 +5,7 @@ export class Canvas{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             canvas: null,
@@ -32,7 +32,7 @@ export class Canvas{
                 }
             },
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
                 output: {type: Element},
                 onUpdate: () => {

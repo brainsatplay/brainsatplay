@@ -9,7 +9,6 @@ class Manager{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = {}
 
         this.analysis = ['eegfft']
 

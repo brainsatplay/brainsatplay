@@ -77,7 +77,7 @@ export class Train{
             this.props.trainingOverlay.classList.toggle('shown')
         }
 
-        // this.session.graph.runSafe(this,'ui',[{forceRun: true, forceUpdate: true}])
+        // this.session.graph.runSafe(this,'ui',{forceRun: true, forceUpdate: true})
     }
 
     deinit = () => {

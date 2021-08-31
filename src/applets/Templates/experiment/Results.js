@@ -7,7 +7,7 @@ class Results{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = params
+        
 
         // UI Identifier
         this.props = {

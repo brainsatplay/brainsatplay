@@ -6,7 +6,7 @@ export class WebRTC{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             channel: null,
@@ -108,7 +108,7 @@ export class WebRTC{
         dataChannel.addEventListener('message', event => {
             const msg = event.data;
             console.log(msg)
-            this.session.graph.runSafe(this,'message', [{data: msg, forceUpdate: true}])
+            this.session.graph.runSafe(this,'message', {data: msg, forceUpdate: true})
         });
     }
 

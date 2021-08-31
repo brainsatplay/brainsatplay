@@ -965,20 +965,19 @@ export class GraphEditor{
         // Sort through Params
         if (toParse[key].edit != false){
 
-            let defaultType = toParse[key].input?.type ?? typeof toParse[key].value
+            let defaultType = toParse[key].input?.type ?? typeof toParse[key].data
             if (typeof defaultType !== 'string' && defaultType.name) defaultType = defaultType.name
 
             let specifiedOptions = toParse[key].options
             let optionsType = typeof specifiedOptions
 
             let input
-            
 
-            // console.log(defaultType)
+            // Filter out elements
+            defaultType = (defaultType === "object" ? toParse[key].data instanceof HTMLElement : toParse[key].data && typeof toParse[key].data === "object" && toParse[key].data !== null && toParse[key].data.nodeType === 1 && typeof toParse[key].data.nodeName==="string") ? 'Element' : defaultType
+
         // Cannot Handle Objects or Elements
         if (defaultType != 'undefined' && defaultType != 'Element'){
-
-
             if (optionsType == 'object' && specifiedOptions != null){
                     let options = ``
                     toParse[key].options.forEach(option => {
@@ -1098,7 +1097,7 @@ export class GraphEditor{
     
                 settings.onSave = (res) => {
                     if (defaultType === 'Function') res = res[key]
-                   if (plugin) this.manager.runSafe(plugin, key, [{data: res}])
+                   if (plugin) this.manager.runSafe(plugin, key, res)
                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 }
     
@@ -1112,8 +1111,9 @@ export class GraphEditor{
                 } else {
                     settings.language = defaultType.toLowerCase()
                 }
-                settings.target = toParse.data
-                settings.key = key
+
+                settings.target = toParse[key]
+                settings.key = 'data'
 
                 settings.onClose()
 
@@ -1202,6 +1202,7 @@ export class GraphEditor{
 
                 // Change Live Params with Input Changes
                 let changeFunc = (e) => {
+
                     if (this.elementTypesToUpdate.includes(input.tagName)){
                         if (input.tagName === 'TEXTAREA') {
                             try{
@@ -1211,13 +1212,20 @@ export class GraphEditor{
                         else if (input.type === 'checkbox') toParse[key].data = input.checked
                         else if (input.type === 'file') toParse[key].data = input.files;
                         else if (['number','range'].includes(input.type)) {
-                            toParse[key].data = Number.parseFloat(input.value)
+                            let possibleUpdate = Number.parseFloat(input.value)
+
+                            if (!isNaN(possibleUpdate)) toParse[key].data = possibleUpdate
+                            else return
+
                             if (input.type === 'range') {
                                 input.parentNode.querySelector('output').innerHTML = input.value
                             }
+                            // console.log(toParse[key].data)
                         }
                         else toParse[key].data = input.value
-                        if (plugin && toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, [{data: toParse[key], forceUpdate: true}])
+
+                        toParse[key].forceUpdate = true
+                        if (plugin && toParse[key] && toParse[key].onUpdate instanceof Function) this.app.session.graph.runSafe(plugin,key, toParse[key])
                         if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
                     }
                 }
@@ -1241,7 +1249,7 @@ export class GraphEditor{
                             else {
                                 oldValue = input.value
 
-                                if (toParse[key].data){ // FIX
+                                if (toParse[key].data != null){ // FIX
                                     input.value = toParse[key].data
 
                                     if (input.tagName === 'TEXTAREA') {

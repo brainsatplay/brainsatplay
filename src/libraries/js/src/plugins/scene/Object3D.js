@@ -100,7 +100,9 @@ export class Object3D{
             x: {data: 0},
             y: {data: 1},
             z: {data: -2},
-            rotatex: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            rotatex: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1, onUpdate: () => {
+
+            }},
             rotatey: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             rotatez: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
             interactable: {data: false},
@@ -108,24 +110,23 @@ export class Object3D{
 
         this._setObject()
 
-    }
+        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
+        this.props.prevType = this.ports.type.data
 
-    init = () => {
-
-        this.props.looping = true
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.ports, () => {
             this._updateProps()
-
             // Replace Mesh if Necessary
             if (this.props.prevType != this.ports.type.data) {
                 this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
                 this.props.prevType = this.ports.type.data
             }
         })
+    }
 
-        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
-        this.props.prevType = this.ports.type.data
+    init = () => {
+
+        this.props.looping = true
 
         let animate = () => {
             if (this.props.looping){
