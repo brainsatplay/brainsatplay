@@ -24,6 +24,10 @@ class Parser{
         this.props.label = document.createElement('h1')
         this.props.readouts = document.createElement('div')
 
+        this.props.dummyReadout = document.createElement('p')
+        this.props.dummyReadout.innerHTML = 'Waiting for Data'
+        this.props.readouts.insertAdjacentElement('beforeend', this.props.dummyReadout)
+
         this.props.label.innerHTML = 'LABEL'
 
         // this.props.defaultReadout = document.createElement('p')
@@ -40,11 +44,12 @@ class Parser{
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    console.error('PARSER',user)
-                    this.props.label.innerHTML = user.meta.label    
-                    this.props.userReadouts[user.id].innerHTML = `${user.username}: ${user.data}`
+                    this.props.label.innerHTML = user.meta.label ?? 'Neurofeedback Template'
+                    if (this.props.userReadouts[user.id]) {
+                        this.props.userReadouts[user.id].innerHTML = `${user.username}: ${user.data}`
+                        this.props.dummyReadout.style.display = 'none'
+                    } else this.props.dummyReadout.style.display = 'block'
             },
-            
         }, 
         element: {
             data: this.props.container,
@@ -59,6 +64,7 @@ class Parser{
     deinit = () => {}
 
     _userAdded = (user) => {
+        console.error('USER ADDED', user)
         this.props.userReadouts[user.id] = document.createElement('p')
         this.props.userReadouts[user.id].id = `${this.props.id}-${user.id}`
         this.props.userReadouts[user.id].classList.add('readout')
@@ -68,7 +74,8 @@ class Parser{
     }
 
     _userRemoved = (user) => {
-        this.props.userReadouts[user.id].remove()
+        console.error('USER REMOVED', user)
+        if (this.props.userReadouts[user.id]) this.props.userReadouts[user.id].remove()
         delete this.props.userReadouts[user.id]
         this._updateUI()
     }
