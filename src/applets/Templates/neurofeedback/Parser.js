@@ -64,7 +64,6 @@ class Parser{
     deinit = () => {}
 
     _userAdded = (user) => {
-        console.error('USER ADDED', user)
         this.props.userReadouts[user.id] = document.createElement('p')
         this.props.userReadouts[user.id].id = `${this.props.id}-${user.id}`
         this.props.userReadouts[user.id].classList.add('readout')
@@ -74,7 +73,6 @@ class Parser{
     }
 
     _userRemoved = (user) => {
-        console.error('USER REMOVED', user)
         if (this.props.userReadouts[user.id]) this.props.userReadouts[user.id].remove()
         delete this.props.userReadouts[user.id]
         this._updateUI()

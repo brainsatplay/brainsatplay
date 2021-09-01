@@ -1097,6 +1097,8 @@ export class GraphEditor{
     
                 settings.onSave = (res) => {
                     if (defaultType === 'Function') res = res[key]
+                    // plugin.ports[key].data
+                    console.log(plugin, key, res)
                    if (plugin) this.manager.runSafe(plugin, key, res)
                    this.app.session.graph._resizeAllNodeFragments(this.app.props.id)
                 }

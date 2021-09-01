@@ -510,7 +510,7 @@ export class GraphManager{
     addPortToRegistry = (node,port) => {
         this.registry.local[node.label].registry[port] = {}
         this.registry.local[node.label].registry[port].state = node.ports[port]
-        this.registry.local[node.label].registry[port].callbacks = []
+        // this.registry.local[node.label].registry[port].callbacks = []
     }
 
     instantiateNodePort = (node, port) => {
@@ -713,6 +713,7 @@ export class GraphManager{
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
+            let brainstormSource = source instanceof this.plugins.networking.Brainstorm
             let brainstormTarget = target instanceof this.plugins.networking.Brainstorm
             if (brainstormTarget) {
                 applet.streams.add(label) // Keep track of streams
@@ -759,7 +760,6 @@ export class GraphManager{
 
             // Send Last State to New Edge Target
             let sendFunction = () => {
-
                 // Add Default Metadata
                 // console.log(input)
                 if (input.meta == null) input.meta = {}
@@ -769,11 +769,10 @@ export class GraphManager{
                 this.runSafe(target, targetPort, input, true)
             }
 
-            // console.log(input, forceSend, hasData, lastStateSent, isElement, sendOutput)
-            if (sendOutput && isElement) sendFunction() // If new connection must pass an element
+            if (sendOutput && (brainstormTarget || isElement)) sendFunction() // If new connection must pass (1) an element, or (2) anything to the Brainstorm
             else if (
-                // brainstormTarget || 
-                ((forceSend || hasData) && !lastStateSent)) return sendFunction // Else if there is data on initialization
+                (!brainstormSource) && 
+                (brainstormTarget || ((forceSend || hasData) && !lastStateSent))) return sendFunction // Else if there is data on initialization
         }
     }
 
