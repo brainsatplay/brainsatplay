@@ -358,15 +358,17 @@ export class GraphManager{
                     result = node.ports['default'].onUpdate(inputCopy)
                 }
 
-                // Handle Promises
-                if (!!result && typeof result.then === 'function'){
-                    result.then((r) =>{
-                        this.checkToPass(node,port,r)
-                    })
-                } else {
-                    this.checkToPass(node,port,result)
-                }
-            }
+                // Pass Results Appropriately
+                if (!result){
+                        if (
+                            node.ports[port].data === undefined 
+                            || ((typeof node.ports[port].data === typeof inputCopy.data) && 'object' !== typeof node.ports[port].data)
+                            || (('object' === typeof node.ports[port].data === typeof inputCopy.data && 'constructor' in node.ports[port].data && 'constructor' in inputCopy.data) && (node.ports[port].data.contructor.name === inputCopy.data.contructor.name))
+                        ) {
+                        node.ports[port].data = inputCopy.data // Set input as output
+                }} else if (!!result && typeof result.then === 'function') result.then((r) =>{this.setPort(node,port,r)}) // Handle Promises
+                else this.setPort(node,port,result) // Pass output forward to next nodesa
+            } 
         } catch (e) { console.log(e)}
 
         // Calculate Latency
@@ -380,7 +382,12 @@ export class GraphManager{
         return node.ports[port]
     }
 
-    checkToPass(node,port,result){
+    setState = (state, result) => {
+        Object.assign(state, result)
+    }
+
+    setPort(node,port,result){
+
         if (result){
             let allEqual = true
             let forced = false
@@ -390,14 +397,11 @@ export class GraphManager{
 
             // result.forEach((o,i) => {
 
-            let setState = (state, result) => {
-                Object.assign(state, result)
-            }
 
                 // Check if Forced Update
                 if (result.forceUpdate) {
                     forced = true
-                    setState(node.ports[port],result)
+                    this.setState(node.ports[port],result)
                 }
 
                 // Otherwise Check If Current State === Previous State
@@ -416,11 +420,11 @@ export class GraphManager{
                             let thisEqual = case1 === case2
 
                             if (!thisEqual){
-                                setState(node.ports[port],result)
+                                this.setState(node.ports[port],result)
                                 allEqual = false
                             }
                     } else {
-                        setState(node.ports[port],result)
+                        this.setState(node.ports[port],result)
                         allEqual = false
                     }
             }
