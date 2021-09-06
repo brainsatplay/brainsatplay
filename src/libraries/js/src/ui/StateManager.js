@@ -5,7 +5,7 @@ import {ObjectListener} from './ObjectListener'
 //Set key responses to have functions fire when keyed values change
 //add variables to state with addToState(key, value, keyonchange (optional))
 export class StateManager {
-    constructor(init = {}, interval="FRAMERATE") { //Default interval is at the browser framerate
+    constructor(init = {}, interval="FRAMERATE", defaultKeyEventLoop=true) { //Default interval is at the browser framerate
         this.data = init;
         this.interval = interval;
         this.pushToState={};
@@ -13,7 +13,7 @@ export class StateManager {
         this.pushCallbacks = {};
 
         this.listener = new ObjectListener();
-        this.defaultStartListenerEventLoop = true;
+        this.defaultStartListenerEventLoop = defaultKeyEventLoop;
 
         /*
         this.prev = Object.assign({},this.data);
