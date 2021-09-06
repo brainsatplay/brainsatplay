@@ -302,8 +302,14 @@ export class StateManager {
         this.clearAllKeyResponses(key);
     }
 
+    //runs only one animation frame to check all state keys
     runSynchronousListeners() {
         this.listener.startSync();
+    }
+
+    //stops the listener event loops without clearing the keys.
+    stopListeners() {
+        this.listener.stop();
     }
 
 }

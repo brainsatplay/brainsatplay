@@ -140,6 +140,7 @@ export class ObjectListener {
 
     //Stop all or named listeners
     stop(key=null) {
+        if(this.synchronous) this.stopSync();
         if(key === null) {
             this.listeners.forEach((obj,i) => {
                 obj.listener.stop();
@@ -156,6 +157,7 @@ export class ObjectListener {
 
     //Restart all or named listeners
     start(key=null) {
+        if(this.synchronous) this.stopSync();
         if(key === null) {
             this.listeners.forEach((obj,i) => {
                 obj.listener.start();
