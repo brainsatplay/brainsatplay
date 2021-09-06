@@ -13,6 +13,7 @@ export class StateManager {
         this.pushCallbacks = {};
 
         this.listener = new ObjectListener();
+        this.defaultStartListenerEventLoop = true;
 
         /*
         this.prev = Object.assign({},this.data);
@@ -243,7 +244,7 @@ export class StateManager {
                 this.listener.onchange(key, onchange);
             }
             else if(key !== null){
-                this.listener.addListener(key, this.data, key, onchange, this.data["stateUpdateInterval"], debug, startRunning=true);
+                this.listener.addListener(key, this.data, key, onchange, this.data["stateUpdateInterval"], debug, this.defaultStartListenerEventLoop);
             }
         }
     }
@@ -255,7 +256,7 @@ export class StateManager {
                 return this.listener.addFunc(key, onchange);
             }
             else if(key !== null){
-                this.listener.addListener(key, this.data,key,()=>{},this.data["stateUpdateInterval"], debug, startRunning);
+                this.listener.addListener(key, this.data,key,()=>{},this.data["stateUpdateInterval"], debug, this.defaultStartListenerEventLoop);
                 return this.listener.addFunc(key, onchange);
             }
             else { return this.listener.addFunc("state", onchange);}
@@ -304,6 +305,7 @@ export class StateManager {
 
     //runs only one animation frame to check all state keys
     runSynchronousListeners() {
+        this.defaultStartListenerEventLoop = false;
         this.listener.startSync();
     }
 
