@@ -235,7 +235,7 @@ export class ObjectListenerInstance {
         this.propOld = undefined;
         this.setListenerRef(propName);
 
-        this.running = true;
+        this.running = startRunning;
         this.funcs = 0;
 
         this.interval;
