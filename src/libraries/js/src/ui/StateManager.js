@@ -1,6 +1,6 @@
 import {ObjectListener} from './ObjectListener'
 
-//By Joshua Brewster (MIT)
+//By Joshua Brewster (MIT License)
 //Simple state manager.
 //Set key responses to have functions fire when keyed values change
 //add variables to state with addToState(key, value, keyonchange (optional))
@@ -67,7 +67,7 @@ export class StateManager {
                     //Object.assign(this.prev,this.data);//Temp fix until the global state listener function works as expected
                     Object.assign(this.data,this.pushToState);
 
-                    // console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
+                    //console.log("new state: ", this.data); console.log("props set: ", this.pushToState);
                     for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
                         delete this.pushToState[prop];
                     }
@@ -82,7 +82,8 @@ export class StateManager {
                 this.interval
             );
 
-            let clearRecord = (record) => {
+            this.addToState('pushRecord',this.pushRecord,(record)=>{
+
                 let l = record.pushed.length;
                 for (let i = 0; i < l; i++){
                     let updateObj = record.pushed[i];
@@ -95,11 +96,6 @@ export class StateManager {
                     }
                 }
                 this.pushRecord.pushed.splice(0,l);
-                if (this.pushRecord.pushed.length != 0) clearRecord(this.pushRecord)
-            }
-
-            this.addToState('pushRecord',this.pushRecord,(record)=>{
-                clearRecord(record) // executes until fully cleared
             });
 
             this.data.pushCallbacks = this.pushCallbacks;
@@ -127,15 +123,14 @@ export class StateManager {
         return JSON.parse(JSON.stringifyFast(this.data));
     }
 
-    //Synchronous set-state, only updates main state on interval. Can append arrays instead of replacing them
-    setState(updateObj={},appendArrs=true){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
+    //Synchronous set-state, only updates main state on interval. Can set to trigger now instead of waiting on interval. Also can append arrays in state instead of replacing them
+    setState(updateObj={}, trigger=false, appendArrs=true){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
         if(!this.listener.hasKey('pushToState')) {
             this.setupSynchronousUpdates();
         }
 
         updateObj.stateUpdateTimeStamp = Date.now();
-
         this.pushRecord.pushed.push(JSON.parse(JSON.stringifyWithCircularRefs(updateObj)));
         
         if(appendArrs) {
@@ -175,6 +170,17 @@ export class StateManager {
         }
 
         Object.assign(this.pushToState,updateObj);
+
+        if(trigger === true) {
+            Object.assign(this.data,this.pushToState)
+            for (const prop of Object.getOwnPropertyNames(this.pushToState)) {
+                let ref = this.listener.getListener(prop);
+                if(ref) ref.listener.check();
+                delete this.pushToState[prop];
+            }
+            
+        }
+
         return this.pushToState;
     }
 
@@ -190,6 +196,7 @@ export class StateManager {
 
     subscribeSequential(key=undefined,onchange=undefined) {
         if(key) {
+            
             if(this.data[key] === undefined) {this.addToState(key,null,undefined);}
 
             if(!this.pushCallbacks[key])
@@ -230,25 +237,25 @@ export class StateManager {
     }
 
     //Set main onchange response for the property-specific object listener. Don't touch the state
-    setPrimaryKeyResponse(key=null, onchange=null, debug=false) {
+    setPrimaryKeyResponse(key=null, onchange=null, debug=false, startRunning=true) {
         if(onchange !== null){
             if(this.listener.hasKey(key)){
                 this.listener.onchange(key, onchange);
             }
             else if(key !== null){
-                this.listener.addListener(key,this.data,key,onchange,this.data["stateUpdateInterval"],debug);
+                this.listener.addListener(key, this.data, key, onchange, this.data["stateUpdateInterval"], debug, startRunning=true);
             }
         }
     }
 
     //Add extra onchange responses to the object listener for a set property. Use state key for state-wide change responses
-    addSecondaryKeyResponse(key=null, onchange=null, debug=false) {
+    addSecondaryKeyResponse(key=null, onchange=null, debug=false, startRunning=true) {
         if(onchange !== null){
             if(this.listener.hasKey(key)){
                 return this.listener.addFunc(key, onchange);
             }
             else if(key !== null){
-                this.listener.addListener(key,this.data,key,()=>{},this.data["stateUpdateInterval"],debug);
+                this.listener.addListener(key, this.data,key,()=>{},this.data["stateUpdateInterval"], debug, startRunning);
                 return this.listener.addFunc(key, onchange);
             }
             else { return this.listener.addFunc("state", onchange);}
@@ -293,6 +300,10 @@ export class StateManager {
 
     unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
+    }
+
+    runSynchronousListeners() {
+        this.listener.startSync();
     }
 
 }
