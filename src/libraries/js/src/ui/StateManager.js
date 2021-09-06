@@ -125,7 +125,7 @@ export class StateManager {
     }
 
     //Synchronous set-state, only updates main state on interval. Can set to trigger now instead of waiting on interval. Also can append arrays in state instead of replacing them
-    setState(updateObj={}, trigger=false, appendArrs=true){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
+    setState(updateObj={}, trigger=false, appendArrs=false){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
         if(!this.listener.hasKey('pushToState')) {
             this.setupSynchronousUpdates();
