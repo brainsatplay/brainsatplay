@@ -5,13 +5,31 @@ export class FFT{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
                 edit: false,
                 input: {type: Array},
                 output: {type: Array},
+                onUpdate: (user) => {
+                    let arr =user.data
+            
+                    // Pass to Worker
+                    if (u.meta.label != this.label){
+                        if (Array.isArray(arr)){
+                            this._analysisFunction(arr)
+                            user.meta.label = this.label
+                        }else {
+                            console.log('invalid type')
+                        }
+                    } 
+                    
+                    // Pass from Worker
+                    else {
+                        return user
+                    }
+                }
             }
         }
 
@@ -28,25 +46,6 @@ export class FFT{
     }
 
     deinit = () => {}
-
-    default = (user) => {
-        let arr =user.data
-
-        // Pass to Worker
-        if (u.meta.label != this.label){
-            if (Array.isArray(arr)){
-                this._analysisFunction(arr)
-                user.meta.label = this.label
-            }else {
-                console.log('invalid type')
-            }
-        } 
-        
-        // Pass from Worker
-        else {
-            return user
-        }
-    }
 
     _analysisFunction = (arr) => {
         if(this.props.waiting === false){

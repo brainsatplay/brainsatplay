@@ -9,7 +9,6 @@ class Manager{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = {}
 
         this.analysis = ['eegfft']
 
@@ -67,10 +66,10 @@ class Manager{
                 edit: false,
                 input: {type: null},
                 output: {type: Element},
-                default: this.props.container,
+                data: this.props.container,
                 onUpdate: () => {
-                    this.params.element = this.props.container
-                    return {data: this.params.element}
+                    this.ports.element.data = this.props.container
+                    return {data: this.ports.element.data}
                 }
             }
         }

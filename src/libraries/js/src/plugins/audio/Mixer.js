@@ -7,7 +7,7 @@ export class Mixer{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {audio: []}
 
@@ -15,26 +15,26 @@ export class Mixer{
             files: {
                 input: {type: 'file', accept:'audio/*'},
                 output: {type: 'boolean'},
-                default: [],
+                data: [],
                 onUpdate: async (user) => {
 
                     return new Promise(resolve => {
                         if (user.data.length > 0){
 
                         this.deinit()
-                        this.params.files = Array.from(user.data)
+                        this.ports.files.data = Array.from(user.data)
 
 
                         let audioPromises = []
                         let resolved = 0
-                        this.params.files.forEach(async (f, i) => {
+                        this.ports.files.data.forEach(async (f, i) => {
                             let audio = this.session.graph.instantiateNode({id: `audio${i}`, class: Audio})
                             audio.instance.init()
                             let promise = audio.instance.ports.file.onUpdate({data: f})
                             audioPromises.push(promise)
                             Promise.all([promise]).then(() => {
                                 resolved++
-                                console.log(`${resolved}/${this.params.files.length} files loaded`)
+                                console.log(`${resolved}/${this.ports.files.data.length} files loaded`)
                             })
 
                             this.props.audio.push(audio)
@@ -48,11 +48,11 @@ export class Mixer{
                         })
                     }
 
-                    // this.params.files.forEach((f,i) => {
+                    // this.ports.files.data.forEach((f,i) => {
                     //     this.session.graph.addPort(this,`track${i}`, {
                     //         input: {type: 'number'},
                     //         output: {type: null},
-                    //         default: this.props.maxVol,
+                    //         data: this.props.maxVol,
                     //         min: 0,
                     //         max: this.props.maxVol,
                     //         step: 0.01,
@@ -68,12 +68,12 @@ export class Mixer{
             control: {
                 input: {type: Array},
                 output: {type: null},
-                default: [],
+                data: [],
                 onUpdate: (user) => {
                     let selections = user.data
                     let sNames = selections.map(f => f.name)
                     this.props.audio.forEach(n => {
-                        if (sNames.includes(n.instance.params.file.name)) n.instance.ports.volume.onUpdate({data: 1})
+                        if (sNames.includes(n.instance.ports.file.data.name)) n.instance.ports.volume.onUpdate({data: 1})
                         else n.instance.ports.volume.onUpdate({data: 0})
                     })
                 }

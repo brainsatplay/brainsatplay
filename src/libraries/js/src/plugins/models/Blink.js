@@ -8,16 +8,16 @@ export class Blink{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
                 input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
-                onUpdate: (user) => {
-                    let leftBlinks = this.session.atlas.graph.runSafe(this,'left',user)
-                    let rightBlinks = this.session.atlas.graph.runSafe(this,'right',user)
-                    user.data = [leftBlinks[i].data, rightBlinks[i].data]
+                onUpdate: async (user) => {
+                    let leftBlinks = await this.session.atlas.graph.runSafe(this,'left',user)
+                    let rightBlinks = await this.session.atlas.graph.runSafe(this,'right',user)
+                    user.data = [leftBlinks.data, rightBlinks.data]
                     user.meta.label = 'blink'
                     return user
                 }
@@ -25,24 +25,21 @@ export class Blink{
             left: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (user) => {
-                    return {data: this._calculateBlink(user,this.props.tags.left), meta: {label: 'blink_left'}}
+                onUpdate: async (user) => {
+                    return {data: await this._calculateBlink(user,this.props.tags.left), meta: {label: 'blink_left'}}
                 }
             },
             right: {
                 input: {type: null},
                 output: {type: 'boolean'},
-                onUpdate: (user) => {
-                    return {data: this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
+                onUpdate: async (user) => {
+                    return {data: await this._calculateBlink(user,this.props.tags.right), meta: {label: 'blink_right'}}
                 }
-            }
-        }
+            },
 
-        // Operator Configuration 
-        this.paramOptions = {
 
             model: {
-                default: 'Threshold', 
+                data: 'Threshold', 
                 options: [
                     'Threshold', 
                     // 'LDA', 
@@ -50,10 +47,10 @@ export class Blink{
                 ]
             }, 
 
-            debug: {default: false},
+            debug: {data: false},
 
             blinkWindow: {
-                default: 25,
+                data: 25,
                 options: null,
                 min: 0,
                 max: 2000,
@@ -61,7 +58,7 @@ export class Blink{
             },
 
             blinkDuration: {
-                default: 250,
+                data: 250,
                 options: null,
                 min: 0,
                 max: 2000,
@@ -69,7 +66,7 @@ export class Blink{
             }, 
             
             blinkThreshold: {
-                default: 150,
+                data: 150,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -77,7 +74,7 @@ export class Blink{
             }, 
 
             qualityThreshold: {
-                default: 75,
+                data: 75,
                 options: null,
                 min: 0,
                 max: 1000,
@@ -123,13 +120,13 @@ export class Blink{
             this.props.canvas.instance.init()
             this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
-            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', [
+            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
                 {  
                     forceRun: true,
                     forceUpdate: true,
                     data: {active: true, function: (ctx) => {
                         if (this.props.looping){
-                            if (this.params.debug){
+                            if (this.ports.debug.data){
                                 this._drawSignal(ctx)
                             } else {
                                 this.props.container.style.opacity = 0
@@ -138,7 +135,7 @@ export class Blink{
                         }
                     }}
                 }
-            ])
+            )
         }
 
         return { HTMLtemplate, setupHTML}
@@ -189,7 +186,7 @@ export class Blink{
                     let direction = [1,-1]
                     direction.forEach(d => {
                         ctx.beginPath(); // Draw a new path
-                        let thresholdArray = [d*this.params.blinkThreshold,d*this.params.blinkThreshold]
+                        let thresholdArray = [d*this.ports.blinkThreshold.data,d*this.ports.blinkThreshold.data]
                         dx = width/(thresholdArray.length - 1)
                         thresholdArray.forEach((y,i) => ctx.lineTo(dx*i,-Number.parseFloat(scale)*y + Number.parseFloat(height*yInt)))
                         ctx.strokeStyle = ` #808080`; // Pick a color
@@ -218,13 +215,16 @@ export class Blink{
         }
     }
 
-    _calculateBlink = (user, tags) => {
+    _calculateBlink = async (user, tags) => {
         let blink = false
-        this.props.dataquality.params.qualityThreshold = this.params.qualityThreshold
-        this.props.channelQuality = this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',[user])[0].data // Grab results of dependencies (no mutation)
+        this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
+        
+        this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
+        this.props.channelQuality = this.props.channelQuality.data
+
         tags.forEach(tag => {
             let side = this._getTagSide(tag)
-            if (Date.now() - this.lastBlink[side] > this.params.blinkDuration){
+            if (Date.now() - this.lastBlink[side] > this.ports.blinkDuration.data){
                 let tryBlink = this._calculateBlinkFromTag(user,tag)
                 if (tryBlink == true) {
                     blink = true // Only update blink if true (FIX: Sum up multiple channels if exists)
@@ -245,8 +245,8 @@ export class Blink{
                 let processedData = data.filtered // Try Filtered
                 if (processedData.length === 0) processedData = data.raw // Try Raw
                 if (processedData.length > 0){
-                    let durationLength = (this.params.blinkDuration/1000)*user.data.eegshared.sps
-                    let windowLength = (this.params.blinkWindow/1000)*user.data.eegshared.sps
+                    let durationLength = (this.ports.blinkDuration.data/1000)*user.data.eegshared.sps
+                    let windowLength = (this.ports.blinkWindow.data/1000)*user.data.eegshared.sps
                     this.props.blinkData[tag] = processedData.slice(processedData.length-durationLength)
 
                     let dataWindow = this.props.blinkData[tag].slice(this.props.blinkData[tag].length - Math.min(windowLength, durationLength))
@@ -254,11 +254,11 @@ export class Blink{
                     
                     // Only Count Blink if Above Quality Threshold
                     if (data != null && chQ >= 1) {
-                        blink = (max > this.params.blinkThreshold)
+                        blink = (max > this.ports.blinkThreshold.data)
                     }
                  }
             }
-        } catch (e) {console.error('input not formatted properly')}
+        } catch (e) {console.error(e)}
 
         return blink
     }

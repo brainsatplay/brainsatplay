@@ -7,7 +7,7 @@ export class EEG{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             state: new StateManager(),
@@ -26,8 +26,7 @@ export class EEG{
                 edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
-                default: this.session.atlas.data,
-                onUpdate: () => {
+                onUpdate: () =>{
                     return {data: this.session.atlas.data}
                 }
             }

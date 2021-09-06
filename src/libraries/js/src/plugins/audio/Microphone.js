@@ -9,11 +9,11 @@ export class Microphone{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             fft: {
-                default: [],
+                data: [],
                 input: {type: null},
                 output: {type: Array},
                 onUpdate: () => {

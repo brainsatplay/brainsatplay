@@ -7,11 +7,7 @@ class Results{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = params
-
-        this.paramOptions = {
-            speed: {default: 3, min: 0, max:10, step: 0.01}
-        }
+        
 
         // UI Identifier
         this.props = {
@@ -59,7 +55,7 @@ class Results{
             let animate = () => {
 
                 // Update Variables
-                this.props.pointer.x += this.params.speed * this.props.direction
+                this.props.pointer.x += this.ports.speed.data * this.props.direction
                 let leftEdge = this.props.canvas.width - this.props.size.x
                 if (this.props.pointer.x > leftEdge){
                     this.props.pointer.x = leftEdge

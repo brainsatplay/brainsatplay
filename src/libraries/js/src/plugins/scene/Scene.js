@@ -10,17 +10,9 @@ export class Scene{
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
+    constructor(label, session) {
         this.label = label
         this.session = session
-        this.params = params
-
-        this.paramOptions = {
-            camerax: {default: 0},
-            cameray: {default: 1.6},
-            cameraz: {default: 1.5},
-            // orbitcontrols: {default: true},
-        }
 
         let camera = new THREE.PerspectiveCamera()
         let renderer = new THREE.WebGLRenderer( { antialias: true } )
@@ -69,14 +61,13 @@ export class Scene{
                 }
             },
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
-                output: {type: Element},
-                onUpdate: () => {
-                    this.params.element = this.props.container
-                    return {data: this.params.element}
-                }
-            }
+                output: {type: Element}
+            },
+            camerax: {data: 0},
+            cameray: {data: 1.6},
+            cameraz: {data: 1.5},
         }
     }
 
@@ -86,7 +77,7 @@ export class Scene{
             this.props.camera.aspect = this.props.container.offsetWidth / this.props.container.offsetHeight
             this.props.camera.near = 0.1
             this.props.camera.far = 1000
-            this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+            this.props.camera.position.set( this.ports.camerax.data, this.ports.cameray.data, this.ports.cameraz.data );
             // this.props.renderer.domElement.style.width = '100%'
             // this.props.renderer.domElement.style.height = '100%'
             this.props.renderer.domElement.id = `${this.props.id}canvas`
@@ -165,7 +156,7 @@ export class Scene{
             
             this.props.controllers[0].addEventListener( 'disconnected', () => {
                 this.props.container.appendChild( this.props.VRButton );
-                this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+                this.props.camera.position.set( this.ports.camerax.data, this.ports.cameray.data, this.ports.cameraz.data );
                 this.responsive()
                 this.props.controls.enabled = true
             } );
@@ -375,7 +366,7 @@ export class Scene{
     }
 
     // _setCamera = () => {
-    //     this.props.camera.position.set( this.params.camerax, this.params.cameray, this.params.cameraz );
+    //     this.props.camera.position.set( this.ports.camerax.data, this.ports.cameray.data, this.ports.cameraz.data );
     // }
 
     // Animation and Render Loop

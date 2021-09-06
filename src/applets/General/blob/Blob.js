@@ -17,7 +17,6 @@ class Blob{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = {}
 
         // UI Identifier
         this.props = {
@@ -48,28 +47,27 @@ class Blob{
                 onUpdate: (user) => {      
                     if (this.props.material) { 
                         // this.feedbackHistory.push(user.data)
-                        // let updateValue = this.params.upperBound-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.params.upperBound, this.params.lowerBound)
-                        console.log(user.data)
-                        this.props.material.uniforms.uNoiseIntensity.value = user.data 
+                        // let updateValue = this.ports.upperBound.data-this.normalize(user.data, Math.min(...this.feedbackHistory), Math.max(...this.feedbackHistory), this.ports.upperBound.data, this.ports.lowerBound.data)
+                        if (!isNaN(user.data)) this.props.material.uniforms.uNoiseIntensity.value = 1 - user.data 
                     } // update blob noise given new feedback samples      
                 },
             },
 
             upperBound: {
-                default: 1,
+                data: 1,
                 input: {type: 'number'},
                 output: {type: null},
             },
 
             lowerBound: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: null},
             },
 
 
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
                 output: {type: Element},
             }
@@ -79,7 +77,7 @@ class Blob{
     init = () =>  {    
 
         let canvas = this.props.container.querySelector('canvas.brainsatplay-threejs-webgl')
-        canvas.style.opacity = '0'
+        canvas.style.opacity = '1.0'
         canvas.style.transition = 'opacity 1s'
         
         /**

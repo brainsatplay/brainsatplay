@@ -21,7 +21,7 @@ export class Ramchurn{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             currentScene: 0,
@@ -185,7 +185,7 @@ export class Ramchurn{
                 input: {type: null},
                 output: {type: 'file'},
                 // default: [],
-                onUpdate: (userData) => {
+                onUpdate: (user) => {
                     return {data: user.data}
                 }
             },
@@ -216,7 +216,7 @@ export class Ramchurn{
             },
 
             element: {
-                default: this.props.container,
+                data: this.props.container,
                 input: {type: null},
                 output: {type: Element}
             }

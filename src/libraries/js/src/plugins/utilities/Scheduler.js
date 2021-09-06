@@ -5,21 +5,10 @@ export class Scheduler{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
-        this.paramOptions = {
-            paradigm: {default: 'Task', options: ['Task']},
-            mode: {default: 'Auto', options: ['Auto', 'Manual']},
-            duration: {default: 2},
-            trialCount: {default: 10},
-            trialTypes: {default: new Set('1', '2', "3"), show: false},
-            progression: {default: null, show: false},
-            interTrialInterval: {default: 0},
-            allowConsecutive: {default: true},
-        }
 
         this.ports = {
             default: {
-                default: -1,
+                data: -1,
                 meta: {label: this.label},
                 input: {type:null},
                 output: {type: 'string'},
@@ -30,11 +19,12 @@ export class Scheduler{
                         user.meta.state = this.props.state;
                             if (user.meta.state != 'ITI'){
                                 user.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
+                                user.meta.stateDuration = this.ports.duration.data*1000
                             } else {
-                                user.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.params.duration*1000)
+                                user.meta.stateTimeElapsed = Date.now() - (this.props.taskData[this.props.currentTrial].tStart + this.ports.duration.data*1000)
+                                user.meta.stateDuration = this.ports.interTrialInterval.data*1000
                             }
-                            user.meta.stateDuration = this.params.duration*1000
-                            user.meta.trialCount = this.params.trialCount
+                            user.meta.trialCount = this.ports.trialCount.data
                         return user
                     }
                 }
@@ -60,7 +50,7 @@ export class Scheduler{
                 output: {type: null},
                 onUpdate: (user) => { 
                     let trigger = user.data
-                    if (trigger && this.params.mode === 'Manual') {
+                    if (trigger && this.ports.mode.data === 'Manual') {
                         this._taskUpdate(false, true)
                     }
                 }
@@ -73,13 +63,28 @@ export class Scheduler{
                     if (trigger) {
                         if ('params' in user.meta){
                             for (let param in user.meta.params){
-                                this.params[param] = user.meta.params[param]
+                                this.ports[param].data = user.meta.params[param]
                             }
                         }
                         this.init()
                     }
                 }
             },
+
+            // Old Params
+            paradigm: {data: 'Task', options: ['Task'], input: {type: null}, output: {type: null}},
+            mode: {data: 'Auto', options: ['Auto', 'Manual'], input: {type: null}, output: {type: null}},
+            duration: {data: 2, input: {type: null}, output: {type: null}},
+            trialCount: {data: 10, input: {type: null}, output: {type: null}},
+            trialTypes: {data: new Set('1', '2', "3"), input: {type: null}, output: {type: null}, edit: false},
+            progression: {data: null, input: {type: null}, output: {type: null}, edit: false},
+            interTrialInterval: {data: 0, input: {type: null}, output: {type: null}},
+            allowConsecutive: {data: true, input: {type: null}, output: {type: null}},
+            start: {data: true, output: {type: null}, onUpdate: (user) => {
+                if (user.data){
+                    this.init(user.data)
+                }
+            }}
         }
 
         this.props = {
@@ -91,39 +96,40 @@ export class Scheduler{
         }
     }
 
-    init = () => {
+    init = (trigger) => {
+        if (this.ports.start.data || trigger){
+            this.props.currentTrial = -1
+            this.props.taskData = []
+            this.props.iti = false
+            this.props.active = true
 
-        this.props.currentTrial = -1
-        this.props.taskData = []
-        this.props.iti = false
-        this.props.active = true
-
-        if (this.params.progression == null) {
-            this.params.progression = []
-            // Create Random Progression
-            let prevChoice
-            for (let i = 0; i < this.params.trialCount; i++){
-                let options = new Set(this.params.trialTypes)
-                if (!this.params.allowConsecutive) options.delete(prevChoice)
-                let choice = Math.floor(options.size * Math.random())
-                let ind = 0
-                options.forEach((val) => {
-                    if (ind === choice) {
-                        this.params.progression.push(val)
-                        prevChoice = val
-                    }
-                    ind++
-                })
+            if (this.ports.progression.data == null) {
+                this.ports.progression.data = []
+                // Create Random Progression
+                let prevChoice
+                for (let i = 0; i < this.ports.trialCount.data; i++){
+                    let options = new Set(this.ports.trialTypes.data)
+                    if (!this.ports.allowConsecutive.data) options.delete(prevChoice)
+                    let choice = Math.floor(options.size * Math.random())
+                    let ind = 0
+                    options.forEach((val) => {
+                        if (ind === choice) {
+                            this.ports.progression.data.push(val)
+                            prevChoice = val
+                        }
+                        ind++
+                    })
+                }
+            } else {
+                this.ports.trialCount.data = this.ports.progression.data.length
             }
-        } else {
-            this.params.trialCount = this.params.progression.length
-        }
 
-        // Start Task Loop
-        if (this.params.mode === 'Auto'){
-            this._taskUpdate()
-        } else {
-            this._taskUpdate(false)
+            // Start Task Loop
+            if (this.ports.mode.data === 'Auto'){
+                this._taskUpdate()
+            } else {
+                this._taskUpdate(false)
+            }
         }
     }
     
@@ -139,12 +145,12 @@ export class Scheduler{
             let trialTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
 
             // Main Trial Loop
-            if (forceUpdate || (this.props.currentTrial < this.params.trialCount && trialTimeElapsed > (this.params.duration + this.params.interTrialInterval)*1000)){  
+            if (forceUpdate || (this.props.currentTrial < this.ports.trialCount.data && trialTimeElapsed > (this.ports.duration.data + this.ports.interTrialInterval.data)*1000)){  
 
                 this._startNewTrial()
 
                 // Stop on Last Trial
-                if (this.props.currentTrial >= this.params.trialCount){ // Stop Loop
+                if (this.props.currentTrial >= this.ports.trialCount.data){ // Stop Loop
                     this.props.state = ''
                     this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
                     this.session.atlas.graph.runSafe(this,'done',{forceRun: true, forceUpdate: true})
@@ -152,7 +158,7 @@ export class Scheduler{
             } 
 
             // Inter-trial Interval Loop
-            else if (trialTimeElapsed > (this.params.duration)*1000 && this.props.currentTrial < this.params.trialCount - 1 && this.props.iti === false){
+            else if (trialTimeElapsed > (this.ports.duration.data)*1000 && this.props.currentTrial < this.ports.trialCount.data - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
                 this.props.iti = true
                 this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
@@ -162,14 +168,14 @@ export class Scheduler{
         }
 
         this.session.atlas.graph.runSafe(this,'default', {forceRun: true, forceUpdate: true})
-        if (this.props.active && loop && this.props.currentTrial != this.params.trialCount) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
+        if (this.props.active && loop && this.props.currentTrial != this.ports.trialCount.data) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
     _startNewTrial(){
         this.props.currentTrial++ // Increment Trial Counter
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
-        this.props.state = this.params.progression[this.props.currentTrial]
+        this.props.state = this.ports.progression.data[this.props.currentTrial]
         this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
     }
 }

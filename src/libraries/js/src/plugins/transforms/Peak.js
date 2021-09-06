@@ -5,7 +5,7 @@ export class Peak{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             prevValue: null,
@@ -17,7 +17,7 @@ export class Peak{
 
         this.ports = {
             default: {
-                default: false,
+                data: false,
                 input: {type: 'number'},
                 output: {type: 'boolean'},
                 onUpdate: (user) => {

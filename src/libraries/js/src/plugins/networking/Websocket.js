@@ -5,7 +5,7 @@ export class Websocket{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             socket: null,
@@ -20,7 +20,7 @@ export class Websocket{
                 onUpdate: (user) => {
                     let valid = this.validURL(user.data)
                     if (valid){
-                        this.params.url = user.data
+                        this.ports.url.data = user.data
                         this.session.graph.runSafe(this,'connected', {data: true, forceUpdate: true})
                     }
                 }
@@ -33,7 +33,7 @@ export class Websocket{
                     return new Promise(resolve => {
                         let choice = uuser.data
                         if (choice){
-                            let url = new URL(this.params.url)
+                            let url = new URL(this.ports.url.data)
                             if (this.props.socket == null || this.props.socket.url.split('://')[1] != url.href.split('://')[1]){
                                 this._createWebsocket(url, () => {
                                     resolve({data: true})
@@ -95,19 +95,19 @@ export class Websocket{
         socket.onopen = () => {
             console.log('WebSocket opened')
             this.props.socket = socket
-            this.params.connected = true
+            this.ports.connected.data = true
             connectCallback()
         };
 
         socket.onmessage = (msg) => {
             console.log('Message recieved', msg.data)
-            this.session.graph.runSafe(this,'message', [{data: msg.data, forceUpdate: true}])
+            this.session.graph.runSafe(this,'message', {data: msg.data, forceUpdate: true})
         }
 
         socket.onclose = (msg) => {
             console.log('WebSocket closed')
             this.props.socket = null
-            this.params.connected = false
+            this.ports.connected.data = false
         }
     }
 

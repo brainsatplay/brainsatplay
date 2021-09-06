@@ -4,7 +4,7 @@ export class Plugin{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),            
@@ -20,8 +20,8 @@ export class Plugin{
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    console.log(user, this.params.number)
-                    return user
+                    // this.ports.default.data = user.data 
+                    // return user
                 }
             },
             number: {
@@ -32,19 +32,12 @@ export class Plugin{
                 // min: 0,
                 // max: 100,
                 // step: 0.01,
-                onUpdate: (user) => {
-                    this.params.number = user.data // Auto-assigned parameter
-                }
             },
             element: {
                 edit: false,
                 input: {type: null},
                 output: {type: Element},
-                default: this.props.container,
-                onUpdate: () => {
-                    this.params.element = this.props.container
-                    return {data: this.params.element}
-                }
+                data: this.props.container
             }
         }
     }

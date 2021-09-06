@@ -8,7 +8,7 @@ export class PCA{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             data: {
@@ -18,17 +18,17 @@ export class PCA{
                     user.forEach((u,i) => {
                         console.log(u.username,u.data,u.meta,u, eegmath)
                         let components = eegmath.pca(u.data) // Get Principal Components
-                        u.data = components[this.params.numComponenents]
+                        u.data = components[this.ports.numComponenents.data]
                     })
                     return user
                 }
             },
             numComponenents: {
-                default: 5,
+                data: 5,
                 input: {type: 'number'},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    this.params.numComponents = user.data
+                    this.ports.numComponents.data = user.data
                 }
             }
         }

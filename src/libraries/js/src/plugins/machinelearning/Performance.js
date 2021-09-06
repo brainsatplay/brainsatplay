@@ -6,7 +6,7 @@ export class Performance{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             history: []
@@ -18,7 +18,7 @@ export class Performance{
                 output: {type: 'number'},
                 onUpdate: () => {
                     let accuracy
-                    switch (this.params.method){
+                    switch (this.ports.method.data){
                         case 'accuracy': 
                             accuracy = 1 - this.session.atlas.mean(this.props.history)
                             break
@@ -45,7 +45,7 @@ export class Performance{
                 input: {type: 'string'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.params.method = user.data
+                    this.ports.method.data = user.data
                 }
             }
         }

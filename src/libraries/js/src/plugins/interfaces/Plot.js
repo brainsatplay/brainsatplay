@@ -35,13 +35,6 @@ class Plot{
         // Generic Plugin Attributes
         this.label = label
         this.session = session
-        this.params = params
-
-        this.paramOptions = {
-            mode: {default: 'Channels', options: ['Channels','Trials']},
-            data: {default: []},
-            type: {default: 'line', options: ['line','bar']}
-        }
 
         this.dependencies = ['https://cdn.plot.ly/plotly-2.0.0.min.js']
 
@@ -68,25 +61,6 @@ class Plot{
             userData: []
         }
 
-        if (this.params.title !== false){
-            this.props.plotLayout.title = this.params.title ?? 'Your Data'
-            this.props.plotLayout.margin = {
-                l: 50,
-                r: 50,
-                b: 25,
-                t: 75,
-                pad: 4
-            }
-        } else {
-            this.props.plotLayout.margin = {
-                l: 50,
-                r: 50,
-                b: 25,
-                t: 25,
-                pad: 4
-            }
-        }
-
         // Port Definition
         this.ports = {
             default: {
@@ -95,8 +69,31 @@ class Plot{
                 onUpdate: () => {
                     console.log('updated')
                 }
-            }
+            },
+            mode: {data: 'Channels', options: ['Channels','Trials']},
+            data: {data: []},
+            type: {data: 'line', options: ['line','bar']}
         }
+
+        // if (this.ports.title.data !== false){
+        //     this.props.plotLayout.title = this.ports.title.data ?? 'Your Data'
+        //     this.props.plotLayout.margin = {
+        //         l: 50,
+        //         r: 50,
+        //         b: 25,
+        //         t: 75,
+        //         pad: 4
+        //     }
+        // } else {
+            this.props.plotLayout.margin = {
+                l: 50,
+                r: 50,
+                b: 25,
+                t: 25,
+                pad: 4
+            }
+        // }
+
     }
 
     init = () => {
@@ -119,12 +116,12 @@ class Plot{
             this.props.plotConfig);
 
             // Animation Loop
-            let prevState = this.params.mode
+            let prevState = this.ports.mode.data
             let animate = () => {
-                if (this.params.mode != prevState){
+                if (this.ports.mode.data != prevState){
                     Plotly.purge(this.props.container)
                     this.session.graph.runSafe(this,'default',this.props.userData)
-                    prevState = this.params.mode
+                    prevState = this.ports.mode.data
                 }
                 setTimeout(animate, 1000/2)
             }
@@ -149,7 +146,7 @@ class Plot{
         let query
 
         let restrictedStates = ['notes','times', 'noteTimes', 'noteIndices', 'fftTimes', 'fftFreqs']
-        let states = (this.params.data.length > 0) ? this.params.data : Object.keys(data).filter(s => !restrictedStates.includes(s))
+        let states = (this.ports.data.data.length > 0) ? this.ports.data.data : Object.keys(data).filter(s => !restrictedStates.includes(s))
 
         let traces = []
         // Declare Points for Text
@@ -207,7 +204,7 @@ class Plot{
         let trials = getTrialInfo(data)
 
         // Use EEG Channels or Trials
-        if (this.params.mode === 'Trials'){
+        if (this.ports.mode.data === 'Trials'){
             let s = states[0]
             let stateData = data[s]
 
@@ -221,14 +218,14 @@ class Plot{
             trials = extractTrialsFromData(stateData, timestamps, trials)
         }
 
-        if (this.params.mode === 'Trials'){
+        if (this.ports.mode.data === 'Trials'){
             trials.forEach((trial,i) => {
                 traces.push({
                     x: trial.time.map(t => t - trial.time[0]),
                     y: trial.data,
                     // xaxis: `x${i+1}`,
                     // yaxis: `y${i+1}`,
-                    type: this.params.type,
+                    type: this.ports.type.data,
                     name: `Trial ${i} | ${trial.label}`
                 })
             })
@@ -243,7 +240,7 @@ class Plot{
                     y: dataset,
                     // xaxis: `x${i+1}`,
                     // yaxis: `y${i+1}`,
-                    type: this.params.type,
+                    type: this.ports.type.data,
                     name: s.replace(query,'')
                 })
             })
@@ -267,7 +264,7 @@ class Plot{
         }
 
         let layoutConfig
-        if (this.params.mode === 'Trials'){
+        if (this.ports.mode.data === 'Trials'){
             // this.props.plotLayout.grid = {
             //     rows: trials.length,
             //     columns: 1,

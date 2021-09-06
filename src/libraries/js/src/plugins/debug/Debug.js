@@ -5,10 +5,11 @@ export class Debug{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
+                data: undefined,
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {

@@ -5,29 +5,6 @@ export class Neurofeedback{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
-
-        // Operator Configuration 
-        this.paramOptions = {
-            metric: {
-                default: 'Alpha Coherence', 
-                options: [
-                    'Alpha Coherence', 
-                    'Focus', 
-                    'Alpha Beta Ratio', 
-                    'Alpha Theta Ratio', 
-                    'Theta Beta Ratio', 
-                    'Alpha Ratio', 
-                    'Gamma Peak', 
-                    'Low Gamma Score', 
-                    'HEG Score'
-                ]
-            },
-            output: {
-                default: 'Mean',
-                options: ['Mean', 'Channels']
-            }
-        }
 
         this.getBandFreqs = (frequencies) => {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
             let oneto20freqs = [[],[]]
@@ -67,7 +44,7 @@ export class Neurofeedback{
                                 arr.push(Math.min(1/this.session.atlas.getThetaBetaRatio(ch), 1))
                             })
 
-                            if (this.params.output === 'Channels') return arr
+                            if (this.ports.output.data === 'Channels') return arr
                             else return this.session.atlas.mean(arr)
                         }
                     },
@@ -91,7 +68,7 @@ export class Neurofeedback{
                             })
 
                             let nfbValue = null
-                            if (this.params.output === 'Channels') arr
+                            if (this.ports.output.data === 'Channels') arr
                             else nfbValue = this.session.atlas.mean(arr)
 
                             this.fbHistory.push(nfbValue)
@@ -137,6 +114,7 @@ export class Neurofeedback{
         }
 
         this.props.selector = document.createElement('select') // creates a new selector element with all of the above protocols
+        // this.props.selector.style.zIndex = 100
         Object.keys(this.props.feedbackInfo).forEach(key => {
                 let o = this.props.feedbackInfo[key]
                 if (o.disabled) this.props.selector.insertAdjacentHTML('beforeend', `<option value="${key}" disabled>${key}</option>`)
@@ -145,83 +123,83 @@ export class Neurofeedback{
 
 
         this.props.selector.onchange = (e) => {
-            this.params.metric = e.target.value //changes metric to the one that is picked
+            this.ports.metric.data = e.target.value //changes metric to the one that is picked
         }
 
         // Ports
         this.ports = {
-            default: {
-                analysis: ['eegcoherence'],
-                default: 1,
-                meta: {label: `neurofeedback`},
-                input: {type: Object, name: 'DataAtlas'},
-                output: {type: 'number'},
-            },  
-
 
             metric: {
-                edit: false,
-                default: 'Alpha Coherence', 
+                // edit: false,
+                data: 'Alpha Coherence', 
                 options: Object.keys(this.props.feedbackInfo),
                 input: {type: null},
                 output: {type: null},
             },
 
             output: {
-                edit: false,
-                default: 'Mean',
+                // edit: false,
+                data: 'Mean',
                 options: ['Mean', 'Channels'],
                 input: {type: null},
                 output: {type: null},
             },
 
             element: {
-                default: this.props.selector,
+                data: this.props.selector,
                 input: {type: null},
                 output: {type: Element},
-            }
+            },
         } 
+
+        this.ports.default = {
+            analysis: ['eegcoherence'],
+            data: 1,
+            meta: {label: this.ports.metric.data},
+            input: {type: Object, name: 'DataAtlas'},
+            output: {type: 'number'},
+            onUpdate: (user) => {
+                    
+                let arr = []
+                let data = (user.data != null) ? user.data : this.session.atlas.data
+    
+                // console.log(data)
+    
+                try {
+    
+                    console.error(user.data)
+                    let type = this.props.feedbackInfo[this.ports.metric.data].type
+                    if (type === 'custom'){ // takes whole data array
+                        user.data = this.props.feedbackInfo[this.ports.metric.data].function(data) ?? 0 
+                    } else {
+                        data[type].forEach(o => { //iterates over channels
+                            arr.push(this.props.feedbackInfo[this.ports.metric.data].function(o) ?? 0)
+                        })
+                        
+                        if (this.ports.output.data === 'Channels') user.data = arr
+                        else user.data = this.session.atlas.mean(arr)
+                    }
+    
+                } catch (e) {
+                    console.error(e)
+                    arr.push(0)
+                    if (this.ports.output.data === 'Channels') user.data = arr
+                    else user.data = this.session.atlas.mean(arr)
+                }       
+    
+                // console.log(arr)
+                
+                // Output to User Data Object
+                // console.log(user.data)
+    
+                user.meta.label = this.ports.metric.data
+    
+            return user
+        }
+        }
     }
 
     init = () => {}
 
     deinit = () => {}
-
-    default = (user) => {
-                    
-            let arr = []
-            let data = (user.data != null) ? user.data : this.session.atlas.data
-
-            // console.log(data)
-
-            try {
-
-                let type = this.props.feedbackInfo[this.params.metric].type
-                if (type === 'custom'){ // takes whole data array
-                    user.data = this.props.feedbackInfo[this.params.metric].function(data) ?? 0 
-                } else {
-                    data[type].forEach(o => { //iterates over channels
-                        arr.push(this.props.feedbackInfo[this.params.metric].function(o) ?? 0)
-                    })
-                    
-                    if (this.params.output === 'Channels') user.data = arr
-                    else user.data = this.session.atlas.mean(arr)
-                }
-
-            } catch (e) {
-                console.error(e)
-                arr.push(0)
-                if (this.params.output === 'Channels') user.data = arr
-                else user.data = this.session.atlas.mean(arr)
-            }       
-
-            // console.log(arr)
-            
-            // Output to User Data Object
-            // console.log(user.data)
-
-            user.meta.label = this.params.metric
-
-        return user
-    }
 }

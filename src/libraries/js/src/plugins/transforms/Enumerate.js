@@ -5,7 +5,7 @@ export class Enumerate{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.ports = {
             default: {
@@ -18,7 +18,7 @@ export class Enumerate{
                             keys.forEach(k => {
                                 if (this.ports[k] == null){
                                     let portInfo = {
-                                        default: user.data[k],
+                                        data: user.data[k],
                                         input: {type: null},
                                         output: this.session.graph.getTypeDict(user.data[k]),
                                         onUpdate: (user) => {

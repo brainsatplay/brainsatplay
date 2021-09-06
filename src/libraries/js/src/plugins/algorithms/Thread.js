@@ -7,7 +7,7 @@ export class Thread{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
+        
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -33,11 +33,11 @@ export class Thread{
                 }
             },
             function: {
-                default: (data)=>{return data + 1},
+                data: (data)=>{return data + 1},
                 input: {type: Function},
                 output: {type: null},
                 onUpdate: () => {
-                    this._postToWorker({foo:'addfunc', input:['myfunction', this.params.function], origin:this.props.id})
+                    this._postToWorker({foo:'addfunc', input:['myfunction', this.ports.function.data], origin:this.props.id})
                 }
             }
         }

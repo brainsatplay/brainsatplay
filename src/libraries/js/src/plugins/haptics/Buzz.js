@@ -7,21 +7,6 @@ export class Buzz{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
-        this.params = params
-
-        this.paramOptions = {
-            motor1: {default: 255, min:0, max: 255, step: 1.0},
-            motor2: {default: 255, min:0, max: 255, step: 1.0},
-            motor3: {default: 255, min:0, max: 255, step: 1.0},
-            motor4: {default: 255, min:0, max: 255, step: 1.0},
-            led1color: {default: `#00ff00`},
-            led2color: {default: `#00ff00`},
-            led3color: {default: `#00ff00`},
-            led1intensity: {default: 0, min:0, max: 1, step: 0.01},
-            led2intensity: {default: 0, min:0, max: 1, step: 0.01},
-            led3intensity: {default: 0, min:0, max: 1, step: 0.01},
-            position: {default: 0, min: 0, max: 1, step: 0.01}
-        }
 
         this.props = {
             state: new StateManager(),
@@ -57,7 +42,19 @@ export class Buzz{
             status: {
                 input: {type: null},
                 output: {type: 'boolean'},
-            }
+            },
+
+            motor1: {data: 255, min:0, max: 255, step: 1.0},
+            motor2: {data: 255, min:0, max: 255, step: 1.0},
+            motor3: {data: 255, min:0, max: 255, step: 1.0},
+            motor4: {data: 255, min:0, max: 255, step: 1.0},
+            led1color: {data: `#00ff00`},
+            led2color: {data: `#00ff00`},
+            led3color: {data: `#00ff00`},
+            led1intensity: {data: 0, min:0, max: 1, step: 0.01},
+            led2intensity: {data: 0, min:0, max: 1, step: 0.01},
+            led3intensity: {data: 0, min:0, max: 1, step: 0.01},
+            position: {data: 0, min: 0, max: 1, step: 0.01}
         }
 
         let added = (k) => {
@@ -100,7 +97,7 @@ export class Buzz{
         if (this.props.device){   
             // Check User Requests
             if (user.data == true && user.meta.user === this.session.info.auth.id){ // Run if you
-                let motorCommand = [this.params.motor1,this.params.motor2,this.params.motor3,this.params.motor4]
+                let motorCommand = [this.ports.motor1.data,this.ports.motor2.data,this.ports.motor3.data,this.ports.motor4.data]
                 this.props.device.vibrateMotors([motorCommand,[0,0,0,0]])
             }
         }
@@ -115,13 +112,13 @@ export class Buzz{
             let c2 = [0,0,0]
             let c3 = [0,0,0]
             if (user.data == true){
-                c1 = this._hexToRgb(this.params.led1color)
-                c2 = this._hexToRgb(this.params.led2color)
-                c3 = this._hexToRgb(this.params.led3color)
+                c1 = this._hexToRgb(this.ports.led1color.data)
+                c2 = this._hexToRgb(this.ports.led2color.data)
+                c3 = this._hexToRgb(this.ports.led3color.data)
             }
             
             let ledColors = [c1,c2,c3]
-            let ledIntensities = [this.params.led1intensity,this.params.led2intensity,this.params.led3intensity]
+            let ledIntensities = [this.ports.led1intensity.data,this.ports.led2intensity.data,this.ports.led3intensity.data]
             ledIntensities = ledIntensities.map(i => Number.parseFloat(i))
             this.props.device.setLEDs(ledColors, ledIntensities)
         }
@@ -136,7 +133,7 @@ export class Buzz{
     mapOnBand = (user) => {
         if (this.props.device){
             if (user.data != false){
-                let position = (user.data == true) ? this.params.position : user.data
+                let position = (user.data == true) ? this.ports.position.data : user.data
                 this.props.device.vibrateMotors([this.props.device.getIllusionActivations(position)])
             } else {
                 this.props.device.vibrateMotors([0,0,0,0])
@@ -147,9 +144,9 @@ export class Buzz{
     fillLEDs = (user) => {
         if (this.props.device){
 
-            let c1 = this._hexToRgb(this.params.led1color)
-            let c2 = this._hexToRgb(this.params.led2color)
-            let c3 = this._hexToRgb(this.params.led3color)
+            let c1 = this._hexToRgb(this.ports.led1color.data)
+            let c2 = this._hexToRgb(this.ports.led2color.data)
+            let c3 = this._hexToRgb(this.ports.led3color.data)
             
             // Fills the Lights (Multi User)
             let mean = user.data
