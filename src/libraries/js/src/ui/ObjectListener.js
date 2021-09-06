@@ -19,12 +19,13 @@ x.y = 2;
 //Create instance and then call instance.addListener(listenerName,objectToListenTo,propToListenTo,onchange,interval).
 //name, propToListenTo, onchange, and interval are optional (leave or set as undefined). Onchange is a custom callback just like for other event listeners. Set a name to make it easier to start and stop or edit each listener.
 export class ObjectListener {
-    constructor(debug=false) {
+    constructor(debug=false, synchronous=false) {
         this.debug = debug;
         this.listeners = [];
-        this.synchronous = false;//check all listeners simulatenously instead of on individual loops. use startSync() to trigger
+        this.synchronous = synchronous;//check all listeners simulatenously instead of on individual loops. use startSync() to trigger
         this.syncInterval = 'FRAMERATE'; //interval
         this.syncAnim = undefined;
+        if(synchronous === true) this.startSync();
     }
 
     //add a new object listener with specified props (or none to watch the whole object), and onchange functions, with optional interval
