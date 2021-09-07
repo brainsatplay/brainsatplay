@@ -263,7 +263,10 @@ export class GraphManager{
 
     updateParams(node,params) {
         
-        for (let param in params) node.ports[param].data = params[param]
+        for (let param in params) {
+            if (param in node.ports) node.ports[param].data = params[param]
+            else console.error(`A port for '${params}' does not exist on the ${node.id} node.`)
+        }
     }
 
     shallowCopy(input){
