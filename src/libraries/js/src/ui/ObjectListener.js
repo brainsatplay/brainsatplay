@@ -312,12 +312,14 @@ export class ObjectListenerInstance {
     }
 
     check = () => {
+        let changed = false;
         if(this.propName === "__ANY__" || this.propName === null || this.propName === undefined){
             if(this.propOld !== JSON.stringifyFast(this.object)){
                 if(this.debug === true) { console.log("onchange: ", this.onchange); }
                 this.onchange(this.object);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object); }
                 this.setListenerRef(this.propName);
+                changed = true;
             }
         }
         else if(Array.isArray(this.object[this.propName])) { //cut arrays down for speed
@@ -326,6 +328,7 @@ export class ObjectListenerInstance {
                 this.onchange(this.object[this.propName]);
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
                 this.setListenerRef(this.propName);
+                changed = true;
             }
         }
         else if(typeof this.object[this.propName] === "object") {
@@ -337,6 +340,7 @@ export class ObjectListenerInstance {
                     this.onchangeMulti(this.object[this.propName]); 
                 }
                 this.setListenerRef(this.propName);
+                changed = true;
             }
         }
         else if(typeof this.object[this.propName] === "function") {
@@ -345,6 +349,7 @@ export class ObjectListenerInstance {
                 this.onchange(this.object[this.propName].toString());
                 if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName].toString()); }
                 this.setListenerRef(this.propName);
+                changed = true;
             }
         }
         else if(this.object[this.propName] !== this.propOld) {
@@ -352,6 +357,7 @@ export class ObjectListenerInstance {
             this.onchange(this.object[this.propName]);
             if(this.onchangeFuncs.length > 0) { this.onchangeMulti(this.object[this.propName]); }
             this.setListenerRef(this.propName);
+            changed = true;
         }
         
         if(this.running === true) {
@@ -367,6 +373,8 @@ export class ObjectListenerInstance {
                 setTimeout(()=>{this.check();},this.interval);
             }
         };
+
+        return changed;
     }
 
     start() {
