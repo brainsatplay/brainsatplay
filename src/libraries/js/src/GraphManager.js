@@ -265,7 +265,10 @@ export class GraphManager{
         
         for (let param in params) {
             if (param in node.ports) node.ports[param].data = params[param]
-            else console.error(`A port for '${params}' does not exist on the ${node.id} node.`)
+            else {
+                console.error(`A port for '${param}' does not exist on the ${node.label} node.`)
+                console.log(node, param)
+            }
         }
     }
 
