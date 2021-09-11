@@ -13,7 +13,8 @@ export class Debug{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    console.log(user.username,user.data,user.meta,user)
+                    console.error(user.username,user.data,user.meta,user)
+                    // console.log(user.username,user.data,user.meta,user)
                 }
             }
         }

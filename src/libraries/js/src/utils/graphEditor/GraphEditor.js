@@ -1215,6 +1215,7 @@ export class GraphEditor{
                 container.classList.add(`content-div`)                
 
                 input.oninput = (e) => {
+                    console.log('ONINPUT')
                     this.updatePortFromGUI(input, plugin, key, toParse)
                 }
                 return {container, input}
@@ -1226,7 +1227,7 @@ export class GraphEditor{
         // Listen for Non-GUI Changes to Params when Viewing
         Object.keys(this.state.data).forEach(k => {
             if (k.includes(`GUI${label}_`)){
-                delete this.state.data[k]
+                this.state.removeState(`GUI${label}_`)
             }
         })
 
@@ -1260,8 +1261,10 @@ export class GraphEditor{
                             }
                         }
                     }
-                    
+
+
                     if (oldValue != newValue) {
+                        console.log('vaLueS IDdFERENT')
                         if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
                         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
                     }
@@ -1292,6 +1295,7 @@ export class GraphEditor{
             }
             else toParse[key].data = input.value
             
+            console.log('SETTING PORT WITH THIS', input, plugin, key, toParse)
            this.setPort(plugin,key,toParse)
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
         }
