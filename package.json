@@ -91,6 +91,7 @@
     "uplot": "^1.4.0",
     "utf-8-validate": "^5.0.4",
     "web-worker": "^1.0.0",
+    "webgl-plot": "^0.6.3",
     "webxr-polyfill": "^2.0.3",
     "ws": "^7.4.6"
   },

@@ -25,11 +25,13 @@ export class CallbackManager{
 
         try {
             window.gpu = new gpuUtils();
-            this.gpu = window.gpu
+            this.gpu = window.gpu;
         } catch {
             let gpu = new gpuUtils();
-            this.gpu = gpu
+            this.gpu = gpu;
         }
+
+        this.offscreen = new OffscreenCanvas(512,512);
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
@@ -48,7 +50,12 @@ export class CallbackManager{
                 this.gpu.addKernel(args[0],parseFunctionFromText(args[1]));
               }},
           {case:'callkernel',callback:(args)=>{ //arg0 = kernel name, args.slice(1) = kernel input arguments
-            this.gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
+            return this.gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
+          }},
+          {case:'resizecanvas',callback:(args)=>{
+            this.offscreen.width = args[0];
+            this.offscreen.height = args[1];
+            return true;
           }},
           {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
           {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},

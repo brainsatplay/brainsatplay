@@ -148,16 +148,17 @@ export class gpuUtils {
   }
 
   callKernel(name="",args=[]) {
+    let result;
     let found = this.customFunctions.find((o)=> {
       if(o.name === name) {
-        o.krnl(...args);
+        result = o.krnl(...args);
         return true;
       }
     });
     if(!found) {
       console.error('Kernel not found');
       return false;
-    } else return true;
+    } else return result;
   }
 
   hasKernel(name="") {
