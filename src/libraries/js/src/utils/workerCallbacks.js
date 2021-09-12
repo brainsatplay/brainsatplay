@@ -31,7 +31,8 @@ export class CallbackManager{
             this.gpu = gpu;
         }
 
-        this.offscreen = new OffscreenCanvas(512,512);
+        this.offscreen = new OffscreenCanvas(512,512); //can add fnctions and refer to this.offscreen 
+        this.offscreenctx;
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
