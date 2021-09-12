@@ -23,6 +23,7 @@ export class EEG{
 
         this.ports = {
             atlas: {
+                data: this.session.atlas.data,
                 edit: false,
                 input: {type:null},
                 output: {type: Object, name: 'DataAtlas'},
