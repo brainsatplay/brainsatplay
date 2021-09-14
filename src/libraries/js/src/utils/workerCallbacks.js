@@ -31,8 +31,10 @@ export class CallbackManager{
             this.gpu = gpu;
         }
 
-        this.offscreen = new OffscreenCanvas(512,512); //can add fnctions and refer to this.offscreen 
-        this.offscreenctx;
+        this.canvas = new OffscreenCanvas(512,512); //can add fnctions and refer to this.offscreen 
+        this.context;
+        this.animation = undefined;
+        this.animating = false;
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
@@ -54,9 +56,45 @@ export class CallbackManager{
             return this.gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
           }},
           {case:'resizecanvas',callback:(args)=>{
-            this.offscreen.width = args[0];
-            this.offscreen.height = args[1];
+            this.canvas.width = args[0];
+            this.canvas.height = args[1];
             return true;
+          }},
+          {case:'setValues',callback:(args)=>{
+            if(typeof args === 'object') {
+              Object.keys(args).forEach((key)=>{
+                this[key] = args[key]; //variables will be accessible in functions as this.x or this['x']
+              });
+            }
+          }},
+          {case:'setAnimation',callback:(args)=>{ //pass a function to be run on an animation loop
+
+            let newAnim = parseFunctionFromText(args[0]);
+            let anim = () => {
+              if(this.animating) {
+                newAnim();
+                requestAnimationFrame(anim);
+              }
+            }
+
+            if(this.animating) {
+              this.animating = false; 
+              cancelAnimationFrame(this.animation);
+              setTimeout(()=>{
+                this.animating = true;
+                this.animation = requestAnimationFrame(anim);              
+              },300);
+            } else { 
+              this.animating = true;
+              this.animation = requestAnimationFrame(anim);
+            }
+            
+          }},
+          {case:'stopAnimation',callback:(args)=>{
+            if(this.animating) {
+              this.animating = false;
+              cancelAnimationFrame(this.animation);
+            }
           }},
           {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
           {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},

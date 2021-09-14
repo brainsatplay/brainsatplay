@@ -13,12 +13,12 @@ self.onmessage = (event) => {
   let output = "function not defined";
 
   if(event.data.canvas) { //if a new canvas is sent (event.data.canvas = htmlCanvasElement.transferControlToOffscreen()).
-    manager.offscreen = event.data.canvas; 
-    canvas = manager.offscreen;
+    manager.canvas = event.data.canvas; 
+    canvas = manager.canvas;
   }
   if(event.data.context === 'webgl' || '2d' || "webgl2" || "bitmaprenderer" ) { //set the context
-    manager.offscreenctx = manager.offscreen.getContext(event.data.context);
-    ctx = manager.offscreenctx;
+    manager.ctx = manager.canvas.getContext(event.data.context);
+    ctx = manager.ctx;
   } 
   /*
     now run "addfunc" to render something in the linked canvas from the worker thread
