@@ -46,13 +46,14 @@ export class ThreadedCanvas {
     }
 
     init() {
-		if (window.workers == null){
-			window.workers = new WorkerManager()
-		}
+        if(!this.workerId) {
+            if (window.workers == null){
+                window.workers = new WorkerManager()
+            }
 
-		this.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
-		window.workers.workerResponses.push(this.workeronmessage);
-
+            this.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
+            window.workers.workerResponses.push(this.workeronmessage);
+        }
         this.setCanvas();
         this.setContext();
     }
