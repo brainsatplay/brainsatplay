@@ -1,7 +1,8 @@
 import { WorkerManager } from "./Workers"
 
+//The animation should probably be an arrow function
 export class ThreadedCanvas {
-    constructor(canvas, context='2d') {
+    constructor(canvas, context='2d', animation=undefined) { 
         if(!canvas) throw new Error('Input a canvas element or Id')
         this.name = `canvas_${Math.round(Math.random()*100000)}`;
         this.workerId = undefined;
@@ -10,10 +11,15 @@ export class ThreadedCanvas {
         this.canvas = canvas;
         this.context = context;
         this.offscreen = canvas.transferControlToOffscreen();
+
+        if(animation) {
+            this.init();
+            this.setAnimation(animation);
+        }
         
     }
 
-    setContext(context='2d'){
+    setContext(context=this.context){
         this.context = context;
         window.workers.postToWorker({context:context, origin:this.name},this.workerId);
     }
@@ -47,7 +53,8 @@ export class ThreadedCanvas {
 		this.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
 		window.workers.workerResponses.push(this.workeronmessage);
 
-        this.setCanvas()
+        this.setCanvas();
+        this.setContext();
     }
 
     deinit() {
