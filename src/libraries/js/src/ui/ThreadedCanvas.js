@@ -10,7 +10,6 @@ export class ThreadedCanvas {
         if(typeof canvas === 'string') canvas = document.getElementById(canvas);
         this.canvas = canvas;
         this.context = context;
-        this.offscreen = canvas.transferControlToOffscreen();
 
         if(animation) {
             this.init();
@@ -26,8 +25,8 @@ export class ThreadedCanvas {
 
     setCanvas(canvas=this.canvas) {
         this.canvas = canvas;
-        this.offscreen = canvas.transferControlToOffscreen();
-        window.workers.postToWorker({canvas:this.offscreen, origin:this.name},this.workerId,[this.offscreen]);
+        let offscreen = canvas.transferControlToOffscreen();
+        window.workers.postToWorker({canvas: offscreen, origin:this.name},this.workerId,[offscreen]);
     }
 
     //you can reference canvas/this.canvas and context/this.context in the function 
