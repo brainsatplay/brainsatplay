@@ -65,7 +65,8 @@ export class CallbackManager{
               Object.keys(args).forEach((key)=>{
                 this[key] = args[key]; //variables will be accessible in functions as this.x or this['x']
               });
-            }
+              return true;
+            } else return false;
           }},
           {case:'setAnimation',callback:(args)=>{ //pass a function to be run on an animation loop
 
@@ -88,13 +89,16 @@ export class CallbackManager{
               this.animating = true;
               this.animation = requestAnimationFrame(anim);
             }
+
+            return true;
             
           }},
           {case:'stopAnimation',callback:(args)=>{
             if(this.animating) {
               this.animating = false;
               cancelAnimationFrame(this.animation);
-            }
+              return true;
+            } else return false;
           }},
           {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
           {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},

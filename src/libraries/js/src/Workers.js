@@ -62,7 +62,7 @@ export class WorkerManager {
         return id;
     }
 
-    postToWorker = (input, id = null) => {
+    postToWorker = (input, id = null, transfer=undefined) => {
 
         if (Array.isArray(input.input)){
         input.input = input.input.map(v => {
@@ -71,7 +71,7 @@ export class WorkerManager {
         })} 
 
         if(id === null) {
-            this.workers[this.workerThreadrot].worker.postMessage(input);
+            this.workers[this.workerThreadrot].worker.postMessage(input,transfer);
             if(this.workerThreads > 1){
                 this.workerThreadrot++;
                 if(this.workerThreadrot >= this.workerThreads){
@@ -83,7 +83,7 @@ export class WorkerManager {
 
             this.workers.find((o)=>{
                 if(o.id === id) {
-                    o.worker.postMessage(input); 
+                    o.worker.postMessage(input,transfer); 
                     return true;
                   }
             })
