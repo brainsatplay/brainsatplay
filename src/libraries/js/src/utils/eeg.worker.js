@@ -12,11 +12,11 @@ self.onmessage = (event) => {
   console.time("worker");
   let output = "function not defined";
 
-  if(event.data.canvas) { //if a new canvas is sent (event.data.canvas = htmlCanvasElement.transferControlToOffscreen()).
+  if(event.data.canvas !== undefined) { //if a new canvas is sent (event.data.canvas = htmlCanvasElement.transferControlToOffscreen()).
     manager.canvas = event.data.canvas; 
     canvas = manager.canvas;
   }
-  if(event.data.context === 'webgl' || '2d' || "webgl2" || "bitmaprenderer" ) { //set the context
+  if(event.data.context !== undefined ) { //set the context
     manager.ctx = manager.canvas.getContext(event.data.context);
     ctx = manager.ctx;
   } 
