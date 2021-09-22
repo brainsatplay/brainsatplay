@@ -399,7 +399,6 @@ export class GraphManager{
             let allEqual = true
             let forced = false
             let stringify = true
-
             // if (node.states[port] == null) node.states[port] = [{}]
 
             // result.forEach((o,i) => {
@@ -442,7 +441,7 @@ export class GraphManager{
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
                 if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.ports[port])) // Do not send huge objects
-                node.stateUpdates.manager.setState(updateObj);
+                node.stateUpdates.manager.setState_T(updateObj);
             }
         }
     }
@@ -559,8 +558,12 @@ export class GraphManager{
 
 
         if (node.ports[port].analysis == null) node.ports[port].analysis = []
+       
+        // if (!('data' in node.ports[port])) {
+        //     if (node.ports[port]?.output?.type === Object) node.ports[port].data = {}
+        // }
 
-        if (node.ports[port].onUpdate == null){ // Default Port Function: CHECK
+        if (!('onUpdate' in node.ports[port])){ // Default Port Function: CHECK
             node.ports[port].onUpdate = (user) => {
                 node.ports[port].data = user.data
                 return user
@@ -705,7 +708,6 @@ export class GraphManager{
                         if (!u.meta) u.meta = {}
                         if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                         u.meta.session = applet.sessionId
-
                         let returned = this.runSafe(target, targetPort, u, true)
                         if (this.applets[appId].editor) this.applets[appId].editor.animate(
                             {label:source.label, port: sourcePort},
@@ -729,7 +731,6 @@ export class GraphManager{
                 applet.streams.add(label) // Keep track of streams
 
                 // Initialize Port
-                // console.log(source.id, sourcePort, source.ports[sourcePort])
                 if (source.ports[sourcePort].meta == null) source.ports[sourcePort].meta = {}
                 source.ports[sourcePort].meta.source = label
                 source.ports[sourcePort].meta.session = applet.sessionId
@@ -738,7 +739,7 @@ export class GraphManager{
 
             // And Listen for Local Changes
             if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
-            let subId = this.state.subscribeSequential(label, _onTriggered)
+            let subId = this.state.subscribeTrigger(label, _onTriggered)
             applet.subscriptions.local[label].push({id: subId, target: newEdge.target})
 
             if (target.ports[targetPort] == null) target.ports[targetPort] = {}
@@ -767,19 +768,18 @@ export class GraphManager{
             let forceSend = input.forceUpdate
 
             let isElement = input.data instanceof Element || input.data instanceof HTMLDocument
+            let isFunction = input.data instanceof Function
 
             // Send Last State to New Edge Target
             let sendFunction = () => {
                 // Add Default Metadata
-                // console.log(input)
                 if (input.meta == null) input.meta = {}
-                // console.log(input.meta)
                 input.meta.source = label
                 input.meta.session = applet.sessionId
                 this.runSafe(target, targetPort, input, true)
             }
 
-            if (sendOutput && (brainstormTarget || isElement || target.constructor.name)) sendFunction() // If new connection must pass (1) an element, or (2) anything to the Brainstorm
+            if (sendOutput && (brainstormTarget || isElement || isFunction || target.constructor.name)) sendFunction() // If new connection must pass (1) an element / function, or (2) anything to the Brainstorm
             else if (
                 (!brainstormSource) && 
                 (brainstormTarget || ((forceSend || hasData) && !lastStateSent))) return sendFunction // Else if there is data on initialization

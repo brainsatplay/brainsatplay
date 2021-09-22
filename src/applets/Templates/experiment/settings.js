@@ -34,7 +34,7 @@ export const settings = {
           params:{
             trialTypes: ['Eyes Open', 'Eyes Closed'],
             trialCount: 2,
-            duration: 2,
+            duration: 60,
             interTrialInterval: 2,
             allowConsecutive: false,
             start: false
@@ -71,7 +71,7 @@ export const settings = {
         }
       },
 
-      {id: 'debug', class: brainsatplay.plugins.debug.Debug},
+      // {id: 'debug', class: brainsatplay.plugins.debug.Debug},
       ],
 
       edges: [
@@ -159,10 +159,10 @@ export const settings = {
           target: 'manager:done'
         },
 
-        {
-          source: 'manager:done', 
-          target: 'debug'
-        },
+        // {
+        //   source: 'manager:done', 
+        //   target: 'debug'
+        // },
 
 
         // Show Results

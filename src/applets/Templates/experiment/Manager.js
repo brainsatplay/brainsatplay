@@ -125,10 +125,10 @@ class Manager{
             },
 
             done: {
-                data: {},
+                // data: {},
                 edit: false,
                 input: {type: undefined},
-                output: {type: Object},
+                output: {type: 'boolean'},
                 onUpdate: (user) => {
 
                     let alphaMeans = {}
@@ -170,7 +170,8 @@ class Manager{
                     }
 
                     this.props.experiment.style.display = 'none'
-                    return alphaMeans
+
+                    return {data: alphaMeans}
                 }
             },
 

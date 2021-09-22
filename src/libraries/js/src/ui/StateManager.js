@@ -209,7 +209,7 @@ export class StateManager {
     }
 
     //Trigger-only functions on otherwise looping listeners
-    subscribeTrigger(key=undefined,onchange=(prop)=>{}) {
+    subscribeTrigger(key=undefined,onchange=(key)=>{}) {
         if(key) {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
