@@ -1,6 +1,6 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-import {GraphEditor} from './utils/graphEditor/GraphEditor'
+import {GraphEditor} from './editor/GraphEditor'
 import {plugins} from '../brainsatplay'
 
 export class GraphManager{
