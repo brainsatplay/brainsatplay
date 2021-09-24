@@ -1215,7 +1215,6 @@ export class GraphEditor{
                 container.classList.add(`content-div`)                
 
                 input.oninput = (e) => {
-                    console.log('ONINPUT')
                     this.updatePortFromGUI(input, plugin, key, toParse)
                 }
                 return {container, input}
@@ -1295,7 +1294,6 @@ export class GraphEditor{
             }
             else toParse[key].data = input.value
             
-            console.log('SETTING PORT WITH THIS', input, plugin, key, toParse)
            this.setPort(plugin,key,toParse)
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
         }
