@@ -128,7 +128,7 @@ export class DataAtlas {
 			let slice;
 			if (typeof this.data.eegshared.eegChannelTags === "string") slice = parseInt(this.data.eegshared.eegChannelTags) 
 			else slice = this.data.eegshared.eegChannelTags
-			this.data.eegshared.eegChannelTags = ["FP1","FP2","FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"].slice(0,slice)
+			this.data.eegshared.eegChannelTags = ["FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"].slice(0,slice)
 			this.data.eegshared.eegChannelTags = this.data.eegshared.eegChannelTags.map((t,i) => {
 				return {ch:i,tag:t,analyze: true}
 			})

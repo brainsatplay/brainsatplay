@@ -1,8 +1,9 @@
-varying float vMass;
+// varying float vMass;
 varying vec2 vCircleSpace;
 // varying float vDepth;
 uniform float iTime;
-uniform float uColorChange;
+uniform float uData[100]; // Maximum 100
+
 
 float map(float value, float min1, float max1, float min2, float max2) {
   return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
@@ -75,7 +76,7 @@ void main(){
     vec2 st = vCircleSpace/9.0;
     // st.xy += vDepth;
     // st.x *= u_resolution.x/u_resolution.y;
-    vec3 color = vec3(0.0);
+    vec3 color = vec3(1.0);
     // determines size
     vec2 p = st*3.;
 
@@ -100,32 +101,6 @@ void main(){
     float r = fbm(p + t2 + s);
     // so this is where is ressembles the canonical quilez technique
     color += fbm(q + r);
-    // bump up brightness a smidgen
-    color += 0.25;
-    color.r +=  s + 0.08;
-    // note that r here isn't red, it's river as modulated by undercurrent
-    color.b += r + 0.2;
-    // color.r = clamp(color.r,0.1,0.9);
-    color.b = clamp(color.b,0.1,0.5);
-    // pollution as opposite of undercurrent color (couldnt use q without more operations)
-    color.g += s/1.5;
-    // color.g = clamp(color.g,color.b,0.8);
-    color.r += 1.0;
-    color.g += 0.2 * slashA(st, 0.8,0.2);
-    // color.b += slashA(st, 0.12,0.2) - slashA(st, 0.07,0.2);
-    // color.g -= 0.2 * ( slashA(st, 0.12,0.2) - slashA(st, 0.07,0.2));
-        color += circle(vCircleSpace, 0.8) - circle(vCircleSpace, 0.77) ;
-    color *= circle(vCircleSpace, 0.8) * step(st.y,0.75);
-    // gl_FragColor = vec4(color,vMass *  2.1 * vDepth + .05 );
 
-    vec3 color2 = vec3(0.3);
-    color2 += fbm(q + r);
-    // bump up brightness a smidgen
-    color2 += 0.25;
-    color2.r +=  s + 0.18;
-    // note that r here isn't red, it's river as modulated by undercurrent
-    color2.b += r + 0.5;
-    // pollution as opposite of undercurrent color (couldnt use q without more operations)
-    color2.g += s/2.5;
-    gl_FragColor = vec4(mix(color,color2,uColorChange),vMass *  2.1 + .05 );
+    gl_FragColor = vec4(1.0,1.0,1.0,0.5);//vec4(color, clamp(1.0* vMass *  2.1 * vDepth,.05,.9) );
 }

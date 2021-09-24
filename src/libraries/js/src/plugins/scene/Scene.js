@@ -55,7 +55,16 @@ export class Scene{
                 onUpdate: (user) => {
                     if (!Array.isArray(user.data)) user.data = [user.data]
                     user.data.forEach(mesh => {
-                        if (mesh instanceof THREE.Object3D) this.props.scene.add(mesh)
+
+                        if (mesh instanceof THREE.Object3D) {
+
+                            // Remove if object of the same name already exists
+                            let existingObject = this.props.scene.getObjectByName( mesh.name);
+                            if (existingObject) this.props.scene.remove(existingObject)
+
+                            // Add object
+                            this.props.scene.add(mesh)
+                        }
                         // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
                     })
                 }
@@ -68,6 +77,7 @@ export class Scene{
             camerax: {data: 0},
             cameray: {data: 1.6},
             cameraz: {data: 1.5},
+            controls: {data: 'first-person', input: {type: 'string'}, options: ['orbit', 'first-person']},
         }
     }
 
@@ -88,14 +98,19 @@ export class Scene{
             // this.props.renderer.shadowMap.enabled = true;
 
             // Controls
-            this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
+
+            if (this.ports.controls.data === 'orbit') this.props.controls = new OrbitControls(this.props.camera, this.props.container);
+            else this.props.controls = new PointerLockControls(this.props.camera, this.props.container);
 
             // let minAngle = Math.PI/2 + 0.0001
             // this.props.camera.rotateX(-0.0001)
             // this.props.controls.minPolarAngle = minAngle
+            console.log(this.props.controls)
 
 
-            this.props.scene.add(this.props.controls.getObject());
+            // Enable WebXR and Pointer Lock
+            if (this.ports.controls.data !== 'orbit') {
+                this.props.scene.add(this.props.controls.getObject());
             this.props.container.addEventListener( 'click', _ => {
                 // Ask the browser to lock the pointer
                 this.props.container.requestPointerLock = this.props.container.requestPointerLock ||
@@ -127,12 +142,12 @@ export class Scene{
             document.addEventListener('keydown', event => {if (this.props.pointerlock) this._onKeyDown(event)}, false);
             document.addEventListener('keyup', event => {this._onKeyUp(event)}, false);
 
-            // Support WebXR
-            this.props.VRButton = VRButton.createButton( this.props.renderer );
-            this.props.container.appendChild( this.props.VRButton );
-            this.props.VRButton.style.zIndex = 1;
-            
-            this.props.renderer.xr.enabled = true;
+
+                this.props.VRButton = VRButton.createButton( this.props.renderer );
+                this.props.container.appendChild( this.props.VRButton );
+                this.props.VRButton.style.zIndex = 1;
+                
+                this.props.renderer.xr.enabled = true;
 
             // Setup Controllers
             this.props.controllers.push(this.props.renderer.xr.getController( 0 ));
@@ -181,6 +196,7 @@ export class Scene{
             this.props.controllers.forEach(c => {
                 c.add( line.clone() );
             })
+        }
 
             this.props.raycaster = new THREE.Raycaster();
 
@@ -387,19 +403,21 @@ export class Scene{
             // })
 
             // Move View
-            this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
-            this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
 
-            this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
-            this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
-            this.props.direction.normalize(); // this ensures consistent movements in all directions
+            if (this.ports.controls.data !== 'orbit'){
+                this.props.velocity.x -= this.props.velocity.x * 10.0 * delta;
+                this.props.velocity.z -= this.props.velocity.z * 10.0 * delta;
 
-            if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
-            if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
+                this.props.direction.z = Number( this.props.forward ) - Number( this.props.backward );
+                this.props.direction.x = Number( this.props.right ) - Number( this.props.left );
+                this.props.direction.normalize(); // this ensures consistent movements in all directions
 
-            this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
-            this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+                if ( this.props.forward || this.props.backward ) this.props.velocity.z -= this.props.direction.z * 400.0 * delta;
+                if ( this.props.left || this.props.right ) this.props.velocity.x -= this.props.direction.x * 400.0 * delta;
 
+                this.props.controls.moveRight( - 0.1*this.props.velocity.x * delta );
+                this.props.controls.moveForward( - 0.1*this.props.velocity.z * delta );
+            } else this.props.controls.update() // update controls
             // if (Math.abs(this.props.velocity.x) > 0.1 || Math.abs(this.props.velocity.z) > 0.1){
             //     this._moveHUD()
             // }

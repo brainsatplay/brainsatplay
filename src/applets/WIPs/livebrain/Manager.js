@@ -41,14 +41,44 @@ class Manager{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
+
+                    let tags = []
+                    let positions = []
+
+                    // Add Markers
                     user.data.eeg.forEach(o => {
                         let marker = this.props.markers.get(o.tag)
                         if (marker == null) {
                             this._addMarker(o)
                         }
+                        tags.push(o.tag)
+                        console.log(o)
+                        positions.push(...[o.position.x,o.position.y,o.position.z])
                     })
+
+                    // Remove Unnecessary Markers
+                    this.props.markers.forEach((o,k) => {
+                        if (!tags.includes(k)){
+                            this.props.brain.remove(this.props.markers.get(k))
+                            this.props.markers.delete(k)
+                        }
+                    })
+
+                    // this.ports.position.onUpdate({data: positions})
+                    // this.ports.values.onUpdate({data: values})
                 }
             }, 
+
+            values: {
+                data: [], // per channel
+                input: {type: Array},
+                output: {type: Array},
+                onUpdate: (user) => {
+                    console.log(user)
+                    return user
+                }
+            }, 
+
             element: {
                 data: this.props.container,
                 input: {type: undefined},
@@ -88,6 +118,7 @@ class Manager{
 
             // Setup Model
             model: {
+                data: [],
                 input: {type: undefined},
                 output: {type: Array},
                 onUpdate: (user) => {
@@ -151,7 +182,7 @@ class Manager{
         this.props.scene.remove(this.props.mesh)
         this.props.geometry =  new THREE.BufferGeometry()
         this.props.geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( user.data, 3 ) );
-        this.props.material = new THREE.PointsMaterial({color: 'white'})
+        this.props.material = new THREE.PointsMaterial({color: 'white', opacity: 0.3, transparent: true})
         this.props.mesh = new THREE.Points(this.props.geometry,this.props.material)
         this.props.brain.add(this.props.mesh)
 

@@ -47,14 +47,17 @@ export class Shader{
         let result = [...glsl.matchAll(re)]
 
         result.forEach((match) => {
+            // remove square brackets for arrays
             this._setPort(match)
         })
     }
 
     _setPort = (match) => {
-        let name = match[2]
-        let type = match[1]
-        
+        let nameArr = match[2].split('[')
+        let typeArr = match[1].split('[')
+        let name = match[2].split('[')[0]
+        let type = (typeArr.length + nameArr.length > 2) ? Array : typeArr[0]
+
         // Set Uniform
         if (this.props.uniforms[name] == null) this.props.uniforms[name] = {value: 0}
 

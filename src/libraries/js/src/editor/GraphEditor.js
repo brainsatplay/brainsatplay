@@ -1201,7 +1201,7 @@ export class GraphEditor{
             else {
                     input = document.createElement('input')
                     // Check if Color String
-                    if (/^#[0-9A-F]{6}$/i.test(toParse[key].value)){
+                    if (defaultType == 'color' || /^#[0-9A-F]{6}$/i.test(toParse[key].value)){
                         input.type = 'color'
                     } else {
                         input.type = 'text'

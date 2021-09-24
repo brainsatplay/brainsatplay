@@ -80,33 +80,33 @@ export class Neurofeedback{
 
                     // Per-Channel EEG Neurofeedback
                     'Alpha Beta Ratio': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.getAlphaBetaRatio(ch)
                     },
                     'Alpha Theta Ratio': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.getAlphaThetaRatio(ch)
                     },
                     'Theta Beta Ratio': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.getThetaBetaRatio(ch)
                     },
                     'Alpha Ratio': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.getAlphaRatio(ch)
                     },
                     'Gamma Peak': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.get40HzGamma(ch)
                     },
                     'Low Gamma Score': {
-                        type: 'coherence',
+                        type: 'eeg',
                         function: (ch) => this.session.atlas.getLowGammaScore(ch)
                     },
 
                     // Per-Channel HEG Neurofeedback
                     'HEG Score': {
-                        type: 'coherence',
+                        type: 'heg',
                         function: (ch) => this.session.atlas.getHEGRatioScore(ch)
                     },
 
@@ -157,7 +157,7 @@ export class Neurofeedback{
             data: 1,
             meta: {label: this.ports.metric.data},
             input: {type: Object, name: 'DataAtlas'},
-            output: {type: 'number'},
+            output: {type: undefined},
             onUpdate: (user) => {
                     
                 let arr = []
@@ -166,8 +166,6 @@ export class Neurofeedback{
                 // console.log(data)
     
                 try {
-    
-                    console.error(user.data)
                     let type = this.props.feedbackInfo[this.ports.metric.data].type
                     if (type === 'custom'){ // takes whole data array
                         user.data = this.props.feedbackInfo[this.ports.metric.data].function(data) ?? 0 
@@ -187,7 +185,7 @@ export class Neurofeedback{
                     else user.data = this.session.atlas.mean(arr)
                 }       
     
-                // console.log(arr)
+                console.log(data, arr)
                 
                 // Output to User Data Object
                 // console.log(user.data)
