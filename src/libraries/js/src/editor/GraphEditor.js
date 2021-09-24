@@ -1,11 +1,11 @@
 import {Graph} from './Graph'
-import {LiveEditor} from '../../ui/LiveEditor'
-import { DOMFragment } from '../../ui/DOMFragment'
-import { StateManager } from '../../ui/StateManager'
+import {LiveEditor} from '../ui/LiveEditor'
+import { DOMFragment } from '../ui/DOMFragment'
+import { StateManager } from '../ui/StateManager'
 
 // Project Selection
-import {appletManifest} from '../../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
-import { getApplet, getAppletSettings } from "../../../../../platform/js/general/importUtils"
+import {appletManifest} from '../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
+import { getApplet, getAppletSettings } from "../../../../platform/js/general/importUtils"
 
 // Node Interaction
 import * as dragUtils from './dragUtils'
