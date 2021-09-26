@@ -283,6 +283,18 @@ export class mathUtils {
 		return m;
 	}
 
+	//Statistical moment about the origin (discrete)
+	static centralMoment(probabilities=[],order=1) {
+		let moment = 0;
+		let mean = this.mean(probabilities); //expected value
+		let len = probabilities.length;
+		for(let i = 0; i < len; i++) {
+			moment += probabilities[i] * Math.pow(mean[i],order);
+		}
+
+		return moment;
+	}
+
 	//Get probability densities for the samples
 	static normalDistribution(samples=[]) {
 		let mean = this.mean(samples);
