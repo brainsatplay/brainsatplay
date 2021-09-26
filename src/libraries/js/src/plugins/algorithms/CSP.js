@@ -1,5 +1,5 @@
 import bci from 'bcijs/browser.js'
-import {eegmath} from '../../utils/eegmath';
+import {mathUtils} from '../../utils/mathUtils/mathUtils';
 
 export class CSP{
 
@@ -31,7 +31,7 @@ export class CSP{
                 input: {type: Array},
                 output: {type: Array},
                 onUpdate: (user) => {
-                    return eegmath.transpose([this._computeFeatures(this.props.model, user.data)])
+                    return mathUtils.transpose([this._computeFeatures(this.props.model, user.data)])
                 }
             }
         }

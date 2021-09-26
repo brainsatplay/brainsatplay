@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { Texture } from 'three';
 import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
-import {eegmath} from '../eegmath'
+import {mathUtils} from '../mathUtils/mathUtils'
 
 import uvgrid from './uvgrid.png'
 
@@ -482,7 +482,7 @@ void main(){
                 if (name === 'iFFT') {
                     let data = atlas.getLatestFFTData(channel)[0];
                     if (data.fft){
-                        let fft = eegmath.interpolateArray(channel.fft,256);
+                        let fft = mathUtils.interpolateArray(channel.fft,256);
                         if(fft) material.uniforms.iFFT.value = fft;
                     }
                 }
@@ -618,7 +618,7 @@ void main(){
                     if (name === 'iFFT') {
                         let data = atlas.getLatestFFTData(channel)[0];
                         if (data.fft){
-                            let fft = eegmath.interpolateArray(channel.fft,256);
+                            let fft = mathUtils.interpolateArray(channel.fft,256);
                             if(fft) value = fft;
                         }
                     }

@@ -23,10 +23,11 @@ export class WebglPlotUtils {
     }
 
     //averages values when downsampling.
-    downsample(array,count) {
-        if(array.length > count) {        
-            let output = new Array(count);
-            let incr = array.length/count;
+    static downsample(array,fitCount, normalize=1) {
+
+        if(array.length > fitCount) {        
+            let output = new Array(fitCount);
+            let incr = array.length/fitCount;
             let lastIdx = array.length-1;
             let last = 0;
             let counter = 0;
@@ -36,13 +37,36 @@ export class WebglPlotUtils {
                 for(let j = last; j < rounded; j++) {
                     output[counter] += array[j];
                 }
-                output[counter] /= (rounded-last);
+                output[counter] /= (rounded-last)*normalize;
                 counter++;
                 last = rounded;
             }
             return output;
         } else return array; //can't downsample
     }
+
+    //Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
+	static upsample(array, fitCount, normalize=1) {
+
+		var norm = normalize;
+
+		var linearInterpolate = function (before, after, atPoint) {
+			return (before + (after - before) * atPoint)*norm;
+		};
+
+		var newData = new Array();
+		var springFactor = new Number((array.length - 1) / (fitCount - 1));
+		newData[0] = array[0]; // for new allocation
+		for ( var i = 1; i < fitCount - 1; i++) {
+			var tmp = i * springFactor;
+			var before = new Number(Math.floor(tmp)).toFixed();
+			var after = new Number(Math.ceil(tmp)).toFixed();
+			var atPoint = tmp - before;
+			newData[i] = linearInterpolate(array[before], array[after], atPoint);
+		}
+		newData[fitCount - 1] = array[array.length - 1]; // for new allocation
+		return newData;
+	};
 
     initPlot(nLines = 1, properties=[{sps:this.nSecGraph*this.nMaxPointsPerSec}]) {
 
@@ -62,23 +86,20 @@ export class WebglPlotUtils {
             let numX = this.nSecGraph*this.nMaxPointsPerSec;
             if(properties[i].sps < numX) numX = properties.sps*this.nSecGraph;
             let line = new WebglLine(color,numX);
-            //line.arrangeX();
+            line.arrangeX();
 
-            this.lines.push(line);
-            this.plot.addLine(line);
+            this.plot.addDataLine(line);
 
             let xaxisY = i*this.scalar*.5+i*this.scalar;
             let xaxis = new WebglLine(xaxisColor,2);
-            xaxis.setY(0,xaxisY); xaxis.setY(1,aaxisY);
-            this.plot.addLine(xaxis);
-            this.axes.push(xaxis);
+            xaxis.constY(xaxisY);
+            this.plot.addAuxLine(xaxis);
 
             if(i !== nLines-1) {
                 let dividerY = this.scalar*i;
                 let divider = new WebglLine(dividerColor,2);
-                divider.setY(0,dividerY); divider.setY(1,dividerY);
-                this.plot.addLine(divider);
-                this.dividers.push(divider);
+                divider.constY(dividerY);
+                this.plot.addAuxLine(divider);
             }
 
         }
@@ -89,7 +110,7 @@ export class WebglPlotUtils {
         this.nSecGraph = nSec;
     }
 
-    update(lineIdx=undefined) {
+    update(newAmplitudes=[],lineIdx=undefined) {
         if(lineIdx) {
 
         } else {
@@ -98,3 +119,27 @@ export class WebglPlotUtils {
     }
 
 }
+
+/**
+ * importnat WebglPlot functions
+ * addLine(line)
+ * addDataLine(line)
+ * addAuxLine(line)
+ * popDataLine()
+ * removeAllLines()
+ * linesData() //returns data line obj array
+ * linesAux() //returns aux line obj array
+ * removeDataLines()
+ * removeAuxLines()
+ * update()
+ * 
+ * 
+ * important WebglLine functions
+ * setX(i,x)
+ * setY(j,y)
+ * constY(c) 
+ * replaceArrayX(xarr)
+ * replaceArrayY(yarr)
+ * arrangeX()
+ * linSpaceX(start, stepsize);
+ */

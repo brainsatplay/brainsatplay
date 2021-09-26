@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/1.33.1/plotly.min.js"></script>
+</head>
+<body>
+    Launching a ball from height y, predicting it lands at site x.
+    What is the maximum entropy of the model?
+    <hr>
+    Prediction and Actual
+    <div id='a' style='width:100%;'></div>
+    <hr>
+    Probability Densities 
+    <div id='b' style='width:100%;'></div>
+    <hr>
+    Relative Error vs Information Entropy (Uncertainty) | Max: <span id='ent'></span>
+    <div id='c' style='width:100%;'></div>
+    <script>
+        let g = 9.81; //acceleration due to gravity
+
+        //launch a ball from a frictionless ramp of height y0, from a height of y1, how far away does it land?
+        function estLauncherLandingDist(launcherHeight=5, fallHeight=10) {
+            let t1 = Math.sqrt(2*fallHeight/g);
+            let x1 = g*t1*Math.sqrt(2*launcherHeight/g);
+            return x1;
+        }
+
+        //find the relative error of predicted results
+        function relError(actual=[],forecast=[]) {
+            if(actual.length !== forecast.length) throw new Error('Input arrays of same length!');
+            let i = actual.length;
+            let d = []; //relative errors
+            for(let j = 0; j<i; j++) {
+                d.push(Math.abs((actual[j] - forecast[j])/actual[j]));
+            }
+
+            return d;
+        }
+
+        function mean(arr) {
+            var sum = arr.reduce((prev,curr)=> curr += prev);
+            return sum / arr.length;
+        }
+        
+        function variance(arr) { //Variance of 1D input arrays of length n
+            var m = mean(arr);
+            return arr.reduce((a,b) => a + ((b - m)**2), 0)/arr.length;
+        }
+
+        //Get probability densities for the samples
+        function normalDistribution(samples=[]) {
+            let m = mean(samples);
+            let vari = variance(samples);
+            let nSamples = samples.length;
+
+            let probabilities = new Array(nSamples);
+
+            let denom = 1/(Math.PI*2*vari);
+            let _vari = 1/vari;
+            for (let i = 0; i < nSamples; i++) {
+                probabilities[i] = Math.exp(-0.5*Math.pow((samples[i]-m)*_vari,2))*denom;
+            }
+
+            return probabilities;
+        }
+
+        //return in natural units (base e)
+        function informationEntropy(probabilities=[]) {
+            let entropy = [];
+            let len = probabilities.length;
+            for(let i = 0; i < len; i++) {
+                let ent = probabilities[i]*Math.log(probabilities[i]);
+                if(isNaN(ent)) ent = 0;
+                entropy.push(ent);
+            }
+
+            return entropy;
+        }
+
+        let heights = [];
+        let predictedLandings = [];
+        let actualLandings = [];
+        let d = []; // relative error
+        let pEnt = [];
+        let pDist = []; //probability density of forecast
+        let aDist = []; //probability density of actual
+        let ct = 0;
+
+
+        let fallHeight = 10; //meters
+        let targetDistance = 15; //meters
+        let ntrials = 100;
+
+        while(ct < ntrials) {
+
+            let launcherHeight = 5.62 + (Math.random()-1)/(ct+1);
+            let launchDistance = estLauncherLandingDist(launcherHeight,fallHeight);
+
+            heights.push(launcherHeight);
+            predictedLandings.push(launchDistance);
+            actualLandings.push(launchDistance+(Math.random()-.6)*0.1); //10% error with slightly negative bias (because a real ramp would not be frictionless + human error)
+            ct++;
+        }
+
+        d = relError(actualLandings,predictedLandings);
+        pDist = normalDistribution(predictedLandings);
+        aDist = normalDistribution(actualLandings);
+        pEnt = informationEntropy(d);
+        let maxEnt = Math.min(...pEnt);
+        document.getElementById('ent').innerHTML = maxEnt;
+
+        console.log('drop heights',heights);
+        console.log('predicted landings',predictedLandings);
+        console.log('real landings',actualLandings);
+        console.log('predicted distribution',pDist);
+        console.log('actual distribution',aDist);
+        console.log('relative error entropy',pEnt);
+        console.log('max ent (negative)',maxEnt);
+
+        //Now find the Maximum Entropy Distribution
+
+        let data = [
+            [
+                {
+                    x: predictedLandings,
+                    y: heights,
+                    mode: 'markers',
+                    type:'scatter',
+                    marker: {
+                        color: "rgba(255,100,100, 1)"
+                    },
+                    name: "Predicted",
+                    //xbins: {  size: 0.01  }
+                },{
+                    x: actualLandings,
+                    y: heights,
+                    mode: 'markers',
+                    type:'scatter',
+                    marker: {
+                        color: "rgba(100,255,100, 1)"
+                    },
+                    name: "Actual",
+                    //xbins: {  size: 0.01  } 
+                }
+            ],
+            [
+                {
+                    x: predictedLandings,
+                    y: pDist,
+                    mode: 'markers',
+                    type:'scatter',
+                    marker: {
+                        color: "rgba(255,100,255, 1)"
+                    },
+                    name: "Prediction Probability Density",
+                    //xbins: {  size: 0.01  } 
+                },
+                {
+                    x: actualLandings,
+                    y: aDist,
+                    mode: 'markers',
+                    type:'scatter',
+                    marker: {
+                        color: "rgba(100,100,255, 1)"
+                    },
+                    name: "Actual Probability Density",
+                    //xbins: {  size: 0.01  } 
+                }
+            ],
+            [
+                {
+                    x: d,
+                    y: pEnt,
+                    mode: 'markers',
+                    type:'scatter',
+                    marker: {
+                        color: "rgba(100,255,100, 1)"
+                    },
+                    name: "Rel Err vs Information Entropy",
+                    //xbins: {  size: 0.01  } 
+                }
+            ]
+        ];
+
+        let config = { 
+            scrollZoom: true, 
+            responsive: true, 
+        }
+
+        Plotly.newPlot("a",data[0],undefined,config);
+        Plotly.newPlot("b",data[1],undefined,config);
+        Plotly.newPlot("c",data[2],undefined,config);
+
+    </script>
+</body>

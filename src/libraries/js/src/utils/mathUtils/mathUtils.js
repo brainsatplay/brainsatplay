@@ -1,5 +1,5 @@
-//By Joshua Brewster (GPL)
-export class eegmath {
+//By Joshua Brewster (AGPL)
+export class mathUtils {
 	constructor() {
 
 	}
@@ -82,6 +82,31 @@ export class eegmath {
 		}
 		
 		return Math.sqrt(summed/arr.length);
+	}
+
+	//find the relative error of predicted results
+	static relError(actual=[],forecast=[]) {
+		if(actual.length !== forecast.length) throw new Error('Input arrays of same length!');
+		let i = actual.length;
+		let d = []; //relative errors
+		for(let j = 0; j<i; j++) {
+			d.push(Math.abs((actual[j] - forecast[j])/actual[j]));
+		}
+
+		return d;
+	}
+
+	//returns information entropy in natural units (base e)
+	static informationEntropy(probabilities=[]) {
+		let entropy = [];
+		let len = probabilities.length;
+		for(let i = 0; i < len; i++) {
+			let ent = probabilities[i]*Math.log(probabilities[i]);
+			if(isNaN(ent)) ent = 0;
+			entropy.push(ent);
+		}
+
+		return entropy;
 	}
 
 	//array zscore (probabilities)

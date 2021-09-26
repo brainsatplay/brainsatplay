@@ -11,7 +11,7 @@ Data Streams
   -- Hardware and Session state data via Websockets
 
 Data Processing 
-- eegworker.js, eegmath, bcijs, etc.
+- eegworker.js, mathUtils, bcijs, etc.
 
 Data State
 - Sort raw/filtered data

@@ -1,4 +1,4 @@
-import {eegmath} from '../../utils/eegmath'
+import {mathUtils} from '../../utils/mathUtils/mathUtils'
 
 
 export class DataQuality{
@@ -34,12 +34,12 @@ export class DataQuality{
         
                                 // Calculate Quality (0+, where > 1 is good quality)
                                 if (this.ports.method.data === 'Standard Deviation'){
-                                    let meanVariance = eegmath.variance(slice)
+                                    let meanVariance = mathUtils.variance(slice)
                                     let std = Math.sqrt(meanVariance)
                                     quality = this.ports.qualityThreshold.data / std
                                 } else if (this.ports.method.data === 'Mean Amplitude'){
                                     let absSlice = slice.map(v => Math.abs(v))
-                                    let mean = eegmath.mean(absSlice)
+                                    let mean = mathUtils.mean(absSlice)
                                     quality = this.ports.qualityThreshold.data / mean
                                 }
         

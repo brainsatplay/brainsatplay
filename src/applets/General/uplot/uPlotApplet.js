@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import {uPlotMaker} from '../../../libraries/js/src/ui/eegvisuals'
-import {eegmath} from '../../../libraries/js/src/utils/eegmath'
+import { mathUtils } from '../../../libraries/js/src/utils/mathUtils/mathUtils';
 import {genBandviewSelect,addChannelOptions,addCoherenceOptions} from '../../../platform/js/frontend/menus/selectTemplates'
 import * as settingsFile from './settings'
 
@@ -406,12 +406,12 @@ export class uPlotApplet {
                 
                 atlas.data.coherence.forEach((row,i) => {
                   if(view === 'All') {
-                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    this.class.uPlotData[i+1].push(mathUtils.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
                     if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
                       this.class.uPlotData[i+1].shift();
                     }
                   } else if (row.tag === view) {
-                    this.class.uPlotData[i+1].push(eegmath.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
+                    this.class.uPlotData[i+1].push(mathUtils.sma(row.means[band].slice(count-window, atlas.data.coherence[0].count),window)[window-1]);
                     if(this.class.uPlotData[i+1].length > this.class.uPlotData[0].length) {
                       this.class.uPlotData[i+1].shift();
                     }
@@ -797,7 +797,7 @@ export class uPlotApplet {
                     stroke: "rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
                   });
                   if(row.fftCount > 20) {
-                    this.class.uPlotData.push(eegmath.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
+                    this.class.uPlotData.push(mathUtils.sma(row.means[band].slice(count, atlas.data.coherence[0].fftCount),20));
                   } else { this.class.uPlotData.push(atlas.data.eegshared.frequencies); }
                 }
               });

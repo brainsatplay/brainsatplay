@@ -1,5 +1,5 @@
 import { gpuUtils } from './gpuUtils.js';
-import { eegmath } from './eegmath';
+import { mathUtils } from './mathUtils/mathUtils';
 
 function parseFunctionFromText(method){
     //Get the text inside of a function (regular or arrow);
@@ -100,11 +100,11 @@ export class CallbackManager{
               return true;
             } else return false;
           }},
-          {case:'xcor', callback:(args)=>{return eegmath.crosscorrelation(...args);}},
-          {case:'autocor', callback:(args)=>{return eegmath.autocorrelation(args);}},
-          {case:'cov1d', callback:(args)=>{return eegmath.cov1d(...args);}},
-          {case:'cov2d', callback:(args)=>{return eegmath.cov2d(args);}},
-          {case:'sma', callback:(args)=>{return eegmath.sma(...args);}},
+          {case:'xcor', callback:(args)=>{return mathUtils.crosscorrelation(...args);}},
+          {case:'autocor', callback:(args)=>{return mathUtils.autocorrelation(args);}},
+          {case:'cov1d', callback:(args)=>{return mathUtils.cov1d(...args);}},
+          {case:'cov2d', callback:(args)=>{return mathUtils.cov2d(args);}},
+          {case:'sma', callback:(args)=>{return mathUtils.sma(...args);}},
           {case:'dft', callback:(args)=>{
             if(args[2] == undefined) args[2] = 1;
             return this.gpu.gpuDFT(...args);
@@ -131,7 +131,7 @@ export class CallbackManager{
           }},
           {case:'gpucoh', callback:(args)=>{return this.gpu.gpuCoherence(...args);}},
           {case:'coherence', callback:(args)=>{
-            const correlograms = eegmath.correlograms(args[0]);
+            const correlograms = mathUtils.correlograms(args[0]);
             const buffer = [...args[0],...correlograms];
             var dfts;
         
