@@ -1,6 +1,6 @@
 varying float vMass;
 varying vec2 vCircleSpace;
-varying float vDepth;
+// varying float vDepth;
 uniform float iTime;
 uniform float uColorChange;
 

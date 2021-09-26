@@ -181,12 +181,13 @@ export class Object3D{
 
 
     _createMesh = () => {
-        if (this.props.material == null) this.props.material = new THREE.MeshPhongMaterial()
+        if (this.props.material == null) this.props.material = new THREE.MeshBasicMaterial()
         if (this.props.geometry == null) this.props.geometry = new THREE.SphereGeometry()
         this.props.mesh = new THREE.Mesh( this.props.geometry, this.props.material )
     }
 
     _createPoints = () => {
+        console.log(this.props.material)
         if (this.props.material == null) this.props.material = new THREE.PointsMaterial()
         if (this.props.geometry == null) this.props.geometry = new THREE.BufferGeometry()
         this.props.mesh = new THREE.Points( this.props.geometry, this.props.material )

@@ -18,10 +18,11 @@ export class Material{
             state: new StateManager(),
             lastRendered: Date.now(),
             uniforms: {},
-            defaultColor: '#ffffff'
+            defaultColor: '#ffffff',
+            lastMaterialType: null
         }
         
-        this.props.material = new THREE.MeshStandardMaterial({color: this.props.defaultColor});
+        this.props.material = new THREE.MeshBasicMaterial({color: this.props.defaultColor});
 
         this.ports = {
             default: {
@@ -31,6 +32,12 @@ export class Material{
                 output: {type: Object, name: 'Material'},
                 onUpdate: () => {
                     switch(this.ports.type.data){
+                        case 'PointsMaterial':
+                            this.props.material = new THREE.PointsMaterial()
+                            break
+                        case 'MeshBasicMaterial':
+                            this.props.material = new THREE.MeshBasicMaterial( {color: this.ports.color.data} );
+                            break
                         case 'MeshStandardMaterial':
                             this.props.material = new THREE.MeshStandardMaterial( {color: this.ports.color.data} );
                             break
@@ -51,18 +58,25 @@ export class Material{
                     this.props.material.wireframe = this.ports.wireframe.data
                     this.props.material.depthWrite = this.ports.depthWrite.data
                     this.props.material.alphaTest = this.ports.alphaTest.data
-            
+                    this.props.material.size = this.ports.size.data
+
                     return {data: this.props.material}
                 }
             },
             type: {
-                data: 'MeshStandardMaterial', 
+                data: 'MeshBasicMaterial', 
                 options: [
+                    'MeshBasicMaterial',
                     'MeshStandardMaterial',
-                    'ShaderMaterial'
+                    'ShaderMaterial',
+                    'PointsMaterial'
                 ],
                 input: {type: 'string'}, 
-                output: {type: null}
+                output: {type: null},
+                onUpdate: (user) => {
+                    this.props.lastMaterialType = user.data
+                    return user.data
+                }
             },
             fragmentShader: {
                 data: blankFragment,
@@ -89,6 +103,7 @@ export class Material{
             wireframe: {data: false, input: {type: 'boolean'}, output: {type: null}},
             depthWrite: {data: false, input: {type: 'boolean'}, output: {type: null}},
             alphaTest: {data: 0, min: 0, max: 1, step: 0.01, input: {type: 'number'}, output: {type: null}},
+            size: {data: 0, min: 0, step: 0.01, input: {type: 'number'}, output: {type: null}},
         }
     }
 
@@ -99,6 +114,8 @@ export class Material{
                 this.props.lastRendered = Date.now()
                 this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         })
+
+        this.session.graph.runSafe(this,'type',{data: this.ports.type.data}) // FIX: Shouldn't be necessary
         
         this._passShaderMaterial()
     }
@@ -143,11 +160,11 @@ export class Material{
     }
 
     _passShaderMaterial = () => {
-        if (this.ports.vertexShader.data && this.ports.fragmentShader.data) {
+        if (this.ports.vertexShader.data && this.ports.fragmentShader.data && this.ports.fragmentShader.data != blankFragment) {
             this.ports.type.data = 'ShaderMaterial'
             this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         }
-        else this.ports.type.data = 'MeshStandardMaterial'
+        else this.ports.type.data = this.props.lastMaterialType || 'MeshBasicMaterial'
     }
 
     _hexToRgb = (hex) => {
