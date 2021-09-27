@@ -112,7 +112,7 @@ void main()
         float i_float = float(i);
         // Noisy Diameter
         // float innerDiameter = minDiameter + (maxDiameter - minDiameter)*(0.5 + 0.5*cnoise(vec3(times[i]-(1.0-i_float)*historyInterval)));
-        float innerDiameter = 0.5 +  0.1*radiusOffset[i] - 0.05*i_float;
+        float innerDiameter = 0.5 +  5.0*clamp(radiusOffset[i], 0.0,1.0) - 0.09*i_float;
         float outerDiameter = innerDiameter + 0.02;
         float noiseScaling = (maxDiameter - minDiameter) - (outerDiameter-innerDiameter);
 

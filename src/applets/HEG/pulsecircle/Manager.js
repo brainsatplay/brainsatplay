@@ -29,10 +29,12 @@ class Manager{
                 output: {type: null},
                 onUpdate: (user) => {
                     console.log(user.data)
-                    user.data.heg.forEach(o => {
-                        console.log(o)
-                        // this.radiusOffsetBuffer.shift()
-                        // this.radiusOffsetBuffer.push(Math.sin(Date.now()/100))
+                    user.data.heg.forEach((o,i) => {
+                        if (i == 0){
+                            // console.log(o)
+                            this.radiusOffsetBuffer.shift()
+                            this.radiusOffsetBuffer.push(o.ratio[o.count-1] - this.session.atlas.mean(o.ratio.slice(o.count-20,o.count-1)))
+                        }
                     })
                 }
             }, 
@@ -80,8 +82,7 @@ class Manager{
             this.noiseBuffer.shift()
             this.noiseBuffer.push(0)
 
-            // this.radiusOffsetBuffer.shift()
-            // this.radiusOffsetBuffer.push(Math.sin(Date.now()/100))
+            console.log(this.radiusOffsetBuffer)
                 
             // Set Uniforms
             
@@ -99,8 +100,8 @@ class Manager{
 
     //Responsive UI update, for resizing and responding to new connections detected by the UI manager
     responsive = () => {
-        let w = this.props.container.offsetWidth
-        let h = this.props.container.offsetHeight
+        let w = this.props.container.parentNode.offsetWidth
+        let h = this.props.container.parentNode.offsetHeight
         this.app.renderer.view.width = w;
         this.app.renderer.view.height = h;
         this.app.renderer.view.style.width = w + 'px';
