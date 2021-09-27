@@ -45,8 +45,8 @@ export const settings = {
         }},
         {id: 'material', class: brainsatplay.plugins.scene.Material, 
         params: {
-          type: 'PointsMaterial', transparent:true, depthWrite: false, opacity: 0.1, alphaTest:0.5, size: 0.5
-          // type: 'ShaderMaterial', wireframe: false, transparent:true, depthWrite: false
+          // type: 'PointsMaterial', transparent:true, depthWrite: false, opacity: 0.1, alphaTest:0.5, size: 0.5
+          type: 'ShaderMaterial', wireframe: false, transparent:true, depthWrite: false
           // type: 'ShaderMaterial', wireframe: false, transparent:true, depthWrite: false
         }
         },
@@ -75,14 +75,15 @@ export const settings = {
         // },
 
         // Add Particles
-        // {
-        //   source: 'vertex', 
-        //   target: 'material:vertexShader'
-        // },
-        // {
-        //   source: 'fragment', 
-        //   target: 'material:fragmentShader'
-        // },
+        // shaders
+        {
+          source: 'vertex', 
+          target: 'material:vertexShader'
+        },
+        {
+          source: 'fragment', 
+          target: 'material:fragmentShader'
+        },
         {
           source: 'geometry', 
           target: 'particles:geometry'
