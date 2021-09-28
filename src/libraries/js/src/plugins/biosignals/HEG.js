@@ -1,7 +1,3 @@
-import { StateManager } from '../../ui/StateManager'
-// import { DataAtlas } from '../../DataAtlas'
-
-
 export class HEG{
     
     static id = String(Math.floor(Math.random()*1000000))
@@ -12,7 +8,6 @@ export class HEG{
         
 
         this.props = {
-            state: new StateManager(),
             deviceSubscriptions: [],
             toUnsubscribe: {
                 stateAdded: [],

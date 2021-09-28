@@ -1,5 +1,3 @@
-import { StateManager } from '../../ui/StateManager'
-
 export class EEG{
     
     static id = String(Math.floor(Math.random()*1000000))
@@ -10,7 +8,6 @@ export class EEG{
         
 
         this.props = {
-            state: new StateManager(),
             deviceSubscriptions: [],
             toUnsubscribe: {
                 stateAdded: [],

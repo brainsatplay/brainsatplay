@@ -473,7 +473,8 @@ export class DataAtlas {
 			});
 			//console.log(tag)
 		}
-		if(device.indexOf("shared") < 0) {
+
+		if(device != null && device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
 					found = o;
@@ -485,7 +486,7 @@ export class DataAtlas {
 		else if (tag === null || tag === 'all') {
 			return this.data[device]; //return all device data structs	
 		}
-		else if (typeof tag === 'string' || typeof tag === 'number') {
+		else if (this.data[device] != null && (typeof tag === 'string' || typeof tag === 'number')) {
 			let r = this.data[device].find((o,i) => {
 				if(o.tag === tag) {
 					found = o; 	

@@ -674,9 +674,8 @@ export class Session {
 			arr.forEach(k => {
 				let pass = /^device[.+]*/.test(k)
 				if (pass){
-					if (this.state.data[k].deviceType === type || type === undefined){
+					if (this.state.data[k].deviceType === type || this.state.data[k].deviceName === type || type === undefined){
 						this.atlas.data.eegshared.eegChannelTags.map(o => o.tag)
-
 						let firstTag = (type === 'eeg') ? this.state.data[k].eegChannelTags[0].tag : 0
 						subscribedTags[k] = `${type}_${firstTag}`
 
@@ -684,6 +683,8 @@ export class Session {
 						subscribedPointers[`${type}_${firstTag}`].idx = this.subscribe(type, firstTag, undefined, (data)=>{
 							callback(data)
 						})
+
+						callback()
 					}
 				}
 			})
@@ -710,6 +711,7 @@ export class Session {
 				return true;
 			}
 		});
+
 		if(found) {
 			atlasDataProp = found.info.deviceType;
 			if (atlasTag === 'shared') { 

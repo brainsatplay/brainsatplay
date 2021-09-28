@@ -1,5 +1,3 @@
-import { StateManager } from '../../ui/StateManager'
-
 export class Buzz{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -9,7 +7,6 @@ export class Buzz{
         this.session = session
 
         this.props = {
-            state: new StateManager(),
             deviceSubscriptions: {},
             toUnsubscribe: {
                 stateAdded: [],
@@ -23,7 +20,6 @@ export class Buzz{
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => { 
-                    console.log(this.props.device)
                     if (this.props.device){   
                         // Check User Requests
                         if (user.data == true && user.meta.username === this.session.info.auth.id){ // Run if you
@@ -123,48 +119,23 @@ export class Buzz{
             led3intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led3intensity.data = user.data; this.session.graph.runSafe(this, 'leds', {data: true, forceRun: true})}},
             position: {data: 0, min: 0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.position.data = user.data; this.session.graph.runSafe(this, 'mapOnBand', {data: true, forceRun: true})}},
         }
-
-        let added = (k) => {
-            this._subscribeToDevices(k,['buzz'])
-            this.session.graph.runSafe(this,'status',{forceRun: true})
-        }
-
-        let removed = (k) => {
-            if (k.includes('device')){
-                // Update Internal Device State
-                this.props.device = this.session.getDevice('buzz')
-                if (this.props.device)  this.props.device = this.props.device.device
-            }
-            this.session.graph.runSafe(this,'status', {forceRun: true})
-        }
-
-        this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))
-        this.props.toUnsubscribe['stateRemoved'].push(this.session.state.subscribeSequential('stateRemoved', removed))
     }
 
     init = () => {
-
-        // Check if Buzz Exists
         this.props.device = this.session.getDevice('buzz')
-        if (!this.props.device)  console.log('Must connect your Buzz first')
-        else this.props.device = this.props.device.device.device
-        this.session.graph.runSafe(this,'status',{forceRun: true})
+        if (this.props.device != null) this.props.device = this.props.device.device.device
+
+        this.props.toUnsubscribe = this.session.subscribeToDevices('buzz', (data) => {
+            this.session.graph.triggerAllActivePorts(this)
+        })
     }
 
     deinit = () => {
-
+        for (let key in this.props.toUnsubscribe){
+            this.session.graph.runSafe(this,'status', {forceRun: true})
+            this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
+        }
     }
-
-    
-    _subscribeToDevices(k, nameArray=[]) {
-        if (k.includes('device')){
-            let deviceInfo = this.session.state.data[k]
-            if (nameArray.includes(deviceInfo.deviceName)){
-            this.props.device = this.session.getDevice(deviceInfo.deviceName).device.device
-        }
-        }
-     }
-
     _hexToRgb = (hex) => {
         let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? [parseInt(result[1], 16),parseInt(result[2], 16),parseInt(result[3], 16)] : [0,0,0];

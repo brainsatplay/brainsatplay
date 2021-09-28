@@ -53,8 +53,8 @@ class UI{
             return `
             <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
                 <div>
-                    <h3 id="${this.props.id}status"></h3>
-                    <button id="${this.props.id}buzz" class="brainsatplay-default-button">Trigger a Buzz</button>
+                    <h3 id="${this.props.id}status">Buzz Disconnected</h3>
+                    <button id="${this.props.id}buzz" class="brainsatplay-default-button disabled">Trigger a Buzz</button>
                 </div>
             </div>`
         }
