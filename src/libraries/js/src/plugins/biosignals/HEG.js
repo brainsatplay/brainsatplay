@@ -28,6 +28,13 @@ export class HEG{
                 onUpdate: () =>{
                     return {data: this.session.atlas.data}
                 }
+            }, status: {
+                edit: false,
+                input: {type: null},
+                output: {type: 'boolean'},
+                onUpdate: () => {
+                    return {data: (this.session.getDevice('heg') != null)}
+                }
             }
         }
 

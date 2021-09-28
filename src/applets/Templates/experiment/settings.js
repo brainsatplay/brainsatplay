@@ -71,7 +71,7 @@ export const settings = {
         }
       },
 
-      // {id: 'debug', class: brainsatplay.plugins.debug.Debug},
+      {id: 'debug', class: brainsatplay.plugins.debug.Debug},
       ],
 
       edges: [
@@ -94,6 +94,10 @@ export const settings = {
         },
 
         // Start Experiment
+        {
+          source: 'eeg:status', 
+          target: 'manager:buttonToggle'
+        },
         {
           source: 'manager:start', 
           target: 'scheduler:start'
@@ -158,11 +162,6 @@ export const settings = {
           source: 'scheduler:done', 
           target: 'manager:done'
         },
-
-        // {
-        //   source: 'manager:done', 
-        //   target: 'debug'
-        // },
 
 
         // Show Results

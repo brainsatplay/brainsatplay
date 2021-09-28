@@ -103,10 +103,11 @@ export class Buzz{
                 }
             },
             status: {
+                edit: false,
                 input: {type: null},
                 output: {type: 'boolean'},
                 onUpdate: () => {
-                    return {data: (this.session.getDevice('buzz') != null), meta:{}}
+                    return {data: (this.session.getDevice('buzz') != null)}
                 }
             },
 
@@ -134,7 +135,7 @@ export class Buzz{
                 this.props.device = this.session.getDevice('buzz')
                 if (this.props.device)  this.props.device = this.props.device.device
             }
-            this.status()
+            this.session.graph.runSafe(this,'status', {forceRun: true})
         }
 
         this.props.toUnsubscribe['stateAdded'].push(this.session.state.subscribeSequential('stateAdded', added))

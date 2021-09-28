@@ -30,6 +30,14 @@ export class EEG{
                 onUpdate: () =>{
                     return {data: this.session.atlas.data}
                 }
+            },
+            status: {
+                edit: false,
+                input: {type: null},
+                output: {type: 'boolean'},
+                onUpdate: () => {
+                    return {data: (this.session.getDevice('eeg') != null)}
+                }
             }
         }
 
@@ -65,6 +73,7 @@ export class EEG{
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
+            this.session.graph.runSafe(this,'status', {forceRun: true})
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }
