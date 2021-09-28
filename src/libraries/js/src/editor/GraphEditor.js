@@ -1263,7 +1263,6 @@ export class GraphEditor{
 
 
                     if (oldValue != newValue) {
-                        console.log('vaLueS IDdFERENT')
                         if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
                         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
                     }
