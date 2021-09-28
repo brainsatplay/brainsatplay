@@ -493,7 +493,7 @@ export class mathUtils {
 		dat.forEach((row1,i) => {
 			dat.forEach((row2,j) => {
 				if(j >= i) {
-					correlograms.push(eegmath.crosscorrelation(row1,row2));
+					correlograms.push(mathUtils.crosscorrelation(row1,row2));
 				}
 			})
 		});
