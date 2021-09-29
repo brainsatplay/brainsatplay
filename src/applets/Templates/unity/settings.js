@@ -13,7 +13,7 @@ export const settings = {
     categories: ["WIP"],
     instructions:"",
     display: {
-      production: false,
+      production: true,
       development: true
     },
     

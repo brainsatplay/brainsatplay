@@ -415,14 +415,14 @@ export class GraphManager{
                     if (node.ports[port]){ 
                             let case1, case2
                             if (typeof result.data === 'object' || typeof result.data === 'function'){
-                                case1 = node.ports[port]
-                                case2 = result
+                                case1 = node.ports[port].data
+                                case2 = result.data
                                 stringify = false
                             } else {
-                                case1 = JSON.stringifyFast(node.ports[port])
-                                case2 = JSON.stringifyFast(result)
-                            }                            
-
+                                case1 = JSON.stringifyFast(node.ports[port].data)
+                                case2 = JSON.stringifyFast(result.data)
+                            } 
+                            
                             let thisEqual = case1 === case2
 
                             if (!thisEqual){
@@ -448,9 +448,10 @@ export class GraphManager{
 
 
     triggerAllActivePorts(node){
-        for (let port in node.ports){
-            this.runSafe(node,port, {forceRun: true, forceUpdate: true})
-        }
+        for (let port in node.ports) this.runSafe(node,port, {
+            forceRun: true, 
+            // forceUpdate: true
+        })
     }
 
     init(app){

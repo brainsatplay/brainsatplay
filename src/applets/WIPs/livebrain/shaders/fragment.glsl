@@ -1,8 +1,8 @@
-// varying float vMass;
-varying vec2 vCircleSpace;
-// varying float vDepth;
+
 uniform float iTime;
 uniform float uData[100]; // Maximum 100
+uniform vec3 uCoords[100]; // Maximum 100
+varying vec3 vPosition;
 
 
 float map(float value, float min1, float max1, float min2, float max2) {
@@ -73,7 +73,7 @@ float fbm (in vec2 st) {
 void main(){
  // vec2 st = gl_FragCoord.xy/u_resolution.xy;
     // vec2 st = vUv.xy/5.0;
-    vec2 st = vCircleSpace/9.0;
+    vec2 st = vec2(1.0)/9.0; // Was vCircleSpace
     // st.xy += vDepth;
     // st.x *= u_resolution.x/u_resolution.y;
     vec3 color = vec3(1.0);
@@ -102,5 +102,5 @@ void main(){
     // so this is where is ressembles the canonical quilez technique
     color += fbm(q + r);
 
-    gl_FragColor = vec4(1.0,1.0,1.0,0.5);//vec4(color, clamp(1.0* vMass *  2.1 * vDepth,.05,.9) );
+    gl_FragColor = vec4(1.0, 1.0, 1.0, 0.60);//vec4(color, clamp(1.0* vMass *  2.1 * vDepth,.05,.9) );
 }

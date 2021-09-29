@@ -128,7 +128,7 @@ export class DataAtlas {
 			let slice;
 			if (typeof this.data.eegshared.eegChannelTags === "string") slice = parseInt(this.data.eegshared.eegChannelTags) 
 			else slice = this.data.eegshared.eegChannelTags
-			this.data.eegshared.eegChannelTags = ["FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"].slice(0,slice)
+			this.data.eegshared.eegChannelTags = ["FP1","FP2", "FZ","F3","F4","F7","F8","CZ","C3","C4","T3","T4","T5","T6","PZ","P3","P4","O1","O2"].slice(0,slice)
 			this.data.eegshared.eegChannelTags = this.data.eegshared.eegChannelTags.map((t,i) => {
 				return {ch:i,tag:t,analyze: true}
 			})
@@ -473,7 +473,8 @@ export class DataAtlas {
 			});
 			//console.log(tag)
 		}
-		if(device.indexOf("shared") < 0) {
+
+		if(device != null && device.indexOf("shared") < 0) {
 			let atlasCoord = this.data[device].find((o, i) => {
 				if(o.tag === tag){
 					found = o;
@@ -485,7 +486,7 @@ export class DataAtlas {
 		else if (tag === null || tag === 'all') {
 			return this.data[device]; //return all device data structs	
 		}
-		else if (typeof tag === 'string' || typeof tag === 'number') {
+		else if (this.data[device] != null && (typeof tag === 'string' || typeof tag === 'number')) {
 			let r = this.data[device].find((o,i) => {
 				if(o.tag === tag) {
 					found = o; 	

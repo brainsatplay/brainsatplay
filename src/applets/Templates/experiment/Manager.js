@@ -30,7 +30,6 @@ class Manager{
 
         this.props.startButton.innerHTML = 'Start Experiment'
         this.props.startButton.classList.add('brainsatplay-default-button')
-        this.props.startButton.classList.toggle('disabled')
         this.props.startButton.onclick = () => {
             this.session.graph.runSafe(this,'start', {data: true})
         }
@@ -181,6 +180,14 @@ class Manager{
                         this.props.start.style.display = 'none'
                         this.props.experiment.style.display = ''
                         return user
+                    }
+                }
+            }, 
+            buttonToggle: {
+                onUpdate: (user) =>{
+                    console.log('START')
+                    if (user.data){
+                        this.props.startButton.classList.toggle('disabled')
                     }
                 }
             }

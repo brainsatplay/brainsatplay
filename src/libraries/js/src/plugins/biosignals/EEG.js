@@ -1,5 +1,3 @@
-import { StateManager } from '../../ui/StateManager'
-
 export class EEG{
     
     static id = String(Math.floor(Math.random()*1000000))
@@ -10,7 +8,6 @@ export class EEG{
         
 
         this.props = {
-            state: new StateManager(),
             deviceSubscriptions: [],
             toUnsubscribe: {
                 stateAdded: [],
@@ -29,6 +26,14 @@ export class EEG{
                 output: {type: Object, name: 'DataAtlas'},
                 onUpdate: () =>{
                     return {data: this.session.atlas.data}
+                }
+            },
+            status: {
+                edit: false,
+                input: {type: null},
+                output: {type: 'boolean'},
+                onUpdate: () => {
+                    return {data: (this.session.getDevice('eeg') != null)}
                 }
             }
         }
@@ -65,6 +70,7 @@ export class EEG{
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
+            this.session.graph.runSafe(this,'status', {forceRun: true})
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }
