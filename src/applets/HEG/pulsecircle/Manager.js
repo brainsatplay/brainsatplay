@@ -17,7 +17,8 @@ class Manager{
             id: String(Math.floor(Math.random()*1000000)),
             container: document.createElement('div'),
             canvas: document.createElement('canvas'),
-            history: 5
+            history: 5,
+            prevBeats: 0
         }
 
         this.props.container.onresize = this.responsive
@@ -28,16 +29,31 @@ class Manager{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    console.log(user.data)
                     user.data.heg.forEach((o,i) => {
                         if (i == 0){
-                            // console.log(o)
-                            this.radiusOffsetBuffer.shift()
-                            this.radiusOffsetBuffer.push(o.ratio[o.count-1] - this.session.atlas.mean(o.ratio.slice(o.count-20,o.count-1)))
+                            if (o.count > 0){
+
+                                let smoothedChange = o.ratio[o.count-1] - this.session.atlas.mean(o.ratio.slice(o.count-20,o.count-1))
+                                this.radiusOffsetBuffer.shift()
+                                this.radiusOffsetBuffer.push(smoothedChange)
+                                let numBeats = o.beat_detect.beats.length
+                                if (numBeats > this.props.prevBeats) {
+                                    this.session.graph.runSafe(this, 'beat', {data: true})
+                                } else {
+                                    this.session.graph.runSafe(this, 'beat', {data: false})
+                                }
+
+                                this.props.prevBeats = numBeats
+                            }
                         }
                     })
                 }
             }, 
+
+            beat: {
+                input: {type: 'boolean'},
+                output: {type: 'boolean'}
+            },
 
             element: {
                 data: this.props.container,
@@ -81,8 +97,6 @@ class Manager{
 
             this.noiseBuffer.shift()
             this.noiseBuffer.push(0)
-
-            console.log(this.radiusOffsetBuffer)
                 
             // Set Uniforms
             

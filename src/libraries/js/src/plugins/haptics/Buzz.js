@@ -20,6 +20,7 @@ export class Buzz{
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => { 
+                    console.log('trying', this.props.device, user.data)
                     if (this.props.device){   
                         // Check User Requests
                         if (user.data == true && user.meta.username === this.session.info.auth.id){ // Run if you
@@ -122,12 +123,8 @@ export class Buzz{
     }
 
     init = () => {
-        this.props.device = this.session.getDevice('buzz')
-        if (this.props.device != null) this.props.device = this.props.device.device.device
-
-        this.props.toUnsubscribe = this.session.subscribeToDevices('buzz', (data) => {
-            this.session.graph.triggerAllActivePorts(this)
-        })
+        this._setDevice()
+        this.props.toUnsubscribe = this.session.subscribeToDevices('buzz', this._setDevice)
     }
 
     deinit = () => {
@@ -136,6 +133,13 @@ export class Buzz{
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }
+
+    _setDevice = () => {
+        this.props.device = this.session.getDevice('buzz')
+        console.log(this.props.device)
+        if (this.props.device != null) this.props.device = this.props.device.device.device
+    }
+
     _hexToRgb = (hex) => {
         let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? [parseInt(result[1], 16),parseInt(result[2], 16),parseInt(result[3], 16)] : [0,0,0];

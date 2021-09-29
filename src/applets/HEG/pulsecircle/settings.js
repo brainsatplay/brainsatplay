@@ -23,6 +23,8 @@ export const settings = {
     {
       nodes: [
         {id: 'heg', class: brainsatplay.plugins.biosignals.HEG},
+        {id: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
+
         {id: 'manager', class: Manager, params: {}},
 
         {id: 'ui', class: brainsatplay.plugins.interfaces.UI},
@@ -32,6 +34,10 @@ export const settings = {
         {
           source: 'heg:atlas', 
           target: 'manager:data'
+        },
+        {
+          source: 'manager:beat', 
+          target: 'buzz:motors'
         },
         {
           source: 'manager:element', 
