@@ -9,30 +9,30 @@ export class mathUtils {
 	//----------------------------------------------------------------
 
 	//Throwing a bunch in here for the hell of it
-	static TWO_PI = Math.PI*2; //2PI
-	static C = 299792458; //speed of light m/s
-	static G = 6.67430e-11; //Newton's gravitation constant N*m^2 / kg^2
-	static h = 6.62607015e-34; //Planck constant J*s
-	static R = 8.31432e3; //Universal gas constant J / kg*mol*K
-	static Ra = 287; //Air gas constant J / kg*K
-	static H = 69.3; //Hubble constant km/s/Mpc 
-	static kbar = 1.054571817e-34; //Dirac constant J*s
-	static kB = 1.380649e-23; //Boltzmann constant J/K
-	static ke = 8.9875517923e9; //Coulomb constant kg * m^3 * s^-2 * C^-2
-	static me = 9.1093837015e-31; //electron mass kg
-	static mp = 1.67262192369e-27; //proton mass kg
-	static mn =	1.67492749804e-27; //neutron mass kg
-	static P0 = 1.01325e5; //Sea level pressure N/m^2
-	static T0 = 288.15; //Sea level room temperature K
-	static p0 = 1.225; //Sea level air density kg/m^3
-	static Na = 6.0220978e23; //Avogadro's number 1 / kg*mol
-	static y = 1.405; //Adiabatic constant
-	static M0 = 28.96643; //Sea level molecular weight
-	static g0 = 9.80665; //Sea level gravity m/s^2
-	static Re = 6.3781e6; //Earth radius m
-	static B = 1.458e-6; //Thermal constant Kg / m*s*sqrt(kg)
-	static S = 110.4; //Sutherland's constant K
-	static Sigma = 3.65e-10; //Collision diameter of air m
+	static TWO_PI = Math.PI*2; 			//2PI
+	static C = 299792458; 				//speed of light m/s
+	static G = 6.67430e-11; 			//Newton's gravitation constant N*m^2 / kg^2
+	static h = 6.62607015e-34; 			//Planck constant J*s
+	static R = 8.31432e3; 				//Universal gas constant J / kg*mol*K
+	static Ra = 287; 					//Air gas constant J / kg*K
+	static H = 69.3; 					//Hubble constant km/s/Mpc 
+	static kbar = 1.054571817e-34; 		//Dirac constant J*s
+	static kB = 1.380649e-23; 			//Boltzmann constant J/K
+	static ke = 8.9875517923e9; 		//Coulomb constant kg * m^3 * s^-2 * C^-2
+	static me = 9.1093837015e-31; 		//electron mass kg
+	static mp = 1.67262192369e-27; 		//proton mass kg
+	static mn =	1.67492749804e-27; 		//neutron mass kg
+	static P0 = 1.01325e5; 				//Sea level pressure N/m^2
+	static T0 = 288.15; 				//Sea level room temperature K
+	static p0 = 1.225; 					//Sea level air density kg/m^3
+	static Na = 6.0220978e23; 			//Avogadro's number 1 / kg*mol
+	static y = 1.405; 					//Adiabatic constant
+	static M0 = 28.96643; 				//Sea level molecular weight
+	static g0 = 9.80665; 				//Sea level gravity m/s^2
+	static Re = 6.3781e6; 				//Earth radius m
+	static B = 1.458e-6; 				//Thermal constant Kg / m*s*sqrt(kg)
+	static S = 110.4; 					//Sutherland's constant K
+	static Sigma = 3.65e-10; 			//Collision diameter of air m
 
 	//----------------------------------------------------------------
 	//-------------------- Static Functions --------------------------
@@ -296,7 +296,7 @@ export class mathUtils {
 	}
 
 	//Get probability densities for the samples
-	static normalDistribution(samples=[]) {
+	static normalDistribution(samples=[], normalize=true) {
 		let mean = this.mean(samples);
 		let variance = this.variance(samples);
 		let nSamples = samples.length;
@@ -305,8 +305,16 @@ export class mathUtils {
 
 		let denom = 1/(this.TWO_PI*variance);
 		let _variance = 1/variance;
+		let sum = 0; //for normalization
 		for (let i = 0; i < nSamples; i++) {
-			probabilities.push(Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom);
+			let px = Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom
+			probabilities.push(px);
+			sum += px;
+		}
+
+		if(normalize) {
+			let _sum = 1/sum;
+			probabilities = probabilities.map(x => x*_sum);
 		}
 	
 		return probabilities;

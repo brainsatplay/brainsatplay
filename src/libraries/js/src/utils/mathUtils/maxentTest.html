@@ -47,19 +47,27 @@
         }
 
         //Get probability densities for the samples
-        function normalDistribution(samples=[]) {
+        function normalDistribution(samples=[], normalize=true) {
             let m = mean(samples);
             let vari = variance(samples);
             let nSamples = samples.length;
 
-            let probabilities = new Array(nSamples);
+            let probabilities = [];
 
             let denom = 1/(Math.PI*2*vari);
-            let _vari = 1/vari;
+            let _variance = 1/vari;
+            let sum = 0; //for normalization
             for (let i = 0; i < nSamples; i++) {
-                probabilities[i] = Math.exp(-0.5*Math.pow((samples[i]-m)*_vari,2))*denom;
+                let px = Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom
+                probabilities.push(px);
+                sum += px;
             }
 
+            if(normalize) {
+                let _sum = 1/sum;
+                probabilities = probabilities.map(x => x*_sum);
+            }
+        
             return probabilities;
         }
 
@@ -74,6 +82,19 @@
             }
 
             return entropy;
+        }
+
+        function originMoment(samples=[],order=1) {
+            let m = mean(samples);
+            let expectedValues = samples.map(x => x-m);
+            let l = samples.length;
+        }
+
+        function maxEntDistribution(samples=[]) {
+            /*
+                To find the maxEnt distribution,
+                solve for the lagrangians 
+            */
         }
 
         let heights = [];
