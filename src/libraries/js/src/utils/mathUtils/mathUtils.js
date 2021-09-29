@@ -320,6 +320,10 @@ export class mathUtils {
 		return probabilities;
 	}
 
+	static expectedValue(samples=[],probabilities=this.normalDistribution(samples)) {
+		return samples.reduce((sum,item,idx) => sum + item*probabilities[idx]);
+	}
+
 	static linearDiscriminantAnalysis(samples=[], classifier=[]) {
 		let mean = this.mean(samples);
 		let meank = this.mean(classifier);

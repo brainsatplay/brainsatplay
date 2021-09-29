@@ -46,6 +46,7 @@
             return arr.reduce((a,b) => a + ((b - m)**2), 0)/arr.length;
         }
 
+
         //Get probability densities for the samples
         function normalDistribution(samples=[], normalize=true) {
             let m = mean(samples);
@@ -71,6 +72,10 @@
             return probabilities;
         }
 
+        function expectedValue(samples=[],probabilities=normalDistribution(samples)) {
+            return samples.reduce((sum,item,idx) => sum + item*probabilities[idx]);
+        }
+        
         //return in natural units (base e)
         function informationEntropy(probabilities=[]) {
             let entropy = [];
