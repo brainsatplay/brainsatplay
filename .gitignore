@@ -3,12 +3,11 @@ dist/
 /.cache/
 .vscode/settings.json
 .DS_Store
-.env
 _site
 .sass-cache
 .jekyll-metadata
 .idea
-.env
+# .env
 
 # Python
 .eggs

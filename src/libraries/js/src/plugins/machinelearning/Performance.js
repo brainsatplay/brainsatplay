@@ -16,7 +16,7 @@ export class Performance{
             default: {
                 input: {type: null},
                 output: {type: 'number'},
-                onUpdate: () => {
+                onUpdate: (user) => {
                     let accuracy
                     switch (this.ports.method.data){
                         case 'accuracy': 
@@ -33,7 +33,7 @@ export class Performance{
             error: {
                 input: {type: 'boolean'},
                 output: {type: null},
-                onUpdate: () => {
+                onUpdate: (user) => {
                     this.props.history.push(user.data)
                     // console.log( this.props.history)
                     this.session.graph.runSafe(this, 'default', {forceRun: true})

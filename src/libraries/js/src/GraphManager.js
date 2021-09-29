@@ -414,6 +414,7 @@ export class GraphManager{
                 if (!forced){
                     if (node.ports[port]){ 
                             let case1, case2
+
                             if (typeof result.data === 'object' || typeof result.data === 'function'){
                                 case1 = node.ports[port].data
                                 case2 = result.data
@@ -424,6 +425,7 @@ export class GraphManager{
                             } 
                             
                             let thisEqual = case1 === case2
+                            console.log(case1,case2, thisEqual)
 
                             if (!thisEqual){
                                 this.setState(node.ports[port],result)
@@ -566,7 +568,7 @@ export class GraphManager{
 
         if (!('onUpdate' in node.ports[port])){ // Default Port Function: CHECK
             node.ports[port].onUpdate = (user) => {
-                node.ports[port].data = user.data
+                // node.ports[port].data = user.data
                 return user
             }
         }
