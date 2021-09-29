@@ -75,7 +75,18 @@
         function expectedValue(samples=[],probabilities=normalDistribution(samples)) {
             return samples.reduce((sum,item,idx) => sum + item*probabilities[idx]);
         }
-        
+
+        //moment about the origin (statistics)
+        function originMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) {
+            return samples.reduce((sum,item,idx) => sum + Math.pow(item,order)*probabilities[idx]);
+        }
+
+        //moment about the population mean (statistics)
+        function centralMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) {
+            let m = this.mean(samples);
+            return samples.reduce((sum,item,idx) => sum + Math.pow((item-m),order)*probabilities[idx]/samples.length);
+        }
+
         //return in natural units (base e)
         function informationEntropy(probabilities=[]) {
             let entropy = [];

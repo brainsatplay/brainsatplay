@@ -324,6 +324,17 @@ export class mathUtils {
 		return samples.reduce((sum,item,idx) => sum + item*probabilities[idx]);
 	}
 
+	//moment about the origin (statistics)
+	static originMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) {
+		return samples.reduce((sum,item,idx) => sum + Math.pow(item,order)*probabilities[idx]);
+	}
+
+	//moment about the population mean (statistics)
+	static centralMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) {
+		let m = this.mean(samples);
+		return samples.reduce((sum,item,idx) => sum + Math.pow((item-m),order)*probabilities[idx]/samples.length);
+	}
+
 	static linearDiscriminantAnalysis(samples=[], classifier=[]) {
 		let mean = this.mean(samples);
 		let meank = this.mean(classifier);
