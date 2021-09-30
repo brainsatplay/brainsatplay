@@ -73,4 +73,37 @@ export class ThreadedCanvas {
             console.log("Result: ", msg);
         }
     }
+
+    test() {
+        let canvas = document.getElementById('testcanvas')
+        if(!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'testcanvas';
+            document.body.insertAdjacentElement('beforeend',canvas);
+        }
+        this.canvas = canvas;
+        this.context = '2d';
+
+        this.init();
+
+        this.setValues({x:1,y:2,z:3});
+
+        function drawFunc() {
+            if(!this.x) {
+                this.x = 1;
+                this.y = 2;
+                this.z = 3;
+            }
+            this.context.font = '10px serif';
+            this.context.fillText(`${this.x} + ${this.y} + ${this.z} = ${this.x+this.y+this.z}`,10,50);
+        
+            this.x++;
+            this.z+=2;
+        }
+
+        this.setAnimation(drawFunc);
+
+        setTimeout(()=>{this.stopAnimation();},10000);
+
+    }
 }

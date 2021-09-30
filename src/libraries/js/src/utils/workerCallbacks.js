@@ -68,7 +68,7 @@ export class CallbackManager{
               return true;
             } else return false;
           }},
-          {case:'setAnimation',callback:(args)=>{ //pass a function to be run on an animation loop
+          {case:'setAnimation',callback:(args)=>{ //pass a draw function to be run on an animation loop. Reference this.canvas and this.context or canvas and context. Reference values with this.x etc. and use setValues to set the values from another thread
 
             let newAnim = parseFunctionFromText(args[0]);
             let anim = () => {
