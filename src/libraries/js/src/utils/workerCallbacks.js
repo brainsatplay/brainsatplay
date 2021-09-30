@@ -1,4 +1,4 @@
-import { gpuUtils } from './gpuUtils.js';
+import { gpuUtils } from './gpu/gpuUtils.js';
 import { mathUtils } from './mathUtils/mathUtils';
 
 function parseFunctionFromText(method){

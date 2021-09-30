@@ -523,7 +523,6 @@ export class mathUtils {
 		return correlograms; //Output ordered like (tag1:tag1, tag1:tag2 ... tag2:tag2, tag2:tag3 ... tagn:tagn) where autocorrelograms are also included
 	}
 
-
 	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
 	static sma(arr, window) {
 		var smaArr = []; //console.log(arr);
