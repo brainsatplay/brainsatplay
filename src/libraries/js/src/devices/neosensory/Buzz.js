@@ -18,8 +18,8 @@ export class Buzz {
 
         this.interface = null;
 
-        this.minIntensity = 15;
-        this.maxIntensity = 255;
+        this.minIntensity = 15/255;
+        this.maxIntensity = 1;
 
         this.interface = new BuzzBLE();
         this.interface.onNotificationCallback = (e) => {
@@ -180,10 +180,12 @@ export class Buzz {
      * @alias vibrateMotors
      * @description Set the actuators amplitudes on a connected Neosensory device. Requires users to [requestAuthorization()]{@link module:neosensory.Buzz.requestAuthorization} and [acceptTerms()]{@link module:neosensory.Buzz.acceptTerms}.
     * @param {array} controlFrames Nested arrays with a length matching the number of motors of the target device (Buzz: 4). Element values should between 0 and 255. 
-    * @example buzz.vibrateMotors([[155,0,0,0]])
+    * @example buzz.vibrateMotors([[1,0,0,0]])
      */
     vibrateMotors = (controlFrames) => {
-        let base64String = btoa(String.fromCharCode(...new Uint8Array(controlFrames.flat())));
+        let flattened = controlFrames.flat()
+        let mapped = flattened.map(f => f*255)
+        let base64String = btoa(String.fromCharCode(...new Uint8Array(mapped)));
         this.sendCommand(`motors vibrate ${base64String}\n`)
     }
 
@@ -290,14 +292,20 @@ export class Buzz {
     * @param {float} location Between 0-1 
      */
     
-    getIllusionActivations(linearIntensity, location){
+    getIllusionActivations(linearIntensity, location=0.5){
         let motorIntensity = this.getMotorIntensity(linearIntensity, this.minIntensity, this.maxIntensity);
-        let motor1 = Math.floor(location / .25)
-        let motor2 = Math.ceil(location / .25)
-        let ratio = 4*(location%0.25)
+        let motor1 = Math.floor(location / .33)
+        let motor2 = Math.ceil(location / .33)
+        let ratio = 3*(location%0.33)
         let values = Array(4).fill(0)
-        values[motor1] = 255*motorIntensity*Math.sqrt((1 - ratio))
-        values[motor2] = 255*motorIntensity*Math.sqrt(ratio)
+
+        if (motor2 > 3) values[3] = 1
+        else if (motor1 != motor2){
+            values[motor1] = motorIntensity*Math.sqrt((1 - ratio))
+            values[motor2] = motorIntensity*Math.sqrt(ratio)
+        } 
+        else values[motor1] = 1
+
         return values
     }
 
@@ -306,8 +314,8 @@ export class Buzz {
      * @alias getMotorIntensity
      * @description Get motor intensity. Requires users to [requestAuthorization()]{@link module:neosensory.Buzz.requestAuthorization} and [acceptTerms()]{@link module:neosensory.Buzz.acceptTerms}.
     * @param {float} linearIntensity Between 0-1 
-    * @param {float} minIntensity Between 0-255
-    * @param {float} maxIntensity Between 0-255
+    * @param {float} minIntensity Between 0-1
+    * @param {float} maxIntensity Between 0-1
      */
     
     getMotorIntensity(linearIntensity, minIntensity=this.minIntensity, maxIntensity=this.maxIntensity){

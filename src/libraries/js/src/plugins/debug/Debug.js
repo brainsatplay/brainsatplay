@@ -9,6 +9,7 @@ export class Debug{
 
         this.ports = {
             default: {
+                edit: false,
                 data: undefined,
                 input: {type: undefined},
                 output: {type: null},

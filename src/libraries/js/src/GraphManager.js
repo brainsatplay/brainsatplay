@@ -407,7 +407,7 @@ export class GraphManager{
                 // Check if Forced Update
                 if (result.forceUpdate) {
                     forced = true
-                    this.setState(node.ports[port],result)
+                    if (node.ports[port].updateOn != 'input') this.setState(node.ports[port],result)
                 }
 
                 // Otherwise Check If Current State === Previous State
@@ -819,7 +819,7 @@ export class GraphManager{
                     if (this.registry.local[n.instance.label].count == 0) {
                         delete this.registry.local[n.instance.label]
                         this.session.removeStreaming(n.instance.label);
-                        this.session.removeStreaming(n.instance.label, null, this.state, true);
+                        this.session.removeStreaming(n.instance.label, null, this.state, 'trigger');
                         this.session.removeStreaming(applet.sessionId);
                         this.removeNode(appId,n.instance.label, false)
                     } 
@@ -871,7 +871,7 @@ export class GraphManager{
         if (localSubs != null){
             localSubs.find(o => {
                 if (o.target === structure.target) {
-                    this.session.removeStreaming(stateKey, o.id, this.state, true);
+                    this.session.removeStreaming(stateKey, o.id, this.state, 'trigger');
                     return true
                 }
             })

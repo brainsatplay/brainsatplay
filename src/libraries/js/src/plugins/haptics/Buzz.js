@@ -20,10 +20,9 @@ export class Buzz{
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => { 
-                    console.log('trying', this.props.device, user.data)
-                    if (this.props.device){   
+                    if (this.props.device){  
                         // Check User Requests
-                        if (user.data == true && user.meta.username === this.session.info.auth.id){ // Run if you
+                        if (user.data == true && user.id === this.session.info.auth.id){ // Run if you
                             let motorCommand = [this.ports.motor1.data,this.ports.motor2.data,this.ports.motor3.data,this.ports.motor4.data]
                             this.props.device.vibrateMotors([motorCommand,[0,0,0,0]])
                         }
@@ -68,10 +67,10 @@ export class Buzz{
                     if (this.props.device){
                         if (user.data != false){
                             let position = (user.data == true) ? this.ports.position.data : user.data
-                            this.props.device.vibrateMotors([this.props.device.getIllusionActivations(position)])
-                        } else {
-                            this.props.device.vibrateMotors([0,0,0,0])
+                            let activations = this.props.device.getIllusionActivations(1,position)
+                            this.props.device.vibrateMotors(activations)
                         }
+                        this.props.device.vibrateMotors([0,0,0,0])
                     }
                 }
             },
@@ -108,10 +107,10 @@ export class Buzz{
                 }
             },
 
-            motor1: {data: 255, min:0, max: 255, step: 1.0, onUpdate: (user) => {this.ports.motor1.data = user.data; this.session.graph.runSafe(this, 'motors', {data: true, forceRun: true})}},
-            motor2: {data: 255, min:0, max: 255, step: 1.0, onUpdate: (user) => {this.ports.motor2.data = user.data; this.session.graph.runSafe(this, 'motors', {data: true, forceRun: true})}},
-            motor3: {data: 255, min:0, max: 255, step: 1.0, onUpdate: (user) => {this.ports.motor3.data = user.data; this.session.graph.runSafe(this, 'motors', {data: true, forceRun: true})}},
-            motor4: {data: 255, min:0, max: 255, step: 1.0, onUpdate: (user) => {this.ports.motor4.data = user.data; this.session.graph.runSafe(this, 'motors', {data: true, forceRun: true})}},
+            motor1: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[user.data,0,0,0],[0,0,0,0]])}},
+            motor2: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,user.data,0,0],[0,0,0,0]])}},
+            motor3: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,0,user.data,0],[0,0,0,0]])}},
+            motor4: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,0,0,user.data],[0,0,0,0]])}},
             led1color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led1color.data = user.data; this.session.graph.runSafe(this, 'leds', {data: true, forceRun: true})}},
             led2color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led2color.data = user.data; this.session.graph.runSafe(this, 'leds', {data: true, forceRun: true})}},
             led3color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led3color.data = user.data; this.session.graph.runSafe(this, 'leds', {data: true, forceRun: true})}},
@@ -136,7 +135,6 @@ export class Buzz{
 
     _setDevice = () => {
         this.props.device = this.session.getDevice('buzz')
-        console.log(this.props.device)
         if (this.props.device != null) this.props.device = this.props.device.device.device
     }
 
