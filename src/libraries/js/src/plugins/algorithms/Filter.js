@@ -1,4 +1,4 @@
-import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/signal_processing/BiquadFilters'
 
 
 export class Filter{

@@ -1,4 +1,4 @@
-import { WorkerManager } from "../../Workers"
+import { WorkerManager } from "../../utils/workers/Workers"
 
 export class Thread{
 

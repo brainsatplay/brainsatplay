@@ -10,7 +10,7 @@ import expandSVG from '../../assets/expand-arrows-alt-solid.svg'
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 
 import {Application} from '../../../libraries/js/src/Application'
-import { Dropdown } from "../../../libraries/js/src/utils/Dropdown";
+import { Dropdown } from "../../../libraries/js/src/ui/Dropdown";
 //By Garrett Flynn, Joshua Brewster (GPL)
 
 export class AppletManager {

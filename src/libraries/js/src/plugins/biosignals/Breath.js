@@ -1,4 +1,4 @@
-import {BreathCapture} from '../../utils/BreathCapture'
+import {BreathCapture} from '../../utils/signal_processing/BreathCapture'
 import {StateManager} from '../../ui/StateManager'
 
 export class Breath{

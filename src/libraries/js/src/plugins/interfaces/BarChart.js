@@ -1,4 +1,4 @@
-import {eegBarChart} from '../../ui/eegvisuals'
+import {eegBarChart} from '../../utils/graphics/eegvisuals'
 
 export class BarChart{
 

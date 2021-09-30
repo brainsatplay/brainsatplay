@@ -2,16 +2,17 @@
 
 let defaultWorkerThreads = 0;
 
-import {CallbackManager} from './utils/workerCallbacks' 
+import {CallbackManager} from './workerCallbacks' 
 
 // WEBPACK
-// import worker from './utils/eeg.worker.js'
+// import worker from './eeg.worker.js'
 
 // SNOWPACK
-let workerURL = new URL('./utils/eeg.worker.js', import.meta.url)
+let workerURL = new URL('./eeg.worker.js', import.meta.url)
 
 export class WorkerManager {
-    constructor(){
+    constructor(workerURL= new URL('./eeg.worker.js', import.meta.url)){
+        this.workerURL = workerURL;
         this.workerResponses = [];
         this.workers = [];
         this.workerThreads = defaultWorkerThreads;

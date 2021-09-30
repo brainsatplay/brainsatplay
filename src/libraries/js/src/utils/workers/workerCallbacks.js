@@ -1,5 +1,5 @@
-import { gpuUtils } from './gpu/gpuUtils.js';
-import { mathUtils } from './mathUtils/mathUtils';
+import { gpuUtils } from '../gpu/gpuUtils.js';
+import { mathUtils } from '../mathUtils/mathUtils';
 
 function parseFunctionFromText(method){
     //Get the text inside of a function (regular or arrow);

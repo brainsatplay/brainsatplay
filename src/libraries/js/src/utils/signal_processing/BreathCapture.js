@@ -1,8 +1,8 @@
 //Microphone-based Breath Capture
 //Joshua Brewster - MIT License
 
-import {SoundJS} from './Sound'
-import { StateManager } from '../ui/StateManager';
+import {SoundJS} from '../Sound'
+import { StateManager } from '../../ui/StateManager';
 /* How to use
 
 let Capture = new BreathCapture();

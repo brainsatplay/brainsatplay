@@ -1,6 +1,6 @@
 import uPlot from 'uplot';
 import { SmoothieChart, TimeSeries } from "smoothie";
-import '../../../../platform/js/frontend/UX/webgl-heatmap'
+import '../../../../../platform/js/frontend/UX/webgl-heatmap'
 //import TimeChart from '../timechart/dist/timechart.module';
 
 //By Joshua Brewster (GPL)

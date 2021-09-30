@@ -3,7 +3,7 @@
 import { DOMFragment } from '../../ui/DOMFragment';
 import {blueberry} from './blueberry.js'
 import {DataAtlas} from '../../DataAtlas'
-import {BiquadChannelFilterer} from '../../utils/BiquadFilters'
+import {BiquadChannelFilterer} from '../../utils/signal_processing/BiquadFilters'
 
 
 export class BlueberryPlugin {

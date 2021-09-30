@@ -1,5 +1,5 @@
-import {SmoothieChartMaker} from '../../ui/eegvisuals'
-import {uPlotMaker} from '../../ui/eegvisuals'
+import {SmoothieChartMaker} from '../../utils/graphics/eegvisuals'
+import {uPlotMaker} from '../../utils/graphics/eegvisuals'
 import uPlot from 'uplot'
 
 export class TimeSeries{

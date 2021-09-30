@@ -1,4 +1,4 @@
-import {Spectrogram as SpectrogramHelper} from '../../ui/eegvisuals'
+import {Spectrogram as SpectrogramHelper} from '../../utils/graphics/eegvisuals'
 
 export class Spectrogram{
 
