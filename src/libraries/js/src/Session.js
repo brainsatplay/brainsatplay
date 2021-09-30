@@ -588,7 +588,7 @@ export class Session {
 				found = d;
 				return true;
 			}
-			else if (d.info.deviceType.indexOf(deviceNameOrType) > -1 && d.info.deviceNum === deviceIdx) {
+			else if (typeof d.info.deviceType === 'string' && d.info.deviceType.indexOf(deviceNameOrType) > -1 && d.info.deviceNum === deviceIdx) {
 				found = d;
 				return true;
 			}
@@ -705,9 +705,9 @@ export class Session {
 		let found = this.deviceStreams.find((o, i) => {
 			if(deviceTypeNameOrIdx === i) {
 				return true;
-			} else if (deviceTypeNameOrIdx === o.info.deviceName) {
+			} else if (deviceTypeNameOrIdx === o.info.dseviceName) {
 				return true;
-			} else if (o.info.deviceType.indexOf(deviceTypeNameOrIdx) > -1 && o.info.useAtlas === true) {
+			} else if (typeof o.info.deviceType === 'string' && o.info.deviceType.indexOf(deviceTypeNameOrIdx) > -1 && o.info.useAtlas === true) {
 				return true;
 			}
 		});
@@ -805,7 +805,7 @@ export class Session {
 	}
 
 	//Remove arbitrary data streams made with streamAppData
-	removeStreaming(id, responseIdx, manager = this.state, sequential=false) {
+	removeStreaming(id, responseIdx, manager = this.state, type) {
 		if (responseIdx == null){
 			manager.removeState(id, sequential)
 			manager.removeState(id+"_flag", sequential)
@@ -813,9 +813,8 @@ export class Session {
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			if (sequential) {
-				manager.unsubscribeSequential(id, responseIdx); //unsub state
-			}
+			if (type='sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
+			else if (type='trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
 			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 

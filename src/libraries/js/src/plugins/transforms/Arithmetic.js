@@ -29,7 +29,7 @@ export class Arithmetic{
             },
 
             add: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
@@ -41,10 +41,9 @@ export class Arithmetic{
                     inputCopy.data = inputCopy.data.map(v => v += this._parseProperFormat(this.ports.add.data))
                     if (!wasArray) inputCopy.data = inputCopy.data[0]
                     return inputCopy
-                }
-            },
+                }            },
             subtract: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
@@ -60,7 +59,7 @@ export class Arithmetic{
                 }
             },
             multiply: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
@@ -74,7 +73,7 @@ export class Arithmetic{
                 }
             },
             divide: {
-                default: 0,
+                data: 0,
                 input: {type: 'number'},
                 output: {type: 'number'},
                 onUpdate: (user) => {
