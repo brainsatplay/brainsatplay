@@ -30,10 +30,17 @@ export class ThreadedCanvas {
     }
 
     //you can reference canvas/this.canvas and context/this.context in the function 
+    //Set values then reference this.x etc as well, to have controllable values
     setAnimation(animationFunction) {
         if(typeof animationFunction !== 'function') return false;
         let fstring = animationFunction.toString();
         window.workers.postToWorker({origin:this.name,foo:'setAnimation',args:[fstring]},this.workerId)
+    }
+
+    setValues(values={}) {
+        if(typeof values === 'object') {
+            window.workers.postToWorker({origin:this.name,foo:'setValues',args:values},this.workerId);
+        }
     }
 
     stopAnimation() {
