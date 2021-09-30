@@ -1,5 +1,5 @@
 //By Joshua Brewster (AGPL)
-export class mathUtils {
+export class Math2 {
 	constructor() {
 
 	}
@@ -516,7 +516,7 @@ export class mathUtils {
 		dat.forEach((row1,i) => {
 			dat.forEach((row2,j) => {
 				if(j >= i) {
-					correlograms.push(mathUtils.crosscorrelation(row1,row2));
+					correlograms.push(Math2.crosscorrelation(row1,row2));
 				}
 			})
 		});

@@ -1,5 +1,5 @@
 import bci from 'bcijs/browser.js'
-import {mathUtils} from '../../utils/mathUtils/mathUtils';
+import {Math2} from '../../utils/mathUtils/Math2';
 
 export class LDA{
 
@@ -36,8 +36,8 @@ export class LDA{
                             })
                         })
 
-                        data1 = mathUtils.transpose(data1)
-                        data2 = mathUtils.transpose(data2)
+                        data1 = Math2.transpose(data1)
+                        data2 = Math2.transpose(data2)
 
                         // Split Training and Test Set
                         let partitions1 = this.props.bci.partition(data1, 0.75, 0.25)
@@ -46,8 +46,8 @@ export class LDA{
                         this.props.models.csp = this.props.bci.cspLearn(partitions1[0], partitions2[0]);
                 
                         // Compute training data features
-                        let featuresData1Training = mathUtils.transpose([this._computeTrialFeatures(this.props.models.csp, partitions1[0])]);
-                        let featuresData2Training = mathUtils.transpose([this._computeTrialFeatures(this.props.models.csp, partitions2[0])]);
+                        let featuresData1Training = Math2.transpose([this._computeTrialFeatures(this.props.models.csp, partitions1[0])]);
+                        let featuresData2Training = Math2.transpose([this._computeTrialFeatures(this.props.models.csp, partitions2[0])]);
                 
                         // Learn an LDA classifier
                         this.props.models.lda = this.props.bci.ldaLearn(featuresData1Training, featuresData2Training);
@@ -62,8 +62,8 @@ export class LDA{
                 // Pass correctly-formatted test data (from train...)
                 onUpdate: (user) => {
                     // Compute testing data features
-                    let featuresFeetTesting = mathUtils.transpose([this._computeTrialFeatures(this.props.models.csp, user.data[0])]);
-                    let featuresRightTesting = mathUtils.transpose([this._computeTrialFeatures(this.props.models.csp, user.data[1])]);
+                    let featuresFeetTesting = Math2.transpose([this._computeTrialFeatures(this.props.models.csp, user.data[0])]);
+                    let featuresRightTesting = Math2.transpose([this._computeTrialFeatures(this.props.models.csp, user.data[1])]);
             
                     // Classify testing data
             
@@ -93,9 +93,9 @@ export class LDA{
                 output: {type: 'int'},
                 onUpdate: (user) => {
                     if (this.props.models.csp){
-                        let features = mathUtils.transpose([this._computeTrialFeatures(this.props.models.csp, user.data)]);
+                        let features = Math2.transpose([this._computeTrialFeatures(this.props.models.csp, user.data)]);
                         let predictions = features.map(this._classify).filter(value => value != -1);
-                        user.data = mathUtils.mode(predictions)
+                        user.data = Math2.mode(predictions)
                     } else console.error('model not trained')
                 }
 

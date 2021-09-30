@@ -1,5 +1,5 @@
 import {SoundJS} from '../../utils/Sound'
-import {mathUtils} from '../../utils/mathUtils/mathUtils'
+import {Math2} from '../../utils/mathUtils/Math2'
 
 
 export class Microphone{

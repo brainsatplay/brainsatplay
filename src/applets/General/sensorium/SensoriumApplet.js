@@ -5,7 +5,7 @@ import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { SoundJS } from '../../../libraries/js/src/utils/Sound';
 import { LiveEditor } from '../../../libraries/js/src/ui/LiveEditor'
-import { mathUtils } from '../../../libraries/js/src/utils/mathUtils/mathUtils';
+import { Math2 } from '../../../libraries/js/src/utils/mathUtils/Math2';
 
 import * as settingsFile from './settings'
 
@@ -1874,7 +1874,7 @@ void main(){
         if (u === 'iFFT'){
             let channel = this.session.atlas.getLatestFFTData()[0]
             if (channel.fft){
-                let fft = mathUtils.interpolateArray(channel.fft,256);
+                let fft = Math2.interpolateArray(channel.fft,256);
                 if(fft) return  fft;
                 else return new Array(256).fill(0);
             } else return new Array(256).fill(0);

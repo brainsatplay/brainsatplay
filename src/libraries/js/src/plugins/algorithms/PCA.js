@@ -1,4 +1,4 @@
-import {mathUtils} from '../../utils/mathUtils/mathUtils'
+import {Math2} from '../../utils/mathUtils/Math2'
 
 export class PCA{
 
@@ -16,8 +16,8 @@ export class PCA{
                 output: {type: undefined},
                 onUpdate: (user) => {
                     user.forEach((u,i) => {
-                        console.log(u.username,u.data,u.meta,u, mathUtils)
-                        let components = mathUtils.pca(u.data) // Get Principal Components
+                        console.log(u.username,u.data,u.meta,u, Math2)
+                        let components = Math2.pca(u.data) // Get Principal Components
                         u.data = components[this.ports.numComponenents.data]
                     })
                     return user

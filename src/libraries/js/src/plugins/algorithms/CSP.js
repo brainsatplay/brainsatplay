@@ -1,5 +1,5 @@
 import bci from 'bcijs/browser.js'
-import {mathUtils} from '../../utils/mathUtils/mathUtils';
+import {Math2} from '../../utils/mathUtils/Math2';
 
 export class CSP{
 
@@ -31,7 +31,7 @@ export class CSP{
                 input: {type: Array},
                 output: {type: Array},
                 onUpdate: (user) => {
-                    return mathUtils.transpose([this._computeFeatures(this.props.model, user.data)])
+                    return Math2.transpose([this._computeFeatures(this.props.model, user.data)])
                 }
             }
         }

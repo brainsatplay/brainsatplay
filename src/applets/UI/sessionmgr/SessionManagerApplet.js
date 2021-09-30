@@ -13,7 +13,7 @@ import csvsvg from '../../../platform/assets/file-csv-solid.svg'
 import deletesvg from '../../../platform/assets/trash-alt-regular.svg'
 import drivesvg from '../../../platform/assets/Google_Drive_icon_2020.svg'
 
-import {uPlotMaker} from '../../../libraries/js/src/ui/eegvisuals'
+import {uPlotMaker} from '../../../libraries/js/src/utils/graphics/eegvisuals'
 
 /*
 How it will work:

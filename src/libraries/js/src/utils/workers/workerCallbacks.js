@@ -1,5 +1,5 @@
 import { gpuUtils } from '../gpu/gpuUtils.js';
-import { mathUtils } from '../mathUtils/mathUtils';
+import { Math2 } from '../mathUtils/Math2';
 
 function parseFunctionFromText(method){
     //Get the text inside of a function (regular or arrow);
@@ -100,11 +100,11 @@ export class CallbackManager{
               return true;
             } else return false;
           }},
-          {case:'xcor', callback:(args)=>{return mathUtils.crosscorrelation(...args);}},
-          {case:'autocor', callback:(args)=>{return mathUtils.autocorrelation(args);}},
-          {case:'cov1d', callback:(args)=>{return mathUtils.cov1d(...args);}},
-          {case:'cov2d', callback:(args)=>{return mathUtils.cov2d(args);}},
-          {case:'sma', callback:(args)=>{return mathUtils.sma(...args);}},
+          {case:'xcor', callback:(args)=>{return Math2.crosscorrelation(...args);}},
+          {case:'autocor', callback:(args)=>{return Math2.autocorrelation(args);}},
+          {case:'cov1d', callback:(args)=>{return Math2.cov1d(...args);}},
+          {case:'cov2d', callback:(args)=>{return Math2.cov2d(args);}},
+          {case:'sma', callback:(args)=>{return Math2.sma(...args);}},
           {case:'dft', callback:(args)=>{
             if(args[2] == undefined) args[2] = 1;
             return this.gpu.gpuDFT(...args);
@@ -131,7 +131,7 @@ export class CallbackManager{
           }},
           {case:'gpucoh', callback:(args)=>{return this.gpu.gpuCoherence(...args);}},
           {case:'coherence', callback:(args)=>{
-            const correlograms = mathUtils.correlograms(args[0]);
+            const correlograms = Math2.correlograms(args[0]);
             const buffer = [...args[0],...correlograms];
             var dfts;
         

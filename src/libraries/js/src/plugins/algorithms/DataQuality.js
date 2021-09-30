@@ -1,4 +1,4 @@
-import {mathUtils} from '../../utils/mathUtils/mathUtils'
+import {Math2} from '../../utils/mathUtils/Math2'
 
 
 export class DataQuality{
@@ -34,12 +34,12 @@ export class DataQuality{
         
                                 // Calculate Quality (0+, where > 1 is good quality)
                                 if (this.ports.method.data === 'Standard Deviation'){
-                                    let meanVariance = mathUtils.variance(slice)
+                                    let meanVariance = Math2.variance(slice)
                                     let std = Math.sqrt(meanVariance)
                                     quality = this.ports.qualityThreshold.data / std
                                 } else if (this.ports.method.data === 'Mean Amplitude'){
                                     let absSlice = slice.map(v => Math.abs(v))
-                                    let mean = mathUtils.mean(absSlice)
+                                    let mean = Math2.mean(absSlice)
                                     quality = this.ports.qualityThreshold.data / mean
                                 }
         
