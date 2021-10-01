@@ -214,7 +214,7 @@ export class StateManager {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
             }
-            this.triggers[key].push({idx:this.triggers[key].length-1, onchange:onchange});
+            this.triggers[key].push({idx:this.triggers[key].length, onchange:onchange});
             return this.triggers[key].length-1;
         } else return undefined;
     }
@@ -338,7 +338,7 @@ export class StateManager {
 
     //Save the return value to provide as the responseIdx in unsubscribe
     subscribe(key, onchange, startRunning=true) {
-        if(this.data[key] === undefined) {this.addToState(key,null,onchange);}
+        if(this.data[key] === undefined) {this.addToState(key,null,onchange,startRunning);}
         else {return this.addSecondaryKeyResponse(key,onchange);}
     }
     
