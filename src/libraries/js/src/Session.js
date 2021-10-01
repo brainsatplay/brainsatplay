@@ -1048,8 +1048,8 @@ else {
 			for (const prop in parsed.userData) {
 				this.state.updateState("userData_" + parsed.id + "_" + prop, parsed.userData[prop])
 			}
-		}
-		else if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
+		} else {
+		if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
 
 			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.id === this.info.auth.id) return true;});
 			let settings = this.state.data[parsed.id]?.settings;
@@ -1074,55 +1074,47 @@ else {
 					}
 				}
 			}
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getUsersResult') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'getSessionInfoResult') {
 			this.state.data.sessionInfo = parsed.sessionInfo;
 			if(this.state.data[parsed.session] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
-			this.state.updateState(`commandResult`,parsed);
 		}
 		else if (parsed.msg === 'getSessionsResult') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionCreated') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToUser') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userNotFound') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'userSubscriptionInfo') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'subscribedToSession') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'leftSession') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'sessionDeleted') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'unsubscribed') {
-			this.state.updateState(`commandResult`,parsed)
 		}
 		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound') {
-			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'resetUsername') {
-			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'getUserDataResult') {
-			this.state.updateState(`commandResult`,parsed)
 		} 
+
+		// Generic Brainstorm Messages
+		else if (parsed.msg === 'userAdded') {
+		}
+		else if (parsed.msg === 'userLeft') {
+		}
+
+
+
 		// OSC
 		else if (parsed.msg === 'oscError') {
-			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscInfo') {
-			this.state.updateState(`commandResult`,parsed)
 		} else if (parsed.msg === 'oscData') {
 			console.log(parsed.oscData)
 			// for (const prop in parsed.userData) {
@@ -1130,8 +1122,10 @@ else {
 			// }
 		}
 		else {
-			console.log(parsed);
+			console.log('no specific command',parsed);
 		}
+		this.state.updateState(`commandResult`,parsed)
+	}
 
 	}
 

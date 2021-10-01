@@ -88,14 +88,15 @@ var port = normalizePort(process.env.PORT || '443'); // Secure
 //
 const app = express();
 
-app.use(async (req, res, next) => {
-  try {
-    const buildResult = await snowServer.loadUrl(req.url);
-    res.send(buildResult.contents);
-  } catch (err) {
-    next(err);
-  }
-});
+// app.use(async (req, res, next) => {
+//   try {
+//     console.log('trying to build')
+//     const buildResult = await snowServer.loadUrl(req.url);
+//     res.send(buildResult.contents);
+//   } catch (err) {
+//     next(err);
+//   }
+// });
 
 // Other Middleware
 app.use(cors()) // allow Cross-domain requests
@@ -138,14 +139,14 @@ initRoutes(app);
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    console.log('error')
+    console.log('error', err)
   });
 }
 
 // production error handler
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
-  console.log('error')
+  console.log('error', err)
 });
 
 // Setting the port
@@ -197,13 +198,11 @@ brainstorm.createBrainstorm(app, brainstormConfig, onListening, onError).then(se
   //
   // Snowpack
   //
-
-  let snowServer;
   const {startServer,loadConfiguration} = require('snowpack');
   (async () => {
     const config = await loadConfiguration({},'snowpack.config.js')
     // const config = await loadConfiguration({},'snowpack.config.cjs')
-    snowServer = await startServer({config});
+    let snowServer = await startServer({config});
   })()
 
 })

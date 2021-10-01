@@ -67,6 +67,20 @@ class DataServer {
                 u.props[prop] = '';
             });
         }
+
+        let fullUser = this.userData.get(info.id)
+        const user = {id: fullUser.id, username: fullUser.username}
+
+        let users = []
+        this.userData.forEach(o => {
+            if (user.id != o.id) {
+                console.log('SENDING USER ADDED', o.id)
+                o.sockets.ws.send(JSON.stringify({msg: 'userAdded', user}))
+            }
+            users.push({id: o.id, username: o.username})
+        })
+        fullUser.sockets.ws.send(JSON.stringify({msg: 'currentUsers', users}))
+
     }
 
     getUserData(id='') {
@@ -97,6 +111,10 @@ class DataServer {
         // Remove User Subscriptions
         user.sessions.forEach(sessionId => {
             this.removeUserFromSession(sessionId,id)
+        })
+
+        this.userData.forEach(o => {
+            o.sockets.ws.send(JSON.stringify({msg: 'userLeft', user:{id: user.id, username: user.username}}))
         })
 
         this.userData.delete(id)
