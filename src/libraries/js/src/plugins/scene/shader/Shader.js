@@ -65,9 +65,7 @@ export class Shader{
             data: this.props.uniforms[name].value,
             output: {type: null},
             onUpdate: (user) => {
-                if (!isNaN(user.data)) {
-                    this.props.uniforms[name].value = user.data // Passed by reference at the beginning
-                }
+                if (!isNaN(user.data) || Array.isArray(user.data)) this.props.uniforms[name].value = user.data // Passed by reference at the beginning
             }
         })
     }

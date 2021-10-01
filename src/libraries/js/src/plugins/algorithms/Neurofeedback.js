@@ -184,9 +184,7 @@ export class Neurofeedback{
                     if (this.ports.output.data === 'Channels') user.data = arr
                     else user.data = this.session.atlas.mean(arr)
                 }       
-    
-                console.log(data, arr)
-                
+                    
                 // Output to User Data Object
                 // console.log(user.data)
     

@@ -63,6 +63,14 @@ export class Scene{
                             if (existingObject) this.props.scene.remove(existingObject)
 
                             // Add object
+                            // let animate = () => {
+                            //     setTimeout(() => {
+                            //         if (mesh.material?.uniforms) console.log(mesh.material.uniforms)
+                            //         animate()
+                            //     }, 500)
+                            // }
+                            // animate()
+
                             this.props.scene.add(mesh)
                         }
                         // if (!(mesh instanceof THREE.Points)) this.props.group.add( mesh ) // Add to group (by default, if not mesh)
@@ -105,8 +113,6 @@ export class Scene{
             // let minAngle = Math.PI/2 + 0.0001
             // this.props.camera.rotateX(-0.0001)
             // this.props.controls.minPolarAngle = minAngle
-            console.log(this.props.controls)
-
 
             // Enable WebXR and Pointer Lock
             if (this.ports.controls.data !== 'orbit') {
