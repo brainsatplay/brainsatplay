@@ -160,7 +160,7 @@ export class Material{
     }
 
     _passShaderMaterial = () => {
-        if (this.ports.vertexShader.data && this.ports.fragmentShader.data && this.ports.fragmentShader.data != blankFragment) {
+        if (this.ports.vertexShader.data && this.ports.fragmentShader.data) {
             this.ports.type.data = 'ShaderMaterial'
             this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
         }

@@ -403,7 +403,6 @@ export class GraphManager{
 
             // result.forEach((o,i) => {
 
-
                 // Check if Forced Update
                 if (result.forceUpdate) {
                     forced = true

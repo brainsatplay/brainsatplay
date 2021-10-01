@@ -102,5 +102,5 @@ void main(){
     // so this is where is ressembles the canonical quilez technique
     color += fbm(q + r);
 
-    gl_FragColor = vec4(1.0, 1.0, 1.0, 0.60);//vec4(color, clamp(1.0* vMass *  2.1 * vDepth,.05,.9) );
+    gl_FragColor = vec4(1.0*sin(iTime), 1.0, 1.0, 0.60);//vec4(color, clamp(1.0* vMass *  2.1 * vDepth,.05,.9) );
 }

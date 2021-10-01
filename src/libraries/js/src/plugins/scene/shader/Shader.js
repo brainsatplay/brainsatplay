@@ -33,9 +33,7 @@ export class Shader{
     }
 
     init = () => {
-        if (this.ports.uniforms.data && typeof this.ports.uniforms.data === 'object') {
-            this.props.uniforms = this.ports.uniforms.data // JSON.parse(JSON.stringify(this.ports.uniforms.data))
-        }
+        if (this.ports.uniforms.data && typeof this.ports.uniforms.data === 'object') Object.assign(this.props.uniforms, this.ports.uniforms.data)
         this.session.graph.runSafe(this,'default',{data:this.ports.default.data, forceUpdate: true})
     }
 

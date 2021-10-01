@@ -118,7 +118,7 @@ export class EventRouter{
                     updateObj[t.label] = {}
                     updateObj[t.label].trigger = true
                     updateObj[t.label].value = t.target.state[t.target.port]
-                    t.manager.setSequentialState(updateObj)
+                    t.manager.setState_T(updateObj);
                 }
             }
         })
