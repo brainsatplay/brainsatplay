@@ -746,9 +746,11 @@ export class GraphEditor{
             { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
         ];
         
-        let el = instance.portLabels.querySelector(`.latency-display[name="${port}"]`)
-        el.style.width = `${pct*100}%`
-        el.style.background = this.getColorfromMap(pct, map)
+        if (instance){
+            let el = instance.portLabels.querySelector(`.latency-display[name="${port}"]`)
+            el.style.width = `${pct*100}%`
+            el.style.background = this.getColorfromMap(pct, map)
+        }
     }
 
     animateNode(node,type){

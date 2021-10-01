@@ -862,7 +862,8 @@ export class GraphManager{
         if (sessionSubs != null){
             applet.subscriptions.session[stateKey].find(o =>{
                 if (o.target === structure.target) {
-                    this.session.removeStreaming(stateKey, o.id);
+                    console.log('removing session sub')
+                    this.session.removeStreaming(stateKey, o.id, undefined, 'trigger');
                     return true
                 }
             })

@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
@@ -8,6 +9,8 @@ import {brainpoints} from './visbrain'
 
 let uniforms = {uData: {value: [0,0,0]}, uCoords: {value: [0,0,0]}, electrodeRadius: {value: 30}}
 
+const rotatex = -Math.PI/2
+const rotatez = 3*Math.PI/4
 
 export const settings = {
     name: "3D Brain",
@@ -50,9 +53,21 @@ export const settings = {
           // type: 'ShaderMaterial', wireframe: false, transparent:true, depthWrite: false
         }
         },
-        {id: 'particles', class: brainsatplay.plugins.scene.Object3D, params:{ type: 'Points', rotatex: -Math.PI/2, rotatez: 3*Math.PI/4 }},
+        {id: 'particles', class: brainsatplay.plugins.scene.Object3D, params:{ type: 'Points'}},
+        {id: 'group', class: brainsatplay.plugins.scene.Group, params: {rotatex, rotatez }},
 
         {id: 'scene', class: brainsatplay.plugins.scene.Scene, params: {controls: 'orbit', camerax: 0, cameray: 0, cameraz: 200}},
+
+        // Utilities
+        {id: 'map', class: brainsatplay.plugins.utilities.MapArray, params: {
+          function: (a)=>{
+          const geometry =  new THREE.SphereGeometry(2,32,32)
+          const material = new THREE.MeshBasicMaterial({color: 'red', opacity: 0.5, transparent: true})
+          const mesh = new THREE.Mesh(geometry, material)
+          mesh.position.set(a[0], a[1], a[2])
+          return mesh
+        }}},
+
 
         // UI
         {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
@@ -93,7 +108,6 @@ export const settings = {
           target: 'fragment:uData'
         },
 
-
         {
           source: 'geometry', 
           target: 'particles:geometry'
@@ -102,14 +116,37 @@ export const settings = {
           source: 'material', 
           target: 'particles:material'
         },
+
+        // Create Electrode Markers
+        {
+          source: 'eeg:position', 
+          target: 'map'
+        },
+
+        // Group
+        {
+          source: 'map', 
+          target: 'group'
+        },
+
         {
           source: 'particles:add', 
+          target: 'group'
+        },
+
+        // Add to Scene
+        {
+          source: 'group', 
           target: 'scene:add'
         },
+
+        // Add to UI
         {
           source: 'scene:element', 
           target: 'ui:content'
         },
+
+
         // {
         //   source: 'manager:element', 
         //   target: 'ui:content'

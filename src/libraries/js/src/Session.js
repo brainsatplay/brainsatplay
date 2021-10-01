@@ -813,8 +813,9 @@ export class Session {
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			if (type='sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
-			else if (type='trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
+			console.log(type)
+			if (type==='sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
+			else if (type==='trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
 			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
 	} 

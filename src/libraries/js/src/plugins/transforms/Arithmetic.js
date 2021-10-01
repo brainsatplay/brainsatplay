@@ -12,47 +12,40 @@ export class Arithmetic{
         }
 
         this.ports = {
-            input: {
-                edit: false,
-                default: 0,
-                input: {type: undefined},
+            modifier: {
+                data: 0,
+                input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (user) => {
-                    this.props.input = user
-                    this.session.graph.runSafe(this,'sum',{forceRun: true})
-                    this.session.graph.runSafe(this,'mean',{forceRun: true})
-                    this.session.graph.runSafe(this,'add',{forceRun: true})
-                    this.session.graph.runSafe(this,'subtract',{forceRun: true})
-                    this.session.graph.runSafe(this,'multiply',{forceRun: true})
-                    this.session.graph.runSafe(this,'divide',{forceRun: true})
-                }
             },
 
             add: {
                 data: 0,
-                input: {type: 'number'},
-                output: {type: 'number'},
-                onUpdate: (user) => {
-                    if (user.data) this.ports.add.data = user.data
-            
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                input: {type: undefined},
+                output: {type: undefined},
+                onUpdate: (user) => { 
+                    console.log(user, this.ports.modifier.data)           
+                    let inputCopy = this.session.graph.deeperCopy(user)
+                    console.log(inputCopy)           
+
                     let wasArray = Array.isArray(inputCopy.data)
                     if (!wasArray) inputCopy.data = [inputCopy.data]
-                    inputCopy.data = inputCopy.data.map(v => v += this._parseProperFormat(this.ports.add.data))
+                    inputCopy.data = inputCopy.data.map(v => v += this._parseProperFormat(this.ports.modifier.data))
                     if (!wasArray) inputCopy.data = inputCopy.data[0]
+
+                    console.log(inputCopy)
                     return inputCopy
-                }            },
+                }            
+            },
             subtract: {
                 data: 0,
-                input: {type: 'number'},
-                output: {type: 'number'},
+                input: {type: undefined},
+                output: {type: undefined},
                 onUpdate: (user) => {
-                    if (user.data) this.ports.subtract.data = user.data
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    let inputCopy = this.session.graph.deeperCopy(user)
             
                         let wasArray = Array.isArray(inputCopy.data)
                         if (!wasArray) inputCopy.data = [inputCopy.data]
-                        inputCopy.data = inputCopy.data.map(v => v -= this._parseProperFormat(this.ports.subtract.data))
+                        inputCopy.data = inputCopy.data.map(v => v -= this._parseProperFormat(this.ports.modifier.data))
                         if (!wasArray) inputCopy.data = inputCopy.data[0]
             
                     return inputCopy
@@ -60,54 +53,48 @@ export class Arithmetic{
             },
             multiply: {
                 data: 0,
-                input: {type: 'number'},
-                output: {type: 'number'},
+                input: {type: undefined},
+                output: {type: undefined},
                 onUpdate: (user) => {
-                    if (user.data) this.ports.multiply.data = user.data
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    let inputCopy = this.session.graph.deeperCopy(user)
                     let wasArray = Array.isArray(inputCopy.data)
                     if (!wasArray) inputCopy.data = [inputCopy.data]
-                    inputCopy.data = inputCopy.data.map(v => v *= this._parseProperFormat(this.ports.multiply.data))
+                    inputCopy.data = inputCopy.data.map(v => v *= this._parseProperFormat(this.ports.modifier.data))
                     if (!wasArray) inputCopy.data = inputCopy.data[0]
                     return inputCopy
                 }
             },
             divide: {
                 data: 0,
-                input: {type: 'number'},
-                output: {type: 'number'},
+                input: {type: undefined},
+                output: {type: undefined},
                 onUpdate: (user) => {
-                    if (user.data) this.ports.divide.data = user.data
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
+                    let inputCopy = this.session.graph.deeperCopy(user)
                         let wasArray = Array.isArray(inputCopy.data)
                         if (!wasArray) inputCopy.data = [inputCopy.data]
-                        inputCopy.data = inputCopy.data.map(v => v /= this._parseProperFormat(this.ports.divide.data))
+                        inputCopy.data = inputCopy.data.map(v => v /= this._parseProperFormat(this.ports.modifier.data))
                         if (!wasArray) inputCopy.data = inputCopy.data[0]
                     return inputCopy
                 }
             },
             mean: {
                 edit: false,
-                input: {type: null},
+                input: {type: Array},
                 output: {type: 'number'},
-                onUpdate: () => {
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
-                    if (Array.isArray(inputCopy.data)) {
-                        inputCopy.data = inputCopy.data.reduce((a,b) => a + b)/ inputCopy.data.length
-                        return inputCopy
-                    }
+                onUpdate: (user) => {
+                    let inputCopy = this.session.graph.deeperCopy(user)
+                    inputCopy.data = inputCopy.data.reduce((a,b) => a + b)/ inputCopy.data.length
+                    return inputCopy
                 }
             },
             sum: {
                 edit: false,
-                input: {type: null},
+                input: {type: Array},
                 output: {type: 'number'},
-                onUpdate: () => {
-                    let inputCopy = this.session.graph.deeperCopy(this.props.input)
-                    if (Array.isArray(inputCopy.data)) {
-                        inputCopy.data = inputCopy.data.reduce((a,b) => a + b)
-                        return inputCopy
-                    }
+                onUpdate: (user) => {
+                    let inputCopy = this.session.graph.deeperCopy(user)
+                    inputCopy.data = inputCopy.data.reduce((a,b) => a + b)
+                    return inputCopy
                 }
             }
         }

@@ -12,9 +12,14 @@ void main(){
 
     for (int i = 0; i < 100; i++){
         if (uData[i] != 0.0 && abs(distance(uCoords[i], vPosition)) <= electrodeRadius){
-            color.r -= 0.1*abs(min(uData[i], 0.0));
-            color.y = 0.0;
-            color.z -= 0.1*max(uData[i], 0.0); 
+            float factor = (uData[i])*(1.0-pow(abs(distance(uCoords[i],vPosition)/75.0),2.0));
+            if (uData[i] > 0.0){
+                color.y -= 0.5*factor;
+                color.z -= 0.2*factor;
+            } else if (uData[i] < 0.0){
+                color.x += 0.5*factor;
+                color.y += 0.2*factor;
+            }
         }
     }
 

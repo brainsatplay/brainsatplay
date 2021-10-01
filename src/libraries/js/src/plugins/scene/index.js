@@ -5,6 +5,7 @@ import {Geometry} from './Geometry'
 import {Material} from './Material'
 import {Shader} from './shader/Shader'
 import {Trees} from './Trees'
+import {Group} from './Group'
 
 export {
 
@@ -16,4 +17,5 @@ export {
     Material,
     Shader,
     Trees,
+    Group,
 }

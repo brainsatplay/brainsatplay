@@ -47,15 +47,12 @@ export class EEG{
                 input: {type:null},
                 output: {type:Array},
                 onUpdate: (user) => {
-
                     let data = []
                     this.session.atlas.data.eeg.forEach(coord => {
-                        if (key === 'position') data.push(coord[key].x, coord[key].y, coord[key].z)
+                        if (key === 'position') data.push([coord[key].x, coord[key].y, coord[key].z])
                         else if (key === 'voltage') data.push(coord.filtered[coord.count-1] ?? coord.raw[coord.count-1])
                         else data.push(coord[key])
                     })
-
-                    console.log(key, data)
                     return {data}
                 }
             }

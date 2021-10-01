@@ -94,17 +94,15 @@ export class Object3D{
             },
 
             type: {data: 'Mesh', options: ['Mesh', 'Points']},
-            scalex: {data: 1},
-            scaley: {data: 1},
-            scalez: {data: 1},
-            x: {data: 0},
-            y: {data: 1},
-            z: {data: -2},
-            rotatex: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1, onUpdate: () => {
-
-            }},
-            rotatey: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
-            rotatez: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1},
+            scalex: {data: 1, input: {type: 'number'}, output: {type: null}},
+            scaley: {data: 1, input: {type: 'number'}, output: {type: null}},
+            scalez: {data: 1, input: {type: 'number'}, output: {type: null}},
+            x: {data: 0, input: {type: 'number'}, output: {type: null}},
+            y: {data: 1, input: {type: 'number'}, output: {type: null}},
+            z: {data: -2, input: {type: 'number'}, output: {type:null}},
+            rotatex: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1, input: {type: 'number'}, output: {type: null}},
+            rotatey: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1, input: {type: 'number'}, output: {type: null}},
+            rotatez: {data: 0, min: -2*Math.PI, max: 2*Math.PI, step: 0.1, input: {type: 'number'}, output: {type: null}},
             interactable: {data: false},
         }
 
