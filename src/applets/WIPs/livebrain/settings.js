@@ -6,7 +6,7 @@ import vertex from './shaders/vertex.glsl'
 import fragment from './shaders/fragment.glsl'
 import {brainpoints} from './visbrain'
 
-let uniforms = {iTime: {value: 0}, uAtlas: {value: []}}
+let uniforms = {uData: {value: [0,0,0]}, uCoords: {value: [0,0,0]}, electrodeRadius: {value: 30}}
 
 
 export const settings = {
@@ -84,6 +84,16 @@ export const settings = {
           source: 'fragment', 
           target: 'material:fragmentShader'
         },
+        {
+          source: 'eeg:position', 
+          target: 'fragment:uCoords'
+        },
+        {
+          source: 'eeg:voltage', 
+          target: 'fragment:uData'
+        },
+
+
         {
           source: 'geometry', 
           target: 'particles:geometry'

@@ -187,7 +187,6 @@ export class Object3D{
     }
 
     _createPoints = () => {
-        console.log(this.props.material)
         if (this.props.material == null) this.props.material = new THREE.PointsMaterial()
         if (this.props.geometry == null) this.props.geometry = new THREE.BufferGeometry()
         this.props.mesh = new THREE.Points( this.props.geometry, this.props.material )

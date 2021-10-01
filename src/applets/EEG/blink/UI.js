@@ -43,8 +43,6 @@ class UI{
             right: {
                 output: {type: null},
                 onUpdate: (user) => {
-        
-                    console.log(user)
                 let rightEye = document.getElementById(this.props.id+"-right")
                 if (rightEye){
                         let rightOpacity = 1-(user.data? 1 : 0)

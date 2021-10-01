@@ -1249,14 +1249,10 @@ export class GraphEditor{
                         }
                         else {
                             oldValue = input.value
-
                             if (toParse[key].data != null){ // FIX
-                                input.value = toParse[key].data
-
-                                if (input.tagName === 'TEXTAREA') {
-                                    newValue = JSON.stringify(input.value, null, '\t')
-                                }
-                                else newValue = input.value
+                                if (input.tagName === 'TEXTAREA') newValue = JSON.stringify(toParse[key].data, null, '\t')
+                                else newValue = toParse[key].data
+                                input.value = newValue
                             }
                         }
                     }
