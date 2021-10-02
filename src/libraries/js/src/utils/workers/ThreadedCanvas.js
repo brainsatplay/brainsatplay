@@ -37,6 +37,9 @@ export class ThreadedCanvas {
         window.workers.postToWorker({origin:this.name,foo:'setAnimation',args:[fstring]},this.workerId)
     }
 
+    setThreeAnimation(setupFunction, drawFunction) {
+        window.workers.postToWorker({origin:this.name,foo:'initThree',args:[setupFunction.toString(),drawFunction.toString()]})
+    }
 
     setValues(values={}) {
         if(typeof values === 'object') {

@@ -44,9 +44,9 @@ export class CallbackManager{
             this.canvas.height = args[1];
             return true;
           }},
-          {case: 'initThree',callback:(args)=>{
+          {case: 'initThree',callback: async (args) => {
             if(!this.threeUtil){
-              let module = dynamicImport('./workerThreeUtils.js');
+              let module = await dynamicImport('./workerThreeUtils.js');
               this.threeUtil = new module.threeUtil(this.canvas);
             }
             if(args[0]) { //first is the setup function

@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager'
-import {CSV} from '../../../libraries/js/src/utils/csv'
+import {CSV} from '../../../libraries/js/src/utils/general/csv'
 import * as settingsFile from './settings'
 import * as BrowserFS from 'browserfs'
 
