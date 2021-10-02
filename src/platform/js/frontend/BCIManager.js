@@ -26,6 +26,7 @@ import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
 import { AboutPage } from './AboutPage'
+import { ExtensionPage } from './ExtensionPage'
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
@@ -33,6 +34,7 @@ import AppletMenuIcon from '../../assets/th-large-solid.svg';
 import FileManagerIcon from '../../assets/folder-solid.svg';
 import GoogleIcon from '../../assets/google.png';
 import HelpIcon from '../../assets/question-solid.svg';
+import ExtensionIcon from '../../assets/puzzle-piece-solid.svg';
 
 import * as BrowserFS from 'browserfs'
 
@@ -123,7 +125,7 @@ export class BCIAppManager {
                     </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
-                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Device Manager</span></div></button>
+                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Devices</span></div></button>
                     <div class="content">
                     </div>
                 </div>
@@ -136,7 +138,7 @@ export class BCIAppManager {
                     <button class="collapsible">
                     <div class="img-cont">
                     <img src="${FileManagerIcon}">
-                    <span>File Manager</span>
+                    <span>Data</span>
                     </div>
                     </button>
                     <div id="filecontainer" class="content">
@@ -147,6 +149,16 @@ export class BCIAppManager {
                         </div>
                     </div>
                 </div>
+
+                <div id="extension-menu" class="collapsible-container">
+                    <button class="collapsible">
+                    <div class="img-cont">
+                    <img src="${ExtensionIcon}">
+                    <span>Extensions</span>
+                    </div>
+                    </button>
+                </div>
+
                 <div id="help-menu" class="collapsible-container">
                     <button class="collapsible">
                     <div class="img-cont">
@@ -155,6 +167,7 @@ export class BCIAppManager {
                     </div>
                     </button>
                 </div>
+
                 </div>
 
                 <div id="brainsatplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
@@ -200,12 +213,14 @@ export class BCIAppManager {
 
             //     </div>
             // </div>
+
+            // + `
+            // <div id="sidebar-toggle">
+            //     <div></div>
+            //     <div></div>
+            //     <div></div>
+            // </div>
             + `
-            </div>
-            <div id="sidebar-toggle">
-                <div></div>
-                <div></div>
-                <div></div>
             </div>
             </div>
             <div class="overlay"></div>
@@ -305,10 +320,10 @@ export class BCIAppManager {
             closeAllOpenCollapsibles()
         })
 
-        let toggle = app.querySelector('#sidebar-toggle')
-        toggle.onclick = () => {
-            app.querySelector('#sidebar-container').classList.toggle('toggled')
-        }
+        // let toggle = app.querySelector('#sidebar-toggle')
+        // toggle.onclick = () => {
+        //     app.querySelector('#sidebar-container').classList.toggle('toggled')
+        // }
 
         app.querySelector('#sidebar-container').querySelector('.overlay').onclick = () => {
             toggle.click()
@@ -497,8 +512,11 @@ export class BCIAppManager {
             }
         ]
         let helpMenu = document.getElementById('help-menu').querySelector('button')
+        let extensionMenu = document.getElementById('extension-menu').querySelector('button')
 
         let aboutPage = new AboutPage(document.getElementById('page'), helpMenu)
+        let extensionPage = new ExtensionPage(document.getElementById('page'), extensionMenu)
+
 
         // let tutorialManager = new TutorialManager('sidebar-tutorial', tooltips, document.body, helpMenu)
         // tutorialManager.init()
