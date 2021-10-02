@@ -84,6 +84,10 @@ export class CallbackManager{
             return true;
           }},
           {case: 'initThree',callback: async (args) => {
+            if(this.animating) {
+              this.animating = false;
+              cancelAnimationFrame(this.animation);
+            }
             if(!this.threeUtil){
               let module = await dynamicImport('./workerThreeUtils.js');
               this.threeUtil = new module.threeUtil(this.canvas);
