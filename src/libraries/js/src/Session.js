@@ -335,9 +335,7 @@ export class Session {
 
 	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autosimulate = false, onconnect = () => { }, ondisconnect = () => { }) {
 		
-		if (typeof toggleButton === 'string'){
-			toggleButton = toggleButton.getElementById(toggleButton)
-		}
+		if (typeof toggleButton === 'string') toggleButton = document.getElementById(toggleButton)
 
 		// Apply User Filter
 		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
@@ -813,7 +811,6 @@ export class Session {
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
 		} else {
-			console.log(type)
 			if (type==='sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
 			else if (type==='trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
 			else manager.unsubscribe(id, responseIdx); //unsub state

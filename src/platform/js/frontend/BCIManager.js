@@ -129,17 +129,17 @@ export class BCIAppManager {
                     </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
-                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Devices</span></div></button>
+                    <button class="brainsatplay-sidebar-button"><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Devices</span></div></button>
                     <div class="content">
                     </div>
                 </div>
                 <div id="applet-menu" class="collapsible-container">
-                    <button class="collapsible"><div class="img-cont"><img src="${AppletMenuIcon}"><span>Applets</span></div></button>
+                    <button class="collapsible brainsatplay-sidebar-button"><div class="img-cont"><img src="${AppletMenuIcon}"><span>Applets</span></div></button>
                     <div class="content">
                     </div>
                 </div>
                 <div id="file-menu" class="collapsible-container">
-                    <button class="collapsible">
+                    <button class="collapsible brainsatplay-sidebar-button">
                     <div class="img-cont">
                     <img src="${FileManagerIcon}">
                     <span>Data</span>
@@ -155,7 +155,7 @@ export class BCIAppManager {
                 </div>
 
                 <div id="extension-menu" class="collapsible-container">
-                    <button class="collapsible">
+                    <button class="collapsible brainsatplay-sidebar-button">
                     <div class="img-cont">
                     <img src="${ExtensionIcon}">
                     <span>Extensions</span>
@@ -164,7 +164,7 @@ export class BCIAppManager {
                 </div>
 
                 <div id="help-menu" class="collapsible-container">
-                    <button class="collapsible">
+                    <button class="collapsible brainsatplay-sidebar-button">
                     <div class="img-cont">
                     <img src="${HelpIcon}">
                     <span>Learn More</span>
@@ -173,7 +173,7 @@ export class BCIAppManager {
                 </div>
 
                 <div id="settings-menu" class="collapsible-container">
-                    <button class="collapsible">
+                    <button class="collapsible brainsatplay-sidebar-button">
                     <div class="img-cont">
                     <img src="${SettingsIcon}">
                     <span>Settings</span>
@@ -184,7 +184,7 @@ export class BCIAppManager {
                 </div>
 
                 <div id="brainsatplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
-                    <button class="collapsible" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
+                    <button class="collapsible brainsatplay-sidebar-button" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
                     <div class="img-cont">
                     <img id="brainsatplay-profile-img" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)">
                     <span id="brainsatplay-profile-label" style="margin-left: 10px; ">
@@ -533,7 +533,7 @@ export class BCIAppManager {
 
         let aboutPage = new AboutPage(document.getElementById('page'), helpMenu)
         let extensionPage = new ExtensionPage(document.getElementById('page'), extensionMenu, storageManager)
-        let settingsPage = new SettingsPage(document.getElementById('page'), settingsMenu, storageManager)
+        this.settingsPage = new SettingsPage(document.getElementById('page'), settingsMenu, storageManager)
 
 
         // let tutorialManager = new TutorialManager('sidebar-tutorial', tooltips, document.body, helpMenu)
@@ -559,12 +559,16 @@ export class BCIAppManager {
                 profileImg.style.padding = "0"
                 let selector = document.getElementById(`applet0`)
                 let choice = 'Profile Manager'
+
                 profileButton.onclick = () => {
-                    selector.value = choice
-                    window.history.pushState({ additionalInformation: 'Updated URL to View Profile' }, '', `${window.location.origin}/#${choice}`)
-                    selector.onchange()
+                    this.settingsPage.open()
+                    this.settingsPage.profileApp.init()
+                    // selector.value = choice
+                    // window.history.pushState({ additionalInformation: 'Updated URL to View Profile' }, '', `${window.location.origin}/#${choice}`)
+                    // selector.onchange()
                 }
-                if (selector.value === choice) profileButton.click() // Refresh profile if necessary
+                // profileButton.click()
+                // if (selector.value === choice) profileButton.click() // Refresh profile if necessary
             } else {
                 document.getElementById(`brainsatplay-profile-img`).src = GoogleIcon
                 document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Log In' // user._profile.data.name

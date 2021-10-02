@@ -66,8 +66,11 @@ button {
     border-bottom: 1px solid white;
  }
 
-.brainsatplay-page > .page-container {
-   padding: 20px 50px 50px 50px;
+.brainsatplay-page .page-container {
+    position: relative;
+    padding: 20px 50px 50px 50px;
+    height: 100%;
+    width: 100%;
 }
 
 /* App */
@@ -137,7 +140,7 @@ button {
     left:75px;
     flex-direction: column; 
     width: calc(100vw - 75px);
-    height: 100%;
+    height: 100vh;
 }
 
 /* Sidebar */
@@ -236,7 +239,7 @@ button {
     justify-content: center;
 }
 
-#sidebar button {
+.brainsatplay-sidebar-button {
     box-sizing: border-box; 
     min-width: 50px;
     min-height: 50px;
@@ -259,8 +262,8 @@ button {
     padding: 0px 20px;
 }
 
-#sidebar button:hover {
-    background-color: rgb(50,50,50);
+.brainsatplay-sidebar-button:hover {
+    background-color: rgba(255,255,255, 0.15);
 }
 
 #sidebar button .img-cont span {

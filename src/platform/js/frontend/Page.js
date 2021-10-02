@@ -20,11 +20,19 @@ export class Page{
         this.close.innerHTML = 'Close'
         this.headerContainer.insertAdjacentElement('beforeend', this.close)
         this.page.insertAdjacentElement('beforeend', this.headerContainer)
-       
+
+        // Create Container
+        this.container = document.createElement('div')    
+        this.container.style.display = 'flex'
+        this.container.style.alignItems = 'flex-start'
+        this.container.style.height = '100%'
+        this.container.style.width = '100%'
+        this.page.insertAdjacentElement('beforeend', this.container)
+
         // Add Content
         this.content = document.createElement('div')
         this.content.classList.add('page-container')
-        this.page.insertAdjacentElement('beforeend', this.content)
+        this.container.insertAdjacentElement('beforeend', this.content)
 
 
         // Add Click Events
@@ -46,6 +54,14 @@ export class Page{
             undefined,
             this.responsive
         )
+    }
+
+    open = () => {
+        this.fragment.node.classList.add('shown')
+    }
+
+    close = () => {
+        this.fragment.node.classList.remove('shown')
     }
     
     responsive(){}
