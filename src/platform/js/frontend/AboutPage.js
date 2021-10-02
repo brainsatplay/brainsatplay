@@ -1,21 +1,12 @@
 
-import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
+import { Page } from './Page';
 
-
-export class AboutPage{
+export class AboutPage extends Page{
     constructor(parentNode, toggle){
-        this.parentNode = parentNode
-        this.toggle = toggle
+        super(parentNode, toggle)
 
-        this.page = document.createElement('div')
-        this.page.classList.add('brainsatplay-page')
-
-        this.html = `
-            <div class="brainsatplay-header-grid">
-                <h1>What is Brains@Play?</h1>
-                <button class="brainsatplay-default-button">Close</button>
-            </div>
-            <div class="page-container">
+        this.header.innerHTML = `What is Brains@Play?`
+        this.content.innerHTML = `
                 <p>Founded by <a href="https://www.linkedin.com/in/garrettmflynn/">Garrett Flynn</a> and <a href="https://www.linkedin.com/in/joshua-brewster93/">Joshua Brewster</a> in Spring 2021, Brains@Play is an international movement to make neurotechnology accessible to everyone via browser-based biosensing infrastructure.</p>
 
                 <p>To this end, we've created Brains@Play Platform as an open-source tool for the collaborative development and distribution of next-generation biosensing applications built by and for our community.</p>
@@ -25,44 +16,6 @@ export class AboutPage{
                 <div style="font-size: 75%;">
                     <p><strong>Note:</strong> This is an alpha version of The Brains@Play Platform released without warrenty under the <a href="https://choosealicense.com/licenses/gpl-3.0/">GPLv3 license</a>. While there's much work ahead, we encourage you to try things out and get in touch with your suggestions for improvement.</p><p>This will be a community effort—and we're grateful to have you on our team.</p>
                 </div>
-                </div>
         `
-
-        this.page.insertAdjacentHTML('beforeend', this.html)
-
-        this.setupHTML = () => {
-            this.toggle.onclick = () => {
-                this.fragment.node.classList.toggle('shown')
-            }
-
-            let close = this.page.querySelector('.brainsatplay-default-button')
-
-            close.onclick = () => {
-                this.toggle.click()
-            }
-
-
-        }
-
-        this.fragment = new DOMFragment(
-            this.page,
-            this.parentNode,
-            undefined,
-            this.setupHTML,
-            undefined,
-            undefined,
-            undefined,
-            this.responsive
-        )
-
-        this._init()
     }
-
-    _init(){}
-
-    _toggle(){
-
-    }
-
-    responsive(){}
 }

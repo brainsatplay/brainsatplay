@@ -34,6 +34,7 @@ import FileManagerIcon from '../../assets/folder-solid.svg';
 import GoogleIcon from '../../assets/google.png';
 import HelpIcon from '../../assets/question-solid.svg';
 import ExtensionIcon from '../../assets/puzzle-piece-solid.svg';
+import SettingsIcon from '../../assets/cog-solid.svg';
 
 import * as BrowserFS from 'browserfs'
 
@@ -163,6 +164,15 @@ export class BCIAppManager {
                     <div class="img-cont">
                     <img src="${HelpIcon}">
                     <span>Learn More</span>
+                    </div>
+                    </button>
+                </div>
+
+                <div id="settings-menu" class="collapsible-container">
+                    <button class="collapsible">
+                    <div class="img-cont">
+                    <img src="${SettingsIcon}">
+                    <span>Settings</span>
                     </div>
                     </button>
                 </div>

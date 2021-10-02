@@ -1,7 +1,7 @@
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
 import * as settingsFile from './settings'
-import {SoundJS} from '../../../libraries/js/src/utils/Sound'
+import {SoundJS} from '../../../libraries/js/src/utils/general/Sound'
 import { BreathCapture } from '../../../libraries/js/src/utils/signal_processing/BreathCapture'
 import ts from 'typescript'
 
