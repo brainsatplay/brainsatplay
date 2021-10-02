@@ -104,6 +104,7 @@ export class CallbackManager{
             if(typeof args === 'object') {
               Object.keys(args).forEach((key)=>{
                 this[key] = args[key]; //variables will be accessible in functions as this.x or this['x']
+                if(this.threeUtil) this.threeUtil[key] = args[key];
               });
               return true;
             } else return false;
