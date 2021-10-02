@@ -1,6 +1,45 @@
 import { gpuUtils } from '../gpu/gpuUtils.js';
 import { Math2 } from '../mathUtils/Math2';
-import {dynamicImport, parseFunctionFromText, getFunctionBody, getFunctionHead, buildNewFunction} from '../general/importUtils'
+
+let dynamicImport = async (url) => {
+  let module = await import(url);
+  return module;
+}
+
+//Get the text inside of a function (regular or arrow);
+function getFunctionBody (methodString) {
+  return methodString.toString().replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+}
+
+function getFunctionHead (methodString) {
+  let fnstring = methodString.toString();
+  return fnstring.slice(0,fnstring.indexOf('{') + 1);
+}
+
+function buildNewFunction(head, body) {
+  let newFunc = eval(head+body+'}');
+  return newFunc;
+}
+
+function parseFunctionFromText(method){
+  //Get the text inside of a function (regular or arrow);
+  let getFunctionBody = (methodString) => {
+    return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+  }
+
+  let getFunctionHead = (methodString) => {
+    return methodString.slice(0,methodString.indexOf('{') + 1);
+  }
+
+  let newFuncHead = getFunctionHead(method);
+  let newFuncBody = getFunctionBody(method);
+
+  let newFunc = eval(newFuncHead+newFuncBody+"}");
+
+  return newFunc;
+
+} 
+
 
 export class CallbackManager{
     constructor(){
