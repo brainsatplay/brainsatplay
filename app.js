@@ -38,7 +38,7 @@ categories.forEach((category,indOut) => {
           let nameStr = afterName.split('\n')[0]
           let name = nameStr.slice(1,nameStr.lastIndexOf(nameStr[0]))
           appletDict[name] = {}
-          appletDict[name].folderUrl = '../../../' + dir.split(path.join(__dirname,'/src/'))[1]
+          appletDict[name].folderUrl = '../../../../../' + dir.split(path.join(__dirname,'/src/'))[1]
 
           let afterDevices = decoded.split('"devices": [')[1]
           if (afterDevices == null) afterDevices = decoded.split('devices: [')[1]
