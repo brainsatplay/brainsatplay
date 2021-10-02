@@ -45,9 +45,9 @@ button {
     cursor: pointer;
 }
 
-/* About */
+/* About and Extensions */
 
-.brainsatplay-about-page {
+.brainsatplay-page {
     z-index: 2;
     position: absolute;
     top: 0;
@@ -61,8 +61,13 @@ button {
     overflow-y: scroll;
 }
 
-.brainsatplay-about-page > .about-container {
-   padding: 0px 50px 50px 50px;
+.brainsatplay-page > .brainsatplay-header-grid {
+    padding: 50px 50px 0px 50px;
+    border-bottom: 1px solid white;
+ }
+
+.brainsatplay-page > .page-container {
+   padding: 20px 50px 50px 50px;
 }
 
 /* App */
