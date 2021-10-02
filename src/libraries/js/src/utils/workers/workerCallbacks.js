@@ -96,8 +96,21 @@ export class CallbackManager{
               this.threeUtil.setup = parseFunctionFromText(args[0]);
             }
             if(args[1]) { //next is the draw function (for 1 frame)
-              this.threeUtil.animation = parseFunctionFromText(args[0]);
+              this.threeUtil.draw = parseFunctionFromText(args[1]);
+            }
+            if(args[2]) {
+              this.threeUtil.clear = parseFunctionFromText(args[2]);
+            }
+            this.threeUtil.setup();
+          }},
+          {case:'startThree',callback:(args)=>{ //run the setup to start the three animation
+            if(this.threeUtil) {
               this.threeUtil.setup();
+            }
+          }},
+          {case:'clearThree',callback: (args) => { //run the clear function to stop three
+            if(this.threeUtil) {
+              this.threeUtil.clear();
             }
           }},
           {case:'setValues',callback:(args)=>{

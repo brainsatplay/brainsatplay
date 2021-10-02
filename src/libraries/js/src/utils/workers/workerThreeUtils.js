@@ -23,7 +23,7 @@ export class threeUtil {
     }
 
     setup = () => { //setup three animation
-      this.defaultSetup();
+        this.defaultSetup();
     }
 
     draw = () => { //frame draw function
@@ -31,11 +31,15 @@ export class threeUtil {
         this.defaultDraw();
     }
 
+    clear = () => {
+        this.defaultClear();
+    }
+
     defaultSetup = () => {
         this.three.renderer = new THREE.WebGLRenderer( { canvas:this.three.canvas, antialias: true, alpha: true } );
         this.three.scene = new THREE.Scene();
         this.three.camera = new THREE.PerspectiveCamera(75, this.three.canvas.width / this.three.canvas.height, 0.01, 1000);
-        this.three.controls = new OrbitControls(this.camera, this.three.renderer.domElement);
+        this.three.controls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
         this.three.composer = new EffectComposer(this.three.renderer.renderTarget);
 
         this.three.renderer.setAnimationLoop(this.draw);
@@ -43,6 +47,14 @@ export class threeUtil {
 
     defaultDraw = () => {
 
+    }
+
+    defaultClear = () => {
+        
+        this.three.renderer.setAnimationLoop( null );
+        this.three.scene = null;
+        this.three.renderer.domElement = null;
+        this.three.renderer = null;
     }
 
 };
