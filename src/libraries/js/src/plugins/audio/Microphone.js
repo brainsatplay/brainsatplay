@@ -1,4 +1,4 @@
-import {SoundJS} from '../../utils/Sound'
+import {SoundJS} from '../../utils/general/Sound'
 import {Math2} from '../../utils/mathUtils/Math2'
 
 

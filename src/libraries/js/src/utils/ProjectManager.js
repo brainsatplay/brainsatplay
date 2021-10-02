@@ -5,7 +5,7 @@ import * as brainsatplayLocal from '../../brainsatplay'
 let latest = '0.0.32'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
-import * as blobUtils from './blobUtils'
+import * as blobUtils from './general/blobUtils'
 
 export class ProjectManager {
     constructor(

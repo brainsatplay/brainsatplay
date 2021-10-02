@@ -5,7 +5,7 @@ import { StateManager } from '../ui/StateManager'
 
 // Project Selection
 import {appletManifest} from '../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
-import { getApplet, getAppletSettings } from "../../../../platform/js/general/importUtils"
+import { getApplet, getAppletSettings } from "../../../../libraries/js/src/utils/general/importUtils"
 
 // Node Interaction
 import * as dragUtils from './dragUtils'

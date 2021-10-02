@@ -1,7 +1,7 @@
 //Load and save CSV data
 import { Session } from '../Session';
 import { StateManager } from '../ui/StateManager';
-import {CSV} from './csv'
+import {CSV} from './general/csv'
 
 import filesvg from '../ui/assets/file_noun.svg'
 import csvsvg from '../ui/assets/file-csv-solid.svg'

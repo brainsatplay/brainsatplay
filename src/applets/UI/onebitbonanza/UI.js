@@ -3,7 +3,7 @@ import nasa from '../../../platform/assets/nasa.jpg'
 import {appletManifest} from '../../../platform/appletManifest'
 import {Application} from '../../../libraries/js/src/Application'
 
-import { getApplet, getAppletSettings} from "../../../platform/js/general/importUtils"
+import { getApplet, getAppletSettings} from "../../../libraries/js/src/utils/general/importUtils"
 
 let bonanzaApps = Object.assign({},appletManifest)
 Object.keys(bonanzaApps).forEach(k => {

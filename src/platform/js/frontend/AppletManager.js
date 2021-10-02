@@ -1,7 +1,7 @@
 import { Session } from "../../../libraries/js/src/Session";
 import {presetManifest} from '../../presetManifest'
 import {appletManifest} from '../../appletManifest'
-import { getApplet, getAppletSettings } from "../general/importUtils"
+import { getApplet, getAppletSettings } from "../../../libraries/js/src/utils/general/importUtils"
 import appletSVG from '../../assets/th-large-solid.svg'
 import dragSVG from '../../assets/arrows-alt-solid.svg'
 import nodeSVG from '../../../libraries/js/src/ui/assets/network-wired-solid.svg'
