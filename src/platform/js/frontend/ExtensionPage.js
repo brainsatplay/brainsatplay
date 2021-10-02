@@ -3,14 +3,14 @@ import { Page } from './Page';
 import { appletManifest } from './../../appletManifest'
 import { ExtensionCard } from '../../../libraries/js/src/ui/ExtensionCard'
 import { getAppletSettings } from "../../../libraries/js/src/utils/general/importUtils"
-import { StorageManager } from "../../../libraries/js/src/StorageManager"
+
 export class ExtensionPage extends Page{
-    constructor(parentNode, toggle){
+    constructor(parentNode, toggle, storage){
         super(parentNode, toggle)
 
         this.header.innerHTML = `Extensions`
 
-        this.storage = new StorageManager()
+        this.storage = storage
 
         this.content.style = 'display: flex; flex-wrap: wrap;'
         let applets = Object.keys(appletManifest)

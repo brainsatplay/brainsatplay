@@ -53,6 +53,15 @@ export class StorageManager{
     }
 
     _getLocal = (route, item) => {
-        return JSON.parse(localStorage.getItem(route + item))
+
+        // Booleans
+        try {
+            return JSON.parse(localStorage.getItem(route + item))
+        } 
+        
+        // Strings
+        catch {
+            return JSON.parse(JSON.stringify(localStorage.getItem(route + item)))
+        }
     }
 }
