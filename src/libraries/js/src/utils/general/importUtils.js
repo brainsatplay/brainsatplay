@@ -1,5 +1,5 @@
-import {appletManifest} from '../../appletManifest'
-import {Application} from '../../../libraries/js/src/Application'
+import {appletManifest} from '../../../../../platform/appletManifest'
+import {Application} from '../../Application'
 
 export let dynamicImport = async (url) => {
     let module = await import(url);

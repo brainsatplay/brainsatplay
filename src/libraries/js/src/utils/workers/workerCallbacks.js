@@ -1,5 +1,7 @@
 import { gpuUtils } from '../gpu/gpuUtils.js';
 import { Math2 } from '../mathUtils/Math2';
+import {dynamicImport} from '../general/importUtils'
+
 
 function parseFunctionFromText(method){
     //Get the text inside of a function (regular or arrow);
@@ -35,6 +37,7 @@ export class CallbackManager{
         this.context;
         this.animation = undefined;
         this.animating = false;
+        this.three = undefined;
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
@@ -59,6 +62,9 @@ export class CallbackManager{
             this.canvas.width = args[0];
             this.canvas.height = args[1];
             return true;
+          }},
+          {case: 'initThree',callback:(args)=>{
+
           }},
           {case:'setValues',callback:(args)=>{
             if(typeof args === 'object') {
