@@ -1,26 +1,6 @@
 import { gpuUtils } from '../gpu/gpuUtils.js';
 import { Math2 } from '../mathUtils/Math2';
-import {dynamicImport} from '../general/importUtils'
-
-
-function parseFunctionFromText(method){
-    //Get the text inside of a function (regular or arrow);
-    let getFunctionBody = (methodString) => {
-      return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
-    }
-  
-    let getFunctionHead = (methodString) => {
-      return methodString.slice(0,methodString.indexOf('{') + 1);
-    }
-  
-    let newFuncHead = getFunctionHead(method);
-    let newFuncBody = getFunctionBody(method);
-  
-    let newFunc = eval(newFuncHead+newFuncBody+"}");
-  
-    return newFunc;
-  
-  }  
+import {dynamicImport, parseFunctionFromText, getFunctionBody, getFunctionHead, buildNewFunction} from '../general/importUtils'
 
 export class CallbackManager{
     constructor(){
@@ -36,8 +16,9 @@ export class CallbackManager{
         this.canvas = new OffscreenCanvas(512,512); //can add fnctions and refer to this.offscreen 
         this.context;
         this.animation = undefined;
+        this.animtionFunc = undefined;
         this.animating = false;
-        this.three = undefined;
+        this.threeWorker = undefined;
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
@@ -64,7 +45,17 @@ export class CallbackManager{
             return true;
           }},
           {case: 'initThree',callback:(args)=>{
-
+            if(!this.threeUtil){
+              let module = dynamicImport('./workerThreeUtils.js');
+              this.threeUtil = new module.threeUtil(this.canvas);
+            }
+            if(args[0]) { //first is the setup function
+              this.threeUtil.setup = parseFunctionFromText(args[0]);
+            }
+            if(args[1]) { //next is the draw function (for 1 frame)
+              this.threeUtil.animation = parseFunctionFromText(args[0]);
+              this.threeUtil.setup();
+            }
           }},
           {case:'setValues',callback:(args)=>{
             if(typeof args === 'object') {
@@ -76,10 +67,13 @@ export class CallbackManager{
           }},
           {case:'setAnimation',callback:(args)=>{ //pass a draw function to be run on an animation loop. Reference this.canvas and this.context or canvas and context. Reference values with this.x etc. and use setValues to set the values from another thread
 
-            let newAnim = parseFunctionFromText(args[0]);
+            this.animationFunc = parseFunctionFromText(args[0]);
+            return true;
+          }},
+          {case:'startAnimation',callback:(args)=>{
             let anim = () => {
               if(this.animating) {
-                newAnim();
+                this.animationFunc();
                 requestAnimationFrame(anim);
               }
             }
@@ -95,9 +89,6 @@ export class CallbackManager{
               this.animating = true;
               this.animation = requestAnimationFrame(anim);
             }
-
-            return true;
-            
           }},
           {case:'stopAnimation',callback:(args)=>{
             if(this.animating) {
@@ -197,5 +188,14 @@ export class CallbackManager{
             return [dfts[0], dfts[1], coherenceResults];
           }}
         ];
+    }
+
+    checkCallbacks(event) {
+      this.callbacks.find((o,i)=>{
+        if(o.case === event.data.foo) {
+          output = o.callback(event.data.input);
+          return true;
+        }
+      });
     }
 }

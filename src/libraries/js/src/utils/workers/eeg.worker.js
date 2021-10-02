@@ -30,12 +30,8 @@ self.onmessage = (event) => {
     }`]);
   */
 
-  manager.callbacks.find((o,i)=>{
-    if(o.case === event.data.foo) {
-      output = o.callback(event.data.input);
-      return true;
-    }
-  });
+  manager.checkCallbacks(event);
+
   // output some results!
   console.timeEnd("worker");
   counter++; //just tracks the number of calls made to the worker

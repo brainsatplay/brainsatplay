@@ -37,14 +37,18 @@ export class ThreadedCanvas {
         window.workers.postToWorker({origin:this.name,foo:'setAnimation',args:[fstring]},this.workerId)
     }
 
+
     setValues(values={}) {
         if(typeof values === 'object') {
             window.workers.postToWorker({origin:this.name,foo:'setValues',args:values},this.workerId);
         }
     }
 
+    startAnimation() {
+        window.workers.postToWorker({origin:this.name,foo:'startAnimation'},this.workerId);
+    }
     stopAnimation() {
-        window.workers.postToWorker({origin:this.name,foo:'stopAnimation'},this.workerId)
+        window.workers.postToWorker({origin:this.name,foo:'stopAnimation'},this.workerId);
     }
 
     setCanvasSize(w=this.canvas.width,h=this.canvas.height) {
