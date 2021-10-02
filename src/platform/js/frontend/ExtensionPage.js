@@ -2,7 +2,7 @@
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { appletManifest } from './../../appletManifest'
 import { ExtensionCard } from '../../../libraries/js/src/ui/ExtensionCard'
-import { getAppletSettings } from "../general/importUtils"
+import { getAppletSettings } from "../../../libraries/js/src/utils/general/importUtils"
 import { StorageManager } from "../../../libraries/js/src/StorageManager"
 export class ExtensionPage{
     constructor(parentNode, toggle){

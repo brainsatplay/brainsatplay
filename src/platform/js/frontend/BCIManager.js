@@ -21,7 +21,7 @@ import {
 import {file_template} from '../../../libraries/js/src/utils/DataManager'
 
 import { AppletManager } from './AppletManager'
-import { CSV } from '../../../libraries/js/src/utils/csv'
+import { CSV } from '../../../libraries/js/src/utils/general/csv'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
