@@ -143,10 +143,12 @@ export class CallbackManager{
               this.animating = false; 
               cancelAnimationFrame(this.animation);
               setTimeout(()=>{
+                this.checkCallbacks('setupAnim');
                 this.animating = true;
                 this.animation = requestAnimationFrame(anim);              
               },300);
             } else { 
+              this.checkCallbacks('setupAnim');
               this.animating = true;
               this.animation = requestAnimationFrame(anim);
             }
