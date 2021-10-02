@@ -74,11 +74,11 @@ export class ThreadedCanvas {
         }
     }
 
-    test() {
-        let canvas = document.getElementById('testcanvas')
+    test(id='testcanvas') {
+        let canvas = document.getElementById(id)
         if(!canvas) {
             canvas = document.createElement('canvas');
-            canvas.id = 'testcanvas';
+            canvas.id = id;
             document.body.insertAdjacentElement('beforeend',canvas);
         }
         this.canvas = canvas;
