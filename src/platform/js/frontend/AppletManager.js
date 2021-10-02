@@ -164,8 +164,8 @@ export class AppletManager {
         // Set Styling Properly
         let applets = document.getElementById('applets');
         applets.style.display = 'grid'
-        applets.style.height = 'calc(100vh)' // Must subtract any top navigation bar
-        applets.style.width = 'calc(100vw - 0px)'
+        applets.style.height = '100%' // Must subtract any top navigation bar
+        applets.style.width = '100%'
     }
 
     initUI = () => { }

@@ -123,7 +123,7 @@ export class BCIAppManager {
                     </div>
                 </a>
                 <div id="device-menu" class="collapsible-container">
-                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Device Manager</span></div></button>
+                    <button><div class="img-cont"><img src="${DeviceSelectorIcon}"><span>Devices</span></div></button>
                     <div class="content">
                     </div>
                 </div>
@@ -136,7 +136,7 @@ export class BCIAppManager {
                     <button class="collapsible">
                     <div class="img-cont">
                     <img src="${FileManagerIcon}">
-                    <span>File Manager</span>
+                    <span>Data</span>
                     </div>
                     </button>
                     <div id="filecontainer" class="content">
@@ -200,12 +200,14 @@ export class BCIAppManager {
 
             //     </div>
             // </div>
+
+            // + `
+            // <div id="sidebar-toggle">
+            //     <div></div>
+            //     <div></div>
+            //     <div></div>
+            // </div>
             + `
-            </div>
-            <div id="sidebar-toggle">
-                <div></div>
-                <div></div>
-                <div></div>
             </div>
             </div>
             <div class="overlay"></div>
@@ -305,10 +307,10 @@ export class BCIAppManager {
             closeAllOpenCollapsibles()
         })
 
-        let toggle = app.querySelector('#sidebar-toggle')
-        toggle.onclick = () => {
-            app.querySelector('#sidebar-container').classList.toggle('toggled')
-        }
+        // let toggle = app.querySelector('#sidebar-toggle')
+        // toggle.onclick = () => {
+        //     app.querySelector('#sidebar-container').classList.toggle('toggled')
+        // }
 
         app.querySelector('#sidebar-container').querySelector('.overlay').onclick = () => {
             toggle.click()
