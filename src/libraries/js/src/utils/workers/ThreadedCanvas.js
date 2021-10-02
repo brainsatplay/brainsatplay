@@ -37,6 +37,12 @@ export class ThreadedCanvas {
         window.workers.postToWorker({origin:this.name,foo:'setAnimation',args:[fstring]},this.workerId)
     }
 
+    addSetup(setupFunction) {
+        if(typeof animationFunction !== 'function') return false;
+        let fstring = setupFunction.toString();
+        window.workers.postToWorker({origin:this.name,foo:'addFunc',args:['setupAnim',fstring]},this.workerId)
+    }
+
     setThreeAnimation(setupFunction, drawFunction) {
         window.workers.postToWorker({origin:this.name,foo:'initThree',args:[setupFunction.toString(),drawFunction.toString()]})
     }

@@ -104,6 +104,10 @@ export class CallbackManager{
             this.threeUtil.setup();
           }},
           {case:'startThree',callback:(args)=>{ //run the setup to start the three animation
+            if(this.animating) {
+              this.animating = false;
+              cancelAnimationFrame(this.animation);
+            }
             if(this.threeUtil) {
               this.threeUtil.setup();
             }
@@ -139,10 +143,12 @@ export class CallbackManager{
               this.animating = false; 
               cancelAnimationFrame(this.animation);
               setTimeout(()=>{
+                this.checkCallbacks('setupAnim');
                 this.animating = true;
                 this.animation = requestAnimationFrame(anim);              
               },300);
             } else { 
+              this.checkCallbacks('setupAnim');
               this.animating = true;
               this.animation = requestAnimationFrame(anim);
             }
