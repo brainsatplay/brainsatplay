@@ -41,6 +41,14 @@ export class ThreadedCanvas {
         window.workers.postToWorker({origin:this.name,foo:'initThree',args:[setupFunction.toString(),drawFunction.toString()]})
     }
 
+    startThreeAnimation() {
+        window.workers.postToWorker({origin:this.name,foo:'startThree'},this.workerId);
+    }
+
+    clearThreeAnimation() {
+        window.workers.postToWorker({origin:this.name,foo:'clearThree'},this.workerId);
+    }
+
     setValues(values={}) {
         if(typeof values === 'object') {
             window.workers.postToWorker({origin:this.name,foo:'setValues',args:values},this.workerId);
@@ -50,6 +58,7 @@ export class ThreadedCanvas {
     startAnimation() {
         window.workers.postToWorker({origin:this.name,foo:'startAnimation'},this.workerId);
     }
+
     stopAnimation() {
         window.workers.postToWorker({origin:this.name,foo:'stopAnimation'},this.workerId);
     }
