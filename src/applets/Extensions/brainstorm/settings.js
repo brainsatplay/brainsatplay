@@ -1,16 +1,14 @@
 
 import {Manager} from './Manager.js'     
+import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
-	"name": "My Project",
-	"devices": [
-		"EEG",
-		"HEG"
-	],
-	"author": "",
-	"description": "",
+	"name": "Brainstorm",
+	"devices": [],
+	"author": "Garrett Flynn",
+	"description": "Visualize the active users on the Brainstorm.",
 	"categories": [
-		"WIP"
+		"extension"
 	],
 	"instructions": "",
 	"display": {
@@ -19,9 +17,9 @@ export const settings = {
 	},
 	"intro": {
 		"title": false,
-		"mode": "solo",
-		"login": null,
-		"domain": null,
+		"mode": "multi",
+		"login": 'guest',
+		// "domain": null,
 		"session": null,
 		"spectating": false
 	},
@@ -34,8 +32,5 @@ export const settings = {
 			source: 'manager:element',
 			target: 'ui:content'
 		}]
-	},
-	"image": null,
-	"version": "experimental",
-	"connect": true
+	}
 };

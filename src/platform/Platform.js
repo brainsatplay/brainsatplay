@@ -1,7 +1,6 @@
 
 import * as brainsatplay from '../libraries/js/brainsatplay'
 // import * as brainsatplay from 'brainsatplay'
-import {settings} from '../applets/UI/mouse/settings.js'
 
 import {BCIAppManager} from './js/frontend/BCIManager'
 
@@ -67,8 +66,3 @@ let urlToConnect = (location.origin.includes('app.brainsatplay.com') ? remoteHos
 let bcisession = new brainsatplay.Session('guest','', urlToConnect, false);
 
 let mgr = new BCIAppManager(bcisession,undefined,true);
-
-// Add BCI Cursor by Default
-// let bciCursor = new brainsatplay.Application(settings, document.body, bcisession)
-// bciCursor.init()
-// bciCursor.AppletHTML.node.style.display = 'hidden'

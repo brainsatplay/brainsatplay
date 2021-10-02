@@ -1,15 +1,13 @@
 const express = require("express")
 const router = express.Router();
-// import * as auth from "../../library/src/server/auth"
+// import * as auth from "../../../libraries/js"
 const path = require("path")
 
 const routes = app => {
 
-  app.use(express.static(`${__dirname}/../../../libraries/js/src/brainstorm/dashboard`))
-
 
 router.get("/", (req, res, next) => {
-  return res.sendFile(path.join(`${__dirname}/../../../libraries/js/src/brainstorm/dashboard/index.html`));
+  return res.send('hello world');
 });
 
 // router.post("/login", async (req,res,next) => {

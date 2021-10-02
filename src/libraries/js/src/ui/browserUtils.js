@@ -7,15 +7,17 @@ export const createCards = (appletSettings=[], filter = (settings) => { return s
 
         appletSettings.sort(function (first, second) {
             let translate = (settings) => {
-                if (settings.devices.length > 1) {
-                    return 0 // all
+                if (settings.devices.length === 0) {
+                    return 0 // none
                 } else if (settings.devices[0] == 'eeg') {
                     return 1 // eeg
                 } else if (settings.devices[0] == 'heg') {
                     return 2 // heg
+                } else if (settings.devices.length > 1) {
+                    return 3 // all
                 } else {
-                    return 3 // other
-                }
+                    return 4 // other
+                } 
             }
             let pos1 = translate(first)
             let pos2 = translate(second)
@@ -26,10 +28,13 @@ export const createCards = (appletSettings=[], filter = (settings) => { return s
 
         appletSettings.forEach(settings => {
 
-            if (settings.display != null && (settings.display.development === false || settings.display[platformLocation] === false)) { }
+            if ((settings.display != null && (settings.display.development === false || settings.display[platformLocation] === false))) { }
             else {
                 let type;
-                if (settings.devices.length > 1) {
+                if (settings.devices.length === 0) {
+                    type = 'None'
+                    settings.devices = type
+                } else if (settings.devices.length > 1) {
                     type = 'All'
                 } else {
                     type = settings.devices[0]
