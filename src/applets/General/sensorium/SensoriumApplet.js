@@ -3,7 +3,7 @@
 
 import {Session} from '../../../libraries/js/src/Session'
 import {DOMFragment} from '../../../libraries/js/src/ui/DOMFragment'
-import { SoundJS } from '../../../libraries/js/src/utils/Sound';
+import { SoundJS } from '../../../libraries/js/src/utils/general/Sound';
 import { LiveEditor } from '../../../libraries/js/src/ui/LiveEditor'
 import { Math2 } from '../../../libraries/js/src/utils/mathUtils/Math2';
 

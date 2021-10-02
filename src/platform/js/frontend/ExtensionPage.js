@@ -1,83 +1,41 @@
 
-import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
+import { Page } from './Page';
 import { appletManifest } from './../../appletManifest'
 import { ExtensionCard } from '../../../libraries/js/src/ui/ExtensionCard'
 import { getAppletSettings } from "../../../libraries/js/src/utils/general/importUtils"
 import { StorageManager } from "../../../libraries/js/src/StorageManager"
-export class ExtensionPage{
+export class ExtensionPage extends Page{
     constructor(parentNode, toggle){
-        this.parentNode = parentNode
-        this.toggle = toggle
+        super(parentNode, toggle)
+
+        this.header.innerHTML = `Extensions`
 
         this.storage = new StorageManager()
 
-        this.page = document.createElement('div')
-        this.page.classList.add('brainsatplay-page')
+        this.content.style = 'display: flex; flex-wrap: wrap;'
+        let applets = Object.keys(appletManifest)
+        let extensions = []
+        applets.forEach(name => {
+            let o = appletManifest[name]
+            // o.categories.forEach(c => {
+                if (o.folderUrl.includes('/Extensions/')) extensions.push(o)
+            // })
+        })
 
-        this.html = `
-            <div class="brainsatplay-header-grid">
-                <h1>Extensions</h1>
-                <button class="brainsatplay-default-button">Close</button>
-            </div>
-            <div class="page-container">
-            </div>
-        `
+        let apps = extensions.map(async (o) => {
+            return await getAppletSettings(o.folderUrl)
+        })
 
-        this.page.insertAdjacentHTML('beforeend', this.html)
-
-        this.setupHTML = async () => {
-            this.toggle.onclick = () => {
-                this.fragment.node.classList.toggle('shown')
-            }
-
-            let container = this.page.querySelector('.page-container')
-            container.style = 'display: flex; flex-wrap: wrap;'
-            let applets = Object.keys(appletManifest)
-            let extensions = []
-            applets.forEach(name => {
-                let o = appletManifest[name]
-                // o.categories.forEach(c => {
-                    if (o.folderUrl.includes('/Extensions/')) extensions.push(o)
-                // })
-            })
-
-            let apps = extensions.map(async (o) => {
-                return await getAppletSettings(o.folderUrl)
-            })
-
+        let init = async () => {
             apps = await Promise.all(apps)
 
             apps.forEach(o => {
                 let card = new ExtensionCard(o, this.storage)
-                container.insertAdjacentElement('beforeend',card.element)
+                this.content.insertAdjacentElement('beforeend',card.element)
             })
-
-            let close = this.page.querySelector('.brainsatplay-default-button')
-
-            close.onclick = () => {
-                this.toggle.click()
-            }
         }
 
-        this.fragment = new DOMFragment(
-            this.page,
-            this.parentNode,
-            undefined,
-            this.setupHTML,
-            undefined,
-            undefined,
-            undefined,
-            this.responsive
-        )
-
-        this._init()
+        init()
+        
     }
-
-    _init(){}
-
-    _toggle(){
-
-    }
-
-    responsive(){}
 }
