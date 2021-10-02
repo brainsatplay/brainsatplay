@@ -28,6 +28,12 @@ export class Manager{
     }
 
     init = () => {
+        this.session.info.auth.username = 'user' + Math.floor(10000*Math.random())
+        this.session.info.auth.url = new URL('http://localhost:443')
+        this.session.login(true, this.session.info.auth, () => {
+            console.log('connected', this.session.info.auth)
+        })
+
         this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
             console.log('MSG', o)
             if (o.msg === 'currentUsers'){
@@ -40,10 +46,11 @@ export class Manager{
                 this.props.users.remove(o.user.id)
             }
         })
+
     }
 
     deinit = () => {
-        this.state.unsubscribeTrigger('commandResult', this.props.sub);
+        this.session.state.unsubscribeTrigger('commandResult', this.props.sub);
     }
 
     _addUser = (user) => {
