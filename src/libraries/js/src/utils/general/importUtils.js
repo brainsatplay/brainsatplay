@@ -79,7 +79,7 @@ export function parseContent(url, type='image') {
     return setHTMLcontent;
 }
 
-function youtube_parser(url) {
+export function  youtube_parser(url) {
     var regExp = /^.*(youtu.be\/|v\/|embed\/|watch\?|youtube.com\/user\/[^#]*#([^\/]*?\/)*)\??v?=?([^#\&\?]*).*/;
     var match = url.match(regExp);
     if (match && match[3].length == 11) {
@@ -89,7 +89,7 @@ function youtube_parser(url) {
     }
 }
 
-function youtube_playlist_parser(url) {
+export function  youtube_playlist_parser(url) {
     var regExp = /^.*(youtu\.be\/|list=)([^#\&\?]*).*/;
     var match = url.match(regExp);
     if (match && match[2].length == 12) {
@@ -98,7 +98,7 @@ function youtube_playlist_parser(url) {
     return null;
 }
 
-function vimeo_parser(url) {
+export function  vimeo_parser(url) {
     var regExp = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
     var match = url.match(regExp);
     if (match && match[4]) {
@@ -107,7 +107,7 @@ function vimeo_parser(url) {
     return null;
 }
 
-function soundcloud_parser(url) {
+export function  soundcloud_parser(url) {
     var regExp; // Need to find correct regExp (cannot be for the PhP regexp script)
     var match = url.match(regExp);
     if (match && match[2]) {
@@ -116,3 +116,36 @@ function soundcloud_parser(url) {
     return null;
 }
 
+//Get the text inside of a function (regular or arrow);
+export function getFunctionBody (methodString) {
+    return methodString.toString().replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+}
+
+export function getFunctionHead (methodString) {
+    let fnstring = methodString.toString();
+    return fnstring.slice(0,fnstring.indexOf('{') + 1);
+}
+
+export function buildNewFunction(head, body) {
+    let newFunc = eval(head+body+'}');
+    return newFunc;
+}
+
+export function parseFunctionFromText(method){
+    //Get the text inside of a function (regular or arrow);
+    let getFunctionBody = (methodString) => {
+      return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+    }
+  
+    let getFunctionHead = (methodString) => {
+      return methodString.slice(0,methodString.indexOf('{') + 1);
+    }
+  
+    let newFuncHead = getFunctionHead(method);
+    let newFuncBody = getFunctionBody(method);
+  
+    let newFunc = eval(newFuncHead+newFuncBody+"}");
+  
+    return newFunc;
+  
+  } 
