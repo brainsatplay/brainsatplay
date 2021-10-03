@@ -174,9 +174,9 @@ export class StateManager {
         Object.assign(this.pushToState,updateObj);
         
         if(Object.keys(this.triggers).length > 0) {
-            Object.assign(this.data,this.pushToState);
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
                 if(this.pushToState[prop]) {
+                    this.data[prop] = this.pushToState[prop];
                     this.triggers[prop].forEach((obj)=>{
                         obj.onchange(this.pushToState[prop]);
                     });
@@ -194,9 +194,9 @@ export class StateManager {
         Object.assign(this.pushToState,updateObj);
         
         if(Object.keys(this.triggers).length > 0) {
-            Object.assign(this.data,this.pushToState);
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
                 if(this.pushToState[prop]) {
+                    this.data[prop] = this.pushToState[prop];
                     this.triggers[prop].forEach((obj)=>{
                         obj.onchange(this.pushToState[prop]);
                     });
