@@ -68,9 +68,11 @@ export class EventRouter{
 
                     // Focus Detection
                     if (focus){
+                        this.device.atlas.settings.analysisDetails.system['eegcoherence'] = true
                         this.device.states['focus'].data = this.device.atlas.getFocus({debug: true})
                     } else {
-                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
+                        this.device.atlas.settings.analysisDetails.system['eegcoherence'] = false
+                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'focus')
 		                this.device.atlas.graph.updateParams(node, {debug: false})
                     }
             });
@@ -305,19 +307,8 @@ export class EventRouter{
 
             let setup = () => {
 
-                let container = parentNode.querySelector('.brainsatplay-debugger')
-                let blink = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
-
-                if (blink){
-
-                    if (parentNode === document.body) {
-                        blink.props.container.style.position = 'absolute'
-                        blink.props.container.style.top = 0
-                        blink.props.container.style.right = 0
-                    }
-                    this.device.atlas.graph.updateParams(blink, {debug: true})
-                    if (container) container.insertAdjacentElement('beforeend', blink.ports.element.data)
-                }
+                this._placeNodeElement('blink', parentNode)
+                this._placeNodeElement('focus', parentNode)
 
             }
 
@@ -328,6 +319,23 @@ export class EventRouter{
                 setup
             ))
         }
+    }
+
+    _placeNodeElement = (name, parentNode=document.body) => {
+        let container = parentNode.querySelector('.brainsatplay-debugger')
+        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, name)
+
+        if (node){
+
+            if (parentNode === document.body) {
+                node.ports.element.data.style.position = 'absolute'
+                node.ports.element.data.style.top = 0
+                node.ports.element.data.style.right = 0
+            }
+            this.device.atlas.graph.updateParams(node, {debug: true})
+            if (container) container.insertAdjacentElement('beforeend', node.ports.element.data)
+        }
+
     }
 
     addApp(id,controls){

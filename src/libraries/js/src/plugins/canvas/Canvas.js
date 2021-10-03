@@ -84,6 +84,6 @@ export class Canvas{
         this.props.context.fillStyle = 'black';
         this.props.context.stokeStyle = 'white';
         this.props.context.fillRect(0, 0, this.props.canvas.width, this.props.canvas.height)
-        this.props.context.strokeRect(0, 0, this.props.canvas.width, this.props.canvas.height)
+        // this.props.context.strokeRect(0, 0, this.props.canvas.width, this.props.canvas.height)
     }
 }

@@ -40,7 +40,7 @@ export class StorageManager{
     }
 
     _setLocal = (route, item, value) => {
-        return localStorage.setItem(route + item , value);
+        return localStorage.setItem(`${route}_${item.replace(' ', '')}`, value);
     }
 
     // Get Methods
@@ -54,14 +54,17 @@ export class StorageManager{
 
     _getLocal = (route, item) => {
 
+        let query = `${route}_${item.replace(' ', '')}`
+        let res = localStorage.getItem(query)
+
         // Booleans
         try {
-            return JSON.parse(localStorage.getItem(route + item))
+            return JSON.parse(res)
         } 
         
         // Strings
         catch {
-            return JSON.parse(JSON.stringify(localStorage.getItem(route + item)))
+            return JSON.parse(JSON.stringify(res))
         }
     }
 }

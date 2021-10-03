@@ -58,6 +58,7 @@ export class DataAtlas {
 		}
 		this.liveGraph = this.graph.init(app)
 		this.graph.start(this.props.id)
+		console.log(this.graph)
 
 		this.liveGraph.nodes.forEach(n => {
 			let ui = n.ui
@@ -84,6 +85,10 @@ export class DataAtlas {
 			deviceConnected: false,
 			// analyzing: false,
 			analysis: analysisDict, // {eegfft: true}
+			analysisDetails: {
+				system: Object.assign({}, analysisDict),
+				apps: Object.assign({}, analysisDict)
+			},
 			runAnalysisLoop:true,
 			heg:false,
 			eeg:false,
@@ -1603,7 +1608,11 @@ export class DataAtlas {
 			// Run Required Analysis Functions
 			let keys = Object.keys(this.settings.analysis)
 
-			// remove false keys
+			// modify top-level analysis flags
+			keys.forEach(k => {
+				let override = this.settings.analysisDetails.system[k]
+				this.settings.analysis[k] = (override === true) ? true : this.settings.analysisDetails.apps[k]
+			})
 
 			// remove eegfft if coherence is running
 			if (this.settings.analysis['eegcoherence'] == true) keys.find((k,i) => {

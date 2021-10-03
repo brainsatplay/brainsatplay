@@ -604,18 +604,18 @@ export class Session {
 			let atlas = stream.device.atlas
 			if (arr.length > 0){
 				arr.forEach(name => {
-					if (name !== '' && typeof name === 'string') atlas.settings.analysis[name] = false
+					if (name !== '' && typeof name === 'string') atlas.settings.analysisDetails.apps[name] = false
 				})
 			} else {
 				for (let k in this.atlas.settings.analysis){
-					atlas.settings.analysis[k] = false
+					atlas.settings.analysisDetails.apps[k] = false
 				}
 			}
 		})
 
 		if (this.deviceStreams.length == 0 ){
 			for (let k in this.atlas.settings.analysis){
-				this.atlas.settings.analysis[k] = false
+				this.atlas.settings.analysisDetails.apps[k] = false
 			}
 		}
 	}
@@ -625,7 +625,7 @@ export class Session {
 		this.deviceStreams.forEach(stream => {
 			let atlas = stream.device.atlas
 			arr.forEach(name => {
-				if (name !== '' && typeof name === 'string') atlas.settings.analysis[name] = true
+				if (name !== '' && typeof name === 'string') atlas.settings.analysisDetails.apps[name] = true
 			})
 		})
 
@@ -1396,7 +1396,7 @@ else {
 		this.startAnalysis(analysisSet)
 		for (let key in this.atlas.settings.analysis){
 			if (!analysisSet.has(key)){
-				this.atlas.settings.analysis[key] = false
+				this.atlas.settings.analysisDetails.apps[key] = false
 			}
 		}
 

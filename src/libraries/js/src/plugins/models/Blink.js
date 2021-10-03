@@ -24,7 +24,7 @@ export class Blink{
         }
 
         this.props.container.id = this.props.id
-        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 150px;'
+        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 150px; padding: 10px; box-sizing: content-box;'
 
         this.ports = {
             default: {
@@ -129,10 +129,11 @@ export class Blink{
                     data: {active: true, function: (ctx) => {
                         if (this.props.looping){
                             if (this.ports.debug.data){
+                                this.props.container.style.display = 'block'
                                 this._drawSignal(ctx)
                             } else {
-                                this.props.container.style.opacity = 0
-                                this.props.container.style.pointerEvents = 'none'
+                                this.props.container.style.display = 'none'
+                                // this.props.container.style.pointerEvents = 'none'
                             }
                         }
                     }}
@@ -160,8 +161,8 @@ export class Blink{
         let keys = Object.keys(this.props.blinkData)
         if (keys.length > 0){
             // Display
-            this.props.container.style.opacity = 1
-            this.props.container.style.pointerEvents = 'all'
+            this.props.container.style.display = 'block'
+
 
             // Grab Data From First Tag
             keys.forEach(tag => {
@@ -212,8 +213,7 @@ export class Blink{
 
 
         } else {
-            this.props.container.style.opacity = 0
-            this.props.container.style.pointerEvents = 'none'
+            this.props.container.style.display = 'none'
         }
     }
 

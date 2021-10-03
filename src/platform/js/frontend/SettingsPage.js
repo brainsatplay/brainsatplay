@@ -22,15 +22,20 @@ export class SettingsPage extends Page{
         this.container.insertAdjacentElement('afterbegin', this.sidebar)
 
         // Create Profile Page
-        this._addSubPage('Profile')
-        settings.connect = {toggle: 'device-menu'}
-        this.profileApp = new Application(settings, this.subpages.get('Profile'), this.session)
-        this.profileApp.init()
+        // this._addSubPage('Profile')
+        // settings.connect = {toggle: 'device-menu'}
+        // this.profileApp = new Application(settings, this.subpages.get('Profile'), this.session)
+        // this.profileApp.init()
 
 
         // Create Storage Subpage
         this._addSubPage('Storage')
 
+        // Check Autosave (set true by default)
+        let autosave = this.session.storage.get('settings','Autosave Data')
+        if (this.session.storage.get('settings','Autosave Data') === null) this.session.storage.set('settings','Autosave Data', true)
+
+        this._createCheckbox('Autosave Data', 'Storage')
         this._createSelector('Storage Type', [
             'Local', 
             // 'MongoDB'
@@ -91,6 +96,25 @@ export class SettingsPage extends Page{
         
         select.onchange = (e) => {
             this.session.storage.set('settings', header, select.value)
+        }
+    }
+
+    _createCheckbox = (header, subpage=this.subpages.entries().next().value[0]) => {
+        let div = document.createElement('div')
+        div.style = 'display: flex; align-items: center; grid-template-columns: repeat(2,1fr);'
+
+        div.innerHTML = `<h3>${header}</h3>`
+        let input = document.createElement('input')
+        input.type = 'checkbox'
+        input.style = 'max-height: 35px; margin-left: 25px;'
+
+        div.insertAdjacentElement('beforeend', input)
+        this.subpages.get(subpage).insertAdjacentElement('beforeend', div)
+
+        input.checked = this.session.storage.get('settings', header)
+        
+        input.onchange = (e) => {
+            this.session.storage.set('settings', header, input.checked)
         }
     }
 }

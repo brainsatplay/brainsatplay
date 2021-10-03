@@ -29,7 +29,7 @@ export class DataManager {
     constructor(session=new Session(), onload = this.onload) {
         this.session = session;
         this.state = new StateManager({
-            autosaving: true,
+            // autosaving: true,
             saveChunkSize: 2000,
             newSessionCt: 0,
             fileSizeLimitMb: 250,
@@ -330,7 +330,7 @@ export class DataManager {
                         } 
                         console.log(deviceName)
                         this.session.subscribe(deviceIdx, thisDevice.device.atlas.data.eegshared.eegChannelTags[0].ch, undefined, (row) => {
-                            if (this.state.data.autosaving) {
+                            if (this.session.storage.get('settings', 'Autosave Data')) {
                                 if (this.state.data['saveCounter'+deviceName+deviceIdx] > row.count) { this.state.data['saveCounter'+deviceName+deviceIdx] = thisDevice.device.atlas.rolloverLimit - this.state.data.saveChunkSize; } //rollover occurred, adjust
                                 if (row.count - this.state.data['saveCounter'+deviceName+deviceIdx] >= this.state.data.saveChunkSize) {
                                     this.autoSaveEEGChunk(this.state.data['saveCounter'+deviceName+deviceIdx], undefined, deviceName+deviceIdx, undefined, undefined, thisDevice.device.atlas);

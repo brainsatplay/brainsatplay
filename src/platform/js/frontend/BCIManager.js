@@ -146,7 +146,6 @@ export class BCIAppManager {
                     <div id="filecontainer" class="content">
                         <div class="collapsible-content-label">
                             <span>File Manager</span>
-                            <input type='checkbox' id='autosavingfiles' style='float:right;' checked> <span style='float:right;'>Autosave:</span>
                             <hr>
                         </div>
                     </div>
@@ -268,9 +267,9 @@ export class BCIAppManager {
                 //     //session.subscribeToUser('guest',['eegch_AF7','eegch_AF8'],(res)=>{console.log("subscribed!", res)});
                 // }
 
-                document.getElementById('autosavingfiles').onchange = () => {
-                    this.session.dataManager.state.data.autosaving = document.getElementById('autosavingfiles').checked;
-                }
+                // document.getElementById('autosavingfiles').onchange = () => {
+                //     this.session.dataManager.state.data.autosaving = document.getElementById('autosavingfiles').checked;
+                // }
             },
             undefined,
             'NEVER'
@@ -613,11 +612,11 @@ export class BCIAppManager {
             if (settings.appletConfigs) {
                 this.appletConfigs = settings.appletConfigs;
             }
-            if (settings.autosaving || settings.autosaving === false) {
-                this.session.dataManager.state.data.autosaving = settings.autosaving;
-                let autosavecheck = document.getElementById('autosavingfiles');
-                if (autosavecheck) autosavecheck.checked = this.session.dataManager.state.data.autosaving;
-            }
+            // if (settings.autosaving || settings.autosaving === false) {
+            //     this.session.dataManager.state.data.autosaving = settings.autosaving;
+            //     let autosavecheck = document.getElementById('autosavingfiles');
+            //     if (autosavecheck) autosavecheck.checked = this.session.dataManager.state.data.autosaving;
+            // }
             //console.log(this.appletConfigs)
         }
         //console.log(this.appletConfigs)
@@ -697,7 +696,7 @@ export class BCIAppManager {
             let newsettings = JSON.stringify({
                 time: this.session.dataManager.toISOLocal(new Date()),
                 appletConfigs: this.appletConfigs,
-                autosaving: this.session.dataManager.state.data.autosaving
+                autosaving: this.session.storage.get('settings', 'Autosave Data')//this.session.dataManager.state.data.autosaving
             });
             fs.writeFile('/data/settings.json',
                 newsettings,
