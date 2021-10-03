@@ -711,7 +711,6 @@ export class GraphManager{
                         u.meta.session = applet.sessionId
                         let returned = this.runSafe(target, targetPort, u, true)
 
-                        console.log(this.info.latencies[source.uuid], sourcePort)
                         let sourceLatency = this.info.latencies[source.uuid][sourcePort]
                         let targetLatency = this.info.latencies[target.uuid][targetPort]
 
@@ -867,7 +866,6 @@ export class GraphManager{
         if (sessionSubs != null){
             applet.subscriptions.session[stateKey].find(o =>{
                 if (o.target === structure.target) {
-                    console.log('removing session sub')
                     this.session.removeStreaming(stateKey, o.id, undefined, 'trigger');
                     return true
                 }
