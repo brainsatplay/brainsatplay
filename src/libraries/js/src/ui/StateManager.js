@@ -188,33 +188,14 @@ export class StateManager {
         return this.pushToState;
     }
 
-    //setState but also run triggers, allows subscribing to the same key in state without interrupting anything
-    setState_T(updateObj={}) {
-
-        Object.assign(this.pushToState,updateObj);
-        
-        if(Object.keys(this.triggers).length > 0) {
-            for (const prop of Object.getOwnPropertyNames(this.triggers)) {
-                if(this.pushToState[prop]) {
-                    this.data[prop] = this.pushToState[prop];
-                    this.triggers[prop].forEach((obj)=>{
-                        obj.onchange(this.pushToState[prop]);
-                    });
-                    delete this.pushToState[prop];
-                }
-            }
-        }
-
-        return this.pushToState;
-    }
-
     //Trigger-only functions on otherwise looping listeners
     subscribeTrigger(key=undefined,onchange=(key)=>{}) {
         if(key) {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
             }
-            this.triggers[key].push({idx:this.triggers[key].length, onchange:onchange});
+            let l = this.triggers[key].length;
+            this.triggers[key].push({idx:l, onchange:onchange});
             return this.triggers[key].length-1;
         } else return undefined;
     }
