@@ -49,7 +49,11 @@ export class Plugin{
         }
     }
 
-    init = () => {}
+    init = () => {
+        // runs immediately when the plugin is added to the graph
+    }
 
-    deinit = () => {}
+    deinit = () => {
+        // runs when the plugin is removed in the graph
+    }
 }
