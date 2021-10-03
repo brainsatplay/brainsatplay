@@ -33,7 +33,12 @@ export class Manager{
 
         setTimeout(() => {
 
-            this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
+            // console.log(this.session.state.data.commandResult)
+
+            // window.onkeypress = () => {
+            //     console.log(this.session.state.data.commandResult)
+            // }
+            this.props.sub = this.session.state.subscribe('commandResult', (o)=> {
                 console.log(o)
                 if (o.msg === 'currentUsers'){
                     o.users.forEach(this._addUser)
