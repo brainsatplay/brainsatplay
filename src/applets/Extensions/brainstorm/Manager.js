@@ -31,19 +31,19 @@ export class Manager{
         this.session.info.auth.username = 'user' + Math.floor(10000*Math.random())
         this.session.info.auth.url = new URL(`${location.protocol}//localhost:443`)
 
-        console.log('SuBSCRIBED')
-        this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
-            console.log(o)
-            if (o.msg === 'currentUsers'){
-                o.users.forEach(this._addUser)
-            } else if (o.msg === 'userAdded'){
-                this._addUser(o.user)
-            } else if (o.msg === 'userRemoved'){
-                this._removeUser(this.props.users.get(o.user.id))
-            }
-        })
-
         setTimeout(() => {
+
+            this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
+                console.log(o)
+                if (o.msg === 'currentUsers'){
+                    o.users.forEach(this._addUser)
+                } else if (o.msg === 'userAdded'){
+                    this._addUser(o.user)
+                } else if (o.msg === 'userRemoved'){
+                    this._removeUser(this.props.users.get(o.user.id))
+                }
+            })
+
             // this.session.login(true, this.session.info.auth, () => {
             //     console.log('connected', this.session.info.auth)
             // })
