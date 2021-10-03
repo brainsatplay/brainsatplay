@@ -65,7 +65,7 @@ export class Plugin{
 
 
         /* EXAMPLE CUSTOM PORT
-            This is an example custom port. It functions in the same way as the default port, but is specifid as {target: 'plugin:element'}
+            This is an example custom port that handles an Element assigned to this plugin. It functions in the same way as the default port, but is specifid as {target: 'plugin:element'}
         */
         this.ports.element = {
             edit: false,
