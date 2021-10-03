@@ -10,7 +10,7 @@ self.onmessage = (event) => {
   // define gpu instance
   // console.log("worker executing...", event)
   console.time("worker");
-  let output = "function not defined";
+  let output;
 
   if(event.data.canvas !== undefined) { //if a new canvas is sent (event.data.canvas = htmlCanvasElement.transferControlToOffscreen()).
     manager.canvas = event.data.canvas; 
@@ -30,7 +30,7 @@ self.onmessage = (event) => {
     }`]);
   */
 
-  manager.checkCallbacks(event);
+  output = manager.checkCallbacks(event);
 
   // output some results!
   console.timeEnd("worker");
