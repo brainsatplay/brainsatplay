@@ -35,7 +35,9 @@ export class Focus{
                     let alpha = []
                     let beta = []
 
-                    user.data.eeg.forEach(o => {
+                    let frontalData = this.session.atlas.getFrontalData(user.data)
+
+                    frontalData.forEach(o => {
                         alpha.push(o.means.alpha1[o.fftCount - 1], o.means.alpha2[o.fftCount - 1])
                         beta.push(o.means.beta[o.fftCount - 1])
                     })
