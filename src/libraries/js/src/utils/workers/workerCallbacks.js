@@ -256,7 +256,7 @@ export class CallbackManager{
     checkCallbacks(event) {
       this.callbacks.find((o,i)=>{
         if(o.case === event.data.foo) {
-          output = o.callback(event.data.input);
+          let output = o.callback(event.data.input);
           return true;
         }
       });

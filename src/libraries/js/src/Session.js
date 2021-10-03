@@ -129,10 +129,6 @@ export class Session {
 		this.dataManager = new DataManager(this);
 		this.storage = new StorageManager()
 		this.notifications = new NotificationManager()
-		// setTimeout(() => {
-		// 	this.notifications.throw('This is a notification')
-		// 	this.notifications.throw('Test 2')
-		// }, 2000)
 
 		DataMgr = this.dataManager;
 
