@@ -180,8 +180,8 @@ export class StateManager {
                     this.triggers[prop].forEach((obj)=>{
                         obj.onchange(updateObj[prop]);
                     });
+                    delete this.pushToState[prop];
                 }
-                delete this.pushToState[prop];
             }
         }
 
@@ -200,8 +200,8 @@ export class StateManager {
                     this.triggers[prop].forEach((obj)=>{
                         obj.onchange(updateObj[prop]);
                     });
+                    delete this.pushToState[prop];
                 }
-                delete this.pushToState[prop];
             }
         }
 
