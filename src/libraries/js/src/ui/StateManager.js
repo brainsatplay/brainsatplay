@@ -178,7 +178,7 @@ export class StateManager {
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
                 if(this.pushToState[prop]) {
                     this.triggers[prop].forEach((obj)=>{
-                        obj.onchange(updateObj[prop]);
+                        obj.onchange(this.pushToState[prop]);
                     });
                     delete this.pushToState[prop];
                 }
@@ -198,7 +198,7 @@ export class StateManager {
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
                 if(this.pushToState[prop]) {
                     this.triggers[prop].forEach((obj)=>{
-                        obj.onchange(updateObj[prop]);
+                        obj.onchange(this.pushToState[prop]);
                     });
                     delete this.pushToState[prop];
                 }
