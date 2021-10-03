@@ -62,6 +62,8 @@ import { DataManager } from './utils/DataManager'
 // Project Manager
 import { Application } from './Application'
 import { ProjectManager } from './utils/ProjectManager'
+import { NotificationManager } from './ui/NotificationManager'
+import { StorageManager } from './StorageManager'
 
 // MongoDB Realm
 import { LoginWithGoogle, LoginWithRealm } from './ui/login';
@@ -125,6 +127,8 @@ export class Session {
 
 		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
+		this.storage = new StorageManager()
+		this.notifications = new NotificationManager()
 
 		DataMgr = this.dataManager;
 

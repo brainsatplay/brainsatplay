@@ -710,12 +710,17 @@ export class GraphManager{
                         if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                         u.meta.session = applet.sessionId
                         let returned = this.runSafe(target, targetPort, u, true)
+
+                        console.log(this.info.latencies[source.uuid], sourcePort)
+                        let sourceLatency = this.info.latencies[source.uuid][sourcePort]
+                        let targetLatency = this.info.latencies[target.uuid][targetPort]
+
                         if (this.applets[appId].editor) this.applets[appId].editor.animate(
                             {label:source.label, port: sourcePort},
                             {label:target.label, port: targetPort}, 
                             [
-                                {node: source, port: sourcePort, latency: this.info.latencies[source.uuid][sourcePort].average},
-                                {node: target, port: targetPort, latency: this.info.latencies[target.uuid][targetPort].average},
+                                {node: source, port: sourcePort, latency: sourceLatency?.average},
+                                {node: target, port: targetPort, latency: targetLatency?.average},
                             ])
 
                         return returned

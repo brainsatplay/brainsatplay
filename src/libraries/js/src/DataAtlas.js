@@ -1341,7 +1341,7 @@ export class DataAtlas {
 								}
 							}
 							if(datums[0].times[i] === row.fftTimes[mapidx]) {
-								line.push(['',...[...row.ffts[mapidx]].map((x,k) => x = x.toFixed(3))]);
+								line.push(['',...[...row.ffts[mapidx]].map((x,k) => {x = x.toFixed(3)})]);
 							}
 						});
 						if(this.settings.analysis.eegcoherence) {

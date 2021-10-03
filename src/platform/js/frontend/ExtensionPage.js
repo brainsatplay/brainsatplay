@@ -5,12 +5,12 @@ import { ExtensionCard } from '../../../libraries/js/src/ui/ExtensionCard'
 import { getAppletSettings } from "../../../libraries/js/src/utils/general/importUtils"
 
 export class ExtensionPage extends Page{
-    constructor(parentNode, toggle, storage){
+    constructor(parentNode, toggle, session){
         super(parentNode, toggle)
 
         this.header.innerHTML = `Extensions`
 
-        this.storage = storage
+        this.session = session
 
         this.content.style = 'display: flex; flex-wrap: wrap;'
         let applets = Object.keys(appletManifest)
@@ -30,7 +30,7 @@ export class ExtensionPage extends Page{
             apps = await Promise.all(apps)
 
             apps.forEach(o => {
-                let card = new ExtensionCard(o, this.storage)
+                let card = new ExtensionCard(o, this.session)
                 this.content.insertAdjacentElement('beforeend',card.element)
             })
         }

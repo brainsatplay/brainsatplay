@@ -29,24 +29,25 @@ export class Manager{
 
     init = () => {
         this.session.info.auth.username = 'user' + Math.floor(10000*Math.random())
-        this.session.info.auth.url = new URL('http://localhost:443')
-        this.session.login(true, this.session.info.auth, () => {
-            console.log('connected', this.session.info.auth)
-        })
+        this.session.info.auth.url = new URL(`${location.protocol}//localhost:443`)
 
+        console.log('SuBSCRIBED')
         this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
-            console.log('MSG', o)
+            console.log(o)
             if (o.msg === 'currentUsers'){
                 o.users.forEach(this._addUser)
             } else if (o.msg === 'userAdded'){
                 this._addUser(o.user)
             } else if (o.msg === 'userRemoved'){
-                let user = this.props.users.get(o.user.id)
-                user.element.remove()
-                this.props.users.remove(o.user.id)
+                this._removeUser(this.props.users.get(o.user.id))
             }
         })
 
+        setTimeout(() => {
+            // this.session.login(true, this.session.info.auth, () => {
+            //     console.log('connected', this.session.info.auth)
+            // })
+        }, 1000)
     }
 
     deinit = () => {
@@ -55,10 +56,15 @@ export class Manager{
 
     _addUser = (user) => {
         user.element = document.createElement('div')
-        console.log(user.id , this.session.info.auth.id)
+        this.session.notifications.throw(`${user.username} joined the Brainstorm!`)
         user.element.innerHTML = (user.id != this.session.info.auth.id) ? user.username : 'Me'
         this.props.container.insertAdjacentElement('beforeend', user.element)
-        console.log(user)
         this.props.users.set(user.id,user)
+    }
+
+    _removeUser = (user) => {
+        user.element.remove()
+        this.props.users.remove(user.id)
+        this.session.notifications.throw(`${user.username} left the Brainstorm`)
     }
 }

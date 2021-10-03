@@ -3,15 +3,15 @@ import * as brainsatplay from '../../brainsatplay'
 
 
 export class ExtensionCard {
-    constructor(extension, storage){
+    constructor(extension, session){
 
         this.settings = extension
-        this.storage = storage
+        this.session = session
 
 
         // Check Storage for Extension Usage
         let isEnabled = false
-        if (this.storage) isEnabled = this.storage.get('extensions', this.settings.name)
+        if (this.session.storage) isEnabled = this.session.storage.get('extensions', this.settings.name)
 
         // Create Visuals
         this.element = document.createElement('div')
@@ -78,7 +78,6 @@ export class ExtensionCard {
         this.closeView.onclick = this._hideExtensionElement
         this.closeView.innerHTML = 'Close Extension'
 
-        console.log(this.closeView)
         this.view.insertAdjacentElement('beforeend', this.closeView)
         document.body.insertAdjacentElement('beforeend', this.view)
         this.app = new brainsatplay.Application(this.settings, this.view)
@@ -86,7 +85,7 @@ export class ExtensionCard {
         this.show.style.display = 'flex'
 
         // Log Enable in Storage
-        if (this.storage) this.storage.set('extensions', this.app.info.name, true)
+        if (this.session.storage) this.session.storage.set('extensions', this.app.info.name, true)
     }
 
     _disableExtension = () => {
@@ -97,7 +96,7 @@ export class ExtensionCard {
         this.app.deinit()
 
         // Log Disable in Storage
-        if (this.storage) this.storage.set('extensions', this.app.info.name, false)
+        if (this.session.storage) this.session.storage.set('extensions', this.app.info.name, false)
     }
 
     _showExtensionElement = () => {

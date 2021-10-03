@@ -9,51 +9,84 @@ export class Plugin{
     static id = String(Math.floor(Math.random()*1000000)) // ensures that duplicates of the same class are linked
     
     constructor(label, session) {
-        this.label = label // name of the plugin (required)
-        this.session = session // session that the plugin is used in (required)
+
+        // LABEL (required)
+        this.label = label // name of the plugin
+
+        // SESSION (required)
+        this.session = session // session that the plugin is used in 
         
 
+        // PROPS
         this.props = { id: String(Math.floor(Math.random() * 1000000)) } // properties of the plugin
 
         this.props.container = document.createElement('div') // create an element for the plugin (optional)
-        this.props.container.id = this.props.id
-        this.props.container.innerHTML = 'Hello World'
 
-        
-        this.ports = {} // declare the functionality of the plugin (required)
+        // PORTS (required)
+        this.ports = {} // declare the functionality of the plugin (specific ports are optional)
+
+
+        /* THE DEFAULT PORT
+            The default port is special. It is used whenever a specific port isn't specified in the graph 
+            (i.e. {target: 'plugin:default'} === {target: 'plugin'}).
+
+            This example toggles between true and false when anything is sent to the port.
+        */
 
         this.ports.default = {
-            edit: false, // hide plugin from studio gui
-            input: {type: undefined}, // declare type (e.g. 'number', 'string', Object, Element, Function, null (i.e. nothing expected), undefined (i.e. any type))
-            output: {type: undefined}, 
-            meta: {}, // pass metadata associated with the port
+
+            // PORT DATA
+            data: true, // the current state of the port (listened to by downstream plugins). If not undefined, this will be passed downstream on initialization.
+            meta: {}, //  metadata associated with the port
+
+            // PORT INFORMATION
+            // Options: 'number', 'string', Object, Element, Function, null (i.e. nothing expected), undefined (i.e. any type)
+            input: {type: undefined}, // determines which ports can send data to this port
+            output: {type: undefined}, // denotes the output data format
+
+            // OPTIONAL PORT PARAMETERS
+            edit: false, // whether the plugin is visible from the Studio GUI
+
+            // PORT FUNCTIONALITY
+            // this function runs whenever data updates on an upstream port
             onUpdate: (user) => {
 
+                // USER OBJECT FORMAT
                 // user = the previous port + some additional information about the user
                 // user.id = Unique identifier
                 // user.username = Assigned username
                 // user.data = Data from the previous port
                 // user.meta = Metadata from the previous port
 
-                // do something here
-                console.log(user)
-                return user
+                user.data = !this.ports.default.data // example manipulation of the user object
+                return user // update the port state 
             }
         }
 
+
+        /* EXAMPLE CUSTOM PORT
+            This is an example custom port that handles an Element assigned to this plugin. It functions in the same way as the default port, but is specifid as {target: 'plugin:element'}
+        */
         this.ports.element = {
             edit: false,
             input: {type: null},
             output: {type: Element},
-            data: this.props.container // this is passed to connected plugins
+            data: this.props.container
+            // since no onUpdate function is provided, this will always pass the this.props.container object whenever it is connected to a new plugin 
         }
     }
 
+   /* THE INIT METHOD (required)
+        Runs immediately when the plugin is added to the graph
+    */
     init = () => {
-        // runs immediately when the plugin is added to the graph
+        this.props.container.innerHTML = 'Hello World' // sets the content of the plugin element
     }
 
+    /* THE DEINIT METHOD (required)
+        Runs when the plugin is removed in the graph
+    */
     deinit = () => {
-        // runs when the plugin is removed in the graph
+        this.props.container.remove()
     }
 }

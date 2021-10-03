@@ -4,11 +4,11 @@ import { settings } from '../../../applets/UI/profile/settings.js';
 import { Application } from '../../../libraries/js/brainsatplay';
 
 export class SettingsPage extends Page{
-    constructor(parentNode, toggle, storage){
+    constructor(parentNode, toggle, session){
         super(parentNode, toggle)
 
         this.header.innerHTML = `Settings`
-        this.storage = storage
+        this.session = session
         this.subpages = new Map()
 
         // Create Sidebar
@@ -24,7 +24,7 @@ export class SettingsPage extends Page{
         // Create Profile Page
         this._addSubPage('Profile')
         settings.connect = {toggle: 'device-menu'}
-        this.profileApp = new Application(settings, this.subpages.get('Profile'))
+        this.profileApp = new Application(settings, this.subpages.get('Profile'), this.session)
         this.profileApp.init()
 
 
@@ -87,10 +87,10 @@ export class SettingsPage extends Page{
         div.insertAdjacentElement('beforeend', select)
         this.subpages.get(subpage).insertAdjacentElement('beforeend', div)
 
-        select.value = this.storage.get('settings', header) ?? options[0]
+        select.value = this.session.storage.get('settings', header) ?? options[0]
         
         select.onchange = (e) => {
-            this.storage.set('settings', header, select.value)
+            this.session.storage.set('settings', header, select.value)
         }
     }
 }

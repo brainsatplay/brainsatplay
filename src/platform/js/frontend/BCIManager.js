@@ -24,12 +24,10 @@ import { AppletManager } from './AppletManager'
 import { StateManager } from '../../../libraries/js/src/ui/StateManager';
 import { DOMFragment } from '../../../libraries/js/src/ui/DOMFragment';
 import { TutorialManager } from '../../../libraries/js/src/ui/TutorialManager';
+
 import { AboutPage } from './AboutPage'
 import { ExtensionPage } from './ExtensionPage'
 import { SettingsPage } from './SettingsPage'
-
-// Storage
-import { StorageManager } from "../../../libraries/js/src/StorageManager"
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
@@ -526,14 +524,13 @@ export class BCIAppManager {
         ]
 
 
-        let storageManager = new StorageManager()
         let helpMenu = document.getElementById('help-menu').querySelector('button')
         let extensionMenu = document.getElementById('extension-menu').querySelector('button')
         let settingsMenu = document.getElementById('settings-menu').querySelector('button')
 
         let aboutPage = new AboutPage(document.getElementById('page'), helpMenu)
-        let extensionPage = new ExtensionPage(document.getElementById('page'), extensionMenu, storageManager)
-        this.settingsPage = new SettingsPage(document.getElementById('page'), settingsMenu, storageManager)
+        let extensionPage = new ExtensionPage(document.getElementById('page'), extensionMenu, this.session)
+        this.settingsPage = new SettingsPage(document.getElementById('page'), settingsMenu, this.session)
 
 
         // let tutorialManager = new TutorialManager('sidebar-tutorial', tooltips, document.body, helpMenu)
