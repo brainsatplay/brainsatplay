@@ -1126,8 +1126,9 @@ else {
 			console.log('no specific command',parsed);
 		}
 
-		console.log('uPDATE STATE', parsed)
-		this.state.updateState(`commandResult`, parsed)
+		let updateObj = {}
+		updateObj[`commandResult`] = parsed
+		this.state.setState(updateObj)
 	}
 
 	}

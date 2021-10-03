@@ -31,15 +31,8 @@ export class Manager{
         this.session.info.auth.username = 'user' + Math.floor(10000*Math.random())
         this.session.info.auth.url = new URL(`${location.protocol}//localhost:443`)
 
-        setTimeout(() => {
 
-            // console.log(this.session.state.data.commandResult)
-
-            // window.onkeypress = () => {
-            //     console.log(this.session.state.data.commandResult)
-            // }
-            this.props.sub = this.session.state.subscribe('commandResult', (o)=> {
-                console.log(o)
+            this.props.sub = this.session.state.subscribeTrigger('commandResult', (o)=> {
                 if (o.msg === 'currentUsers'){
                     o.users.forEach(this._addUser)
                 } else if (o.msg === 'userAdded'){
@@ -49,10 +42,11 @@ export class Manager{
                 }
             })
 
-            // this.session.login(true, this.session.info.auth, () => {
-            //     console.log('connected', this.session.info.auth)
-            // })
-        }, 1000)
+            // this.session.state.updateState(`commandResult`, {msg: 'currentUsers', users: []})
+
+            this.session.login(true, this.session.info.auth, () => {
+                // console.log(this.props.users)
+            })
     }
 
     deinit = () => {
@@ -61,8 +55,17 @@ export class Manager{
 
     _addUser = (user) => {
         user.element = document.createElement('div')
-        this.session.notifications.throw(`${user.username} joined the Brainstorm!`)
-        user.element.innerHTML = (user.id != this.session.info.auth.id) ? user.username : 'Me'
+
+        if (user.id != this.session.info.auth.id){
+            if (this.session.info.auth.id == null){
+                user.element.innerHTML = 'Me'
+                this.session.notifications.throw(`You joined the Brainstorm!`)
+            } else {
+                user.element.innerHTML = user.username
+                this.session.notifications.throw(`${user.username} joined the Brainstorm!`)
+            }
+        }
+
         this.props.container.insertAdjacentElement('beforeend', user.element)
         this.props.users.set(user.id,user)
     }
