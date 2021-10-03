@@ -175,14 +175,13 @@ export class StateManager {
         
         if(Object.keys(this.triggers).length > 0) {
             // Object.assign(this.data,this.pushToState);
-
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
                 if(this.pushToState[prop]) {
-                    this.data[prop] = this.pushToState[prop];
-                    this.triggers[prop].forEach((obj)=>{
-                        obj.onchange(this.pushToState[prop]);
-                    });
+                    this.data[prop] = this.pushToState[prop]
                     delete this.pushToState[prop];
+                    this.triggers[prop].forEach((obj)=>{
+                        obj.onchange(this.data[prop]);
+                    });
                 }
             }
         }
@@ -192,6 +191,8 @@ export class StateManager {
 
     //Trigger-only functions on otherwise looping listeners
     subscribeTrigger(key=undefined,onchange=(key)=>{}) {
+
+        // console.error('SUBSCRIBING')
         if(key) {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
@@ -229,6 +230,8 @@ export class StateManager {
     }
 
     subscribeSequential(key=undefined,onchange=undefined) {
+        // console.error('SUBSCRIBING')
+
         if(key) {
             
             if(this.data[key] === undefined) {this.addToState(key,null,undefined);}
@@ -321,6 +324,8 @@ export class StateManager {
 
     //Save the return value to provide as the responseIdx in unsubscribe
     subscribe(key, onchange, startRunning=true) {
+        // console.error('SUBSCRIBING')
+
         if(this.data[key] === undefined) {this.addToState(key,null,onchange,startRunning);}
         else {return this.addSecondaryKeyResponse(key,onchange);}
     }

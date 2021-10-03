@@ -1,3 +1,5 @@
 import {Blink} from './Blink'
-export {Blink}
+import {Focus} from './Focus'
+
+export {Blink, Focus}
 

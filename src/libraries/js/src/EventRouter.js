@@ -36,6 +36,9 @@ export class EventRouter{
             this.device.states['blink_right'] = {data: 0, meta: {id:'blink_right'}}
             this.device.states['blink_both'] = {data: 0, meta: {id:'blink_both'}}
 
+            this.device.states['focus'] = {data: 0, meta: {id:'focus'}}
+
+
             let atlasTag = 'eeg'
             let prop = this.device.atlas.data.eegshared.eegChannelTags[0].tag
             let coord = this.device.atlas.getDeviceDataByTag('eeg', prop);
@@ -46,7 +49,10 @@ export class EventRouter{
                     let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
                     let blinkLeft = Object.keys(this.routes.registry['blink_left'][1]).length !== 0
                     let blinkRight = Object.keys(this.routes.registry['blink_right'][1]).length !== 0
+                    let focus = Object.keys(this.routes.registry['focus'][1]).length !== 0
 
+
+                    // Blink Detection
                     if (blinkBoth || blinkLeft || blinkRight){
                         let blinks = this.device.atlas.getBlink({debug: true})
                         if (blinks){
@@ -55,8 +61,15 @@ export class EventRouter{
                             if (blinks[1] != null && blinkRight) this.device.states['blink_right'].data = blinks[1]
                         }
                     } else {
-
                         // Turn Debug Off
+                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
+		                this.device.atlas.graph.updateParams(node, {debug: false})
+                    }
+
+                    // Focus Detection
+                    if (focus){
+                        this.device.states['focus'].data = this.device.atlas.getFocus({debug: true})
+                    } else {
                         let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
 		                this.device.atlas.graph.updateParams(node, {debug: false})
                     }

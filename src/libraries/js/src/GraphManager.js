@@ -267,7 +267,6 @@ export class GraphManager{
             if (param in node.ports) node.ports[param].data = params[param]
             else {
                 console.error(`A port for '${param}' does not exist on the ${node.label} node.`)
-                console.log(node, param)
             }
         }
     }
@@ -310,7 +309,7 @@ export class GraphManager{
     }
 
     // Input Must Be An Array
-    async runSafe(node, port='default',input={}, internal=false){
+    runSafe(node, port='default',input={}, internal=false){
 
         let tick = performance.now()
 
@@ -396,18 +395,18 @@ export class GraphManager{
     setPort(node,port,result){
 
         if (result){
+
             let allEqual = true
-            let forced = false
+            let forced = result.forceUpdate
+            delete result.forceUpdate
+
             let stringify = true
             // if (node.states[port] == null) node.states[port] = [{}]
 
             // result.forEach((o,i) => {
 
-                // Check if Forced Update
-                if (result.forceUpdate) {
-                    forced = true
-                    if (node.ports[port].updateOn != 'input') this.setState(node.ports[port],result)
-                }
+                // Check if Forced Update                
+                if (forced) if (node.ports[port].updateOn != 'input') this.setState(node.ports[port],result)
 
                 // Otherwise Check If Current State === Previous State
                 if (!forced){
@@ -440,9 +439,9 @@ export class GraphManager{
                 let updateObj = {}
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
+
                 if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.ports[port])) // Do not send huge objects
                 
-                // console.error(node, updateObj)
                 node.stateUpdates.manager.setState(updateObj);
             }
         }
@@ -711,6 +710,7 @@ export class GraphManager{
                         if (!u.meta) u.meta = {}
                         if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
                         u.meta.session = applet.sessionId
+
                         let returned = this.runSafe(target, targetPort, u, true)
 
                         let sourceLatency = this.info.latencies[source.uuid][sourcePort]
@@ -746,6 +746,7 @@ export class GraphManager{
 
             // And Listen for Local Changes
             if (applet.subscriptions.local[label] == null) applet.subscriptions.local[label] = []
+            
             let subId = this.state.subscribeTrigger(label, _onTriggered)
             applet.subscriptions.local[label].push({id: subId, target: newEdge.target})
 

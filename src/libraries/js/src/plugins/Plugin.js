@@ -43,6 +43,7 @@ export class Plugin{
             // Options: 'number', 'string', Object, Element, Function, null (i.e. nothing expected), undefined (i.e. any type)
             input: {type: undefined}, // determines which ports can send data to this port
             output: {type: undefined}, // denotes the output data format
+            analysis: ['eegcoherence'], // required analysis functions to run on data streams (e.g. 'eegfft', 'eegcoherence', etc.)
 
             // OPTIONAL PORT PARAMETERS
             edit: false, // whether the plugin is visible from the Studio GUI

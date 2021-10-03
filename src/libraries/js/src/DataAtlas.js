@@ -7,6 +7,8 @@ import { WorkerManager } from "./utils/workers/Workers"
 import { GraphManager } from "./GraphManager"
 
 import { Blink } from "./plugins/models/Blink"
+import { Focus } from "./plugins/models/Focus"
+
 import {DOMFragment} from './ui/DOMFragment'
 
 //-------------------------------------------------------------------------------------------------------
@@ -46,10 +48,10 @@ export class DataAtlas {
 				id: this.props.id
 			},
 			info: {
-				name: 'BlinkDetection', 
 				graph: {
 					nodes: [
 						{id: 'blink', class: Blink},
+						{id: 'focus', class: Focus},
 					],
 				}
 			}
@@ -845,6 +847,14 @@ export class DataAtlas {
 		this.graph.updateParams(node, params)
 		let blink = this.graph.runSafe(node,'default', {data: this.data, forceUpdate: true})
 		return blink.data
+	}
+
+	// Check whether the user is focused
+	getFocus = (params = {}) => {
+		let node = this.graph.getNode(this.props.id, 'focus')
+		this.graph.updateParams(node, params)
+		let focused = this.graph.runSafe(node,'default', {data: this.data, forceUpdate: true})
+		return focused.data
 	}
 
 	isExtrema(arr,critical='peak') { //Checks if the middle point of the (odd-numbered) array is a local extrema. options: 'peak','valley','tangent'. Even numbered arrays are popped
