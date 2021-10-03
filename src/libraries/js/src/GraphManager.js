@@ -441,7 +441,9 @@ export class GraphManager{
                 let label = this.getLabel(node,port)
                 updateObj[label] = {trigger:true}
                 if (stringify) updateObj[label].value = JSON.parse(JSON.stringifyFast(node.ports[port])) // Do not send huge objects
-                node.stateUpdates.manager.setState_T(updateObj);
+                
+                // console.error(node, updateObj)
+                node.stateUpdates.manager.setState(updateObj);
             }
         }
     }
