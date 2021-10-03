@@ -80,7 +80,7 @@ export class ExtensionCard {
 
         this.view.insertAdjacentElement('beforeend', this.closeView)
         document.body.insertAdjacentElement('beforeend', this.view)
-        this.app = new brainsatplay.Application(this.settings, this.view)
+        this.app = new brainsatplay.Application(this.settings, this.view, this.session)
         this.app.init();
         this.show.style.display = 'flex'
 
