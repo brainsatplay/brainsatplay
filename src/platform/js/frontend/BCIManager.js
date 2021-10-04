@@ -181,9 +181,9 @@ export class BCIAppManager {
                 </div>
 
                 <div id="brainsatplay-profile-menu" class="collapsible-container" style="display: flex; align-items: flex-end; margin-bottom: 10px; padding: 0px; margin: 0px">
-                    <button class="collapsible brainsatplay-sidebar-button" style="margin: 0; transition: 0.5s; padding: 10px 18px; border: none; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
-                    <div class="img-cont">
-                    <img id="brainsatplay-profile-img" style=" border-radius: 50%; background: rgb(255,255,255); filter: invert(0)">
+                    <button class="collapsible brainsatplay-sidebar-button" style="margin: 0; transition: 0.5s; border: none; padding: 5px; border-radius: 0; border-top: 1px solid rgb(0,0,0);" onMouseOver="this.style.borderTop = '1px solid whitesmoke'; this.style.background = 'rgb(25,25,25)';" onMouseOut="this.style.borderTop='rgb(0,0,0)'; this.style.background = 'transparent'">
+                    <div class="img-cont" style="padding: 1px 8px;">
+                    <img id="brainsatplay-profile-img" style=" border-radius: 50%; background: rgb(255,255,255); padding: 5px; width: 25px; height: 25px; filter: invert(0)">
                     <span id="brainsatplay-profile-label" style="margin-left: 10px; ">
                     Log In
                     </span>
@@ -568,7 +568,7 @@ export class BCIAppManager {
             } else {
                 document.getElementById(`brainsatplay-profile-img`).src = GoogleIcon
                 document.getElementById(`brainsatplay-profile-label`).innerHTML = 'Log In' // user._profile.data.name
-                profileImg.style.padding = "10px"
+                // profileImg.style.padding = "10px"
                 profileButton.onclick = async (e) => {
                     this.session.loginWithGoogle().then(authResponse => {
                         this.session.loginWithRealm(authResponse).then(user => {

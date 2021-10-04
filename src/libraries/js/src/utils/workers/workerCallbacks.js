@@ -34,7 +34,13 @@ function parseFunctionFromText(method){
   let newFuncHead = getFunctionHead(method);
   let newFuncBody = getFunctionBody(method);
 
-  let newFunc = eval(newFuncHead+newFuncBody+"}");
+  let newFunc;
+  if (newFuncHead.includes('function ')){
+    let varName = newFuncHead.split('(')[1].split(')')[0]
+    newFunc = new Function(varName, newFuncBody);
+  } else {
+    newFunc = eval(newFuncHead+newFuncBody+"}");
+  }
 
   return newFunc;
 
@@ -61,13 +67,18 @@ export class CallbackManager{
 
         this.callbacks = [
             {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
-                let newFunc = parseFunctionFromText(args[1]);
+                
+              let newFunc = parseFunctionFromText(args[1]);
               
                 let newCallback = {case:args[0],callback:newFunc};
               
-                let found = self.callbacks.findIndex(c => {if (c.case === newCallback.case) return c})
-                if (found != -1) self.callbacks[found] = newCallback
-                else self.callbacks.push(newCallback);
+                let found = this.callbacks.findIndex(c => {if (c.case === newCallback.case) return c})
+                
+                if (found != -1) this.callbacks[found] = newCallback
+                else {
+                  this.callbacks.push(newCallback);
+                }
+
               }},
               {case:'addgpufunc',callback:(args)=>{ //arg0 = gpu in-thread function string
                 this.gpu.addFunction(parseFunctionFromText(args[0]));

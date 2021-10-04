@@ -31,7 +31,7 @@ export class ExtensionPage extends Page{
 
             apps.forEach(o => {
                 let card = new ExtensionCard(o, this.session)
-                this.content.insertAdjacentElement('beforeend',card.element)
+                this.content.insertAdjacentElement('beforeend', card.element)
             })
         }
 

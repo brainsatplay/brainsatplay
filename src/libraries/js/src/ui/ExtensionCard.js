@@ -66,7 +66,6 @@ export class ExtensionCard {
             left: 0;
             width: 100vw;
             height: 100vh;
-            padding: 50px;
             display: none;
             z-index: 1000;
             background: black;
@@ -80,9 +79,12 @@ export class ExtensionCard {
 
         this.view.insertAdjacentElement('beforeend', this.closeView)
         document.body.insertAdjacentElement('beforeend', this.view)
+        
+        // setTimeout(() => {
         this.app = new brainsatplay.Application(this.settings, this.view, this.session)
         this.app.init();
         this.show.style.display = 'flex'
+        // }, 1000)
 
         // Log Enable in Storage
         if (this.session.storage) this.session.storage.set('extensions', this.app.info.name, true)

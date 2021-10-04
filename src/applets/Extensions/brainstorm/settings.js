@@ -18,19 +18,19 @@ export const settings = {
 	"intro": {
 		"title": false,
 		"mode": "multi",
-		"login": 'guest',
+		"login": false,
 		// "domain": null,
-		"session": null,
+		"session": true,
 		"spectating": false
 	},
 	"graph": {
 		"nodes": [
 			{id:'manager', class: Manager},
-			{id:'ui', class: brainsatplay.plugins.interfaces.UI}
+			{id:'brainstormInterface', class: brainsatplay.plugins.interfaces.UI}
 		],
 		"edges": [{
 			source: 'manager:element',
-			target: 'ui:content'
+			target: 'brainstormInterface:content'
 		}]
 	}
 };

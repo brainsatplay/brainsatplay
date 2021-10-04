@@ -310,7 +310,7 @@ export class GraphManager{
 
     // Input Must Be An Array
     runSafe(node, port='default',input={}, internal=false){
-
+        
         let tick = performance.now()
 
         input.sent = true

@@ -41,8 +41,27 @@ export class SettingsPage extends Page{
             // 'MongoDB'
         ], 'Storage')
 
+         // Create Badges Page
+         this._addSubPage('Badges')
+         this._createBadge('Brainstormer', 'Sign the Brains@Play Operator Agreement.')
+         this._createBadge('Citizen Scientist', 'Link a Brains@Play product to your account.')
+    }
 
-        
+    _createBadge = (name, description='', condition=()=>{}) => {
+
+        let badge = document.createElement('div')
+        badge.classList.add('brainsatplay-badge')
+        badge.innerHTML = `<h4>${name}</h4><p>${description}</p>`
+
+
+        if (!condition()) badge.classList.add('disabled')
+        else {
+            badge.classList.remove('disabled')
+            this.session.notifications.throw(`<p>You earned the <strong>${name}</strong> badge!</p>`)
+        }
+
+        this.subpages.get('Badges').insertAdjacentElement('beforeend', badge)
+
     }
 
     _addSubPage = (name) => {
