@@ -241,7 +241,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 0px 14px;
+    padding: 0px 13px;
 }
 
 .brainsatplay-sidebar-button:hover {

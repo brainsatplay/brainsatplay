@@ -127,7 +127,7 @@ export class Session {
 
 		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
-		this.storage = new StorageManager()
+		this.storage = new StorageManager(this)
 		this.notifications = new NotificationManager()
 
 		DataMgr = this.dataManager;

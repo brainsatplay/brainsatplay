@@ -2,6 +2,7 @@
 import { Page } from './Page';
 import { settings } from '../../../applets/UI/profile/settings.js';
 import { Application } from '../../../libraries/js/brainsatplay';
+import { Debug } from '../../../libraries/js/src/plugins/debug';
 
 export class SettingsPage extends Page{
     constructor(parentNode, toggle, session){
@@ -45,9 +46,23 @@ export class SettingsPage extends Page{
          this._addSubPage('Badges')
          this._createBadge('Brainstormer', 'Sign the Brains@Play Operator Agreement.')
          this._createBadge('Citizen Scientist', 'Link a Brains@Play product to your account.')
+
+         // Create Plugins Page
+         this._addSubPage('Plugins')
+         let getPlugins = async () => {
+            let plugins = await this.session.storage.get('Plugins')
+            plugins.forEach(o => {
+                let div = document.createElement('div')
+                div.innerHTML = o.name
+                this.subpages.get('Plugins').insertAdjacentElement('beforeend',div)
+            })
+        }
+        
+        getPlugins()
+
     }
 
-    _createBadge = (name, description='', condition=()=>{}) => {
+    _createBadge = async (name, description='', condition=()=>{}) => {
 
         let badge = document.createElement('div')
         badge.classList.add('brainsatplay-badge')
@@ -94,7 +109,7 @@ export class SettingsPage extends Page{
         this.subpages.set(name, page)
     }
 
-    _createSelector = (header, options, subpage=this.subpages.entries().next().value[0]) => {
+    _createSelector = async (header, options, subpage=this.subpages.entries().next().value[0]) => {
         let div = document.createElement('div')
         div.style = 'display: flex; align-items: center; grid-template-columns: repeat(2,1fr);'
 
@@ -111,14 +126,15 @@ export class SettingsPage extends Page{
         div.insertAdjacentElement('beforeend', select)
         this.subpages.get(subpage).insertAdjacentElement('beforeend', div)
 
-        select.value = this.session.storage.get('settings', header) ?? options[0]
+        let value = await this.session.storage.get('settings', header)
+        select.value = value ?? options[0]
         
         select.onchange = (e) => {
             this.session.storage.set('settings', header, select.value)
         }
     }
 
-    _createCheckbox = (header, subpage=this.subpages.entries().next().value[0]) => {
+    _createCheckbox = async (header, subpage=this.subpages.entries().next().value[0]) => {
         let div = document.createElement('div')
         div.style = 'display: flex; align-items: center; grid-template-columns: repeat(2,1fr);'
 
@@ -130,7 +146,7 @@ export class SettingsPage extends Page{
         div.insertAdjacentElement('beforeend', input)
         this.subpages.get(subpage).insertAdjacentElement('beforeend', div)
 
-        input.checked = this.session.storage.get('settings', header)
+        input.checked = await this.session.storage.get('settings', header)
         
         input.onchange = (e) => {
             this.session.storage.set('settings', header, input.checked)

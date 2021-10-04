@@ -242,42 +242,36 @@ export class DataManager {
             }
             BrowserFS.initialize(rootForMfs); //fs now usable with imports after this
 
-            let p1 = new Promise(resolve => {
-            fs.exists('/data', (exists) => {
-                if (exists) {
-                    console.log('/data exists!')
-                    resolve()
-                }
-                else {
-                    fs.mkdir('data', (err) => {
-                        if (err) throw err;
-                        resolve()
-                    });
-                }
-            });
+        let p1 = this._checkDirectoryExistence(fs, 'data')
+        let p2 = this._checkDirectoryExistence(fs, 'projects')
+        let p3 = this._checkDirectoryExistence(fs, 'extensions')
+        let p4 = this._checkDirectoryExistence(fs, 'settings')
+        let p5 = this._checkDirectoryExistence(fs, 'plugins')
+
+        Promise.all([p1,p2, p3, p4, p5]).then((values) => {
+            oninit();
         })
-        let p2 = new Promise(resolve => {
-            fs.exists('/projects', (exists) => {
+
+    })
+    }
+
+    _checkDirectoryExistence(fs, directory){
+        new Promise(resolve => {
+            fs.exists(`/${directory}`, (exists) => {
                 if (exists) {
-                    console.log('/projects exists!')
-                    oninit();
+                    console.log(`/${directory} exists!`)
+                    resolve();
                 }
                 else {
-                    console.log('creating projects')
-                    fs.mkdir('projects', (err) => {
+                    console.log('creating ' + directory)
+                    fs.mkdir(directory, (err) => {
                         if (err) throw err;
-                        oninit();
+                        resolve();
                     });
                 }
 
             });
         });
-
-        Promise.all([p1,p2]).then((values) => {
-            oninit();
-        })
-
-    })
     }
 
 
