@@ -41,13 +41,13 @@ module.exports = {
           position: 'right',
           label: 'Docs',
         },
+        {to: '/blog', label: 'Blog', position: 'right'},
         {
           type: 'doc',
           docId: 'reference/index',
           position: 'right',
           label: 'Reference',
         },
-        // {to: '/blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/brainsatplay/brainsatplay',
           label: 'GitHub',
