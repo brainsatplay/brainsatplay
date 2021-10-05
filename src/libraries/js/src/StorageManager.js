@@ -113,6 +113,7 @@ export class StorageManager{
 
             // IndexedDB
             let res = await this.session.dataManager.readFile(`/${route}/${item}`)
+
             if (res != undefined) {
 
                 // Reverse Stringification

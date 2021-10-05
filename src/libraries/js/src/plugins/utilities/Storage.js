@@ -5,28 +5,41 @@ export class Storage{
     constructor(label, session, params={}) {
         this.label = label
         this.session = session
+
+
+        this.props = {
+            data: {}
+        }
         
 
         this.ports = {
-            set: {
+            default: {
                 edit: false,
                 input: {type: undefined},
-                output: {type: null},
-                onUpdate: async (user) => {
-                    return await this.session.storage.set(`app_${this.app.info.name}`, this.ports.label.data, user.data)
-                }
-            },
-            get: {
-                // edit: false,
-                input: {type: 'boolean'},
                 output: {type: undefined},
-                onUpdate: async (user) => {
-                    if (user.data) {
-                        let data = await this.session.storage.get(`app_${this.app.info.name}`, this.ports.label.data)
-                        return {data}
-                    }
+                onUpdate: (user) => {
+                    // if (!(this.app.info.name in this.props.data)) {
+                        this.session.storage.set(`app_${this.app.info.name}`, this.ports.label.data, user.data)
+                        this.props.data[this.app.info.name] = user.data
+                    // } else {
+                    //     this.props.data[this.app.info.name] = user.data
+                    // }
+
+                    console.log('userData', user.data, this.props.data[this.app.info.name])
+                    return user
                 }
             },
+            // get: {
+            //     // edit: false,
+            //     input: {type: 'boolean'},
+            //     output: {type: undefined},
+            //     onUpdate: async (user) => {
+            //         if (user.data) {
+            //             let data = await this.session.storage.get(`app_${this.app.info.name}`, this.ports.label.data)
+            //             return {data}
+            //         }
+            //     }
+            // },
             label: {
                 data: 'data',
                 input: {type: 'string'},
@@ -37,7 +50,19 @@ export class Storage{
 
     init = () => {
         
+        let func = async () => {
+            console.log('get')
+            console.log(`app_${this.app.info.name}`, this.ports.label.data)
+            let data = await this.session.storage.get(`app_${this.app.info.name}`, this.ports.label.data)
+            if (!(this.app.info.name in this.props.data)) {
+                console.log('stored', data)
+                this.session.graph.runSafe(this, 'default', {data})
+            }
+        }
+        func()
     }
 
-    deinit = () => {}
+    deinit = () => {
+        // this.session.storage.set(`app_${this.app.info.name}`, this.ports.label.data, this.props.data[this.app.info.name]) // push latest data to database
+    }
 }
