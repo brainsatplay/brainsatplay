@@ -3,7 +3,7 @@ title: Publish your First Application
 hide_title: false
 ---
 
-<!-- ![Your First Applet](../../static/img/02-your-first-applet/header.png) -->
+<!-- ![Your First Applet](../../../static/img/02-your-first-applet/header.png) -->
 
 <!-- ## Overview
 --- -->

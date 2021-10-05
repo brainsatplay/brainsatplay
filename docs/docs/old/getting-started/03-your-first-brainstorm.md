@@ -63,9 +63,9 @@ init(){
 
 After implementing the above code, you should be able to navigate through the default intro sequence on your applet:
 
-![Title Screen](../../static/img/03-your-first-brainstorm/title.png)
-![Username Screen](../../static/img/03-your-first-brainstorm/username.png)
-![Session Selection Screen](../../static/img/03-your-first-brainstorm/choose.png)
+![Title Screen](../../../static/img/03-your-first-brainstorm/title.png)
+![Username Screen](../../../static/img/03-your-first-brainstorm/username.png)
+![Session Selection Screen](../../../static/img/03-your-first-brainstorm/choose.png)
 
 ## Listen to the Brainstorm
 ---
@@ -92,7 +92,7 @@ init() {
 
 Now, if you use two Chrome windows to connect synthetic streams from different usernames, you should see `userData` passed between these clients on the coherence readout:
 
-![Applet View 2](../../static/img/03-your-first-brainstorm/view1.png)
+![Applet View 2](../../../static/img/03-your-first-brainstorm/view1.png)
 
 But, you may be asking yourself, where's the coherence data?!
 
@@ -125,7 +125,7 @@ init() {
 
 Now let's check out our applet again:
 
-![Applet View 2](../../static/img/03-your-first-brainstorm/view2.png)
+![Applet View 2](../../../static/img/03-your-first-brainstorm/view2.png)
 
 If everything has gone smoothly, you should now see coherence values passed between your simulated clients!
 
@@ -236,7 +236,7 @@ handleKeyUp = (k) => {
 
 Press the spacebar to change the text color across different clients!
 
-![Applet View 3](../../static/img/03-your-first-brainstorm/view3.png)
+![Applet View 3](../../../static/img/03-your-first-brainstorm/view3.png)
 
 ## Conclusion
 ---
