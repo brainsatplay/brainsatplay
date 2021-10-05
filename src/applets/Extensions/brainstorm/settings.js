@@ -13,7 +13,8 @@ export const settings = {
 	"instructions": "",
 	"display": {
 		"production": false,
-		"development": false
+		"development": false,
+		"extensions": false
 	},
 	"intro": {
 		"title": false,

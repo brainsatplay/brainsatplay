@@ -30,8 +30,10 @@ export class ExtensionPage extends Page{
             apps = await Promise.all(apps)
 
             apps.forEach(o => {
-                let card = new ExtensionCard(o, this.session)
-                this.content.insertAdjacentElement('beforeend', card.element)
+                if (o.display.extensions !== false){
+                    let card = new ExtensionCard(o, this.session)
+                    this.content.insertAdjacentElement('beforeend', card.element)
+                }
             })
         }
 
