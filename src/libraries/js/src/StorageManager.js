@@ -10,7 +10,8 @@ export class StorageManager{
     set(route, item, value, method=this.defaultMethod) {
 
         // redefine
-        route = route.toLowerCase();
+        item = this._encode(item)
+        route = this._encode(route)
 
         switch(method){
             case 'mongodb':
@@ -24,8 +25,9 @@ export class StorageManager{
 
     async get(route, item, method=this.defaultMethod) {
 
-        // redefine
-        route = route.toLowerCase();
+        // encode
+        item = this._encode(item)
+        route = this._encode(route)
 
         // Route Only: Find Matches and Return as Array
         if (item == null){
@@ -79,7 +81,7 @@ export class StorageManager{
         // return localStorage.setItem(`${route}_${item.replace(' ', '')}`, value);
 
         // IndexedDB
-        let query = `/${route}/${item.replace(' ', '')}`
+        let query = `/${route}/${item}`
         let file = JSON.stringify(value) ?? value.toString()
 
         return this.session.dataManager.saveFile(file, query)
@@ -110,13 +112,12 @@ export class StorageManager{
             // }
 
             // IndexedDB
-            let res = await this.session.dataManager.readFile(`/${route}/${item.replace(' ', '')}`)
+            let res = await this.session.dataManager.readFile(`/${route}/${item}`)
             if (res != undefined) {
 
                 // Reverse Stringification
                 try {
                     res = JSON.parse(res)
-                    console.log(`/${route}/${item.replace(' ', '')}`, res)
                     return res
                 } 
                 
@@ -127,9 +128,19 @@ export class StorageManager{
                         return cls
                     } 
                     catch (e){
-                        console.error(e)
+                        try {
+                            let val = eval(`${res}`)
+                            return val
+                        } 
+                        catch (e){
+                            console.error(e)
+                        }  
                     }   
                 }
             }
+    }
+
+    _encode(str){
+        if (str != null) return str.replace(' ', '').toLowerCase();
     }
 }

@@ -274,6 +274,15 @@ button {
     transition: .5s;
 }
 
+#sidebar .collapsible-container img.profile {
+    border-radius: 50%;
+    background: rgb(255, 255, 255);
+    padding: 0px;
+    /* width: 25px;
+    height: 25px; */
+    filter: invert(0);
+}
+
 /* #sidebar button:focus {
     outline: none;
 } */

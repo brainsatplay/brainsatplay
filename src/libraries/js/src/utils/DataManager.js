@@ -41,6 +41,8 @@ export class DataManager {
         this.sub = this.state.subscribe('loaded',(loaded)=>{this.onload(loaded);});
         this.infoSub = null;
         this.deviceSubs=[];
+
+        this.directories = {}
     }
 
     deinit = () => {
@@ -256,21 +258,33 @@ export class DataManager {
     }
 
     _checkDirectoryExistence(fs, directory){
-        new Promise(resolve => {
-            fs.exists(`/${directory}`, (exists) => {
-                if (exists) {
-                    console.log(`/${directory} exists!`)
-                    resolve();
-                }
-                else {
-                    console.log('creating ' + directory)
-                    fs.mkdir(directory, (err) => {
-                        if (err) throw err;
-                        resolve();
-                    });
-                }
+        return new Promise(resolve => {
 
-            });
+            if (this.directories[directory] === 'exists' || this.directories[directory] === 'created'){
+                resolve()
+            } else {
+                fs.exists(`/${directory}`, (exists) => {
+                    if (exists) {
+                        this.directories[directory] = 'exists'
+                        console.log(`/${directory} exists!`)
+                        resolve();
+                    }
+                    else if (this.directories[directory] === 'creating'){
+                        console.log(directory + ' is still being created.')
+                    }
+                    else {
+                        console.log('creating ' + directory)
+                        this.directories[directory] = 'creating'
+                        fs.mkdir(directory, (err) => {
+                            if (err) throw err;
+                            this.directories[directory] = 'created'
+                            setTimeout(resolve, 500)
+                        });
+                    }
+
+                });
+            }
+
         });
     }
 
@@ -488,7 +502,10 @@ export class DataManager {
 
     // Assumes content is text
     saveFile(content, path){
-        return new Promise(resolve => {
+        return new Promise(async resolve => {
+
+            await this._checkDirectoryExistence(fs, path.split('/')[1])
+
             fs.writeFile(path,content,(e)=>{
                 if(e) throw e;
                 resolve(content)

@@ -2,7 +2,7 @@ export class Brainstorm {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
-    constructor(label, session, params = {}) {
+    constructor(label, session) {
         this.label = label
         this.session = session
         
