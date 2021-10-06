@@ -1,11 +1,13 @@
 import {Math2} from '../../utils/mathUtils/Math2'
+import {Plugin} from '../Plugin'
 
-export class PCA{
+export class PCA extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

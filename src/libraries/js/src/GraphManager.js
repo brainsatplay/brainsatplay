@@ -9,6 +9,16 @@ export class GraphManager{
 
         // Centrally Manage Plugins through the Project Manager
         this.plugins = plugins
+        this.allplugins = new Map()
+
+        Object.keys(this.plugins).forEach(k => {
+            if (k != 'id'){
+                Object.keys(this.plugins[k]).forEach(k2 => {
+                    this.allplugins.set(k2, this.plugins[k][k2])
+                })
+            }
+        })
+
         if (this.session.projects) {
             (async() => {
                 let library = await this.session.projects.getLibraryVersion(this.session.projects.version)
@@ -170,7 +180,7 @@ export class GraphManager{
         return String(Math.floor(Math.random()*1000000))
     }
 
-    addNode(app,nodeInfo){
+    addNode(app, nodeInfo){
         let appId = app.props.id
 
         // Add Basic Node Information to the Graph
@@ -660,7 +670,7 @@ export class GraphManager{
 
     addEdge = (appId, newEdge, sendOutput=true) => {
 
-        let applet = this.applets[appId]
+        let applet = (typeof appId === 'string') ? this.applets[appId] : appId
 
         let existingEdge = this.applets[appId].edges.find(edge => {
             if (newEdge.source == edge.source && newEdge.target == edge.target){

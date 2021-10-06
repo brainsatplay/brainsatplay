@@ -1,12 +1,15 @@
 import {SoundJS} from '../../utils/general/Sound'
 import {Math2} from '../../utils/mathUtils/Math2'
+import {Plugin} from '../Plugin'
 
 
-export class Microphone{
+
+export class Microphone extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

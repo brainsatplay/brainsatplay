@@ -1,10 +1,13 @@
 import {Spectrogram as SpectrogramHelper} from '../../utils/graphics/eegvisuals'
+import {Plugin} from '../Plugin'
 
-export class Spectrogram{
+
+export class Spectrogram extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

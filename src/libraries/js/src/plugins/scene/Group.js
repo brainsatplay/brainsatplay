@@ -1,10 +1,12 @@
 import * as THREE from 'three'
+import {Plugin} from '../Plugin'
 
-export class Group{
+export class Group extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
 

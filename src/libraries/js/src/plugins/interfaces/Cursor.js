@@ -1,10 +1,13 @@
 import {transformCSSForBCICursor} from '../../ui/cssForBCI'
+import {Plugin} from '../Plugin'
 
-export class Cursor{
+
+export class Cursor extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
 

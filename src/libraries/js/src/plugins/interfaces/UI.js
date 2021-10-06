@@ -1,10 +1,13 @@
 import {DOMFragment} from '../../ui/DOMFragment'
+import {Plugin} from '../Plugin'
 
-export class UI{
+
+export class UI extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session) {
+        super(label, session)
         this.label = label
         this.session = session
         this.props = {

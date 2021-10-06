@@ -1,11 +1,13 @@
 import {BreathCapture} from '../../utils/signal_processing/BreathCapture'
 import {StateManager} from '../../ui/StateManager'
+import {Plugin} from '../Plugin'
 
-export class Breath{
+export class Breath extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

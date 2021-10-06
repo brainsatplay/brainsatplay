@@ -1,12 +1,15 @@
 import {SmoothieChartMaker} from '../../utils/graphics/eegvisuals'
 import {uPlotMaker} from '../../utils/graphics/eegvisuals'
 import uPlot from 'uplot'
+import {Plugin} from '../Plugin'
 
-export class TimeSeries{
+
+export class TimeSeries extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

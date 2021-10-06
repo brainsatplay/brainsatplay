@@ -2,12 +2,14 @@ import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
 import vertexShader from './shader/vertex.glsl'
 import blankFragment from './shader/blankFragment.glsl'
+import {Plugin} from '../Plugin'
 
-export class Material{
+export class Material extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

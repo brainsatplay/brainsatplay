@@ -2,13 +2,16 @@ import {Blink} from '../models/Blink'
 import {LDA} from '../machinelearning/LDA'
 import {createCards} from '../../ui/browserUtils';
 import * as brainsatplay from '../../../brainsatplay'
+import {Plugin} from '../Plugin'
 
-export class Train{
+
+export class Train extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
     
     constructor(label, session) {
+        super(label, session)
         this.label = label
         this.session = session
         

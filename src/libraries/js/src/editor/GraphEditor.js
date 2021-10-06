@@ -1677,7 +1677,8 @@ export class GraphEditor{
             // element.insertAdjacentElement('beforeend',labelDiv)
             contentOfType.insertAdjacentElement('beforeend',element)
 
-            if (classInfo.hidden && !this.local) element.remove()
+            if (classInfo == null){}
+            else if (classInfo.hidden && !this.local) element.remove()
             else {
                 if (classInfo.hidden) element.classList.add("experimental")
 

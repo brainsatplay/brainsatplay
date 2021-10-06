@@ -1,11 +1,13 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
+import {Plugin} from '../Plugin'
 
-export class Light{
+export class Light extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
 

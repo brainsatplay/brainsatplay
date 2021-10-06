@@ -1,8 +1,10 @@
-export class Brainstorm {
+import {Plugin} from '../Plugin'
+export class Brainstorm  extends Plugin {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
     constructor(label, session) {
+        super(label, session)
         this.label = label
         this.session = session
         

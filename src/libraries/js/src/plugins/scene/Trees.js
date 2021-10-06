@@ -1,10 +1,12 @@
 import * as THREE from 'three'
+import {Plugin} from '../Plugin'
 
-class Trees{
+class Trees extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
 
         // Generic Plugin Attributes
         this.label = label

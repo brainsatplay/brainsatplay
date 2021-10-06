@@ -1,10 +1,13 @@
 // Generic Event Trigger. Uses Key Presses by Default.
 
-export class Event{
+import {Plugin} from '../Plugin'
+
+export class Event extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
 

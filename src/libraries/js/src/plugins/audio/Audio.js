@@ -1,10 +1,13 @@
 import {SoundJS} from '../../utils/general/Sound'
+import {Plugin} from '../Plugin'
 
-export class Audio{
+
+export class Audio extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         

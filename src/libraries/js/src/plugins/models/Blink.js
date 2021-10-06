@@ -1,11 +1,14 @@
 import {DataQuality} from '../algorithms/DataQuality'
 import {Canvas} from '../canvas/Canvas'
+import {Plugin} from '../Plugin'
 
-export class Blink{
+
+export class Blink extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
 

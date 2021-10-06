@@ -13,11 +13,10 @@ import * as networking from './networking/index.js'
 import * as scene from './scene/index.js'
 import * as transforms from './transforms/index.js'
 import * as utilities from './utilities/index.js'
-import {Plugin} from './Plugin'
+import {Blank} from './Blank'
 
 export {
-    Plugin,
-    
+    Blank,
     algorithms, 
     audio, 
     biosignals, 

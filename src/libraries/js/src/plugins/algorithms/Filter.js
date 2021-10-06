@@ -1,12 +1,13 @@
 import {BiquadChannelFilterer} from '../../utils/signal_processing/BiquadFilters'
+import {Plugin} from '../Plugin'
 
-
-export class Filter{
+export class Filter extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(label, session, params={}) {
+        super(label, session)
         this.label = label
         this.session = session
         
