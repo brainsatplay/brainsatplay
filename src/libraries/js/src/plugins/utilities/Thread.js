@@ -31,7 +31,7 @@ export class Thread{
             add: {
                 data: function myFunction(data) {return data + 1},
                 // data: (data) => {return data + 1},
-                input: {type: Function},
+                input: {type: Function}, // NOTE: Edit to handle arrays with this data type
                 output: {type: null},
                 onUpdate: (user) => {
                     if (this.ports.select.options.length === 0) this.ports.select.data = user.data.name
