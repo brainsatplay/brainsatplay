@@ -127,7 +127,7 @@ export class Session {
 
 		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
-		this.storage = new StorageManager()
+		this.storage = new StorageManager(this)
 		this.notifications = new NotificationManager()
 
 		DataMgr = this.dataManager;
@@ -967,8 +967,7 @@ else {
 				let sub = this.state.subscribe('commandResult', (newResult) => {
 					if (typeof newResult === 'object') {
 						if (newResult.msg === 'resetUsername') {
-							this.info.auth.username = newResult.username
-							this.info.auth.id = newResult.id
+							this.resetAuth(newResult)
 							this.state.unsubscribe('commandResult', sub);
 							onsuccess(newResult)
 						}
@@ -979,6 +978,11 @@ else {
 			onsuccess()
 			return this.info.auth
 		}
+	}
+
+	resetAuth = (o) => {
+		this.info.auth.username = o.username
+		this.info.auth.id = o.id
 	}
 
 	async signup(dict = {}, baseURL = this.info.auth.url.toString()) {
@@ -1877,11 +1881,8 @@ else {
 		let autoJoinSession = (applet, autoId) => {
 			if (autoId != null){
 				let playing = applet.info.intro.spectating != true // Default to player
-				if (playing){
-					connectToGame(autoId, false)
-				} else {
-					connectToGame(autoId, true)
-				}
+				if (playing) connectToGame(autoId, false) 
+				else connectToGame(autoId, true)
 
 				// Clear Auto-Join Parameters
 				applet.info.intro.session = false
@@ -2128,7 +2129,9 @@ else {
 				});
 			});
 		}
-		if (this.streamObj.info.deviceStreamParams.length === 0 && this.streamObj.info.appStreamParams.length === 0) {
+
+		// console.log(deviceTypes, this.streamObj)
+		if (deviceTypes.length != 0 && (this.streamObj.info.deviceStreamParams.length === 0 && this.streamObj.info.appStreamParams.length === 0)) {
 			console.error('Compatible device not found');
 			return false;
 		}

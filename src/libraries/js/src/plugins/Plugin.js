@@ -15,7 +15,10 @@ export class Plugin{
 
         // SESSION (required)
         this.session = session // session that the plugin is used in 
-        
+
+        // ADded AFTER CONSTRUCTION
+        // this.app: The application that this plugin is running in
+
 
         // PROPS
         this.props = { id: String(Math.floor(Math.random() * 1000000)) } // properties of the plugin

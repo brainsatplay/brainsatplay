@@ -129,7 +129,11 @@ app.init()`)
 
         // Combine Custom Plugins into the Compact File
         let combined = ``;
-        o.classes.forEach(c => combined += c.prototype.constructor.toString())
+        o.classes.forEach(c => combined += c.prototype.constructor.toString()) // Combine Custom Plugins into the Compact File
+        o.classes.forEach(c => {
+            console.log('saving', c, c.name)
+            this.session.storage.set('plugins',c.name, c)
+        }) // save separately
         combined += o.combined;
 
         this.folders.app.file(o.filename, o.data)

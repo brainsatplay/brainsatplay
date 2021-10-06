@@ -8,7 +8,6 @@ export class Thread{
         this.label = label
         this.session = session
         
-
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
             workerPostTime: 0,
@@ -21,24 +20,29 @@ export class Thread{
 		else console.log('Workers already created.')
 
         this.ports = {
-            default: {
+            input: {
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    if (user.meta.source != this.label){
-                        this._postData(user.data)
-                    } else {
-                        return user
-                    }
+                    if (user.meta.source != this.label) this._postData(user.data); 
+                    else return user;
                 }
             },
-            function: {
-                data: (data)=>{return data + 1},
+            add: {
+                data: function myFunction(data) {return data + 1},
+                // data: (data) => {return data + 1},
                 input: {type: Function},
                 output: {type: null},
-                onUpdate: () => {
-                    this._postToWorker({foo:'addfunc', input:['myfunction', this.ports.function.data], origin:this.props.id})
+                onUpdate: (user) => {
+                    if (this.ports.select.options.length === 0) this.ports.select.data = user.data.name
+                    this.ports.select.options.push(user.data.name)
+                    this._postToWorker({foo:'addfunc', input:[user.data.name, user.data], origin:this.props.id})
                 }
+            },
+            select: {
+                input: {type: 'string'},
+                output: {type: null},
+                options: [],
             }
         }
     }
@@ -47,7 +51,7 @@ export class Thread{
         if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 		this.props.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
         window.workers.workerResponses.push(this._onMessage);
-        this.session.graph.runSafe(this, 'function', {forceRun: true})
+        this.session.graph.runSafe(this, 'add', this.ports.add)
     }
 
     deinit = () => {
@@ -56,13 +60,13 @@ export class Thread{
 
     _onMessage = (msg) => {
         if (msg.origin === this.props.id){
-            this.session.graph.runSafe(this, 'default', {data: msg.output})
+            this.session.graph.runSafe(this, 'input', {data: msg.output})
             this.props.workerWaiting = false;
         }
     }
 
     _postData = (data) => {
-        let msg = {foo:'myfunction', input:data, origin:this.props.id}
+        let msg = {foo:this.ports.select.data, input:data, origin:this.props.id}
         this._postToWorker(msg)
     }
     

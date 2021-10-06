@@ -41,6 +41,8 @@ export class DataManager {
         this.sub = this.state.subscribe('loaded',(loaded)=>{this.onload(loaded);});
         this.infoSub = null;
         this.deviceSubs=[];
+
+        this.directories = {}
     }
 
     deinit = () => {
@@ -242,42 +244,48 @@ export class DataManager {
             }
             BrowserFS.initialize(rootForMfs); //fs now usable with imports after this
 
-            let p1 = new Promise(resolve => {
-            fs.exists('/data', (exists) => {
-                if (exists) {
-                    console.log('/data exists!')
-                    resolve()
-                }
-                else {
-                    fs.mkdir('data', (err) => {
-                        if (err) throw err;
-                        resolve()
-                    });
-                }
-            });
-        })
-        let p2 = new Promise(resolve => {
-            fs.exists('/projects', (exists) => {
-                if (exists) {
-                    console.log('/projects exists!')
-                    oninit();
-                }
-                else {
-                    console.log('creating projects')
-                    fs.mkdir('projects', (err) => {
-                        if (err) throw err;
-                        oninit();
-                    });
-                }
+        let p1 = this._checkDirectoryExistence(fs, 'data')
+        let p2 = this._checkDirectoryExistence(fs, 'projects')
+        let p3 = this._checkDirectoryExistence(fs, 'extensions')
+        let p4 = this._checkDirectoryExistence(fs, 'settings')
+        let p5 = this._checkDirectoryExistence(fs, 'plugins')
 
-            });
-        });
-
-        Promise.all([p1,p2]).then((values) => {
+        Promise.all([p1,p2, p3, p4, p5]).then((values) => {
             oninit();
         })
 
     })
+    }
+
+    _checkDirectoryExistence(fs, directory){
+        return new Promise(resolve => {
+
+            if (this.directories[directory] === 'exists' || this.directories[directory] === 'created'){
+                resolve()
+            } else {
+                fs.exists(`/${directory}`, (exists) => {
+                    if (exists) {
+                        this.directories[directory] = 'exists'
+                        console.log(`/${directory} exists!`)
+                        resolve();
+                    }
+                    else if (this.directories[directory] === 'creating'){
+                        console.log(directory + ' is still being created.')
+                    }
+                    else {
+                        console.log('creating ' + directory)
+                        this.directories[directory] = 'creating'
+                        fs.mkdir(directory, (err) => {
+                            if (err) throw err;
+                            this.directories[directory] = 'created'
+                            setTimeout(resolve, 500)
+                        });
+                    }
+
+                });
+            }
+
+        });
     }
 
 
@@ -494,7 +502,10 @@ export class DataManager {
 
     // Assumes content is text
     saveFile(content, path){
-        return new Promise(resolve => {
+        return new Promise(async resolve => {
+
+            await this._checkDirectoryExistence(fs, path.split('/')[1])
+
             fs.writeFile(path,content,(e)=>{
                 if(e) throw e;
                 resolve(content)

@@ -1,11 +1,18 @@
 ---
-title: Your First Web Page
+title: Using the Platform
 hide_title: false
 ---
 
 <!-- ## Overview
 --- -->
-This tutorial series will guide you through the the basics of Web development by teaching you to create a multi-user neurofeedback application using brainsatplay.js.
+This tutorial series will guide you through the creation of a multi-user neurofeedback application with Brains@Play.
+
+## Sections
+1. Building a Multiplayer Neurofeedback Application (video)
+    - High-performance graphing system
+    - Buttons to swap data (1) looked at and (2) saved
+2. Extending the Neurofeedback Plugin (video)
+
 
 :::note 
 
@@ -42,7 +49,7 @@ To get familiar with HTML, let's create an `index.html` file with the following 
 
 When you open this file (we recommend using the VSCode [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension), you'll see the following page:
 
-![Simple Web Page](../../../static/img/01-your-first-web-page/html.png)
+![Simple Web Page](../../static/img/01-your-first-web-page/html.png)
 
 Congratulations, you've created your first Web page! Yet while we have text on the screen, it isn't very pretty. 
 
@@ -82,7 +89,7 @@ Additionally, we'll have to link this stylesheet in the head of our HTML documen
 
 Now that we've added some style to our Web page, it looks something like this:
 
-![Simple Style](../../../static/img/01-your-first-web-page/css.png)
+![Simple Style](../../static/img/01-your-first-web-page/css.png)
 
 Great! Now that our page is looking stylish, let's actually start programming a Brains@Play application. 
 
@@ -116,7 +123,7 @@ app.init() // Initialize the app and add it to the HTML document
 
 By embedding an empty application into your document, not much has happened. A button has simply been placed into your document, which will open the **Brains@Play Device Manager** for users to connect their biosensing device. 
 
-![Simple Page](../../../static/img/01-your-first-web-page/javascript.png)
+![Simple Page](../../static/img/01-your-first-web-page/javascript.png)
 
 To do more than this, we'll have to dig into the architecture of a Brains@Play Application.
 

@@ -64,9 +64,9 @@ let connection = new WebSocket('wss://' + httpsDomain, subprotocolsArray)
 // ...
 
 ```
-With these changes, you should recieve the following message in the Chrome developer console: 
+With these changes, you should receive the following message in the Chrome developer console: 
 
-![Console Login Response](../../static/img/03-extend-the-brainstorm/login.png)
+![Console Login Response](../../../static/img/03-extend-the-brainstorm/login.png)
 
 Note that our username will be passed back from the server as a universally unique identifier (UUID) when left undeclared or specified as `guest`.
 
@@ -122,7 +122,7 @@ let parsed = JSON.parse(e.data)
 
 After choosing one of these methods, you should recieve the following message in the Chrome developer console: 
 
-![Console Ping Response](../../static/img/03-extend-the-brainstorm/ping.png)
+![Console Ping Response](../../../static/img/03-extend-the-brainstorm/ping.png)
 
 
 ## Brainstorm Commands

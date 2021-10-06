@@ -56,6 +56,15 @@ export class NotificationManager{
         this.active = true
         this.notification.innerHTML = msg
         this.notification.style.transform = ''
-        setTimeout(this._hide, this.displayTime)
+
+        let cancelled = false
+        this.notification.onclick = () => {
+            cancelled = true
+            this._hide()
+        }
+
+        setTimeout(() => {
+            if (!cancelled) this._hide
+        }, this.displayTime)
     }
 }

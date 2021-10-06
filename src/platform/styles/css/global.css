@@ -45,34 +45,6 @@ button {
     cursor: pointer;
 }
 
-/* About and Extensions */
-
-.brainsatplay-page {
-    z-index: 2;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background: rgba(0,0,0,0.6);
-    width: 100%;
-    height: 100%;
-    transition: 0.5s;
-    opacity: 0;
-    pointer-events: none;
-    overflow-y: scroll;
-}
-
-.brainsatplay-page > .brainsatplay-header-grid {
-    padding: 50px 50px 0px 50px;
-    border-bottom: 1px solid white;
- }
-
-.brainsatplay-page .page-container {
-    position: relative;
-    padding: 20px 50px 50px 50px;
-    height: 100%;
-    width: 100%;
-}
-
 /* App */
 
 .app {
@@ -137,9 +109,9 @@ button {
     display:flex;
     position: absolute;
     top: 0px;
-    left:75px;
+    left:50px;
     flex-direction: column; 
-    width: calc(100vw - 75px);
+    width: calc(100vw - 50px);
     height: 100vh;
 }
 
@@ -182,7 +154,7 @@ button {
 } */
 
 #sidebar-container {
-    width: 75px;
+    width: 50px;
     z-index: 100;
     /* overflow: hidden; */
     transition: 0.5s;
@@ -194,8 +166,18 @@ button {
 }
 
 #sidebar-container span{
-    width: calc(200px - 75px);
+    width: calc(200px - 50px);
     opacity: 0%;
+}
+
+#sidebar-container:hover .collapsible-container img{
+    width: 40px;
+    height: 40px;
+}
+
+#sidebar-container:hover .logo{
+    width: 75px;
+    height: 75px;
 }
 
 #sidebar-container:hover span{
@@ -259,7 +241,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 0px 20px;
+    padding: 0px 13px;
 }
 
 .brainsatplay-sidebar-button:hover {
@@ -283,12 +265,22 @@ button {
     /* width: 100%; */
     filter: invert(1);
     cursor: pointer;
-    height: 40px;
+    height: 35px;
     max-height: 50px;
-    width: 40px;
+    width: 35px;
     max-width: 50px;
     padding: 10px;
     margin-right: 10px;
+    transition: .5s;
+}
+
+#sidebar .collapsible-container img.profile {
+    border-radius: 50%;
+    background: rgb(255, 255, 255);
+    padding: 0px;
+    /* width: 25px;
+    height: 25px; */
+    filter: invert(0);
 }
 
 /* #sidebar button:focus {
@@ -374,13 +366,14 @@ button {
 }
 
 .logo {
-    width: 75px; 
-    height:75px;
+    width: 65px; 
+    height: 65px;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     padding: 15px;
     border-radius: 5px;
+    transition: .5s;
 }
 
 

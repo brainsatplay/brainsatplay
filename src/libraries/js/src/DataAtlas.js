@@ -58,7 +58,6 @@ export class DataAtlas {
 		}
 		this.liveGraph = this.graph.init(app)
 		this.graph.start(this.props.id)
-		console.log(this.graph)
 
 		this.liveGraph.nodes.forEach(n => {
 			let ui = n.ui

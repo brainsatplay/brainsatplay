@@ -8,11 +8,6 @@ export class ExtensionCard {
         this.settings = extension
         this.session = session
 
-
-        // Check Storage for Extension Usage
-        let isEnabled = false
-        if (this.session.storage) isEnabled = this.session.storage.get('extensions', this.settings.name)
-
         // Create Visuals
         this.element = document.createElement('div')
         this.element.classList.add('browser-card')
@@ -46,8 +41,14 @@ export class ExtensionCard {
         this.info.insertAdjacentElement('beforeend', this.buttons)
         // this.app.AppletHTML.node.style.display = 'hidden'
 
-        if (isEnabled) {
-            this._enableExtension()
+        this._checkStatus()
+    }
+
+    _checkStatus = async () => {
+        // Check Storage for Extension Usage
+        if (this.session.storage) {
+            let isEnabled = await this.session.storage.get('extensions', this.settings.name)
+            if (isEnabled) this._enableExtension()
         }
     }
 
@@ -66,7 +67,6 @@ export class ExtensionCard {
             left: 0;
             width: 100vw;
             height: 100vh;
-            padding: 50px;
             display: none;
             z-index: 1000;
             background: black;
@@ -80,9 +80,12 @@ export class ExtensionCard {
 
         this.view.insertAdjacentElement('beforeend', this.closeView)
         document.body.insertAdjacentElement('beforeend', this.view)
+        
+        // setTimeout(() => {
         this.app = new brainsatplay.Application(this.settings, this.view, this.session)
         this.app.init();
         this.show.style.display = 'flex'
+        // }, 1000)
 
         // Log Enable in Storage
         if (this.session.storage) this.session.storage.set('extensions', this.app.info.name, true)

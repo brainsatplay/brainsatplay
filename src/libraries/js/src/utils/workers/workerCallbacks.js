@@ -34,7 +34,13 @@ function parseFunctionFromText(method){
   let newFuncHead = getFunctionHead(method);
   let newFuncBody = getFunctionBody(method);
 
-  let newFunc = eval(newFuncHead+newFuncBody+"}");
+  let newFunc;
+  if (newFuncHead.includes('function ')){
+    let varName = newFuncHead.split('(')[1].split(')')[0]
+    newFunc = new Function(varName, newFuncBody);
+  } else {
+    newFunc = eval(newFuncHead+newFuncBody+"}");
+  }
 
   return newFunc;
 
