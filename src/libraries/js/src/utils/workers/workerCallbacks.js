@@ -60,21 +60,28 @@ export class CallbackManager{
         this.threeWorker = undefined;
 
         this.callbacks = [
-            {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
-                let newFunc = parseFunctionFromText(args[1]);
-              
-                let newCallback = {case:args[0],callback:newFunc};
-              
-                let found = self.callbacks.findIndex(c => {if (c.case === newCallback.case) return c})
-                if (found != -1) self.callbacks[found] = newCallback
-                else self.callbacks.push(newCallback);
-              }},
-              {case:'addgpufunc',callback:(args)=>{ //arg0 = gpu in-thread function string
-                this.gpu.addFunction(parseFunctionFromText(args[0]));
-              }},
-              {case:'addkernel',callback:(args)=>{ //arg0 = kernel name, arg1 = kernel function string
-                this.gpu.addKernel(args[0],parseFunctionFromText(args[1]));
-              }},
+          {case:'list',callback:(args)=>{
+            let list = [];
+            this.callbacks.forEach((obj)=>{
+              list.push(obj.case);
+            });
+            return list;
+          }},
+          {case:'addfunc',callback:(args)=>{ //arg0 = name, arg1 = function string (arrow or normal)
+            let newFunc = parseFunctionFromText(args[1]);
+          
+            let newCallback = {case:args[0],callback:newFunc};
+          
+            let found = self.callbacks.findIndex(c => {if (c.case === newCallback.case) return c})
+            if (found != -1) self.callbacks[found] = newCallback
+            else self.callbacks.push(newCallback);
+          }},
+          {case:'addgpufunc',callback:(args)=>{ //arg0 = gpu in-thread function string
+            this.gpu.addFunction(parseFunctionFromText(args[0]));
+          }},
+          {case:'addkernel',callback:(args)=>{ //arg0 = kernel name, arg1 = kernel function string
+            this.gpu.addKernel(args[0],parseFunctionFromText(args[1]));
+          }},
           {case:'callkernel',callback:(args)=>{ //arg0 = kernel name, args.slice(1) = kernel input arguments
             return this.gpu.callKernel(args[0],args.slice(1)); //generalized gpu kernel calls
           }},
