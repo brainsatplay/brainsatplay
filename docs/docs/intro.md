@@ -5,39 +5,36 @@ hide_title: true
 
 ![Brains@Play Header](../static/img/header.png)
 
-## Welcome to The Biosensing Game
+## Welcome to the Brainstorm
 ---
 
-**[Brains@Play](https://app.brainsatplay.com) is an AGPL-licensed JavaScript framework allowing anyone to leverage biosignals for data collection, feedback, and control in modern web applications.** Check out our  [main Github repository](https://github.com/brainsatplay/brainsatplay) to contribute to our codebase.
-
-<!-- ADD A HIGHLIGHT REEL VIDEO -->
-
-1. Platform (https://app.brainsatplay.com)
-2. Studio (https://app.brainsatplay.com/#studio)
-3. Library (https://github.com/brainsatplay/brainsatplay)
-
-
-You should consider using Brains@Play if you're looking to:
-- Distribute a complete biosensing app on the Web
-- Rapidly design a Web interface for your native biosensing application
-- Support social connection and/or remote data collection through a networked biosensing app
+**[brainsatplay.js](https://github.com/brainsatplay/brainsatplay) is an AGPL-licensed JavaScript framework enabling the inclusion of real-time physiological data streams in modern web applications.** Our team has used it to [distribute standalone biosensing applications](https://app.brainsatplay.com) on web browsers, support social connection through multiplayer experiences, and [simply play around](https://app.brainsatplay.com/#studio) with real-time physiological data. We're excited to see what you create with us!
 
 ## Getting Started
 ---
 
-We're so excited to have you as part of the Brains@Play community! Head over to [**Setup**](./getting-started/setup) to clone our Github repository and begin participating in the future of neurotechnology!
+While everyone begins in different places, we encourage all of our **Brainstormers** to use the following four stages to guide their progression from a *user* of Brains@Play solutions to an active *contributor* to our growing community of open technology creators.
 
-### Build an Application
-Head over to **Getting Started** to learn how to build your first application with brainsatplay.js.
+### 1. Explore the Platform
+To experience web-based biosensing applications developed by others, head over to our [Platform](./platform/01-using-the-platform) tutorial.
 
-### Expand the Ecosystem 
-Explore **Advanced Topics** to begin extending the functionality of brainsatplay.js for other developers.
 
-### Brainstorm with the Community
-Discover **Community Projects** to build on top of.
+### 2. Play with the Studio
+To start playing with the integration of real-time physiological data streams into your own application, jump to our [Studio](./studio/01-using-the-studio) tutorial.
+
+### 3. Develop using the Library
+To integrate the Brains@Play software framework into your own projects, open our [Library](./library/01-using-the-library) tutorial.
+
+### 4. Contribute to the Codebase
+To contribute to the core Brains@Play codebase, check out our 
+
+Additional content about integrating with other software can be found on our **Beyond the Web** section.
+
+## Further Resources
+---
 
 ### Explore the Reference
-Extensive references to the brainsatplay.js software library can be found on our [**Reference**](./reference) page.
+Extensive references to the brainsatplay.js software library can be found on our [Reference](./reference) page.
 
 ### Ask for Help
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).

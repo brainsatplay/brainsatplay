@@ -1,6 +1,6 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'Brains@Play Docs',
+  title: 'Brains@Play Doc',
   tagline: 'Neurotechnology with Everyone',
   url: 'https://docs.brainsatplay.com',
   baseUrl: '/',
@@ -41,13 +41,13 @@ module.exports = {
           position: 'right',
           label: 'Docs',
         },
-        {to: '/blog', label: 'Blog', position: 'right'},
         {
           type: 'doc',
           docId: 'reference/index',
           position: 'right',
           label: 'Reference',
         },
+        {to: '/blog', label: 'Blog', position: 'right'},
         {
           href: 'https://github.com/brainsatplay/brainsatplay',
           label: 'GitHub',

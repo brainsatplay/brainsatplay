@@ -64,7 +64,7 @@ let connection = new WebSocket('wss://' + httpsDomain, subprotocolsArray)
 // ...
 
 ```
-With these changes, you should recieve the following message in the Chrome developer console: 
+With these changes, you should receive the following message in the Chrome developer console: 
 
 ![Console Login Response](../../../static/img/03-extend-the-brainstorm/login.png)
 
