@@ -7,7 +7,9 @@ import {Storage} from './Storage'
 
 import {dynamicImport} from '../../utils/general/importUtils'
 
-const move = (label, session, params=[]) => {let plugin = dynamicImport('./Move'); return plugin.Move(label, session, params);}; //the url may need to be set based on which script you are trying to import it from
+const move = (label, session, params=[]) => {let plugin = dynamicImport('./Move'); console.log(plugin);}; //the url may need to be set based on which script you are trying to import it from
+
+//move();
 
 export {
     Move,
