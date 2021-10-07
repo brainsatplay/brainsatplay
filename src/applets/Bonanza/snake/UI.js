@@ -66,19 +66,17 @@ class UI{
 
     init = () => {
 
-        let HTMLtemplate = () => {
-            return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-                <canvas id="${this.props.id}gameCanvas" style="border: 1px solid white;" ></canvas>
-            </div>`
-        }
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 100%'
+        this.props.container.insertAdjacentHTML('beforeend', `<canvas id="${this.props.id}gameCanvas" style="border: 1px solid white;" ></canvas>`)
 
 
         let setupHTML = (app) => {
 
-const container = document.getElementById(`${this.props.id}`);
-const canvas = document.getElementById(`${this.props.id}gameCanvas`);
-const context = canvas.getContext("2d");
+        const container = this.props.container
+        const canvas = this.props.container.querySelector(`[id="${this.props.id}gameCanvas"]`);
+        const context = canvas.getContext("2d");
 
 let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
 canvas.width = squareLength
@@ -156,13 +154,12 @@ const moveSnake = () => {
             main()
         }
 
-        return {HTMLtemplate, setupHTML}
+        return {HTMLtemplate: this.props.container, setupHTML}
     }
 
     responsive = () => {
-        const container = document.getElementById(`${this.props.id}`);
-        const canvas = document.getElementById(`${this.props.id}gameCanvas`);
-        let squareLength = Math.min(container.offsetHeight*.8, container.offsetWidth*.8)
+        const canvas = this.props.container.querySelector(`[id="${this.props.id}gameCanvas"]`);
+        let squareLength = Math.min(this.props.container.offsetHeight*.8, this.props.container.offsetWidth*.8)
         canvas.width = squareLength
         canvas.height = squareLength
     }
