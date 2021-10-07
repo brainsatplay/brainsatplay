@@ -338,7 +338,7 @@ export class StateManager {
 
     unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
-        delete this.state.data[key];
+        if(this.data[key]) delete this.data[key];
     }
 
     //runs only one animation frame to check all state keys
