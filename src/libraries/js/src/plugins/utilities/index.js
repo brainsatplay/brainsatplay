@@ -7,9 +7,10 @@ import {Storage} from './Storage'
 
 import {dynamicImport} from '../../utils/general/importUtils'
 
-const move = (label, session, params=[]) => {let plugin = dynamicImport('./Move'); console.log(plugin);}; //the url may need to be set based on which script you are trying to import it from
+//the link is based on where the import utils are 
+const move = async (label, session, params=[]) => {let plugin = await dynamicImport('../../plugins/utilities/Move.js'); console.log(plugin);}; //the url may need to be set based on which script you are trying to import it from
 
-//move();
+move();
 
 export {
     Move,
