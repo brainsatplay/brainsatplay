@@ -107,7 +107,7 @@ export class StateManager {
 
     //Alternatively just add to the state by doing this.state[key] = value with the state manager instance
     addToState(key, value, onchange=null, startRunning=this.defaultStartListenerEventLoop, debug=false) {
-        if(!this.listener.hasKey('pushToState')) {
+        if(!this.listener.hasKey('pushToState') && this.defaultStartListenerEventLoop) {
             this.setupSynchronousUpdates();
         }
 
@@ -128,7 +128,7 @@ export class StateManager {
     //Synchronous set-state, only updates main state on interval. Can set to trigger now instead of waiting on interval. Also can append arrays in state instead of replacing them
     setState(updateObj={}, appendArrs=false){ //Pass object with keys in. Undefined keys in state will be added automatically. State only notifies of change based on update interval
         //console.log("setting state");
-        if(!this.listener.hasKey('pushToState')) {
+        if(!this.listener.hasKey('pushToState') && this.defaultStartListenerEventLoop) {
             this.setupSynchronousUpdates();
         }
 
@@ -338,6 +338,7 @@ export class StateManager {
 
     unsubscribeAll(key) { // Removes the listener for the key (including the animation loop)
         this.clearAllKeyResponses(key);
+        delete this.state.data[key];
     }
 
     //runs only one animation frame to check all state keys
