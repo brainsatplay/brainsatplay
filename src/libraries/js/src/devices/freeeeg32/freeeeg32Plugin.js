@@ -124,7 +124,7 @@ export class eeg32Plugin {
             },
             undefined,
             baudrate,
-            
+            mode
         );
        
     }
