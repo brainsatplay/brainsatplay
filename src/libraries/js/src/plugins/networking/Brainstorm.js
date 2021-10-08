@@ -31,8 +31,7 @@ export class Brainstorm  extends Plugin {
                         let sourcePort = splitId[1] ?? 'default'
 
                         // Register New Port
-                        this.session.graph.addPort(
-                            this,
+                        this.addPort(
                             port,
                             {
                                 data: user.data,

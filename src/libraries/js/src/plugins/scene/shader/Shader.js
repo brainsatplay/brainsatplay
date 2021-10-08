@@ -62,7 +62,7 @@ export class Shader extends Plugin {
         if (this.props.uniforms[name] == null) this.props.uniforms[name] = {value: 0}
 
         // Set Port
-        this.session.graph.addPort(this,name, {
+        this.addPort(name, {
             input: {type},
             data: this.props.uniforms[name].value,
             output: {type: null},

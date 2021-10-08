@@ -127,7 +127,7 @@ export class UI extends Plugin {
                     if (node.id && noDescendentWithID){ // Create ports for blank elements with IDs
                         removedIds.delete(node.id) // Actually still there
 
-                        this.session.graph.addPort(this,node.id, {
+                        this.addPort(node.id, {
                             edit: false,
                             input: {type: undefined},
                             output: {type: null},

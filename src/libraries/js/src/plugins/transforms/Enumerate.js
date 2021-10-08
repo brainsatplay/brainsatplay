@@ -37,7 +37,7 @@ export class Enumerate extends Plugin {
                                                 return user
                                             }
                                         }
-                                        this.session.graph.addPort(this,k,portInfo)
+                                        this.addPort(k,portInfo)
                                     }
                                     this.session.graph.runSafe(this,k, {data: user.data[k]})
                                 })
