@@ -15,9 +15,11 @@ else secure = process.env.SECURE === 'true'
 
 const brainstorm = require('./src/libraries/js/src/brainstorm/Brainstorm.js')
 const createAppletManifest = require('./src/platform/createAppletManifest')
-// const createPluginManifest = require('./src/platform/createPluginManifest')
+const createPluginManifest = require('./src/platform/createPluginManifest')
+
 
 createAppletManifest()
+createPluginManifest()
 
 const cert = fs.readFileSync('./snowpack.crt');
 const key = fs.readFileSync('./snowpack.key');

@@ -3,10 +3,11 @@
  * @module brainsatplay
  */
 
-import * as plugins from './src/plugins/plugins.js'
-
 // Plugins
+import * as plugins from './src/plugins/plugins.js'
 export {plugins}
+// import {pluginManifest} from './src/plugins/pluginManifest'
+// export {pluginManifest}
 
 // Session Manager
 export {Session} from './src/Session.js'

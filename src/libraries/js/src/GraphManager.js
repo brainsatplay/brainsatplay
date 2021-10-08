@@ -2,22 +2,27 @@
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './editor/GraphEditor'
 import {plugins} from '../brainsatplay'
+import {dynamicImport} from './utils/general/importUtils'
+import {pluginManifest} from './plugins/pluginManifest'
+import {Brainstorm} from './plugins/networking/Brainstorm'
+import {Event} from './plugins/controls/Event'
 
 export class GraphManager{
     constructor(session, settings = {}){
         this.session = session
 
         // Centrally Manage Plugins through the Project Manager
-        this.plugins = plugins
-        this.allplugins = new Map()
+        this.plugins = plugins //pluginManifest
+        // this.preloadedPlugins = {}
 
-        Object.keys(this.plugins).forEach(k => {
-            if (k != 'id'){
-                Object.keys(this.plugins[k]).forEach(k2 => {
-                    this.allplugins.set(k2, this.plugins[k][k2])
-                })
-            }
-        })
+        // let toPreload = ['Brainstorm', 'Event']
+        // console.log('CREATING NEW MANAGER')
+        // toPreload.forEach(async k => {
+        //     console.log(pluginManifest[k])
+        //     let module = await dynamicImport(pluginManifest[k].folderUrl)
+        //     this.preloadedPlugins[k] = module[k]
+        //     console.log(this.preloadedPlugins)
+        // })
 
         if (this.session.projects) {
             (async() => {
@@ -180,11 +185,23 @@ export class GraphManager{
         return String(Math.floor(Math.random()*1000000))
     }
 
-    addNode(app, nodeInfo){
+    createUniqueId(app, base){
+        this.applets[app.props.id].nodes.forEach(n => {
+            if (n.id === base) {
+                base = `${base}_${this._getRandomId()}`
+            }
+        })
+                
+        return base
+
+    }
+
+    async addNode(app, nodeInfo){
         let appId = app.props.id
 
         // Add Basic Node Information to the Graph
-        if (nodeInfo.id==null) nodeInfo.id = this._getRandomId()        
+        nodeInfo.id = this.createUniqueId(app, nodeInfo.id)
+        if (typeof nodeInfo.class === 'string') nodeInfo.class = await dynamicImport(pluginManifest[classname])
 
         let found = this.applets[appId].nodes.find(n => {
             if (n.id == nodeInfo.id){
@@ -555,7 +572,7 @@ export class GraphManager{
         // Derive Control Structure
         let firstUserDefault= node.ports[port]
         if (
-            node instanceof this.plugins.controls.Event
+            node instanceof Event
             // typeof firstUserDefault.data === 'number' || typeof firstUserDefault.data === 'boolean'
             ){
             let controlDict = {}
@@ -670,7 +687,7 @@ export class GraphManager{
 
     addEdge = (appId, newEdge, sendOutput=true) => {
 
-        let applet = (typeof appId === 'string') ? this.applets[appId] : appId
+        let applet = (typeof appId === 'string') ? this.applets[appId] : appI
 
         let existingEdge = this.applets[appId].edges.find(edge => {
             if (newEdge.source == edge.source && newEdge.target == edge.target){
@@ -718,7 +735,7 @@ export class GraphManager{
                     if (o.trigger){
                         let u = o.value ?? source.ports[sourcePort]
                         if (!u.meta) u.meta = {}
-                        if (target instanceof this.plugins.networking.Brainstorm) u.meta.source = label // Push proper source
+                        if (target instanceof Brainstorm) u.meta.source = label // Push proper source
                         u.meta.session = applet.sessionId
 
                         let returned = this.runSafe(target, targetPort, u, true)
@@ -742,8 +759,8 @@ export class GraphManager{
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
-            let brainstormSource = source instanceof this.plugins.networking.Brainstorm
-            let brainstormTarget = target instanceof this.plugins.networking.Brainstorm
+            let brainstormSource = source instanceof Brainstorm
+            let brainstormTarget = target instanceof Brainstorm
             if (brainstormTarget) {
                 applet.streams.add(label) // Keep track of streams
 
