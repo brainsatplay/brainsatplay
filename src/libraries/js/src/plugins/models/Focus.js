@@ -18,7 +18,7 @@ export class Focus extends Plugin {
         }
 
         this.props.container.id = this.props.id
-        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 150px; padding: 10px; box-sizing: content-box;'
+        this.props.container.style = 'display: none; align-items: center; justify-content: center; width: 100%; height: 150px; padding: 10px; box-sizing: content-box;'
         this.props.canvas = document.createElement('canvas')
         this.props.container.insertAdjacentElement('beforeend',this.props.canvas)
         this.props.context = this.props.canvas.getContext("2d");
@@ -83,7 +83,7 @@ export class Focus extends Plugin {
         this._clearCanvas()
         if (this.props.looping){
             if (this.ports.debug.data){
-                this.props.container.style.display = 'block'
+                this.props.container.style.display = 'flex'
                 this._drawSignal(this.props.context)
             } else {
                 this.props.container.style.display = 'none'

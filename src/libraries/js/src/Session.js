@@ -394,7 +394,7 @@ export class Session {
 					} else if (d.company == 'InteraXon'){
 						return 5 // InteraXon
 					} else {
-						return 3 // other
+						return 6 // other
 					}
 				}
 				let pos1 = translate(a)

@@ -77,13 +77,15 @@ select {
     background: rgba(35,35,35,0.75);
     padding: 25px;
     margin: 10px;
-    border-radius: 5px;;
+    width: 100%;
+    border-radius: 5px;
     position: relative;
     align-items: flex-start;
 }
 .brainsatplay-companyCard .devices {
     width: 100%;
     display: flex;
+    flex-wrap: wrap;
 }
 .brainsatplay-companyCard h3 {
     margin: 10px;
@@ -94,6 +96,7 @@ select {
     padding: 10px;
     margin: 10px;
     flex-grow: 1;
+    width: 43%;
     border-radius: 5px;;
     position: relative;
 }

@@ -13,12 +13,15 @@ import { Prototype8Plugin } from './8ch_prototype/8chPlugin'
 import { notionPlugin } from './neurosity/notionPlugin'
 import { timefluxPlugin } from './timeflux/timefluxPlugin'
 import { BlueberryPlugin } from './blueberry/blueberryPlugin';
+import { EpocPlugin } from './emotiv/EpocPlugin';
 
 
 export const deviceList = [
     {'name': 'Synthetic', id:'synthetic', company:'Brains@Play', analysis: ['eegcoherence'], cls: syntheticPlugin},
     {'name': 'Brainstorm', id:'brainstorm',company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
+    {'name': 'Cortex API', id:'cortex', company:'Emotiv', analysis: ['eegcoherence'], cls: EpocPlugin},
     {'name': 'Notion', id:'notion', company:'Neurosity', analysis: ['eegcoherence'], cls: notionPlugin},
+    {'name': 'Crown', id:'crown', company:'Neurosity', analysis: ['eegcoherence'], cls: notionPlugin},
     {'name': 'Muse 2', id:'muse', company:'InteraXon', analysis: ['eegcoherence'], variants:['', 'Aux'], cls: musePlugin, chromeOnly: true},
     {'name': 'Muse S', id:'muses', company:'InteraXon', analysis: ['eegcoherence'], variants:[''], cls: musePlugin, chromeOnly: true},
     {'name': 'Ganglion', id:'ganglion', company:'OpenBCI', analysis: ['eegcoherence'], cls: ganglionPlugin, chromeOnly: true},

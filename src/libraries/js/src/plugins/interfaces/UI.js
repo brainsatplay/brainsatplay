@@ -241,7 +241,7 @@ export class UI extends Plugin {
 
     deinit = () => { 
         if (this.ports.deinit.data instanceof Function) this.ports.deinit.data()
-        this.props.style.remove()
+        if (this.props.style != null) this.props.style.remove()
     }
 
     responsive = () => {
