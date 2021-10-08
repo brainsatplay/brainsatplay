@@ -64,10 +64,10 @@
                 sum += px;
             }
 
-            if(normalize) {
-                let _sum = 1/sum;
-                probabilities = probabilities.map(x => x*_sum);
-            }
+            // if(normalize) {
+            //     let _sum = 1/sum;
+            //     probabilities = probabilities.map(x => x*_sum);
+            // }
         
             return probabilities;
         }
@@ -139,7 +139,9 @@
         }
 
         d = relError(actualLandings,predictedLandings);
+        console.log(predictedLandings)
         pDist = normalDistribution(predictedLandings);
+        console.log(pDist);
         aDist = normalDistribution(actualLandings);
         pEnt = informationEntropy(d);
         let maxEnt = Math.min(...pEnt);

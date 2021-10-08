@@ -23,9 +23,15 @@ export class eeg32Plugin {
         info.sps = 512;
         info.deviceType = 'eeg';
         let baudrate = 115200;
+        let mode = '512';
 
         if(this.mode.includes("optical")) {
             baudrate = 921600;
+        }
+
+        if(this.mode.includes("ads131")) {
+            info.sps = 250;
+            mode='250';
         }
 
         if(this.mode.includes("freeeeg32_2")) { 
@@ -117,7 +123,8 @@ export class eeg32Plugin {
                 this.ondisconnect();
             },
             undefined,
-            baudrate
+            baudrate,
+            
         );
        
     }

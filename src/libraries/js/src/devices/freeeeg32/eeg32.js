@@ -9,7 +9,8 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 		onConnectedCallback = this.onConnectedCallback,
 		onDisconnectedCallback = this.onDisconnectedCallback,
 		CustomDecoder = this.decode,
-		baudrate = 115200
+		baudrate = 115200,
+		mode='512'
 		) {
 		this.onDecodedCallback = onDecodedCallback;
 		this.onConnectedCallback = onConnectedCallback;
@@ -29,7 +30,9 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
 
-		this.sps = 512; // Sample rate
+		this.sps = 512; //sample rate
+		if(mode === '250')
+			this.sps = 250;
 		this.nChannels = 32;
 		this.nPeripheralChannels = 6; // accelerometer and gyroscope (2 bytes * 3 coordinates each)
 		this.updateMs = 1000/this.sps; //even spacing
