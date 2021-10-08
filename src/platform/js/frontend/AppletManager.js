@@ -400,7 +400,7 @@ export class AppletManager {
                         {header: 'options-menu', content: `<div class="toggle"><img src="${nodeSVG}"></div><p>Edit</p>`, id:"brainsatplay-visual-editor", onload: (el)=> {                    
                             if (!(appnode.classinstance instanceof Application)) el.style.display = 'none'
                         }, onclick: (el) => {
-                            console.log('toggling')
+                            console.error('toggling')
                         }},
                         {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, id:"brainsatplay-browser", onclick: async (el) => {
                                 if (appletMask.style.opacity != 0) {

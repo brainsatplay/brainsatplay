@@ -22,6 +22,18 @@ export class Application{
             id: null, //Keep random ID
             sessionId: null,
         };
+
+
+
+        // Set shortcuts
+        document.addEventListener('keyup', this.shortcutManager, false);
+    }
+
+    shortcutManager = (e) => {
+        if (e.ctrlKey && e.key === 'e') {
+            if (this.editor) this.editor.toggleDisplay()
+            // else this.session.graph.edit(this)
+        }
     }
 
     init() {

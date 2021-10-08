@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplayLocal from '../../brainsatplay'
 
-let latest = '0.0.32'
+let latest = '0.0.33'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './general/blobUtils'

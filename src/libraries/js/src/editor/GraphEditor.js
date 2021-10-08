@@ -257,8 +257,8 @@ export class GraphEditor{
                 // Setup Nodes
                 let i = 0
                 let length = Object.keys(this.plugins.nodes).length
-                this.plugins.nodes.forEach(n => {
-                    let node = this.addNode(n,true, true, true) 
+                this.plugins.nodes.forEach(async n => {
+                    let node = await this.addNode(n,true, true, true) 
         
                     // Default Positioning
                     let iterator = Math.ceil(Math.sqrt(length))
@@ -863,14 +863,14 @@ export class GraphEditor{
         this.graph.nodes[node.label].removePort(port)
     }
 
-    addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
-        
+    async addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
         
         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
 
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = this.manager.addNode(this.app, nodeInfo)
+        if (skipManager == false) nodeInfo = await this.manager.addNode(this.app, nodeInfo)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
+        
         let node = this.graph.addNode(nodeInfo)
 
         let top

@@ -3,6 +3,8 @@
  * @module brainsatplay
  */
 
+import 'regenerator-runtime/runtime' 
+
 // Plugins
 import * as plugins from './src/plugins/plugins.js'
 export {plugins}
