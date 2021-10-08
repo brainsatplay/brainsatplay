@@ -26,6 +26,9 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
         this.buffer = [];
         this.startByte = 160; // Start byte value
 		this.stopByte = 192; // Stop byte value
+		
+		this.byteLength = 105; //expected length of 1 line of data
+		this.adcLength = 99; //expected adc channel output length, the last 6 bytes are the accelerometer
 		this.searchString = new Uint8Array([this.stopByte,this.startByte]); //Byte search string
 		this.readRate = 16.666667; //Throttle EEG read speed. (1.953ms/sample min @103 bytes/line)
 		this.readBufferSize = 2000; //Serial read buffer size, increase for slower read speeds (~1030bytes every 20ms) to keep up with the stream (or it will crash)
@@ -133,7 +136,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 		//console.log(indices);
 		if(indices.length >= 2){
 			for(let k = 1; k < indices.length; k++) {
-				if(indices[k] - indices[k-1] !== 105) {
+				if(indices[k] - indices[k-1] !== this.byteLength) {
 					
 				} //This is not a valid sequence going by size, drop sequence and return
 				else {
@@ -156,7 +159,7 @@ export class eeg32 { //Contains structs and necessary functions/API calls to ana
 						}
 					}//Assume no dropped samples
 				
-					for(var i = 3; i < 99; i+=3) {
+					for(var i = 3; i < this.adcLength; i+=3) {
 						var channel = "A"+(i-3)/3;
 						this.data[channel][this.data.count-1]=this.bytesToInt24(line[i],line[i+1],line[i+2]);
 						if(this.data.count >= this.maxBufferedSamples) { 
