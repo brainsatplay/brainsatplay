@@ -51,6 +51,7 @@ const createPluginManifest = () => {
               if (!types.includes(type)){
                 types.push(type)
               }
+              if (decoded.replaceAll instanceof Function) decoded = decoded.replaceAll(m2[0],"")
             }
         } while (m2);
 
