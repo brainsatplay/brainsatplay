@@ -149,6 +149,8 @@ export class eeg32Plugin {
                 {eegshared:{eegChannelTags:info.eegChannelTags, sps:info.sps}},
                 config,
             );
+            
+            this.atlas.init()
             info.useAtlas = true;
         } else if (typeof pipeToAtlas === 'object') {
             this.atlas = pipeToAtlas; //External atlas reference

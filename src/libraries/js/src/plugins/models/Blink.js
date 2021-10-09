@@ -118,30 +118,26 @@ export class Blink extends Plugin {
         this.props.canvas = await this.addNode({id: 'canvas', class: 'Canvas'})
         this.analysis.add(...Array.from(this.props.canvas.analysis))
 
-        // let setupHTML = (app) => {
-            this.props.canvas.instance.init()
-            this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
+        this.props.canvas.instance.init()
+        this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
-            this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
-                {  
-                    forceRun: true,
-                    forceUpdate: true,
-                    data: {active: true, function: (ctx) => {
-                        if (this.props.looping){
-                            if (this.ports.debug.data){
-                                this.props.container.style.display = 'block'
-                                this._drawSignal(ctx)
-                            } else {
-                                this.props.container.style.display = 'none'
-                                // this.props.container.style.pointerEvents = 'none'
-                            }
+        this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
+            {  
+                forceRun: true,
+                forceUpdate: true,
+                data: {active: true, function: (ctx) => {
+                    if (this.props.looping){
+                        if (this.ports.debug.data){
+                            this.props.container.style.display = 'block'
+                            this._drawSignal(ctx)
+                        } else {
+                            this.props.container.style.display = 'none'
+                            // this.props.container.style.pointerEvents = 'none'
                         }
-                    }}
-                }
-            )
-        // }
-
-        // return { HTMLtemplate, setupHTML}
+                    }
+                }}
+            }
+        )
     }
 
     deinit = () => {

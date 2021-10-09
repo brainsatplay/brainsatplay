@@ -34,6 +34,7 @@ export class devicePlugin {
         //         config,true,true,
         //         info.analysis
         //         );
+        //      this.atlas.init()
 
         //     this.info.deviceNum = this.atlas.data.heg.length-1;
         //     this.info.useAtlas = true;

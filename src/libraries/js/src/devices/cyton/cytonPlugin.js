@@ -158,7 +158,8 @@ export class cytonPlugin {
 				location+":"+this.mode,
 				{eegshared:{eegChannelTags:this.info.eegChannelTags, sps:this.info.sps}},
 				config,
-				);
+                );
+                this.atlas.init()
                 this.info.useAtlas = true;
 		} else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
 			this.atlas = pipeToAtlas; //External atlas reference

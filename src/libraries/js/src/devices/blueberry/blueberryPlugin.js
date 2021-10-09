@@ -76,6 +76,8 @@ export class BlueberryPlugin {
                 {hegshared:{sps:this.info.sps}},
                 config,
                 );
+                
+		    this.atlas.init()
 
                 this.info.deviceNum = this.atlas.data.heg.length-1;
                 this.info.useAtlas = true;

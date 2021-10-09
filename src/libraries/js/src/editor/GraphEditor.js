@@ -1512,19 +1512,30 @@ export class GraphEditor{
             this.addNodeOption(this.classRegistry[className])
         }
 
-        this.plugins.nodes.forEach(n => {
+        this.plugins.nodes.forEach(async n => {
             let clsInfo = this.classRegistry[n.class.name]
 
-            if (clsInfo){
-                clsInfo.class = n.class
-                let baseClass = this.library.plugins[clsInfo.category][clsInfo.name]
-                if (clsInfo.class != baseClass){
-                    clsInfo.category = null // 'custom'
-                    this.addNodeOption(clsInfo)
+            let checkWhere = async (n, info) => {
+                if (info && n.class === info.class){
+                    // clsInfo.class = n.class
+                    let baseClass = this.library.plugins[info.category][clsInfo.name]
+                    if (info.class != baseClass){
+                        info.category = null // 'custom'
+                        this.addNodeOption(clsInfo)
+                    }
+                } else {
+                    if (info.class == null){
+                        let module = await dynamicImport(info.folderUrl)
+                        clsInfo.class = module[info.name]
+                        await checkWhere(n, info)
+                    } else {
+                        this.addNodeOption({category: null, class: n.class})
+                    }
                 }
-            } else {
-                this.addNodeOption({category: null, class: n.class})
             }
+
+            await checkWhere(n, clsInfo)
+
         })
 
         this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
@@ -1620,7 +1631,7 @@ export class GraphEditor{
 
         let type = classInfo.category
         let id = classInfo.id // TODO Fix this
-        let name = classInfo.name 
+        let name = classInfo?.class?.name ?? classInfo.name
 
         if (!(onClick instanceof Function)) onClick = async () => {
             if (!('class' in classInfo)) {

@@ -363,9 +363,10 @@ export class AppletManager {
 
         let appletDiv = appnode.classinstance.AppletHTML.node
         let appletIdx = appnode.appletIdx - 1
+        let defaultUI = document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`)
 
         // Brains@Play Default Overlays
-        if (document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`) == null) // Check if default UI already exists
+        if (defaultUI  == null ) // Check if default UI does not exists
         {
 
             appletDiv.style.gridArea = String.fromCharCode(97 + appletIdx);
@@ -572,16 +573,19 @@ export class AppletManager {
     }
 
     //initialize applets added to the list into each container by index
-    initApplets = (settings = []) => {
+    initApplets = async (settings = []) => {
 
         // Assign applets to proper areas
-        this.applets.forEach((applet, i) => {
+        await Promise.all(this.applets.map(async (applet, i) => {
             if (applet.classinstance != null) {
-                if (applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { applet.classinstance.init(); }
+                if (applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { 
+                    await applet.classinstance.init(); 
+                }
                 let appletDiv; if (applet.classinstance.AppletHTML) appletDiv = applet.classinstance.AppletHTML.node;
                 appletDiv.name = applet.name
             }
-        });
+        }))
+
         this.enforceLayout();
         setTimeout(() => {
             this.responsive();
@@ -633,7 +637,7 @@ export class AppletManager {
             var pos = appletIdx - 1; if (pos > this.applets.length) { pos = this.applets.length; this.applets[pos] = { appletIdx: pos + 1, name: classObj.name, classinstance: clsInstance }; }
             else { this.applets[pos] = { appletIdx: pos + 1, name: appletCls.name, classinstance: clsInstance }; }
 
-            this.applets[pos].classinstance.init();
+            await this.applets[pos].classinstance.init();
 
             //let appletDiv =  this.applets[pos].classinstance.AppletHTML.node;
             // this.applets[pos].classinstance.AppletHTML.node.style.gridArea = String.fromCharCode(97 + pos)
@@ -672,11 +676,11 @@ export class AppletManager {
         })
     }
 
-    reinitApplets = () => {
-        this.applets.forEach((applet, i) => {
+    reinitApplets = async () => {
+        await Promise.all(this.applets.map(async (applet, i) => {
             applet.classinstance.deinit();
-            applet.classinstance.init();
-        });
+            await applet.classinstance.init();
+        }))
         this.responsive();
     }
 

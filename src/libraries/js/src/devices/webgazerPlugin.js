@@ -85,6 +85,7 @@ export class webgazerPlugin {
                 undefined,
                 config,
                 );
+            this.atlas.init()
 
             info.deviceNum = this.atlas.data.heg.length-1;
             info.useAtlas = true;

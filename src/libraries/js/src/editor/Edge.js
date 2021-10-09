@@ -25,7 +25,6 @@ export class Edge{
     // Derive Port Elements
     Object.keys(structure).forEach(t => {
       this[t] = this.nodes[this.structure[t].node]
-      console.log(this[t], this.nodes, this.structure)
       this[`${t}Node`] = this[t].element.querySelector(`.${t}-ports`).getElementsByClassName(`port-${this.structure[t].port}`)[0]
       this[t].registerEdge(this)
     })

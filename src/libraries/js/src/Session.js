@@ -107,6 +107,7 @@ export class Session {
 		});
 
 		this.atlas = new DataAtlas('atlas', undefined, undefined, true, false);
+		this.atlas.init()
 
 		this.info = {
 			nDevices: 0,
@@ -1417,8 +1418,8 @@ else {
 		}
 	}
 
-	registerApp(app){
-		this.info.apps[app.props.id] = this.graph.init(app)
+	async registerApp(app){
+		this.info.apps[app.props.id] = await this.graph.init(app)
 		this.info.apps[app.props.id].settings = app.info
 		return this.info.apps[app.props.id]
 	}

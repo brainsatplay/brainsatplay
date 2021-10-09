@@ -23,6 +23,9 @@ export class Blank extends Plugin {
         // this.app: The application that this plugin is running in
 
 
+        // EXTERNAL DEPENDENCIES (e.g. ['https://cdn.plot.ly/plotly-2.0.0.min.js'])
+        this.dependencies = []
+
         // PROPS
         this.props = { id: String(Math.floor(Math.random() * 1000000)) } // properties of the plugin
 

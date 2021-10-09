@@ -45,7 +45,7 @@ export class buzzPlugin {
                 {},
                 config
                 );
-
+            this.atlas.init()
             this.info.useAtlas = true;
             
         } else if (typeof pipeToAtlas === 'object') {

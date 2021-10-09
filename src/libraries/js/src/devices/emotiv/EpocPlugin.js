@@ -162,6 +162,7 @@ export class EpocPlugin {
                  {eegshared:{eegChannelTags: info.eegChannelTags, sps:info.sps}},
                  config
                  );
+                this.atlas.init()
              info.useAtlas = true;
          } else if (typeof pipeToAtlas === 'object') { //Reusing an atlas
              this.atlas = pipeToAtlas; //External atlas reference

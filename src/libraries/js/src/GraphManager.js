@@ -1,7 +1,6 @@
 // Managers
 import { StateManager } from './ui/StateManager'
 import {GraphEditor} from './editor/GraphEditor'
-import {plugins} from '../brainsatplay'
 import {dynamicImport} from './utils/general/importUtils'
 import {pluginManifest} from './plugins/pluginManifest'
 import {Brainstorm} from './plugins/networking/Brainstorm'
@@ -12,26 +11,6 @@ export class GraphManager{
         this.session = session
 
         if (!('graph' in session)) this.session.graph = this
-
-        // Centrally Manage Plugins through the Project Manager
-        this.plugins = plugins //pluginManifest
-        // this.preloadedPlugins = {}
-
-        // let toPreload = ['Brainstorm', 'Event']
-        // console.log('CREATING NEW MANAGER')
-        // toPreload.forEach(async k => {
-        //     console.log(pluginManifest[k])
-        //     let module = await dynamicImport(pluginManifest[k].folderUrl)
-        //     this.preloadedPlugins[k] = module[k]
-        //     console.log(this.preloadedPlugins)
-        // })
-
-        if (this.session.projects) {
-            (async() => {
-                let library = await this.session.projects.getLibraryVersion(this.session.projects.version)
-                this.plugins = library.plugins
-            })()
-        }
 
         // Two Modes
         this.applets = {}
@@ -95,7 +74,7 @@ export class GraphManager{
     }
 
 
-    instantiateNode(nodeInfo,session=this.session){
+    async instantiateNode(nodeInfo,session=this.session){
 
         // return new Promise(resolve => {
 
@@ -143,12 +122,12 @@ export class GraphManager{
 
         // Download Dependencies
         if ('dependencies' in node){
-            node.dependencies.forEach((url,i) => {
+            await node.dependencies.forEach(async (url,i) => {
                 const script = document.createElement("script");
                 script.src = url
                 script.async = true;
 
-                let promise = new Promise(resolve => {
+                await new Promise(resolve => {
                     script.onload = () => {
                         resolve(url)
                     }
@@ -157,6 +136,7 @@ export class GraphManager{
                 node.dependencies[i] = promise
             })
         } else node.dependencies = []
+
         return nodeInfo
     }
 
@@ -241,7 +221,7 @@ export class GraphManager{
         this.applets[appId].nodes.push(nodeInfo);
         
         // Create Node
-        nodeInfo = this.instantiateNode(nodeInfo,this.session)
+        nodeInfo = await this.instantiateNode(nodeInfo,this.session)
 
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
@@ -263,14 +243,8 @@ export class GraphManager{
         // Grab Configure Function
         nodeInfo.configure = node.configure
 
-        // Run Init Function and Instantiate Some Additional Nodes
-        if (node.dependencies.length > 0){
-            Promise.allSettled(node.dependencies).then(res => {
-                this.setUI(node, nodeInfo)
-            })
-        } else {
-            this.setUI(node, nodeInfo)
-        }
+        // Run Init Function and Instantiate External Dependencies
+        await this.setUI(node, nodeInfo)
 
         // Update Event Registry
         this.updateApp(appId)
@@ -278,8 +252,9 @@ export class GraphManager{
         return nodeInfo
     }
 
-    setUI = (node,nodeInfo) => {
-        let ui = node.init()
+    setUI = async (node,nodeInfo) => {
+
+        let ui = await node.init()
 
         // Grab Created UI Functions
         if (ui != null) {
@@ -511,7 +486,7 @@ export class GraphManager{
         })
     }
 
-    init(app){
+    async init(app){
         
         let id = app.props.id
         let settings = app.info
@@ -540,8 +515,8 @@ export class GraphManager{
         let setupCallbacks = []
         if (graph){
             if (Array.isArray(graph.nodes)){
-                graph.nodes.forEach((nodeInfo,i) => {
-                    let o = this.addNode(app,nodeInfo)
+                await graph.nodes.forEach(async (nodeInfo,i) => {
+                    await this.addNode(app,nodeInfo)
                 })
             }
 
@@ -788,7 +763,6 @@ export class GraphManager{
                 }
             }
             
-            console.log(this.registry.local, sourceName, sourcePort)
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
@@ -920,7 +894,7 @@ export class GraphManager{
 
         for (let i = applet.edges.length - 1; i >=0; i--) {
             let edge = applet.edges[i] 
-            if ((edge.source.split(':')[0] == label) || (edge.target.split(':')[0] == label)){
+            if ((edge.source.node == label) || (edge.target.node == label)){
                 this.removeEdge(id,edge)
             }
         }
@@ -929,7 +903,6 @@ export class GraphManager{
     getNodes = (nodes, node) => {
         if (nodes) {
             return nodes.filter(n => {
-                console.log(n, node)
                 if (n.label === node) return true
                 else if (n.class.name === node) return true
                 // else if (port == null) return true
@@ -951,8 +924,6 @@ export class GraphManager{
             }
         })
 
-        console.log(structure, standardStruct)
-
         return standardStruct
     }
 
@@ -962,7 +933,6 @@ export class GraphManager{
 
         if (app) {
             return app.graph.edges.filter(e => {
-                console.log(e, structure)
                 if (e === structure) return true
             })
         } else return []

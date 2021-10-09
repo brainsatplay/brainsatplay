@@ -41,23 +41,7 @@ export class DataAtlas {
 		}
 		
 
-		// Add Blink Detection
 		this.graph = new GraphManager({atlas: this})
-		let app = {
-			props: {
-				id: this.props.id
-			},
-			info: {
-				graph: {
-					nodes: [
-						{id: 'blink', class: Blink},
-						{id: 'focus', class: Focus},
-					],
-				}
-			}
-		}
-		this.liveGraph = this.graph.init(app)
-		this.graph.start(this.props.id)
 
 		let analysisDict = {
 			eegcoherence: false,
@@ -177,7 +161,28 @@ export class DataAtlas {
 		this.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
 		window.workers.workerResponses.push(this.workeronmessage);
 		//this.analyzer();
-    }
+	}
+	
+	init = async () => {
+
+		// Add Default Analysis Options
+		let app = {
+			props: {
+				id: this.props.id
+			},
+			info: {
+				graph: {
+					nodes: [
+						{id: 'blink', class: Blink}, // Blink Detection
+						{id: 'focus', class: Focus}, // Focus Detection
+					],
+				}
+			}
+		}
+
+		this.liveGraph = await this.graph.init(app)
+		this.graph.start(this.props.id)
+	}
 
 	deinit = () => {
 		this.settings.runAnalysisLoop = false;
