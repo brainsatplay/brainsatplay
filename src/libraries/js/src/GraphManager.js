@@ -56,6 +56,20 @@ export class GraphManager{
         this.state = new StateManager()
     }
 
+    parseParamsForSettings = (settings) => {
+        settings.graph.nodes.forEach(n => {
+            for (let k in n.params){
+                let value = n.params[k]
+                let regex = new RegExp('([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>')
+                let func = (typeof value === 'string') ? value.substring(0,8) == 'function' : false
+                let arrow = regex.test(value)
+                n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
+            }
+        })
+        return settings
+    }
+
+
     convertNodeParamsToSaveableTypes = (node) => {
         for (let port in node.ports){
             // if (typeof node.params[port] === 'object') {
@@ -761,6 +775,7 @@ export class GraphManager{
             // Register Brainstorm State
             let brainstormSource = source instanceof Brainstorm
             let brainstormTarget = target instanceof Brainstorm
+
             if (brainstormTarget) {
                 applet.streams.add(label) // Keep track of streams
 

@@ -1,5 +1,6 @@
 import { gpuUtils } from '../gpu/gpuUtils.js';
 import { Math2 } from '../mathUtils/Math2';
+import 'regenerator-runtime/runtime' 
 
 let dynamicImport = async (url) => {
   let module = await import(url);

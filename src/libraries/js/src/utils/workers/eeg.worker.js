@@ -7,7 +7,7 @@ let ctx = manager.canvas.context;
 let counter = 0;
 
 self.onmessage = (event) => {
-  // define gpu instance
+    // define gpu instance
   // console.log("worker executing...", event)
   console.time("worker");
   let output;

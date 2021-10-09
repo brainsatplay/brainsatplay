@@ -175,6 +175,8 @@ export class Application{
         _setCoreAttributes(info={}, parent=document.body, session=new Session(), settings=[]) {
             this.session = session; //Reference to the Session to access data and subscribe
             this.parentNode = parent;
+
+            info = this.session.graph.parseParamsForSettings(info)
             this.info = this._copySettingsFile(info)
             this.settings = settings
         }

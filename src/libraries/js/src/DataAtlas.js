@@ -1439,7 +1439,6 @@ export class DataAtlas {
 	}
 
 	workeronmessage = (msg) => {
-		//console.log(msg);
 		if(msg.origin === this.name) {
 			if(msg.foo === "multidftbandpass" || msg.foo === "multidft") { 
 				//parse data into atlas
@@ -1620,6 +1619,7 @@ export class DataAtlas {
 					return true;
 				}
 			})
+
 			keys.forEach((run,i) => {
 				if (this.settings.analysis[run] === true){
 					this.analyzerOpts.forEach((opt,j) => {

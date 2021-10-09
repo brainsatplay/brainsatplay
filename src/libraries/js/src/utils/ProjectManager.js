@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplayLocal from '../../brainsatplay'
 
-let latest = '0.0.33'
+let latest = '0.0.34'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './general/blobUtils'
@@ -269,26 +269,35 @@ app.init()`)
         })
 
 
+        console.log(info)
+
         info.graph.nodes.forEach((n, i) => {
 
             // FIX
-            // for (let k in n.params){ 
+            for (let k in n.params){ 
             //     // Delete non-editable elements
             //     if (n.instance.ports[k]?.edit === false) {
             //         delete n.params[k] 
             //     }
 
-            //     // Delete if non-stringifiable object
-            //     if (typeof n.params[k] === 'object' ){
-            //         let result = JSON.parse(JSON.stringify(n.params[k]))
-            //         if (typeof result !== 'object' || Object.keys(result).length == 0){ // Removes Elements
-            //             delete n.params[k]
-            //         } else {
-            //             n.params[k] = result
-            //         }
-            //     }
-            // } 
+                // convert functions
+                if (n.params[k] instanceof Function) n.params[k] = n.params[k].toString()
+                
+                // Delete if non-stringifiable object
+                // if (typeof n.params[k] === 'object' ){
+                //     console.log(n.params[k])
+                //     let result = JSON.parse(JSON.stringify(n.params[k]))
+                //     console.log(result)
+                //     if (typeof result !== 'object' || Object.keys(result).length == 0){ // Removes Elements
+                //         delete n.params[k]
+                //     } else {
+                //         n.params[k] = result
+                //     }
+                // }
+            } 
 
+            delete n['configure']
+            delete n['ports']
             delete n['instance']
             delete n['ui']
             delete n['fragment']
@@ -303,7 +312,7 @@ app.init()`)
             }
         }
 
-        info = JSON.stringifyWithCircularRefs(info, '\t')
+        info = JSON.stringify(info, '\t')
 
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;
@@ -315,6 +324,30 @@ app.init()`)
                 info = info.replaceAll(m[0], '"class":' + m[1])
             }
         } while (m);
+        // console.log(info)
+
+        // // Replace Stringified Functions with Actual
+        // re = /"(([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) => \{([^}]+)\})"/ //[^\}].*}
+        // do {
+        //     m = re.exec(info);
+        //     if (m) {
+        //         console.log(m)
+        //         // console.log(`'${m[0]}'`, eval('('+m[1]+')'))
+        //         info = info.replaceAll(`${m[0]}`, m[1])
+        //     }
+        // } while (m);
+
+        // console.log(info)
+
+
+        // for (let k in n.params){
+        //     let value = n.params[k]
+        //     let regex = new RegExp('([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>')
+        //     let func = value.substring(0,8) == 'function'
+        //     let arrow = regex.test(value)
+        //     n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
+        // }
+
 
         return {
             name: app.info.name, filename: 'settings.js', data: `${imports}
@@ -517,6 +550,7 @@ app.init()`)
                                 class: defaultClass
                             }
                             info.settings = info.settings.replaceAll(m2[0], id)
+
                         }
                     } while (m2);
 
@@ -525,10 +559,13 @@ app.init()`)
                         let moduleText = "data:text/javascript;base64," + btoa(info.settings);
                         let module = await import(moduleText);
                         settings = module.settings
+
                         // Replace Random IDs with Classes
                         settings.graph.nodes.forEach(n => {
                             n.class = classMap[n.class].class
                         })
+
+                        settings = this.session.graph.parseParamsForSettings(settings)
 
                         resolve(settings)
                     } catch (e) {
