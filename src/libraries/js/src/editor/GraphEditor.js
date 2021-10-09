@@ -5,7 +5,9 @@ import { StateManager } from '../ui/StateManager'
 
 // Project Selection
 import {appletManifest} from '../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
-import { getApplet, getAppletSettings } from "../../../../libraries/js/src/utils/general/importUtils"
+import { getApplet, getAppletSettings, dynamicImport } from "../../../../libraries/js/src/utils/general/importUtils"
+import {pluginManifest} from '../plugins/pluginManifest'
+
 
 // Node Interaction
 import * as dragUtils from './dragUtils'
@@ -1419,10 +1421,7 @@ export class GraphEditor{
             }
 
             // Add Option to Selector
-            this.addNodeOption({id:target.id, label: target.name, class:target}, null, () => {
-                this.addNode({class:target})
-                this.selectorToggle.click()
-            })
+            this.addNodeOption({id:target.id, label: target.name, class:target})
 
         } else {
             this.clickTab(this.files[filename].tab)
@@ -1499,44 +1498,31 @@ export class GraphEditor{
         }
 
         this.library = await this.app.session.projects.getLibraryVersion(this.app.info.version)
-        this.classRegistry = Object.assign({}, this.library.plugins)
-        this.classRegistry['custom'] = {}
+        this.classRegistry = Object.assign({}, pluginManifest)
+
+        // this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Plugin}, null, () => {
-            this.createFile(this.library.plugins.Plugin, this.search.value)
-            // this.addNode({class:this.library.plugins.Plugin})
+        this.addNodeOption({id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Plugin, category: null}, () => {
+            this.createFile(this.library.plugins.Blank, this.search.value)
             this.selectorToggle.click()
         })
 
 
-        for (let type in this.classRegistry){
-            let nodeType = this.classRegistry[type]
-
-            if (typeof nodeType === 'object'){ // Skip classes
-                for (let key in nodeType){
-                    let cls = this.classRegistry[type][key]
-                        if (!usedClasses.includes(cls.id)){
-                            // let label = (type === 'custom') ? cls.name : `${type}.${cls.name}`
-                            this.addNodeOption({id: cls.id, label:key, class: cls}, type, () => {
-                                this.addNode({class:cls})
-                                this.selectorToggle.click()
-                            })
-                            usedClasses.push(cls)
-                        }
-                }
-            }
+        for (let className in this.classRegistry){
+            this.addNodeOption(this.classRegistry[className])
         }
 
         this.plugins.nodes.forEach(n => {
-            let cls = n.class
-            if (!usedClasses.includes(cls)){
-                this.classRegistry['custom'][cls.name] = cls
-                this.addNodeOption({id:cls.id, label: cls.name, class:cls}, null, () => {
-                    this.addNode({class:cls})
-                    this.selectorToggle.click()
-                })
-                usedClasses.push(cls)
+            let clsInfo = this.classRegistry[n.class.name]
+            clsInfo.class = n.class
+
+
+            let baseClass = this.library.plugins[clsInfo.category][clsInfo.name]
+
+            if (clsInfo.class != baseClass){
+                clsInfo.category = null // 'custom'
+                this.addNodeOption(clsInfo)
             }
         })
 
@@ -1626,11 +1612,21 @@ export class GraphEditor{
         })
     }
 
-    addNodeOption(classInfo, type, onClick){
+    addNodeOption(classInfo, onClick){
 
-        let id = classInfo.id
-        let label = classInfo.label
-        if (('class' in classInfo)) classInfo = classInfo.class
+        let type = classInfo.category
+        let id = classInfo.id // TODO Fix this
+        let name = classInfo.name 
+
+        if (!(onClick instanceof Function)) onClick = async () => {
+            if (!('class' in classInfo)) {
+                let module = await dynamicImport(classInfo.folderUrl)
+                classInfo.class = module[classInfo.name]
+            }
+
+            this.addNode(classInfo)
+            this.selectorToggle.click()
+        }
 
         
         let options = this.selectorMenu.querySelector(`.node-options`)
@@ -1662,12 +1658,12 @@ export class GraphEditor{
             options.insertAdjacentElement('beforeend',contentOfType)
         }
 
-        let element = contentOfType.querySelector(`.${label}`)
+        let element = contentOfType.querySelector(`.${name}`)
         if (element == null){
             element = document.createElement('div')
             element.classList.add("brainsatplay-option-node")
             element.classList.add(`${id}`)
-            element.innerHTML = `<p>${label}</p>`
+            element.innerHTML = `<p>${name}</p>`
             
             element.onclick = () => {
                 onClick()
@@ -1683,15 +1679,15 @@ export class GraphEditor{
                 if (classInfo.hidden) element.classList.add("experimental")
 
                 // Add Instance Details to Plugin Registry
-                let types = new Set()
-                let ports = this.manager.getPortsFromClass({class:classInfo})
-                for(let port in ports){
-                    let type = ports[port]?.input?.type
-                    if (type instanceof Object) types.add(type.name)
-                    else types.add(type)
-                }
+                let types = classInfo.types
+                // let ports = this.manager.getPortsFromClass({class:classInfo})
+                // for(let port in ports){
+                //     let type = ports[port]?.input?.type
+                //     if (type instanceof Object) types.add(type.name)
+                //     else types.add(type)
+                // }
 
-                this.searchOptions.push({label, element, types, category: type})
+                this.searchOptions.push({name, element, types, category: type})
                 if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
 
                 let count = options.querySelector(`.${type}-count`)

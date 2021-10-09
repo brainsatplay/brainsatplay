@@ -232,7 +232,9 @@ export class GraphManager{
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
+
         nodeInfo.instance.app = app
+        console.log(nodeInfo.instance)
 
         let node = nodeInfo.instance
                 
@@ -900,9 +902,37 @@ export class GraphManager{
         }
     }
 
-    removeEdge = (appId, structure) => {
+    getNodes = (app, node) => {
+        if (app) {
+            return app.graph.nodes.filter(n => {
+                console.log(n, node)
+                if (n.label === node) return true
+                else if (n.class.name === node) return true
+                else if (port == null) return true
+                // else if (e.target === str) return true
+            })
+        } else return []
+    }
 
-        let applet = this.applets[appId]
+    getEdges = (plugin, port) => {
+        let app = plugin.app
+        let str = `${plugin.label}:${port}`
+
+        console.log(plugin)
+        if (app){
+            return app.graph.edges.filter(e => {
+                console.log(e)
+                if (e.target === str) return true
+                else if (e.source === str) return true
+                else if (port == null) return true
+            })
+        } else return []
+    }
+
+    removeEdge = (app, structure) => {
+
+        let appId = (typeof app === 'string') ? app : app.props.id
+        let applet = (typeof app === 'string') ? this.applets[app] : this.applets[app.props.id]
         let stateKey = structure.source.replace(':', '_')
 
         let sessionSubs = applet.subscriptions.session[stateKey]
