@@ -1,7 +1,4 @@
-import {DataQuality} from '../algorithms/DataQuality'
-import {Canvas} from '../canvas/Canvas'
 import {Plugin} from '../Plugin'
-
 
 export class Blink extends Plugin {
     
@@ -106,20 +103,20 @@ export class Blink extends Plugin {
             }
         }
 
-        // Dependencies
         this.analysis = new Set()
-        this.props.dataquality = this.session.atlas.graph.instantiateNode({id: 'dataquality', class: DataQuality, params: {method: 'Mean Amplitude'}}, this.session)
-        this.props.canvas = this.session.atlas.graph.instantiateNode({id: 'canvas', class: Canvas, params: {}}, this.session)
-        this.analysis.add(...Array.from(this.props.dataquality.analysis))
-        this.analysis.add(...Array.from(this.props.canvas.analysis))
-
         this.lastBlink = {}
         this.lastBlink.left = Date.now()
         this.lastBlink.right = Date.now()
     }
 
-    init = () => {
+    init = async () => {
         this.props.looping = true
+
+        this.props.dataquality = await this.addNode({id: 'dataquality', class: 'DataQuality', params: {method: 'Mean Amplitude'}})
+        this.analysis.add(...Array.from(this.props.dataquality.analysis))
+
+        this.props.canvas = await this.addNode({id: 'canvas', class: 'Canvas'})
+        this.analysis.add(...Array.from(this.props.canvas.analysis))
 
         // let setupHTML = (app) => {
             this.props.canvas.instance.init()

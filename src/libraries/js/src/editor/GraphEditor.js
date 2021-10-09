@@ -774,13 +774,9 @@ export class GraphEditor{
     animateEdge(source,target){
         let instance = this.graph.nodes[source.label]
         instance.edges.forEach(e=>{
-            let splitSource = e.structure.source.split(':')
-            if (splitSource.length < 2 ) splitSource.push('default')
-            if(splitSource[1] === source.port){
+            if(e.structure.source.port === source.port){
                 if (e.structure.target){
-                    let splitTarget = e.structure.target.split(':')
-                    if (splitTarget.length < 2 ) splitTarget.push('default')
-                    if (splitTarget[0] === target.label && splitTarget[1] == target.port){
+                    if (e.structure.target.node === target.label && e.structure.target.port == target.port){
                         e.node.curve.classList.add('updated')
                         e.node.curve.setAttribute('data-update', Date.now())
                         setTimeout(()=>{
@@ -802,11 +798,14 @@ export class GraphEditor{
         })
         type = type.replace('-ports','')
 
-        dict[type] = `${p1.getAttribute('data-node')}:${p1.getAttribute('data-port')}`
-        
+        dict[type] = {}
+        dict[type].node = p1.getAttribute('data-node')
+        dict[type].port = p1.getAttribute('data-port')
         if (p2 && p2.classList.contains('node-port')){
             let otherType = (type === 'source') ? 'target' : 'source'
-            dict[otherType] = `${p2.getAttribute('data-node')}:${p2.getAttribute('data-port')}`
+            dict[otherType] = {}
+            dict[otherType].node = p2.getAttribute('data-node')
+            dict[otherType].port = p2.getAttribute('data-port')
             this.addEdge(dict)
         } else {
             this.addEdge(dict)
@@ -817,15 +816,15 @@ export class GraphEditor{
 
         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
 
-        if (e.source) e.source = e.source.replace(':default', '')
-        if (e.target) e.target = e.target.replace(':default', '')
+        // if (e.source) e.source = e.source.replace(':default', '')
+        // if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
         let res = await this.graph.addEdge(e)
 
         if (res.msg === 'OK'){
             let edge = res.edge
-            edge.structure.source = edge.structure.source.replace(':default', '')
-            edge.structure.target = edge.structure.target.replace(':default', '')
+            // edge.structure.source = edge.structure.source.replace(':default', '')
+            // edge.structure.target = edge.structure.target.replace(':default', '')
             this.addEdgeReactivity(edge) 
             this.app.info.graph.edges.push(edge.structure) // Change actual settings file
             this.manager.addEdge(this.app.props.id,edge.structure)   
@@ -1503,7 +1502,7 @@ export class GraphEditor{
         // this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption({id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Plugin, category: null}, () => {
+        this.addNodeOption(undefined, () => {
             this.createFile(this.library.plugins.Blank, this.search.value)
             this.selectorToggle.click()
         })
@@ -1515,14 +1514,16 @@ export class GraphEditor{
 
         this.plugins.nodes.forEach(n => {
             let clsInfo = this.classRegistry[n.class.name]
-            clsInfo.class = n.class
 
-
-            let baseClass = this.library.plugins[clsInfo.category][clsInfo.name]
-
-            if (clsInfo.class != baseClass){
-                clsInfo.category = null // 'custom'
-                this.addNodeOption(clsInfo)
+            if (clsInfo){
+                clsInfo.class = n.class
+                let baseClass = this.library.plugins[clsInfo.category][clsInfo.name]
+                if (clsInfo.class != baseClass){
+                    clsInfo.category = null // 'custom'
+                    this.addNodeOption(clsInfo)
+                }
+            } else {
+                this.addNodeOption({category: null, class: n.class})
             }
         })
 
@@ -1567,9 +1568,9 @@ export class GraphEditor{
                 if (matchedHeaderTypes.includes(nodetype)) show = true // Show header if matched
                 else {
                     // Check Label
-                    let labelMatch = (regex != null) ? regex.test(o.label) : false
-                    if (labelMatch || o.label == 'Add New Plugin') show = true
-                    
+                    let labelMatch = (regex != null) ? regex.test(o.name) : false
+                    if (labelMatch || o.name == 'Add New Plugin') show = true
+
                     // Check Types
                     o.types.forEach(type => {
                         let typeMatch = (regex != null) ? regex.test(type) : false
@@ -1612,7 +1613,10 @@ export class GraphEditor{
         })
     }
 
-    addNodeOption(classInfo, onClick){
+    addNodeOption(classInfo={id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Plugin, category: null, types: []}, onClick){
+
+        if (!('types' in classInfo)) classInfo.types = []
+
 
         let type = classInfo.category
         let id = classInfo.id // TODO Fix this
@@ -1679,13 +1683,12 @@ export class GraphEditor{
                 if (classInfo.hidden) element.classList.add("experimental")
 
                 // Add Instance Details to Plugin Registry
-                let types = classInfo.types
-                // let ports = this.manager.getPortsFromClass({class:classInfo})
-                // for(let port in ports){
-                //     let type = ports[port]?.input?.type
-                //     if (type instanceof Object) types.add(type.name)
-                //     else types.add(type)
-                // }
+
+                let types = classInfo.types.map(t => {
+                    if (typeof t === 'string' && t.includes('Element')) return eval(t)
+                    else return t
+                    // if (type instanceof Object) types.add(type.name)
+                })
 
                 this.searchOptions.push({name, element, types, category: type})
                 if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)

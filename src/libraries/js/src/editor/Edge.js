@@ -24,10 +24,9 @@ export class Edge{
 
     // Derive Port Elements
     Object.keys(structure).forEach(t => {
-      let split = this.structure[t].split(':') 
-      if (split.length < 2) split.push('default')
-      this[t] = this.nodes[split[0]]
-      this[`${t}Node`] = this[t].element.querySelector(`.${t}-ports`).getElementsByClassName(`port-${split[1]}`)[0]
+      this[t] = this.nodes[this.structure[t].node]
+      console.log(this[t], this.nodes, this.structure)
+      this[`${t}Node`] = this[t].element.querySelector(`.${t}-ports`).getElementsByClassName(`port-${this.structure[t].port}`)[0]
       this[t].registerEdge(this)
     })
   }
@@ -66,11 +65,9 @@ export class Edge{
       let onMouseUp = (e) => {
         if (e.target != this[`${otherType}Node`] && e.target.classList.contains('node-port')){
           if (Array.from(e.target.parentNode.parentNode.classList).find(str => str.includes(type))){
-            this.structure[type]  = `${e.target.getAttribute('data-node')}:${e.target.getAttribute('data-port')}`
-            let split =  this.structure[type].split(':') 
-            if (split.length < 2) split.push('default')
-            this[type] = this.nodes[split[0]]
-            this[`${type}Node`] = this[type].element.querySelector(`.${type}-ports`).getElementsByClassName(`port-${split[1]}`)[0]
+            this.structure[type]  = {node: e.target.getAttribute('data-node'), port: e.target.getAttribute('data-port')}
+            this[type] = this.nodes[this.structure[type].node]
+            this[`${type}Node`] = this[type].element.querySelector(`.${type}-ports`).getElementsByClassName(`port-${this.structure[type].port}`)[0]
             this[type].registerEdge(this)
             this[type].updateAllEdges(this)
             upCallback(true)

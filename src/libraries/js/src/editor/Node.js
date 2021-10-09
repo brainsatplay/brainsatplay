@@ -26,7 +26,7 @@ export class Node {
 
         let types = Object.keys(o.structure)
         let k1 = types.shift()
-        let type = (o.structure[k1].split(':')[0].includes(this.nodeInfo.id)) ? k1 : null
+        let type = (o.structure[k1].node.includes(this.nodeInfo.id)) ? k1 : null
         if (type == null) type = (k1 === 'source') ? 'target' : 'source'
         let className = (type === 'source') ? 'p1' : 'p2'
 

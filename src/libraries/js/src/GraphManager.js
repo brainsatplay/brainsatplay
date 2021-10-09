@@ -11,6 +11,8 @@ export class GraphManager{
     constructor(session, settings = {}){
         this.session = session
 
+        if (!('graph' in session)) this.session.graph = this
+
         // Centrally Manage Plugins through the Project Manager
         this.plugins = plugins //pluginManifest
         // this.preloadedPlugins = {}
@@ -200,7 +202,7 @@ export class GraphManager{
     }
 
     createUniqueId(app, base){
-        this.applets[app.props.id].nodes.forEach(n => {
+        app.nodes.forEach(n => {
             if (n.id === base) {
                 base = `${base}_${this._getRandomId()}`
             }
@@ -211,11 +213,23 @@ export class GraphManager{
     }
 
     async addNode(app, nodeInfo){
-        let appId = app.props.id
+
+        let appId;
+
+        if (app == null){
+            appId = Object.keys(this.applets)
+            app = this.applets[appId]
+        } else {
+            appId = app?.props?.id
+        }
 
         // Add Basic Node Information to the Graph
-        nodeInfo.id = this.createUniqueId(app, nodeInfo.id)
-        if (typeof nodeInfo.class === 'string') nodeInfo.class = await dynamicImport(pluginManifest[classname])
+        nodeInfo.id = this.createUniqueId(this.applets[appId], nodeInfo.id)
+        if (typeof nodeInfo.class === 'string') {
+            let module = await dynamicImport(pluginManifest[nodeInfo.class].folderUrl) // classname
+            nodeInfo.class = module[nodeInfo.class]
+        }
+
 
         let found = this.applets[appId].nodes.find(n => {
             if (n.id == nodeInfo.id){
@@ -233,8 +247,7 @@ export class GraphManager{
         nodeInfo.instance.stateUpdates = {}
         nodeInfo.instance.stateUpdates.manager = this.state
 
-        nodeInfo.instance.app = app
-        console.log(nodeInfo.instance)
+        if (app != this.applets[appId]) nodeInfo.instance.app = app
 
         let node = nodeInfo.instance
                 
@@ -617,8 +630,10 @@ export class GraphManager{
 
         let types = ['input', 'output']
         types.forEach(type => {
-            if (node.ports[port][type] == null) node.ports[port][type] = {type: undefined, active: 0}
+            if (node.ports[port][type] == null) node.ports[port][type] = {type: undefined, active: 0, edges: new Map()}
             if (!('active' in node.ports[port][type])) node.ports[port][type].active = 0
+            if (!('edges' in node.ports[port][type])) node.ports[port][type].edges = new Map()
+
         })
 
         let coerceType = (t) => {
@@ -705,6 +720,10 @@ export class GraphManager{
 
         let applet = (typeof appId === 'string') ? this.applets[appId] : appI
 
+
+        newEdge = this.convertToStandardEdge(newEdge, this.applets[appId].nodes)
+
+
         let existingEdge = this.applets[appId].edges.find(edge => {
             if (newEdge.source == edge.source && newEdge.target == edge.target){
                 return true
@@ -713,18 +732,15 @@ export class GraphManager{
         
         if (existingEdge == null){ // Do not duplicate edges
 
-            let splitSource = newEdge.source.split(':')
-            let sourceName = splitSource[0]
-            let sourcePort = splitSource[1]
-            if (sourcePort == null) sourcePort = 'default'
+            let sourceName = newEdge.source.node
+            let sourcePort = newEdge.source.port
 
             let sourceInfo = applet.nodes.find(n => {
                 if (n.id == sourceName) return true
             })
             let source = sourceInfo.instance
-            let splitTarget = newEdge.target.split(':')
-            let targetName = splitTarget[0]
-            let targetPort = splitTarget[1]
+            let targetName = newEdge.target.node
+            let targetPort = newEdge.target.port
             if (targetPort == null) targetPort = 'default'
             let targetInfo = applet.nodes.find(n => {
                 if (n.id == targetName) return true
@@ -772,6 +788,7 @@ export class GraphManager{
                 }
             }
             
+            console.log(this.registry.local, sourceName, sourcePort)
             this.state.data[label] = this.registry.local[sourceName].registry[sourcePort].state
 
             // Register Brainstorm State
@@ -800,8 +817,15 @@ export class GraphManager{
             let tP = target.ports[targetPort]
             let sP = source.ports[sourcePort]
 
+            // Count active edges
             tP.input.active++
             sP.output.active++
+
+            // Set edge references
+            tP.input.edges.set(label, {node: source, port: sP})
+            sP.output.edges.set(label, {node: target, port: tP})
+
+
             if (tP.input.active && tP.output.active && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
             if (sP.input.active && sP.output.active && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
@@ -902,29 +926,44 @@ export class GraphManager{
         }
     }
 
-    getNodes = (app, node) => {
-        if (app) {
-            return app.graph.nodes.filter(n => {
+    getNodes = (nodes, node) => {
+        if (nodes) {
+            return nodes.filter(n => {
                 console.log(n, node)
                 if (n.label === node) return true
                 else if (n.class.name === node) return true
-                else if (port == null) return true
+                // else if (port == null) return true
                 // else if (e.target === str) return true
             })
         } else return []
     }
 
-    getEdges = (plugin, port) => {
-        let app = plugin.app
-        let str = `${plugin.label}:${port}`
+    convertToStandardEdge = (structure, nodes=[]) => {
+        let standardStruct = {source: {}, target: {}}
+        Object.keys(standardStruct).forEach(type => {
+            if (structure[type] instanceof Object) {
+                nodes = this.getNodes(nodes, structure[type].node)
+                standardStruct[type].node = nodes[0]?.label ?? structure[type].node
+                standardStruct[type].port = structure[type].port ?? 'default'
+            } else if (typeof structure[type] === 'string') {
+                let structSplit = structure[type].split(':')
+                standardStruct[type] = {node: structSplit[0], port: structSplit[1] ?? 'default'}
+            }
+        })
 
-        console.log(plugin)
-        if (app){
+        console.log(structure, standardStruct)
+
+        return standardStruct
+    }
+
+    getEdges = (app, structure) => {
+
+        structure = this.convertToStandardEdge(structure, app.graph.nodes)
+
+        if (app) {
             return app.graph.edges.filter(e => {
-                console.log(e)
-                if (e.target === str) return true
-                else if (e.source === str) return true
-                else if (port == null) return true
+                console.log(e, structure)
+                if (e === structure) return true
             })
         } else return []
     }
@@ -933,8 +972,8 @@ export class GraphManager{
 
         let appId = (typeof app === 'string') ? app : app.props.id
         let applet = (typeof app === 'string') ? this.applets[app] : this.applets[app.props.id]
-        let stateKey = structure.source.replace(':', '_')
-
+        let stateKey = `${structure.source.node}_${structure.source.port}`
+    
         let sessionSubs = applet.subscriptions.session[stateKey]
         let localSubs = applet.subscriptions.local[stateKey]
 
@@ -963,18 +1002,14 @@ export class GraphManager{
         })
 
         // Remove Edge Analysis Flags
-        let splitSource = structure.source.split(':')
-        let sourceName = splitSource[0]
-        let sourcePort = splitSource[1]
-        if (sourcePort == null) sourcePort = 'default'
+        let sourceName = structure.source.node
+        let sourcePort = structure.source.port
         let sourceInfo = applet.nodes.find(n => {
             if (n.id == sourceName) return true
         })
         let source = sourceInfo.instance
-        let splitTarget = structure.target.split(':')
-        let targetName = splitTarget[0]
-        let targetPort = splitTarget[1]
-        if (targetPort == null) targetPort = 'default'
+        let targetName = structure.target.node
+        let targetPort = structure.target.port
 
         let targetInfo = applet.nodes.find(n => {
             if (n.id == targetName) return true
@@ -982,8 +1017,15 @@ export class GraphManager{
         let target = targetInfo.instance
         let tP = target.ports[targetPort]
         let sP = source.ports[sourcePort]
+
+        // Decrement Counter
         tP.input.active--
         sP.output.active--
+
+        // Remove edge references
+        tP.input.edges.delete(stateKey)
+        sP.output.edges.delete(stateKey)
+        
 
         let toRemove = []
         let toCheck = []

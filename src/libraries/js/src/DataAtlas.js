@@ -59,22 +59,6 @@ export class DataAtlas {
 		this.liveGraph = this.graph.init(app)
 		this.graph.start(this.props.id)
 
-		this.liveGraph.nodes.forEach(n => {
-			let ui = n.ui
-            if (ui){
-                n.fragment = new DOMFragment( // Fast HTML rendering container object
-                    ui.HTMLtemplate, //Define the html template string or function with properties
-                    undefined,    //Define where to append to (use the parentNode)
-                    undefined,         //Reference to the HTML render properties (optional)
-                    ui.setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
-                    undefined,          //Can have an onchange function fire when properties change
-                    "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
-                    undefined, // deinit
-                    ui.responsive // responsive
-                )
-            }
-		})
-
 		let analysisDict = {
 			eegcoherence: false,
 			eegfft: false

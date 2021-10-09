@@ -72,8 +72,8 @@ export class Graph{
                 })
 
                 // Check Edge Compatibility
-                let sourcePort = edge.structure.source.split(':')[1] ?? 'default'
-                let targetPort = edge.structure.target.split(':')[1] ?? 'default'
+                let sourcePort = edge.structure.source.port
+                let targetPort = edge.structure.target.port
                 let sP = edge.source.nodeInfo.instance.ports[sourcePort]
                 let tP = edge.target.nodeInfo.instance.ports[targetPort]
 

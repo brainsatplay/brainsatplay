@@ -81,12 +81,28 @@ const createPluginManifest = () => {
           if (m2) {
 
             let type = m2[1]              
-            if (!types.includes(type)){
-              types.push(type)
-            }
+            types.push(type)
             if (decoded.replaceAll instanceof Function) decoded = decoded.replaceAll(m2[0],"")
           }
       } while (m2);
+
+
+      types = types.map(t => {
+        try {
+          if (t.includes('Element')) return t
+          else return eval(t)
+        } catch (e) {
+          return 'TOREMOVE'
+          // console.log(e)
+        }
+      })
+
+      types = types.filter(t => {
+        if (t === 'TOREMOVE') return false
+        else return true
+      })
+
+      types = Array.from(new Set(types))
 
       let hidden = decoded.match(/static hidden = ([^\n].+)/)
       if (hidden) hidden = eval(hidden[1])
