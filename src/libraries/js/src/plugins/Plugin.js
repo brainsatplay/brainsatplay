@@ -58,7 +58,7 @@ export class Plugin{
             let edges = this.getEdges(node, this.app)
             console.log(nodes)
 
-            let nodeInfo = await this.addEdge({});
+            let nodeInfo = await this.addEdge(source={node:sourceNode,port:sourcePort},target={node:this.label, port:targetPort});
         }
     }
 

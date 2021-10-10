@@ -936,7 +936,7 @@ export class GraphManager{
         } else return undefined;
     }
 
-    convertToStandardEdge = (structure, nodes=[]) => {
+    convertToStandardEdge = (structure, nodes=[]) => { //???
         let standardStruct = {source: {}, target: {}}
         Object.keys(standardStruct).forEach(type => {
             if (structure[type] instanceof Object) {
