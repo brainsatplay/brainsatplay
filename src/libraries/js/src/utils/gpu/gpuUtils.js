@@ -125,7 +125,7 @@ export class gpuUtils {
       this.kernels.push({name:name, krnl:makeKrnl(this.gpu,krnl)});
       return true;
     } else { 
-      console.error('Custom kernel already exists'); 
+      console.error('Kernel already exists'); 
       return false;
     }
     
@@ -145,6 +145,38 @@ export class gpuUtils {
       return false;
     }
     
+  }
+
+  combineKernels(name, fs=[], ckrnl=function foo() {}) {
+    let found = this.kernels.find((o)=> {
+      if(o.name === name) {
+        return true;
+      }
+    });
+    if(!found) {
+      fs.forEach((f,i)=>{
+        if(typeof f === 'string') {
+          let found2 = this.krnl.find((o)=> {
+            if(o.name === name) {
+              return true;
+            }
+          });
+          if(found2) fs[i] = found2.kernel;
+          else return false;
+        } else if (typeof f === 'function') {
+          if(this[f.name]) {
+            //cool
+          } else {
+            this.addKernel(f.name, f);
+          }
+        }
+      });
+      this.kernels.push({name:name, krnl:this.gpu.combineKernels(...fs,ckrnl)});
+      return true;
+    } else { 
+      console.error('Kernel already exists'); 
+      return false;
+    }
   }
 
   callKernel(name="",args=[]) {
