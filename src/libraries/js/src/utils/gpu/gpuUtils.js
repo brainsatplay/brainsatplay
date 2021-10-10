@@ -147,6 +147,8 @@ export class gpuUtils {
     
   }
 
+  //combine two or more kernels into a single function, this lets you run multiple kernels on the GPU (with appropriately varying inputs/output sizes) before returning to the CPU.
+  //Discount compute shaders
   combineKernels(name, fs=[], ckrnl=function foo() {}) {
     let found = this.kernels.find((o)=> {
       if(o.name === name) {
