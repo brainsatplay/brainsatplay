@@ -34,77 +34,85 @@ export class Plugin{
     }
 
     // ----------------- Request Graph Elements -----------------
-    requestNode = async (nodeInfo) => {
+    requestNode = async (nodeType) => {
         if (this.session.graph) {
-            let nodes = this.getNodes(nodeInfo.class)
+            let nodes = this.getNodes(nodeType)
             console.log(nodes)
 
             if (nodes.length > 0){
                 return nodes[0] // return first node of specified type
             } else {
-                let nodeInfo = await this.addNode(nodeInfo)
+                let nodeInfo = await this.addNode(nodeType)
                 return nodeInfo.instance  // returns new instance of the node
             }
         }
     }
 
+    //hey look it makes actual sense now
     requestEdge = async (
-        structure={
-            source: {node: this, port: 'default'},
-            target: {node: this, port: 'default'}
-        }) => {
+        sourceNode,
+        sourcePort,
+        targetPort) => {
         if (this.session.graph) {
-            let edges = this.getEdges(structure)
+            let node = this.getNode(sourceNode);
+            let edges = this.getEdges(node, this.app)
             console.log(nodes)
 
-            if (edges.length > 0){
-                return edges[0] // return first node of specified type
-            } else {
-                let nodeInfo = await this.addEdge(structure)
-                return nodeInfo.instance // returns new instance of the node
-            }
+            let nodeInfo = await this.addEdge({});
         }
     }
 
+
     // ----------------- Get Graph Elements -----------------
-    getNodes = (node) => {
-        return this.session.graph.getNodes(this.app.graph.nodes, node) // return list of matching nodes
+    //get list of nodes by label or class name
+    getNodes = (nodeType) => {
+        return this.session.graph.getNodes(nodeType, this.app.graph.nodes) // return list of matching nodes
     }
 
-    getEdges = (structure) => {
-        return this.session.graph.getEdges(structure, this.app.graph.nodes) // returns list of matching edges
+    //pass specific node uuid
+    getNode = (uuid) => {
+        return this.session.graph.getNode(uuid,this.app);
+    }
+
+    getPorts = (uuid) => {
+        return this.session.graph.getNode(uuid,this.app).ports;
+    }
+    /* Edges can be specified in several ways: 
+
+        1. By Labels: structure = {source: 'eeg:atlas', target: 'neurofeedback:default'}
+        2. By Classnames: structure = {source: {name: 'EEG', port: 'atlas'}, target: {name: 'Neurofeedback', port: 'default'}}
+    
+    */
+
+    //get a single edge on the graph based on the specified parameters
+    getEdge = (source={node:'',port:''},target={node:'',port:''}) => {
+        return this.session.graph.getEdge(source, target, this.app); // returns list of matching edges
+    }
+
+    //pass node class name, label or uuid
+    getEdges = (targetNode) => {
+        return this.session.graph.getEdges(targetNode, this.app); // returns list of matching edges
     }
 
 
     // ----------------- Add Graph Elements -----------------
-    addNode = async (nodeInfo) => {
-        return await this.session.graph.addNode(this.app, nodeInfo)
+    addNode = async (nodeType) => {
+        return await this.session.graph.addNode(nodeType, this.app);
     }
 
-    addEdge = (structure) => {
-
-        /* Edges can be specified in several ways: 
-
-            1. By Labels: {source: 'eeg:atlas', target: 'neurofeedback:default'}
-            2. By Classnames: {source: {name: 'EEG', port: 'atlas'}, target: {name: 'Neurofeedback', port: 'default'}}
-        
-        */
-
-       return this.session.graph.addEdge(this.app, structure)
+    addEdge = (source={node:'',port:''},target={node:'',port:''}) => {
+        let structure = { source:source, target:target};
+       return this.session.graph.addEdge(structure,this.app);
     }
 
     // ----------------- Remove Graph Elements -----------------
-    removeEdge = (structure) => {
+    removeEdge = (source={node:'',port:''},target={node:'',port:''}) => {
         // deletes and edge on the selected port of the plugin its called in 
-        return this.session.graph.removeEdge(this.app, structure)
+        let structure = { source:source, target:target};
+        return this.session.graph.removeEdge(structure, this.app)
     }
 
     // ----------------- Manipulate Internal Ports -----------------
-    removeEdge = (structure) => {
-        // deletes and edge on the selected port of the plugin its called in 
-        return this.session.graph.removeEdge(this.app, structure)
-    }
-
     removePort = (port) => {
         return this.session.graph.removePort(this, port)
     }

@@ -5,6 +5,7 @@ import {dynamicImport} from './utils/general/importUtils'
 import {pluginManifest} from './plugins/pluginManifest'
 import {Brainstorm} from './plugins/networking/Brainstorm'
 import {Event} from './plugins/controls/Event'
+import { node } from 'webpack'
 
 export class GraphManager{
     constructor(session, settings = {}){
@@ -140,7 +141,7 @@ export class GraphManager{
         return nodeInfo
     }
 
-    removeNode(appId,label, resize=true){
+    removeNode(appId, label, resize=true){
         let applet = this.applets[appId]
 
         let toRemove = null
@@ -192,7 +193,7 @@ export class GraphManager{
 
     }
 
-    async addNode(app, nodeInfo){
+    async addNode(nodeInfo, app){
 
         let appId;
 
@@ -516,7 +517,7 @@ export class GraphManager{
         if (graph){
             if (Array.isArray(graph.nodes)){
                 await graph.nodes.forEach(async (nodeInfo,i) => {
-                    await this.addNode(app,nodeInfo)
+                    await this.addNode(nodeInfo,app);
                 })
             }
 
@@ -524,7 +525,7 @@ export class GraphManager{
             if (Array.isArray(graph.edges)){
                 graph.edges.forEach((edge,i) => {
                     try {
-                        setupCallbacks.push(this.addEdge(id, edge, false))
+                        setupCallbacks.push(this.addEdge(edge, id, false))
                     } catch (e) {console.log('Failed to Create Edge', e)}
                 })
             }
@@ -691,7 +692,7 @@ export class GraphManager{
         return typeDict
     }
 
-    addEdge = (appId, newEdge, sendOutput=true) => {
+    addEdge = (newEdge, appId, sendOutput=true) => {
 
         let applet = (typeof appId === 'string') ? this.applets[appId] : appI
 
@@ -895,27 +896,51 @@ export class GraphManager{
         for (let i = applet.edges.length - 1; i >=0; i--) {
             let edge = applet.edges[i] 
             if ((edge.source.node == label) || (edge.target.node == label)){
-                this.removeEdge(id,edge)
+                this.removeEdge(edge, id);
             }
         }
     }
 
-    getNodes = (nodes, node) => {
-        if (nodes) {
-            return nodes.filter(n => {
-                if (n.label === node) return true
-                else if (n.class.name === node) return true
+    getNode = (uuid,app) => {
+        if (app) {
+            return app.graph.nodes.find(n => {
+                if (n.uuid === uuid) return true
+                
+            });
+        } else return undefined;
+    }
+
+    getNodes = (nodeType, nodes) => {
+        if(nodes) {
+        return nodes.filter(n => {
+            if (n.label === nodeType) return true
+            else if (n.class.name === nodeType) return true
+            
+            // else if (port == null) return true
+            // else if (e.target === str) return true
+        });
+        } else return [];
+    }
+
+    //return first node of a type/label
+    getNodeByType = (nodeType,app) => {
+        if (app) {
+            let filtered = app.graph.nodes.filter(n => {
+                if (n.label === nodeType) return true
+                else if (n.class.name === nodeType) return true
+                else if (n.uuid === nodeType) return true
                 // else if (port == null) return true
                 // else if (e.target === str) return true
-            })
-        } else return []
+            });
+            return filtered[0]; 
+        } else return undefined;
     }
 
     convertToStandardEdge = (structure, nodes=[]) => {
         let standardStruct = {source: {}, target: {}}
         Object.keys(standardStruct).forEach(type => {
             if (structure[type] instanceof Object) {
-                nodes = this.getNodes(nodes, structure[type].node)
+                nodes = this.getNodes(structure[type].node,nodes)
                 standardStruct[type].node = nodes[0]?.label ?? structure[type].node
                 standardStruct[type].port = structure[type].port ?? 'default'
             } else if (typeof structure[type] === 'string') {
@@ -927,18 +952,19 @@ export class GraphManager{
         return standardStruct
     }
 
-    getEdges = (app, structure) => {
-
-        structure = this.convertToStandardEdge(structure, app.graph.nodes)
-
-        if (app) {
-            return app.graph.edges.filter(e => {
-                if (e === structure) return true
-            })
-        } else return []
+    getEdge = (source={node:'',port:''},target={node:'',port:''}, app) => {
+        return app.edges.find(e => {
+            if (e.source.node === source.node && e.source.port === source.port && e.target.node === target.node && e.target.port === e.target.port) return true // this doesn't work
+        });
     }
 
-    removeEdge = (app, structure) => {
+    getEdges = (target='', app) => {
+        return app.nodes.find((n)=>{
+            if(n.class.name === target || n.uuid === target || n.label === target) return true;
+        });
+    }
+
+    removeEdge = (structure, app) => {
 
         let appId = (typeof app === 'string') ? app : app.props.id
         let applet = (typeof app === 'string') ? this.applets[app] : this.applets[app.props.id]
