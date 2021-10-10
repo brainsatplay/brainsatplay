@@ -5,7 +5,6 @@ import {dynamicImport} from './utils/general/importUtils'
 import {pluginManifest} from './plugins/pluginManifest'
 import {Brainstorm} from './plugins/networking/Brainstorm'
 import {Event} from './plugins/controls/Event'
-import { node } from 'webpack'
 
 export class GraphManager{
     constructor(session, settings = {}){

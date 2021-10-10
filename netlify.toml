@@ -9,6 +9,6 @@
   publish = "build/"
   command = "npm run build"
 
-[context.deployment]
+[context.main]
   publish = "dist/"
   command = "npm run build"
