@@ -192,7 +192,7 @@ export class GraphManager{
 
     }
 
-    async addNode(nodeInfo, app){
+    async addNode(nodeInfo, app, runEditor=false){
 
         let appId;
 
@@ -243,11 +243,14 @@ export class GraphManager{
         // Grab Configure Function
         nodeInfo.configure = node.configure
 
-        // Run Init Function and Instantiate External Dependencies
-        await this.setUI(node, nodeInfo)
-
         // Update Event Registry
         this.updateApp(appId)
+
+        // Add to Editor
+        // if (runEditor == true && app?.editor != null) await app.editor.addNode(nodeInfo, true)
+        
+        // Run Init Function and Instantiate External Dependencies
+        await this.setUI(node, nodeInfo)
 
         return nodeInfo
     }
@@ -277,18 +280,6 @@ export class GraphManager{
     updateApp(appId){
         if (this.session.updateApps){
             this.session.updateApps(appId)
-        }
-    }
-
-    getNode(id,name){
-        let appInfo = this.applets[id]
-        if (appInfo){
-            let node = appInfo.nodes.find(n => {
-                if (n.id == name){
-                    return true
-                }
-            })
-            return node.instance
         }
     }
 
@@ -691,10 +682,15 @@ export class GraphManager{
         return typeDict
     }
 
-    addEdge = (newEdge, appId, sendOutput=true) => {
+    addEdge = (newEdge, appId, sendOutput=true, runEditor=false) => {
 
-        let applet = (typeof appId === 'string') ? this.applets[appId] : appI
-
+        let applet
+        if (typeof appId === 'string'){
+            applet = this.applets[appId]
+        } else {
+            appId = appId.props.id
+            applet = this.applets[appId]
+        }
 
         newEdge = this.convertToStandardEdge(newEdge, this.applets[appId].nodes)
 
@@ -809,6 +805,8 @@ export class GraphManager{
             // Update Applet
             this.updateApp(appId)
 
+            // Add to Editor
+            if (runEditor == true && this.applets[appId]?.editor != null) this.applets[appId].editor.addEdge(newEdge)
 
             let input = source.ports[sourcePort]
 
@@ -900,13 +898,25 @@ export class GraphManager{
         }
     }
 
-    getNode = (uuid,app) => {
-        if (app) {
-            return app.graph.nodes.find(n => {
-                if (n.uuid === uuid) return true
+    // getNode = (uuid,app) => {
+    //     if (app) {
+    //         return app.graph.nodes.find(n => {
+    //             if (n.uuid === uuid) return true
                 
-            });
-        } else return undefined;
+    //         });
+    //     } else return undefined;
+    // }
+
+    getNode(id,name){
+        let appInfo = this.applets[id]
+        if (appInfo){
+            let node = appInfo.nodes.find(n => {
+                if (n.id == name){
+                    return true
+                }
+            })
+            return node.instance
+        }
     }
 
     getNodes = (nodeType, nodes) => {

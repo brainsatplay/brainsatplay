@@ -215,10 +215,13 @@ export class Blink extends Plugin {
 
     _calculateBlink = async (user, tags) => {
         let blink = false
-        this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
+
+       if (this.props.dataquality) {
+           this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
         
-        this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
-        this.props.channelQuality = this.props.channelQuality.data
+            this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
+            this.props.channelQuality = this.props.channelQuality.data
+       }
 
         tags.forEach(tag => {
             let side = this._getTagSide(tag)

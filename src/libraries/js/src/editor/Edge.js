@@ -23,11 +23,11 @@ export class Edge{
     }
 
     // Derive Port Elements
-    Object.keys(structure).forEach(t => {
-      this[t] = this.nodes[this.structure[t].node]
-      this[`${t}Node`] = this[t].element.querySelector(`.${t}-ports`).getElementsByClassName(`port-${this.structure[t].port}`)[0]
-      this[t].registerEdge(this)
-    })
+      Object.keys(structure).forEach(t => {
+        this[t] = this.nodes[this.structure[t].node]
+        this[`${t}Node`] = this[t].element.querySelector(`.${t}-ports`).getElementsByClassName(`port-${this.structure[t].port}`)[0]
+        this[t].registerEdge(this)
+      })
   }
 
 

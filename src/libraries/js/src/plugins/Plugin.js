@@ -97,12 +97,12 @@ export class Plugin{
 
     // ----------------- Add Graph Elements -----------------
     addNode = async (nodeType) => {
-        return await this.session.graph.addNode(nodeType, this.app);
+        return await this.session.graph.addNode(nodeType, this.app, true);
     }
 
     addEdge = (source={node:'',port:''},target={node:'',port:''}) => {
         let structure = { source:source, target:target};
-       return this.session.graph.addEdge(structure,this.app);
+       return this.session.graph.addEdge(structure,this.app, undefined, true);
     }
 
     // ----------------- Remove Graph Elements -----------------
