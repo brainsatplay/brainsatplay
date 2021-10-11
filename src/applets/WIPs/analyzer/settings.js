@@ -4,7 +4,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 export const settings = {
     name: "Analyzer",
     devices: ["EEG"],
-    author: "Brains@Play",
+    author: "Garrett Flynn",
     description: "Anaylze your first Brains@Play data.",
     categories: ["WIP"],
     instructions:"Coming soon...",

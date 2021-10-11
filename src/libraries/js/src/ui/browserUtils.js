@@ -43,7 +43,7 @@ export const createCards = (appletSettings=[], filter = (settings) => { return s
                 let categoryString = settings.categories.map(category => category[0].toUpperCase() + category.slice(1)).join(', ')
 
                 let author = settings.author
-                if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
+                // if (['Garrett Flynn', 'Joshua Brewster', 'Samir Ghosh'].includes(author)) author = 'Brains@Play'
 
                 let img = settings.image ?? placeholderImage
 

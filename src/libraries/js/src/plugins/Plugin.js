@@ -33,6 +33,11 @@ export class Plugin{
         if (this.session.graph) return this.session.graph.addPort(this,port, info)
     }
 
+    // trigger
+    update = (port, user) => {
+        return this.session.graph.runSafe(this, port, user)
+    }
+
     // ----------------- Request Graph Elements -----------------
     requestNode = async (nodeType) => {
         if (this.session.graph) {

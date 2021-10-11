@@ -796,8 +796,8 @@ export class GraphManager{
             sP.output.edges.set(label, {node: target, port: tP})
 
 
-            if (tP.input.active && tP.output.active && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
-            if (sP.input.active && sP.output.active && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
+            if ((tP.input.active || tP.input.type === null) && (tP.output.active || tP.output.type === null) && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+            if ((sP.input.active || sP.input.type === null) && (sP.output.active || sP.output.type === null) && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
             // Push Edge into Registry
             this.applets[appId].edges.push(newEdge)
@@ -898,25 +898,18 @@ export class GraphManager{
         }
     }
 
-    // getNode = (uuid,app) => {
-    //     if (app) {
-    //         return app.graph.nodes.find(n => {
-    //             if (n.uuid === uuid) return true
-                
-    //         });
-    //     } else return undefined;
-    // }
-
     getNode(id,name){
         let appInfo = this.applets[id]
         if (appInfo){
             let node = appInfo.nodes.find(n => {
+                // TODO: Replace eventually, though this isn't actually known to a user...
+                // if (n.uuid === uuid) return true
                 if (n.id == name){
                     return true
                 }
             })
             return node.instance
-        }
+        } else return undefined
     }
 
     getNodes = (nodeType, nodes) => {

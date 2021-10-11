@@ -5,7 +5,7 @@ import{Ramchurn} from './Ramchurn'
 export const settings = {
     name: "NeuroCinema",
     devices: ["EEG", "HEG"],
-    author: "Brains@Play",
+    author: "Garrett Flynn",
     description: "Cut movies together based on brain data",
     categories: ["WIP"],
     instructions: "",

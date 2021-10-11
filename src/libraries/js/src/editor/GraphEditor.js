@@ -1519,6 +1519,7 @@ export class GraphEditor{
                 if (info && n.class === info.class){
                     // clsInfo.class = n.class
                     let baseClass = this.library.plugins[info.category][clsInfo.name]
+
                     if (info.class != baseClass){
                         info.category = null // 'custom'
                         this.addNodeOption(clsInfo)
