@@ -527,6 +527,8 @@ export class Math2 {
 				for(let k = 0; k < kern_t[0].length; j++) {
 					acc += mat[y-startl+k][x-startr+j] * kern[k][j];
 				}
+
+				result[y].push(acc);
 			}
 			
 			i++;
