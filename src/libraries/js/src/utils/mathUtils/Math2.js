@@ -37,6 +37,7 @@
  * linearDiscriminantAnalysis(samples=[], classifier=[])
  * cov2d(mat)
  * conv1D(arr=[],kern=[],pad=0)
+ * conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0)
  * cov1d(arr1=[],arr2=[])
  * cov3d(x=[],y=[],z=[])
  * covNd(dimensionalData=[])
