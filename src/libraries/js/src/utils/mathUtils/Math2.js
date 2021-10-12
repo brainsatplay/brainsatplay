@@ -467,13 +467,13 @@ export class Math2 {
 			arr = [...pads,...arr,...pads];
 		}
 
-		let start = Math.floor(kern.length*0.5);
-		let end = arr.length - kern.length - start; //
+		let start = Math.floor(kern.length*0.5); //offset since kernel will reduce size of array
+		let end = arr.length - kern.length + start; //end index
 
 		for(let i = start; i < end; i++) {
 			let acc = 0;
 			for(let j = 0; j < kern.length; j++) {
-				acc += arr[i] * kern[j];
+				acc += arr[i-start] * kern[j];
 			}
 			result.push(acc);
 		}
@@ -509,7 +509,7 @@ export class Math2 {
 		let endl = mat_t[0].length - kern_t[0].length; //
 
 		for(let h = 0; h < endl; h++) {
-			
+
 		}
 		for(let i = 0; i < endr; i++) {
 			result.push([]);
