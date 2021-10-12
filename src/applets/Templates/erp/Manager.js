@@ -1,17 +1,15 @@
-import {SSVEP} from '../../../libraries/js/src/utils/signal_processing/ssvep/SSVEP'
-import { AnimatedSprite } from 'pixi.js'
 
-class Manager{
+
+import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
+
+export class Manager extends Plugin{
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session) {
+        super(label, session)
 
-        // Generic Plugin Attributes
-        this.label = label
-        this.session = session
-
-        this.analysis = ['eegfft']
+        // this.analysis = ['eegfft']
 
         // UI Identifier
         this.props = {
@@ -84,11 +82,54 @@ class Manager{
                 output: {type: null}
             },
 
-            gaze: {
-                data: 1,
-                options: [0,1,2,3],
-                input: {type: 'number'},
-                output: {type: null}
+            // INPUT
+            select: {
+                input: {type: 'boolean'},
+                output: {type: null},
+                onUpdate: (user) => {
+
+                    let P300 = user.data
+                    let objectInd = user.meta.object
+
+                    if (P300) console.log('SELECTED')
+
+                    // If P300, change object color
+                    this.props.objects.forEach((o,i) => {
+            
+                        // Correct Activation
+                        if (P300 && objectInd === i) {
+                            o.activations++
+                            if (o.activations >= this.ports.redundancy.data) {
+                                o.element.style.background = 'red'
+                                o.activations = 0 // reset activations
+                            }
+                            else {
+                                o.element.style.background = 'white'
+                            }
+                        }
+            
+                        // Incorrect Activation
+                        else if (P300 && objectInd !== i){
+                            o.activations = 0 // reset activations
+                            o.element.style.background = 'white'
+                        }
+            
+                        // No Activation
+                        else {
+                            o.element.style.background = 'white'
+                        }
+                    })
+                }
+            },
+
+            // OUTPUT
+            timestamp: {
+                input: {type: null},
+                output: {type: 'number'},
+                onUpdate: (user) => {
+                    user.meta.object = this.props.selected
+                    return user
+                }
             },
 
             element: {
@@ -187,7 +228,7 @@ class Manager{
             // Check for P300
             let flashTime = Date.now()
             setTimeout(() => {
-                this._checkERP(flashTime, i)
+                this.update('timestamp', {data: flashTime}) // send timestamp downstream
             }, 500) // after 500 ms
 
 
@@ -195,76 +236,4 @@ class Manager{
             setTimeout(this._animate, 1000/this.ports.rate.data)
         }
     }
-
-
-    // Given a timestamp, is there a P300 Wave There
-    _checkERP = (time , objectInd) => {
-
-        let votes = []
-        let lB = time + 100
-        let uB = time + 500
-        let uBi, lBi
-
-        this.ports.atlas.data.eeg.forEach(ch => {
-
-
-            // Extract Timestamps
-            let times = ch.times.reverse()
-            for (let i = 0; i < times.length; i++){
-                if (times[i] < lB) {
-                    lBi = i
-                    break 
-                } 
-
-                if (times[i] <= uB && uBi == null){
-                    uBi = i
-                }
-            }
-
-            // Grab Slice
-            let data = (ch.filtered.length > 0) ? ch.filtered.reverse() : ch.raw.reverse()
-            let arr = data.slice(uBi, lBi)
-            arr = arr.reverse()
-
-            // Plot Graph
-
-
-            // Check for P300 (simulated for now)
-            let P300 = true * (Number.parseFloat(this.ports.gaze.data) === objectInd) * Math.floor(10*Math.random() > 0)
-
-            votes.push(P300)
-        })
-
-        let P300 = votes.reduce((a,b) => a * b) // all true
-
-        // If P300, change object color
-        this.props.objects.forEach((o,i) => {
-
-            // Correct Activation
-            if (P300 && objectInd === i) {
-                o.activations++
-                if (o.activations >= this.ports.redundancy.data) {
-                    o.element.style.background = 'red'
-                    o.activations = 0 // reset activations
-                }
-                else {
-                    o.element.style.background = 'white'
-                }
-            }
-
-            // Incorrect Activation
-            else if (P300 && objectInd !== i){
-                o.activations = 0 // reset activations
-                o.element.style.background = 'white'
-            }
-
-            // No Activation
-            else {
-                o.element.style.background = 'white'
-            }
-        })
-
-    }
 }
-
-export {Manager}
