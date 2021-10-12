@@ -1,4 +1,73 @@
 //By Joshua Brewster (AGPL)
+
+
+/**
+ * Math2 Contains All Static Methods
+ * We'll add more useful static things like filter kernels etc. as we get to making them.
+ * 
+ * //Just type these and the variable inputs that pop up should be easy to follow. Everything is commented otherwise till we document it
+ * genSineWave()
+ * getSineAmplitude()
+ * mean()
+ * mode()
+ * std()
+ * relError()
+ * informationEntropy()
+ * zscore()
+ * variance()
+ * dot()
+ * cross3D()
+ * magnitude()
+ * distance()
+ * normalize()
+ * integral()
+ * dintegral()
+ * tintegral()
+ * pintegral()
+ * makeVec()
+ * transpose(mat)
+ * matmul(a,b)
+ * matscale(mat,scalar)
+ * matadd(a,b)
+ * matsub(a,b)
+ * normalDistribution(samples=[], normalize=true)
+ * expectedValue(samples=[],probabilities=this.normalDistribution(samples))
+ * originMoment(samples=[],probabilities=this.normalDistribution(samples),order=1)
+ * centralMoment(samples=[],probabilities=this.normalDistribution(samples),order=1)
+ * linearDiscriminantAnalysis(samples=[], classifier=[])
+ * cov2d(mat)
+ * conv1D(arr=[],kern=[],pad=0)
+ * cov1d(arr1=[],arr2=[])
+ * cov3d(x=[],y=[],z=[])
+ * covNd(dimensionalData=[])
+ * eigens2x2(mat=[[1,2],[3,4]])
+ * eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2])
+ * fastpca2d(xarr,yarr)
+ * crosscorrelation(arr1,arr2)
+ * autocorrelation(arr1)
+ * correlograms(dat=[[],[]])
+ * sma(arr=[], window)
+ * sum(arr=[])
+ * reduceArrByFactor(arr,factor=2)
+ * makeArr(startValue, stopValue, nSteps)
+ * interpolateArray(data, fitCount, scalar=1)
+ * isExtrema(arr,critical='peak') //peak or valley
+ * isCriticalPoint(arr,critical='peak') //peak, valley
+ * peakDetect = (smoothedArray,type='peak',window=49) //wider window to find less peaks
+ * getPeakThreshold(arr, peakIndices, thresholdVar)
+ * 
+ * eigens(M=[[],[]], tolerance=0.0001, max_iterations=1000)
+ * pca(mat=[[],[]],tolerance = 0.00001) //power iteration method, inp
+ * eigenvalue_of_vector(mat, eigenvector)
+ * power_iteration(mat, tolerance=0.00001, max_iterations=1000)
+ * squared_difference(v1, v2)
+ * flatten_vector(v) //column to row
+ * column(mat, x) //row to column
+ * 
+ */
+
+
+
 export class Math2 {
 	constructor() {
 
@@ -283,18 +352,6 @@ export class Math2 {
 		return m;
 	}
 
-	//Statistical moment about the origin (discrete)
-	static centralMoment(probabilities=[],order=1) {
-		let moment = 0;
-		let mean = this.mean(probabilities); //expected value
-		let len = probabilities.length;
-		for(let i = 0; i < len; i++) {
-			moment += probabilities[i] * Math.pow(mean[i],order);
-		}
-
-		return moment;
-	}
-
 	//Get probability densities for the samples
 	static normalDistribution(samples=[], normalize=true) {
 		let mean = this.mean(samples);
@@ -531,7 +588,7 @@ export class Math2 {
 	}
 
 	//Compute correlograms of the given array of arrays (of equal length). Input array of equal length arrays of latest raw data (use dat = eeg32instance.getTaggedRawData())
-	static correlograms(dat) {//Coherence network math for data pushed to the atlas
+	static correlograms(dat=[[],[]]) {//Coherence network math for data pushed to the atlas
 		var correlograms = []; //auto and cross correlations for each channel
 		dat.forEach((row1,i) => {
 			dat.forEach((row2,j) => {
@@ -544,7 +601,7 @@ export class Math2 {
 	}
 
 	//Input data and averaging window, output array of moving averages (should be same size as input array, initial values not fully averaged due to window)
-	static sma(arr, window) {
+	static sma(arr=[], window) {
 		var smaArr = []; //console.log(arr);
 		for(var i = 0; i < arr.length; i++) {
 			if((i == 0)) {
@@ -590,12 +647,10 @@ export class Math2 {
     }
 
 	//Linear interpolation from https://stackoverflow.com/questions/26941168/javascript-interpolate-an-array-of-numbers. Input array and number of samples to fit the data to
-	static interpolateArray(data, fitCount, normalize=1) {
-
-		var norm = normalize;
+	static interpolateArray(data, fitCount, scalar=1) {
 
 		var linearInterpolate = function (before, after, atPoint) {
-			return (before + (after - before) * atPoint)*norm;
+			return (before + (after - before) * atPoint)*scalar;
 		};
 
 		var newData = new Array();
@@ -768,30 +823,30 @@ export class Math2 {
 	}
 
 	// See: https://math.stackexchange.com/questions/768882/power-method-for-finding-all-eigenvectors
-	static shift_deflate(M, eigenvalue, eigenvector)  {
+	static shift_deflate(mat, eigenvalue, eigenvector)  {
 		let len = Math.sqrt( this.matmul(this.transpose(eigenvector), eigenvector)  );
 		let U = this.matscale(eigenvector, 1.0/len);
 		let delta = this.matscale( this.matmul(U, this.transpose(U)) , eigenvalue);
-		let M_new = this.matsub(M, delta);
+		let M_new = this.matsub(mat, delta);
 		return M_new;
 	}
 
-	static eigenvalue_of_vector(M, eigenvector) {
+	static eigenvalue_of_vector(mat, eigenvector) {
 		// Xt * M * x
-		ev = this.matmul( this.matmul(this.transpose(eigenvector), M ), eigenvector);
+		ev = this.matmul( this.matmul(this.transpose(eigenvector), mat ), eigenvector);
 		return ev;
 	}
 
 	//Input square 2D matrix
-	static power_iteration(M, tolerance=0.00001, max_iterations=1000) {
+	static power_iteration(mat, tolerance=0.00001, max_iterations=1000) {
 
-		let rank = M.length;
+		let rank = mat.length;
 	
 		// Initialize the first guess pf the eigenvector to a row vector of the sqrt of the rank
 		let eigenvector = new Array(rank).fill(0).map(() => new Array(1).fill(Math.sqrt(rank)));
 	
 		// Compute the corresponding eigenvalue
-		let eigenvalue = this.eigenvalue_of_vector(M, eigenvector);
+		let eigenvalue = this.eigenvalue_of_vector(mat, eigenvector);
 	
 		let epsilon = 1.0;
 		let iter = 0;
@@ -800,13 +855,13 @@ export class Math2 {
 			let old_eigenvalue = JSON.parse(JSON.stringify(eigenvalue));
 	
 			// Multiply the Matrix M by the guessed eigenveector
-			let Mv = this.matmul(M,eigenvector);
+			let Mv = this.matmul(mat,eigenvector);
 	
 			// Normalize the eigenvector to unit length
 			eigenvector = this.normalize(Mv);
 	
 			// Calculate the associated eigenvalue with the eigenvector (transpose(v) * M * v)
-			eigenvalue = this.eigenvalue_of_vector(M, eigenvector);
+			eigenvalue = this.eigenvalue_of_vector(mat, eigenvector);
 	
 			// Calculate the epsilon of the differences
 			epsilon = Math.abs( eigenvalue - old_eigenvalue);
@@ -818,15 +873,15 @@ export class Math2 {
 	}
 	
 	//Input square 2D matrix
-	static eigens(M, tolerance=0.0001, max_iterations=1000) {
+	static eigens(mat, tolerance=0.0001, max_iterations=1000) {
 
 		let eigenvalues = [];
 		let eigenvectors = [];
 	
-		for (let i = 0; i < M.length; i++ ) {
+		for (let i = 0; i < mat.length; i++ ) {
 	
 			// Compute the remaining most prominent eigenvector of the matrix M
-			let result = this.power_iteration(M, tolerance, max_iterations);
+			let result = this.power_iteration(mat, tolerance, max_iterations);
 	
 			// Separate the eigenvalue and vector from the return array
 			let eigenvalue = result[0];
@@ -836,7 +891,7 @@ export class Math2 {
 			eigenvectors[i] = this.flatten_vector(eigenvector);
 	
 			// Now remove or peel off the last eigenvector
-			M = this.shift_deflate(M, eigenvalue, eigenvector);
+			mat = this.shift_deflate(mat, eigenvalue, eigenvector);
 		}
 	
 		return [eigenvalues, eigenvectors];
