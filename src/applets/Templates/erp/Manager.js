@@ -1,3 +1,6 @@
+import {SSVEP} from '../../../libraries/js/src/utils/signal_processing/ssvep/SSVEP'
+import { AnimatedSprite } from 'pixi.js'
+
 class Manager{
 
     static id = String(Math.floor(Math.random()*1000000))
@@ -8,17 +11,34 @@ class Manager{
         this.label = label
         this.session = session
 
+        this.analysis = ['eegfft']
+
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random()*1000000)),
-            state: null
+            id: String(Math.floor(Math.random() * 1000000)),      
+            rowcolmanager: {
+                variables: ['row', 'col'],
+                variable: 0,
+                gridlength: 0,
+                count: 0
+            }      
         }
+
+
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+
+        this.props.grid = document.createElement('div')
+        this.props.grid.style = 'width: min(80vw,80vh); height: min(80vw,80vh); padding: 50px; display:grid;'
+        this.props.container.insertAdjacentElement('beforeend',this.props.grid)
+
+
+        this.props.n = 4
+        this.props.objects = []; 
+        this.props.freqRange = [4,16]
 
         // Port Definition
         this.ports = {
-            // default: {
-            //     output: {type: null}
-            // },
             data: {
                 input: {type: undefined},
                 output: {type: null},
@@ -28,73 +48,140 @@ class Manager{
                     data.eeg.forEach(o => {
                         console.log(o)
                     })
+                    // return [{data: null}] // Return Alpha
                 }
             }, 
-            // color: {
-            //     output: {type: null}
-            // }
+
+            schedule: {
+                input: {type: 'string'},
+                output: {type: null},
+                onUpdate: (user) => {
+                    let labelDiv = document.getElementById(`${this.props.id}-label`)
+                    labelDiv.innerHTML = user.meta.state
+                    let barDiv = document.getElementById(`${this.props.id}-bar`)
+                    let statePercentage = user.meta.stateTimeElapsed / user.meta.stateDuration
+                    // Fill a Progress Bar
+                    let fillBar = barDiv.querySelector('div')
+                    if (user.meta.state === 'ITI') fillBar.style.background = 'red'
+                    else fillBar.style.background = '#00FF00'
+            
+                    if (statePercentage > 1) statePercentage = 1
+                    fillBar.style.width = `${statePercentage*100}%`
+                }
+            },
+
+            mode: {
+                data: 'object',
+                options: ['object', 'row/col'],
+                input: {type: 'string'},
+                output: {type: null}
+            },
+
+
+            rate: {
+                data: 1,
+                min: 0,
+                max: 10,
+                step: 0.01,
+                input: {type: 'number'},
+                output: {type: null}
+            },
+
+            element: {
+                edit: false,
+                input: {type: null},
+                output: {type: Element},
+                data: this.props.container,
+                onUpdate: () => {
+                    this.ports.element.data = this.props.container
+                    return {data: this.ports.element.data}
+                }
+            }
         }
     }
 
     init = () => {
 
+
+            // Generate Grid of Objects
+            this._generateGrid()
+
+            this._animate()
     }
 
-    // default = (input) => {
-    //     return input
-    // }
+    deinit = () => {
 
-    // // Write UI using Graph Ports
-    // readout = (userData) => {
+    }
 
-    //     let labelDiv = document.getElementById(`${this.props.id}-label`)
-    //     labelDiv.innerHTML = userData[0].meta.label
-    //     let outputDiv = document.getElementById(`${this.props.id}-readout`)
-    //     let coherenceReadouts = outputDiv.querySelectorAll(`.readout`)
+    _generateGrid = () => {
+        this.props.rowcolmanager.gridlength = Math.ceil(Math.sqrt(this.props.n))
 
-    //     let nameRegistry = new Set(userData.map(u => u.username))
+        // Populate Objects
+        this.props.objects = Array.from({length: this.props.n}, (e,i) => {return {element: null, 
+            // f: 1 + (i)*((this.props.SSVEPManager.refreshRate/2)/(this.props.n+2))
+            row:(this.props.rowcolmanager.gridlength - 1) -  Math.floor(i / this.props.rowcolmanager.gridlength),
+            col: (this.props.rowcolmanager.gridlength - 1) - i % this.props.rowcolmanager.gridlength,
+            f: this.props.freqRange[0] + i*(this.props.freqRange[1] - this.props.freqRange[0])/(this.props.n-1)
+        }})
+        
+        // Style Grid
+        this.props.grid.style.gridTemplateRows = `repeat(${this.props.rowcolmanager.gridlength},1fr)`
+        this.props.grid.style.gridTemplateColumns = `repeat(${this.props.rowcolmanager.gridlength},1fr)`
 
-    //     for (let readout of coherenceReadouts){
-    //         if (Array.isArray(userData)){
-    //             let username = readout.id.replace(`${this.props.id}-`,'')
-    //             let found = userData.find(u => u.username === username)
-    //             if (found) {
-    //                 nameRegistry.delete(found.username)
-    //                 readout.innerHTML = `${found.username}: ${found.data}`
-    //             } else {
-    //                 readout.remove()
-    //             }
-    //         }
-    //     }
+        let objectStyle = `
+            background: white;
+            box-sizing: border-box;
+            margin: 25%;
+            border-radius: 50%;
+        `
 
-    //     nameRegistry.forEach(name => {
-    //         let u = userData.find(u => u.username === name)
-    //         let value = u.data
-    //         if (typeof value === "number") value = value.toFixed(2)
-    //         outputDiv.innerHTML += `<p id="${this.props.id}-${u.username}" class="readout" >${u.username}: ${u.data}</p>`
-    //     })
+        // Populate Grid
+        this.props.objects.forEach((o,i) => {
+            let newElement = document.createElement('div')
+            newElement.id = i
+            newElement.style = objectStyle
+            this.props.grid.appendChild(newElement)
+            o.element = newElement
+        })
 
-    //     return userData
-    // }
+    }
 
-    // color = (userData) => {
+    _animate = () => {
 
-    //     let coherenceReadouts = document.getElementById(`${this.props.id}-readout`).querySelectorAll(`.readout`)
-    //     if (Array.isArray(userData)){
-    //         userData.forEach(u =>{
-    //         for (let readout of coherenceReadouts){
-    //             if (readout.id.replace(`${this.props.id}-`,'') === u.username){
-    //                 readout.style = (u.data ? "color: red;" : "")
-    //             }
-    //         }
-    //     })
+        let variable = this.props.rowcolmanager.variables[this.props.rowcolmanager.variable]
 
-    //     return userData
-    // }
-    // }
-    
 
-    deinit = () => {}
+            let i;
+            do {
+                if (this.ports.mode.data === 'object'){i =  Math.floor(this.props.n * Math.random())}
+                else {
+                    this.props.rowcolmanager.count++
+
+                    console.log(variable, this.props.rowcolmanager.count, this.props.rowcolmanager.gridlength)
+                    // switch variable
+                    if (this.props.rowcolmanager.count >= this.props.rowcolmanager.gridlength) {
+                        this.props.rowcolmanager.count = 0
+                        this.props.rowcolmanager.variable++
+                        if (this.props.rowcolmanager.variable >= this.props.rowcolmanager.variables.length) this.props.rowcolmanager.variable = 0
+                    }
+                    i = this.props.rowcolmanager.count
+                }
+            } while (i === this.props.selected)
+            this.props.selected = i
+
+            console.log(this.props.selected)
+
+        
+        this.props.objects.forEach((o,i) => {
+            o.element.style.visibility = 'visible'
+            if (this.ports.mode.data === 'object' && i === this.props.selected) o.element.style.visibility = 'hidden'
+            if (this.ports.mode.data === 'row/col' && o[variable] === this.props.selected) o.element.style.visibility = 'hidden'
+        })
+
+
+        setTimeout(this._animate, 1000/this.ports.rate.data)
+
+    }
 }
 
 export {Manager}
