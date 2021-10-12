@@ -4,6 +4,9 @@ import {Manager} from './Manager'
 import {Results} from './Results'
 import audioCue from './audioCue.mp3'
 
+let button = document.createElement('button')
+button.innerHTML = 'Connect EEG'
+
 export const settings = {
     name: "Experiment Template",
     devices: ["EEG"],
@@ -20,14 +23,27 @@ export const settings = {
     //   title:false
     // },
     // analysis: ['eegfft'],
-    "analysis": ['eegcoherence'],
+    analysis: ['eegcoherence'],
+
+    connect: {
+      toggle: button,
+      onconnect: () => {
+
+        button.innerHTML = 'Start Experiment'
+        button.onclick = () => {
+            let n = settings.graph.nodes.find(n => n.id === 'manager')
+            n.instance.update('start', {data: true})
+        }
+
+      }
+    },
 
     // App Logic
     graph:
     {
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {}},
+        {id: 'manager', class: Manager, params: {button}},
         {
           id: 'scheduler', 
           class: brainsatplay.plugins.utilities.Scheduler, 
