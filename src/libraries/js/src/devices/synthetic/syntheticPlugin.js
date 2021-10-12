@@ -8,7 +8,7 @@ import {BiquadChannelFilterer} from '../../utils/signal_processing/BiquadFilters
 export class syntheticPlugin {
     constructor(mode, onconnect=this.onconnect, ondisconnect=this.ondisconnect) {
         this.atlas = null;
-        this.mode = mode.split('_')[1]; // EEG, HEG, replay
+        this.mode = mode; // EEG, HEG, replay
 
         this.device = null; //Invoke a device class here if needed
         this.filters = [];
@@ -36,7 +36,7 @@ export class syntheticPlugin {
     }
 
     init = async (info,pipeToAtlas) => {
-        info.deviceType = this.mode.toLowerCase()
+        info.deviceType = this.mode.split('_')[1].toLowerCase()
         if (info.deviceType === 'eeg') {
             info.sps = 256
             info.eegChannelTags = '8'
@@ -134,7 +134,6 @@ export class syntheticPlugin {
       this._onConnected();
       if (this.deviceType === 'eeg') this.atlas.data.eegshared.startTime = Date.now();
 
-      console.log(this)
       this.atlas.settings.deviceConnected = true;
       if(this.atlas.settings.analyzing !== true && this.info.analysis.length > 0) {
           this.atlas.settings.analyzing = true;
@@ -167,6 +166,7 @@ export class syntheticPlugin {
     addControls = (parentNode = document.body) => {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
 
+        console.log(parentNode)
         let template = () => {
             return `
             `;
@@ -203,14 +203,14 @@ export class syntheticPlugin {
 
     simulateData = () => {
 
-        let delay = 1000/this.sps;
+        let delay = 1000/this.info.sps;
 
         let simulate = () => {
             if (this.looping){
 
             if(this.info.useAtlas) {
     
-                if (this.mode === 'EEG'){
+                if (this.mode === 'synthetic_EEG'){
                     let nCh = this.info.eegChannelTags.length
                     this.info.eegChannelTags.forEach((o,i) => {
                         let coord = this.atlas.getEEGDataByTag(o.tag);
@@ -242,7 +242,7 @@ export class syntheticPlugin {
                         //     coord.filtered.push(...latestFiltered);
                         // }
                     })
-                } else if (this.mode === 'HEG') {
+                } else if (this.mode === 'synthetic_HEG') {
                     let coord = this.atlas.data.heg[this.info.deviceNum];
                     // console.log( this.atlas.data.heg, this.info.deviceNum)
 

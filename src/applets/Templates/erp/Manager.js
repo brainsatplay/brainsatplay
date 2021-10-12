@@ -21,7 +21,8 @@ class Manager{
                 variable: 0,
                 gridlength: 0,
                 count: 0
-            }      
+            },
+            looping: false      
         }
 
 
@@ -102,15 +103,16 @@ class Manager{
 
     init = () => {
 
-
             // Generate Grid of Objects
             this._generateGrid()
 
+            // Start Animation
+            this.looping = true
             this._animate()
     }
 
     deinit = () => {
-
+        this.looping = false
     }
 
     _generateGrid = () => {
@@ -148,17 +150,18 @@ class Manager{
 
     _animate = () => {
 
-        let variable = this.props.rowcolmanager.variables[this.props.rowcolmanager.variable]
 
+        if (this.looping){
+            let variable = this.props.rowcolmanager.variables[this.props.rowcolmanager.variable]
 
+            // Select Objects to Flash
             let i;
             do {
                 if (this.ports.mode.data === 'object'){i =  Math.floor(this.props.n * Math.random())}
                 else {
                     this.props.rowcolmanager.count++
 
-                    console.log(variable, this.props.rowcolmanager.count, this.props.rowcolmanager.gridlength)
-                    // switch variable
+                    // swap row/col
                     if (this.props.rowcolmanager.count >= this.props.rowcolmanager.gridlength) {
                         this.props.rowcolmanager.count = 0
                         this.props.rowcolmanager.variable++
@@ -168,18 +171,26 @@ class Manager{
                 }
             } while (i === this.props.selected)
             this.props.selected = i
+            
+            // Flash
+            this.props.objects.forEach((o,i) => {
+                o.element.style.visibility = 'visible'
+                if (this.ports.mode.data === 'object' && i === this.props.selected) o.element.style.visibility = 'hidden'
+                if (this.ports.mode.data === 'row/col' && o[variable] === this.props.selected) o.element.style.visibility = 'hidden'
+            })
 
-            console.log(this.props.selected)
-
-        
-        this.props.objects.forEach((o,i) => {
-            o.element.style.visibility = 'visible'
-            if (this.ports.mode.data === 'object' && i === this.props.selected) o.element.style.visibility = 'hidden'
-            if (this.ports.mode.data === 'row/col' && o[variable] === this.props.selected) o.element.style.visibility = 'hidden'
-        })
+            // Check for P300
+            setTimeout(this._checkERP, 500) // after 500 ms
 
 
-        setTimeout(this._animate, 1000/this.ports.rate.data)
+            // Wait until Next Flash
+            setTimeout(this._animate, 1000/this.ports.rate.data)
+        }
+    }
+
+    _checkERP = () => {
+
+        console.log(this.ports.data)
 
     }
 }
