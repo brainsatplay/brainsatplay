@@ -483,7 +483,8 @@ export class Math2 {
 
 	//2D convolution (filtering), input 2d mat and 2d kernel 
 	static conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0) {
-		let result = [];
+		let result = new Array(mat.length - Math.ceil(kern.length*0.5)).fill([]);
+		
 		let mat_t = Math2.transpose(mat);
 		let kern_t = Math2.transpose(kern_t);
 
@@ -502,31 +503,35 @@ export class Math2 {
 				mat[j] = [...pads,...arr,...pads];
 			}
 
-			mat_t = Math2.transpose(mat); //update mat_t;
 		}
 
 		
 		let startr = Math.floor(kern[0].length*0.5); //offset since kernel will reduce size of array
 		let startl = Math.floor(kern_t[0].length*0.5); //offset since kernel will reduce size of array
 
-		let endr = mat[0].length - kern[0].length + startr; //
-		let endl = mat_t[0].length - kern_t[0].length + startl; //
-		
-		for (let row = startl; row < endl; row++) {
-			result.push([])
-			for(let i = startr; i < endr; i++) {
-				let acc = 0;
-				for(let j = 0; j < kern[0].length; j++) {
-					acc += mat[i-startr] * kern[j];
-				}
-				for(let k = 0; k < kern_t[0].length; k++) {
-					acc += mat[k-startl] * kern_t[j];
-				}
-				result[row].push(acc);
+		let endr = mat[0].length - kern[0].length + startr; //row end
+		let endl = mat_t[0].length - kern_t[0].length + startl; //column end
+
+		let iters = endr*endl; //number of convolutions to perform
+
+		let i = startr;
+		let x; let y=startl;
+		while(i < iters) {
+			let acc = 0;
+			x = i % mat[0].length;
+			if(x === 0) {
+				y++;
 			}
+
+			for(let j = 0; j < kern[0].length; j++) {
+				for(let k = 0; k < kern_t[0].length; j++) {
+					acc += mat[y-startl+k][x-startr+j] * kern[k][j];
+				}
+			}
+			
+			i++;
 		}
-
-
+		
 		return result;
 
 	}	
