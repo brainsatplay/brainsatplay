@@ -5,6 +5,20 @@ export class ERP extends Plugin{
     constructor(label, session){
         super(label,session)
 
+
+        this.props = {
+            erps: {
+                P300: {
+                    model: null,
+                    times: {
+                        lower: 100, // ms
+                        center: 300, // ms
+                        upper: 500 // ms
+                    }
+                }
+            }
+        }
+
         this.ports = {
 
             // INPUTS
@@ -31,6 +45,11 @@ export class ERP extends Plugin{
 
             // PARAMS
 
+            type: {
+                data: 'P300',
+                options: Object.keys(this.props.erps)
+            },
+
             gaze: {
                 data: 1,
                 options: [0,1,2,3],
@@ -44,8 +63,8 @@ export class ERP extends Plugin{
         _checkERP = (time , objectInd) => {
 
             let votes = []
-            let lB = time + 100
-            let uB = time + 500
+            let lB = time + this.props.erps[this.ports.type.data].times.lower
+            let uB = time + this.props.erps[this.ports.type.data].times.upper
             let uBi, lBi
     
             this.ports.atlas.data.eeg.forEach(ch => {
