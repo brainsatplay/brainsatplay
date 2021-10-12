@@ -70,12 +70,23 @@ class Manager{
                 output: {type: null}
             },
 
+            redundancy: {
+                data: 2,
+            },
+
 
             rate: {
                 data: 1,
                 min: 0,
-                max: 10,
+                max: 2,
                 step: 0.01,
+                input: {type: 'number'},
+                output: {type: null}
+            },
+
+            gaze: {
+                data: 1,
+                options: [0,1,2,3],
                 input: {type: 'number'},
                 output: {type: null}
             },
@@ -111,7 +122,9 @@ class Manager{
         this.props.rowcolmanager.gridlength = Math.ceil(Math.sqrt(this.props.n))
 
         // Populate Objects
-        this.props.objects = Array.from({length: this.props.n}, (e,i) => {return {element: null, 
+        this.props.objects = Array.from({length: this.props.n}, (e,i) => {return {
+            element: null, 
+            activations: 0,
             // f: 1 + (i)*((this.props.SSVEPManager.refreshRate/2)/(this.props.n+2))
             row:(this.props.rowcolmanager.gridlength - 1) -  Math.floor(i / this.props.rowcolmanager.gridlength),
             col: (this.props.rowcolmanager.gridlength - 1) - i % this.props.rowcolmanager.gridlength,
@@ -174,7 +187,7 @@ class Manager{
             // Check for P300
             let flashTime = Date.now()
             setTimeout(() => {
-                this._checkERP(flashTime)
+                this._checkERP(flashTime, i)
             }, 500) // after 500 ms
 
 
@@ -183,13 +196,19 @@ class Manager{
         }
     }
 
-    _checkERP = (time) => {
 
+    // Given a timestamp, is there a P300 Wave There
+    _checkERP = (time , objectInd) => {
+
+        let votes = []
         let lB = time + 100
         let uB = time + 500
         let uBi, lBi
 
         this.ports.atlas.data.eeg.forEach(ch => {
+
+
+            // Extract Timestamps
             let times = ch.times.reverse()
             for (let i = 0; i < times.length; i++){
                 if (times[i] < lB) {
@@ -206,7 +225,43 @@ class Manager{
             let data = (ch.filtered.length > 0) ? ch.filtered.reverse() : ch.raw.reverse()
             let arr = data.slice(uBi, lBi)
             arr = arr.reverse()
-            console.log(ch.tag, arr)
+
+            // Plot Graph
+
+
+            // Check for P300 (simulated for now)
+            let P300 = true * (Number.parseFloat(this.ports.gaze.data) === objectInd) * Math.floor(10*Math.random() > 0)
+
+            votes.push(P300)
+        })
+
+        let P300 = votes.reduce((a,b) => a * b) // all true
+
+        // If P300, change object color
+        this.props.objects.forEach((o,i) => {
+
+            // Correct Activation
+            if (P300 && objectInd === i) {
+                o.activations++
+                if (o.activations >= this.ports.redundancy.data) {
+                    o.element.style.background = 'red'
+                    o.activations = 0 // reset activations
+                }
+                else {
+                    o.element.style.background = 'white'
+                }
+            }
+
+            // Incorrect Activation
+            else if (P300 && objectInd !== i){
+                o.activations = 0 // reset activations
+                o.element.style.background = 'white'
+            }
+
+            // No Activation
+            else {
+                o.element.style.background = 'white'
+            }
         })
 
     }
