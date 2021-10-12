@@ -103,7 +103,6 @@ export class Blink extends Plugin {
             }
         }
 
-        this.analysis = new Set()
         this.lastBlink = {}
         this.lastBlink.left = Date.now()
         this.lastBlink.right = Date.now()
@@ -113,12 +112,8 @@ export class Blink extends Plugin {
         this.props.looping = true
 
         this.props.dataquality = await this.addNode({id: 'dataquality', class: 'DataQuality', params: {method: 'Mean Amplitude'}})
-        this.analysis.add(...Array.from(this.props.dataquality.analysis))
-
         this.props.canvas = await this.addNode({id: 'canvas', class: 'Canvas'})
-        this.analysis.add(...Array.from(this.props.canvas.analysis))
 
-        this.props.canvas.instance.init()
         this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
         this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 

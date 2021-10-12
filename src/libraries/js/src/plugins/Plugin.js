@@ -9,6 +9,9 @@ export class Plugin{
         this.session = session 
         this.props = { id: String(Math.floor(Math.random() * 1000000)) }
         this.ports = {}
+
+        this.analysis = new Set()
+
         this.init()
 
     }
@@ -102,7 +105,11 @@ export class Plugin{
 
     // ----------------- Add Graph Elements -----------------
     addNode = async (nodeType) => {
-        return await this.session.graph.addNode(nodeType, this.app, true);
+        let nodeInfo = await this.session.graph.addNode(nodeType, this.app, true);
+        this.analysis.add(...Array.from(nodeInfo.analysis))
+        nodeInfo.instance.init()
+
+        return nodeInfo
     }
 
     addEdge = (source={node:'',port:''},target={node:'',port:''}) => {

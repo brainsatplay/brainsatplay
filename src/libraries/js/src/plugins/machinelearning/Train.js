@@ -1,5 +1,5 @@
 import {Blink} from '../models/Blink'
-import {LDA} from '../machinelearning/LDA'
+import {LDA} from './LDA'
 import {createCards} from '../../ui/browserUtils';
 import * as brainsatplay from '../../../brainsatplay'
 import {Plugin} from '../Plugin'

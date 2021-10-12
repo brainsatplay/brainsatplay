@@ -363,20 +363,14 @@ export class GraphManager{
             if (!inputCopy.meta) inputCopy.meta = {}
             if (!internal) inputCopy.meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
             
-            let connected
-            if (node.ports[port].output.active > 0) connected = true
-            if (node.ports[port].input.active > 0) connected = true
-            if (node.ports[port].output.type === null) connected = true
-            if (node.ports[port].input.type === null) connected = true
-
-            // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-
             // console.log('data', 'data' in inputCopy)
             // console.log('forceRun', forceRun)
             // console.log('connected', connected)
             // console.log('forceUpdate', forceUpdate)
 
-            if (('data' in inputCopy || forceRun) && ((connected || forceUpdate))){
+
+            // Run when data exists
+            if (('data' in inputCopy || forceRun)){
                 let result
 
                 if (node.ports[port] && node.ports[port].onUpdate instanceof Function) {

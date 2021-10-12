@@ -16,7 +16,10 @@ export class ERP extends Plugin{
                         upper: 500 // ms
                     }
                 }
-            }
+            },
+
+
+            lda: null
         }
 
         this.ports = {
@@ -44,6 +47,10 @@ export class ERP extends Plugin{
 
 
             // PARAMS
+            mode: {
+                data: 'train',
+                options: ['train', 'predict']
+            },
 
             type: {
                 data: 'P300',
@@ -57,6 +64,14 @@ export class ERP extends Plugin{
                 output: {type: null}
             },
         }
+    }
+
+    init = async () => {
+        // this.props.lda = await this.addNode({id: 'lda', class: 'LDA', params: {}})
+    }
+
+   deinit = () => {
+        
     }
 
         // Given a timestamp, is there a P300 Wave There
@@ -93,6 +108,9 @@ export class ERP extends Plugin{
     
                 // Check for P300 (simulated for now)
                 let P300 = true * (Number.parseFloat(this.ports.gaze.data) === objectInd) * Math.floor(10*Math.random() > 0)
+                // this.props.lda.instance.update(this.ports.mode.data, {data: arr})
+
+
     
                 votes.push(P300)
             })
