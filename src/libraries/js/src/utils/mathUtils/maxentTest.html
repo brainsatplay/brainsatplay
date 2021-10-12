@@ -138,9 +138,9 @@
         }
 
         d = relError(actualLandings,predictedLandings);
-        console.log(predictedLandings)
+        //console.log(predictedLandings)
         pDist = normalDistribution(predictedLandings);
-        console.log(pDist);
+        //console.log(pDist);
         aDist = normalDistribution(actualLandings);
         pEnt = informationEntropy(d);
         let maxEnt = Math.min(...pEnt);
