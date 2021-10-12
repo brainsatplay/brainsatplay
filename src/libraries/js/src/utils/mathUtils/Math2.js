@@ -485,22 +485,22 @@ export class Math2 {
 	static conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0) {
 		let result = new Array(mat.length - Math.ceil(kern.length*0.5)).fill([]);
 		
-		let mat_t = Math2.transpose(mat);
+		let mat_t;
 		let kern_t = Math2.transpose(kern_t);
 
 		if(pad > 0) {
 			let pads = new Array(pad).fill(0);
 
 			//transpose to col/row
-			mat = JSON.parse(JSON.stringify(mat_t)); //hard copy
-			for(let i = 0; i < mat.length; i++) {
-				mat[i] = [...pads,...arr,...pads];
+			mat_t = Math2.transpose(mat); //hard copy
+			for(let i = 0; i < mat_t.length; i++) {
+				mat_t[i] = [...pads,...mat_t[i],...pads];
 			}
 
 			//transpose back
-			mat = Math2.transpose(mat);
+			mat = Math2.transpose(mat_t);
 			for(let j = 0; j < mat.length; j++) {
-				mat[j] = [...pads,...arr,...pads];
+				mat[j] = [...pads,...mat[j],...pads];
 			}
 
 		}
