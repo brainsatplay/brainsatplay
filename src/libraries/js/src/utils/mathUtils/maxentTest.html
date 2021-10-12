@@ -59,15 +59,14 @@
             let _variance = 1/vari;
             let sum = 0; //for normalization
             for (let i = 0; i < nSamples; i++) {
-                let px = Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom
+                let px = Math.exp(-0.5*Math.pow((samples[i]-m)*_variance,2))*denom
                 probabilities.push(px);
                 sum += px;
             }
-
-            // if(normalize) {
-            //     let _sum = 1/sum;
-            //     probabilities = probabilities.map(x => x*_sum);
-            // }
+            if(normalize) {
+                let _sum = 1/sum;
+                probabilities = probabilities.map(x => x*_sum);
+            }
         
             return probabilities;
         }
