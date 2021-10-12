@@ -166,7 +166,6 @@ export class syntheticPlugin {
     addControls = (parentNode = document.body) => {
         let id = Math.floor(Math.random()*10000); //prevents any possible overlap with other elements
 
-        console.log(parentNode)
         let template = () => {
             return `
             `;

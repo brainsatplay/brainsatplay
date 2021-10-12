@@ -40,17 +40,9 @@ class Manager{
 
         // Port Definition
         this.ports = {
-            data: {
-                input: {type: undefined},
-                output: {type: null},
-                onUpdate: (user) => {
-                    let data = user.data
-                    console.log(data)
-                    data.eeg.forEach(o => {
-                        console.log(o)
-                    })
-                    // return [{data: null}] // Return Alpha
-                }
+            atlas: {
+                input: {type: Object, name: 'DataAtlas'},
+                output: {type: null}
             }, 
 
             schedule: {
@@ -180,7 +172,10 @@ class Manager{
             })
 
             // Check for P300
-            setTimeout(this._checkERP, 500) // after 500 ms
+            let flashTime = Date.now()
+            setTimeout(() => {
+                this._checkERP(flashTime)
+            }, 500) // after 500 ms
 
 
             // Wait until Next Flash
@@ -188,9 +183,31 @@ class Manager{
         }
     }
 
-    _checkERP = () => {
+    _checkERP = (time) => {
 
-        console.log(this.ports.data)
+        let lB = time + 100
+        let uB = time + 500
+        let uBi, lBi
+
+        this.ports.atlas.data.eeg.forEach(ch => {
+            let times = ch.times.reverse()
+            for (let i = 0; i < times.length; i++){
+                if (times[i] < lB) {
+                    lBi = i
+                    break 
+                } 
+
+                if (times[i] <= uB && uBi == null){
+                    uBi = i
+                }
+            }
+
+            // Grab Slice
+            let data = (ch.filtered.length > 0) ? ch.filtered.reverse() : ch.raw.reverse()
+            let arr = data.slice(uBi, lBi)
+            arr = arr.reverse()
+            console.log(ch.tag, arr)
+        })
 
     }
 }

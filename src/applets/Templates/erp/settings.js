@@ -55,7 +55,7 @@ export const settings = {
       edges: [
         {
           source: 'eeg:atlas', 
-          target: 'manager:data'
+          target: 'manager:atlas'
         },
         {
           source: 'manager:element', 
