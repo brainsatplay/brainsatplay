@@ -459,7 +459,7 @@ export class Math2 {
 	}
 
 	//1D convolution (filtering)
-	static conv1D(arr=[],kern=[1/3,1/3,1/3],pad=0) {
+	static conv1D(arr=[],kern=[1/3,1/3,1/3],pad=Math.floor(kern.length*0.5)) {
 		let result = [];
 
 		if(pad > 0) {
@@ -505,23 +505,27 @@ export class Math2 {
 			mat_t = Math2.transpose(mat); //update mat_t;
 		}
 
-		let endr = mat[0].length - kern[0].length; //
-		let endl = mat_t[0].length - kern_t[0].length; //
+		
+		let startr = Math.floor(kern[0].length*0.5); //offset since kernel will reduce size of array
+		let startl = Math.floor(kern_t[0].length*0.5); //offset since kernel will reduce size of array
 
-		for(let h = 0; h < endl; h++) {
+		let endr = mat[0].length - kern[0].length + startr; //
+		let endl = mat_t[0].length - kern_t[0].length + startl; //
+		
+		for (let row = startl; row < endl; row++) {
+			result.push([])
+			for(let i = startr; i < endr; i++) {
+				let acc = 0;
+				for(let j = 0; j < kern[0].length; j++) {
+					acc += mat[i-startr] * kern[j];
+				}
+				for(let k = 0; k < kern_t[0].length; k++) {
+					acc += mat[k-startl] * kern_t[j];
+				}
+				result[row].push(acc);
+			}
+		}
 
-		}
-		for(let i = 0; i < endr; i++) {
-			result.push([]);
-			let acc = 0;
-			for(let j = 0; j < kern[0].length; j++) {
-				acc += mat[i+j] * kern[j];
-			}
-			for(let k = 0; k < kern_t[0].length; k++) {
-				acc += 
-			}
-			result.push(acc);
-		}
 
 		return result;
 
