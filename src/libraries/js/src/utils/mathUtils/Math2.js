@@ -228,6 +228,16 @@ export class Math2 {
         return Math.sqrt(dsqrd);
     }
 
+	//return the roots based on your input ax^2 + bx + c
+	static quadraticFormula(a,b,c) {
+		let bbmac4 = Math.sqrt(b*b-4*a*c);
+		if(!isNaN(bbmac4)) return ['complex','complex'];
+		let _a2 = 1/(2*a);
+		if(bbmac4 === 0) return [b*_a2];
+		let nb = -b;
+		return [(nb + bbmac4)*_a2,((nb - bbmac4)*_a2)];
+	}
+
 	static normalize(vec) { //nDimensional vector normalization
         var norm = 0;
         norm = this.magnitude(vec);
@@ -503,7 +513,7 @@ export class Math2 {
 			for(let j = 0; j < mat.length; j++) {
 				mat[j] = [...pads,...mat[j],...pads];
 			}
-
+ 
 		}
 
 		
