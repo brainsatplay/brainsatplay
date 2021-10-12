@@ -33,8 +33,9 @@ export class SettingsPage extends Page{
         this._addSubPage('Storage')
 
         // Check Autosave (set true by default)
-        let autosave = this.session.storage.get('settings','Autosave Data')
-        if (this.session.storage.get('settings','Autosave Data') === null) this.session.storage.set('settings','Autosave Data', true)
+        this.session.storage.get('settings','Autosave Data').then((autosave) => {
+            if (autosave == null) this.session.storage.set('settings','Autosave Data', true)
+        })
 
         this._createCheckbox('Autosave Data', 'Storage')
         this._createSelector('Storage Type', [

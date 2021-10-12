@@ -686,17 +686,20 @@ export class BCIAppManager {
         }
 
         
-        const saveSettings = () => {
+        const saveSettings = async () => {
             let configs = [];
             this.appletManager.applets.forEach((applet) => {
                 if (applet.name)
                     configs.push(applet.name)
             });
             this.appletConfigs = configs;
+            
+            let autosaving = await this.session.storage.get('settings', 'Autosave Data')//this.session.dataManager.state.data.autosaving
+            
             let newsettings = JSON.stringify({
                 time: this.session.dataManager.toISOLocal(new Date()),
                 appletConfigs: this.appletConfigs,
-                autosaving: this.session.storage.get('settings', 'Autosave Data')//this.session.dataManager.state.data.autosaving
+                autosaving
             });
             fs.writeFile('/data/settings.json',
                 newsettings,
