@@ -467,16 +467,66 @@ export class Math2 {
 			arr = [...pads,...arr,...pads];
 		}
 
-		let end = arr.length - kern.length; //
+		let start = Math.floor(kern.length*0.5);
+		let end = arr.length - kern.length - start; //
 
-		for(let i = 0; i < end; i++) {
+		for(let i = start; i < end; i++) {
 			let acc = 0;
 			for(let j = 0; j < kern.length; j++) {
 				acc += arr[i] * kern[j];
 			}
 			result.push(acc);
 		}
+
+		return result;
 	}	
+
+	//2D convolution (filtering), input 2d mat and 2d kernel 
+	static conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0) {
+		let result = [];
+		let mat_t = Math2.transpose(mat);
+		let kern_t = Math2.transpose(kern_t);
+
+		if(pad > 0) {
+			let pads = new Array(pad).fill(0);
+
+			//transpose to col/row
+			mat = JSON.parse(JSON.stringify(mat_t)); //hard copy
+			for(let i = 0; i < mat.length; i++) {
+				mat[i] = [...pads,...arr,...pads];
+			}
+
+			//transpose back
+			mat = Math2.transpose(mat);
+			for(let j = 0; j < mat.length; j++) {
+				mat[j] = [...pads,...arr,...pads];
+			}
+
+			mat_t = Math2.transpose(mat); //update mat_t;
+		}
+
+		let endr = mat[0].length - kern[0].length; //
+		let endl = mat_t[0].length - kern_t[0].length; //
+
+		for(let h = 0; h < endl; h++) {
+			
+		}
+		for(let i = 0; i < endr; i++) {
+			result.push([]);
+			let acc = 0;
+			for(let j = 0; j < kern[0].length; j++) {
+				acc += mat[i+j] * kern[j];
+			}
+			for(let k = 0; k < kern_t[0].length; k++) {
+				acc += 
+			}
+			result.push(acc);
+		}
+
+		return result;
+
+	}	
+
 
 	//Covariance between two 1D arrays
 	static cov1d(arr1=[],arr2=[]) {
