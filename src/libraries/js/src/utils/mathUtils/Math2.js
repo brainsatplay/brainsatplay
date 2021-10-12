@@ -401,6 +401,26 @@ export class Math2 {
 		return m; //Covariance matrix
 	}
 
+	//1D convolution (filtering)
+	static conv1D(arr=[],kern=[1/3,1/3,1/3],pad=0) {
+		let result = [];
+
+		if(pad > 0) {
+			let pads = new Array(pad).fill(0);
+			arr = [...pads,...arr,...pads];
+		}
+
+		let end = arr.length - kern.length; //
+
+		for(let i = 0; i < end; i++) {
+			let acc = 0;
+			for(let j = 0; j < kern.length; j++) {
+				acc += arr[i] * kern[j];
+			}
+			result.push(acc);
+		}
+	}	
+
 	//Covariance between two 1D arrays
 	static cov1d(arr1=[],arr2=[]) {
 		return this.cov2d([arr1,arr2]);
