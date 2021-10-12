@@ -20,12 +20,13 @@
  * magnitude()
  * distance()
  * normalize()
- * integral()
- * dintegral()
- * tintegral()
- * pintegral()
- * makeVec()
- * transpose(mat)
+ * newtonsMethod() //root approximation
+ * integral() //1d integral
+ * dintegral() //2d integral
+ * tintegral() //3d integral
+ * pintegral() //2d path integral
+ * makeVec() 
+ * transpose(mat) //2d mat transpose
  * matmul(a,b)
  * matscale(mat,scalar)
  * matadd(a,b)
@@ -227,8 +228,18 @@ export class Math2 {
         })
         return Math.sqrt(dsqrd);
     }
+	stati
+	c normalize(vec) { //nDimensional vector normalization
+        var norm = 0;
+        norm = this.magnitude(vec);
+        var vecn = [];
+        vec.forEach((c,i) => {
+            vecn.push(c*norm);
+        })
+        return vecn;
+    }
 
-	//return the roots based on your input ax^2 + bx + c
+	//return the quadratic roots based on your input ax^2 + bx + c = 0
 	static quadraticFormula(a,b,c) {
 		let bbmac4 = Math.sqrt(b*b-4*a*c);
 		if(!isNaN(bbmac4)) return ['complex','complex'];
@@ -238,15 +249,37 @@ export class Math2 {
 		return [(nb + bbmac4)*_a2,((nb - bbmac4)*_a2)];
 	}
 
-	static normalize(vec) { //nDimensional vector normalization
-        var norm = 0;
-        norm = this.magnitude(vec);
-        var vecn = [];
-        vec.forEach((c,i) => {
-            vecn.push(c*norm);
-        })
-        return vecn;
-    }
+	//approximation of function roots. Provide a function (1d), window, and precision and it will return approximate roots along that window
+	static newtonsMethod(foo=(x)=>{return Math.pow(x,5) + x*x - x - 0.2}, start=0,end=1, precision=0.01, attempts=10) {
+		let roots = [];
+
+		for(let i = 0; i < attempts; i++) {
+			let seedx = Math.random()*(end-start);	
+			let guess = foo(seedx);
+			let guess2 = foo(seedx + precision);
+			let slope = (guess2 - guess)/precision;
+
+			let xn = seedx+precision;
+			while((Math.abs(slope) > precision)) {
+				let step = -guess/slope;
+				let xn1 = xn+step;
+				guess = guess2;
+				guess2 = foo(xn1);
+				let slope = (guess2 - guess)/(xn1-xn);
+			}
+
+			let idx;
+			let f = roots.find((root,i) => {
+				if(Math.abs(xn1 - root) < precision) {
+					idx = i;
+					return true;
+				}
+			});
+			if(f) roots[idx] = (xn1 + f)*0.5;
+			else roots.push(xn1);
+		}
+		return roots;
+	}
 
 	//2D integral approximation using rectangular area under the curve. If you need absolute values be sure to return that.
     static integral = (func=(x)=>{ let y=x; return y;}, range=[], stepx=0.01) => {
