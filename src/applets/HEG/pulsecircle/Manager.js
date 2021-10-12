@@ -18,7 +18,9 @@ class Manager{
             container: document.createElement('div'),
             canvas: document.createElement('canvas'),
             history: 5,
-            prevBeats: 0
+            prevBeats: [],
+            prevBeatsInternal: 0,
+            prevDir: 0
         }
 
         this.props.container.onresize = this.responsive
@@ -36,14 +38,22 @@ class Manager{
                                 let smoothedChange = o.ratio[o.count-1] - this.session.atlas.mean(o.ratio.slice(o.count-20,o.count-1))
                                 this.radiusOffsetBuffer.shift()
                                 this.radiusOffsetBuffer.push(smoothedChange)
-                                let numBeats = o.beat_detect.beats.length
-                                if (numBeats > this.props.prevBeats) {
+                                let diff = Math.sign(smoothedChange)
+                                let beat = (this.props.prevDiff != diff && diff == -1)
+
+                                if (beat) {
                                     this.session.graph.runSafe(this, 'beat', {data: true})
+                                    this.props.prevBeats.push({t: Date.now()})
                                 } else {
                                     this.session.graph.runSafe(this, 'beat', {data: false})
                                 }
 
-                                this.props.prevBeats = numBeats
+                                this.props.prevDiff = diff
+
+                                // if (o.beat_detect.beats.length > this.props.prevBeatsInternal){
+                                //     console.log('beat internal')
+                                //     this.props.prevBeatsInternal = o.beat_detect.beats.length
+                                // }
                             }
                         }
                     })
@@ -85,7 +95,19 @@ class Manager{
         this.shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
         this._generateShaderElements()
         let startTime = Date.now();
+        
+        let toTrigger = true
         this.app.ticker.add((delta) => {
+
+            let tElapsed = (Date.now() - startTime)/1000
+
+            // // Estimate BPM every 2 second
+            // console.log(Math.floor(tElapsed) % 2, toTrigger)
+            // if (Math.floor(tElapsed) % 2 === 0){
+            //     if (toTrigger) {
+            //         toTrigger = false
+            //     }
+            // } else toTrigger = true
 
             // Change Color
             let c = [1,1,1]
@@ -93,7 +115,7 @@ class Manager{
             this.colorBuffer.push(c)
 
             this.timeBuffer.shift()
-            this.timeBuffer.push((Date.now() - startTime)/1000)
+            this.timeBuffer.push(tElapsed)
 
             this.noiseBuffer.shift()
             this.noiseBuffer.push(0)
@@ -104,6 +126,10 @@ class Manager{
             this.shaderQuad.shader.uniforms.times = this.timeBuffer
             this.shaderQuad.shader.uniforms.noiseIntensity = this.noiseBuffer
             this.shaderQuad.shader.uniforms.radiusOffset = this.radiusOffsetBuffer
+
+            // this.shaderQuad.shader.uniforms.intensity = 
+
+
             // Draw
             this.app.renderer.render(this.shaderQuad, this.shaderTexture);
         });
