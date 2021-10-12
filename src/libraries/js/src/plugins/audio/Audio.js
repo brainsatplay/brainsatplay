@@ -17,6 +17,7 @@ export class Audio extends Plugin {
             sourceNode: null,
             status: 0,
             maxVol: 0.5,
+            file: null
         }
 
         if(!window.audio) window.audio = new SoundJS();
@@ -25,15 +26,16 @@ export class Audio extends Plugin {
             file: {
                 input: {type: 'file', accept:'audio/*'}, // Single file only
                 output: {type: 'boolean'},
-                data: [],
+                // data: [],
                 onUpdate: async (user) => {
                     return new Promise(resolve => {
                         if (user.data){
                             this.deinit()
                             let file = user.data
                             if (file instanceof FileList || Array.isArray(file)) file = file[0]
-                            this.ports.file.data = file
-                            this.decodeAudio(this.ports.file.data, () => {
+                            this.props.file = file
+                            this.decodeAudio(this.props.file, () => {
+                                console.log('decoded')
                                 resolve({data: true}) 
                             })
                         }
@@ -64,7 +66,6 @@ export class Audio extends Plugin {
                 // input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => {
-
                     if (user.data){
                         this.triggerAudio()
                     }
@@ -83,7 +84,9 @@ export class Audio extends Plugin {
                     let name = this.ports.file.data.split('/')
                     name = name[name.length -1]
                     let file = new File([blobFile], name)
-                    this.ports.file.onUpdate({data: [file]})
+                    this.ports.file.data = false
+                    this.update('file', {data: [file]})
+                    // this.ports.file.onUpdate({data: [file]})
                 })
             }
 
@@ -124,7 +127,7 @@ export class Audio extends Plugin {
                         this.props.sourceNode.onended = () => {
                             if (this.props.status === 1){
                                 this.endAudio()
-                                this.decodeAudio(this.ports.file.data)
+                                this.decodeAudio(this.props.file)
                             }
                         };
 
@@ -153,7 +156,7 @@ export class Audio extends Plugin {
         if (this.props.sourceNode){
             if (this.props.status === 1){
                 this.deinit()
-                await this.decodeAudio(this.ports.file.data)
+                await this.decodeAudio(this.props.file)
             }
 
             this.props.sourceNode.start(0);

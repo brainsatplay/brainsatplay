@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
+
 const createAppletManifest = () => {
 
 // Generate Applet Manifest
@@ -21,26 +22,21 @@ categories.forEach((category,indOut) => {
       if(fs.existsSync(settingsFile)){
         let data = fs.readFileSync(settingsFile)
         let decoded = data.toString('utf-8')
-          let afterName = decoded.split('"name": ')[1]
-          if (afterName == null) afterName = decoded.split('name: ')[1]
-          let nameStr = afterName.split('\n')[0]
-          let name = nameStr.slice(1,nameStr.lastIndexOf(nameStr[0]))
+
+          let namereg1 =  /['"]?name['"]?:\s*([^\{\,]+)/g;
+          let match = namereg1.exec(decoded);
+          let name = (match == null) ? undefined : eval(match[1])    
+
           appletDict[name] = {}
           appletDict[name].folderUrl = '../../../../../' + dir.split(path.join(__dirname,'/../'))[1]
 
-          let afterDevices = decoded.split('"devices": [')[1]
-          if (afterDevices == null) afterDevices = decoded.split('devices: [')[1]
-          let devicesString1 = afterDevices.split('\n')[0]
-          let deviceSubstring = devicesString1.substring(0,devicesString1.lastIndexOf(']'))
-          let deviceArray = Array.from(deviceSubstring.replace(/'|"|`/g,'').split(','))
-          appletDict[name].devices = deviceArray 
-
-          let afterCategories = decoded.split('"categories": [')[1]
-          if (afterCategories == null) afterCategories = decoded.split('categories: [')[1]
-          let categoryString1 = afterCategories.split('\n')[0]
-          let categorySubstring = categoryString1.substring(0,categoryString1.lastIndexOf(']'))
-          let categoryArray = Array.from(categorySubstring.replace(/'|"|`/g,'').split(','))
-          appletDict[name].categories = categoryArray 
+          let devicereg =  /['"]?devices['"]?:\s*([^\{\]]+)]/g;
+          match = devicereg.exec(decoded);
+          appletDict[name].devices = (match == null) ? undefined : eval(match[1] + ']')
+          
+          let categoryreg =  /['"]?categories['"]?:\s*([^\{\]]+)]/g;
+          match = categoryreg.exec(decoded);
+          appletDict[name].categories = (match == null) ? undefined : eval(match[1] + ']')
       }
       if (indIn === files.length-1) resolve()
       });

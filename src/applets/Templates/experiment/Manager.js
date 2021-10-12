@@ -1,12 +1,12 @@
-class Manager{
+import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
+
+export class Manager extends Plugin{
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(label, session) {
+        super(label, session)
 
-        // Generic Plugin Attributes
-        this.label = label
-        this.session = session
 
         // UI Identifier
         this.props = {
@@ -18,7 +18,7 @@ class Manager{
             experiment: document.createElement('div'),
             cross: document.createElement('p'),
             start: document.createElement('div'),
-            startButton: document.createElement('button'),
+            startButton: null
         }
         
         this.props.container.id = this.props.id
@@ -28,13 +28,6 @@ class Manager{
         this.props.start.innerHTML = `<h2 style="margin: 0px">Alpha Power</h2>`
         this.props.start.innerHTML += `<i style='font-size: 80%'>Eyes Open vs. Eyes Closed</i><br/><br/>`
 
-        this.props.startButton.innerHTML = 'Start Experiment'
-        this.props.startButton.classList.add('brainsatplay-default-button')
-        this.props.startButton.onclick = () => {
-            this.session.graph.runSafe(this,'start', {data: true})
-        }
-
-        this.props.start.insertAdjacentElement('beforeend', this.props.startButton )
         this.props.container.insertAdjacentElement('beforeend', this.props.start)
 
 
@@ -72,7 +65,7 @@ class Manager{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    if (this.props.lastAtlas == null) this.props.startButton.classList.toggle('disabled')
+                    // if (this.props.lastAtlas == null) this.props.startButton.classList.toggle('disabled')
                     this.props.lastAtlas = user.data
                     // this.props.lastAtlas.eeg.forEach(o => {
                     //     console.log(o)
@@ -183,20 +176,36 @@ class Manager{
                     }
                 }
             }, 
+
+            button: {
+                data: null,
+                onUpdate: (user) => {
+                    console.log(user)
+                }
+            },
+
             buttonToggle: {
                 onUpdate: (user) =>{
                     console.log('START')
                     if (user.data){
-                        this.props.startButton.classList.toggle('disabled')
+                        // this.props.startButton.classList.toggle('disabled')
                     }
                 }
             }
         }
     }
 
-    init = () => {}
+    init = () => {
+        if (this.ports.button.data == null) {
+            this.ports.button.data = document.createElement('button')
+            this.ports.button.data.innerHTML = 'Start Experiment'
+        }
+
+        this.ports.button.data.classList.add('brainsatplay-default-button')
+
+        this.props.start.insertAdjacentElement('beforeend', this.ports.button.data )
+    }
 
     deinit = () => {}
 }
 
-export {Manager}

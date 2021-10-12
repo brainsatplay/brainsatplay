@@ -31,6 +31,27 @@ export class Spectrogram extends Plugin {
                     this.props.helper.draw();
                 }
             },
+            atlas: {
+                analysis: ['eegcoherence'],
+                edit: false,
+                input: {type: Object, name: 'DataAtlas'},
+                output: {type: null},
+                onUpdate: (user) => {
+                    user.data.eegshared.eegChannelTags.find((o,i) => {
+                    if(o.ch === 0){ // first channel
+                        let tag = o.tag;
+                        var coord = this.session.atlas.getEEGDataByTag(tag);
+                        if(coord.ffts.length > 1) {
+                            this.props.helper.latestData = [...coord.ffts[coord.ffts.length - 1]];
+                            this.props.helper.draw();
+                        }
+                        return true;
+                    }
+                    });
+                    // this.props.helper.latestData = user.data
+                    // this.props.helper.draw();
+                }
+            },
             element: {
                 data: this.props.canvas,
                 input: {type: null},

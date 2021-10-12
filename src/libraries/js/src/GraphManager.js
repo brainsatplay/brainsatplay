@@ -192,7 +192,7 @@ export class GraphManager{
 
     }
 
-    async addNode(nodeInfo, app){
+    async addNode(nodeInfo, app, runEditor=false){
 
         let appId;
 
@@ -243,11 +243,14 @@ export class GraphManager{
         // Grab Configure Function
         nodeInfo.configure = node.configure
 
-        // Run Init Function and Instantiate External Dependencies
-        await this.setUI(node, nodeInfo)
-
         // Update Event Registry
         this.updateApp(appId)
+
+        // Add to Editor
+        // if (runEditor == true && app?.editor != null) await app.editor.addNode(nodeInfo, true)
+        
+        // Run Init Function and Instantiate External Dependencies
+        await this.setUI(node, nodeInfo)
 
         return nodeInfo
     }
@@ -277,18 +280,6 @@ export class GraphManager{
     updateApp(appId){
         if (this.session.updateApps){
             this.session.updateApps(appId)
-        }
-    }
-
-    getNode(id,name){
-        let appInfo = this.applets[id]
-        if (appInfo){
-            let node = appInfo.nodes.find(n => {
-                if (n.id == name){
-                    return true
-                }
-            })
-            return node.instance
         }
     }
 
@@ -372,20 +363,14 @@ export class GraphManager{
             if (!inputCopy.meta) inputCopy.meta = {}
             if (!internal) inputCopy.meta.source = this.getLabel(node,port) // Add Source to Externally Triggered Updates
             
-            let connected
-            if (node.ports[port].output.active > 0) connected = true
-            if (node.ports[port].input.active > 0) connected = true
-            if (node.ports[port].output.type === null) connected = true
-            if (node.ports[port].input.type === null) connected = true
-
-            // Only Continue the Chain with Updated Data (or when forced) AND When Edges Exist
-
             // console.log('data', 'data' in inputCopy)
             // console.log('forceRun', forceRun)
             // console.log('connected', connected)
             // console.log('forceUpdate', forceUpdate)
 
-            if (('data' in inputCopy || forceRun) && ((connected || forceUpdate))){
+
+            // Run when data exists
+            if (('data' in inputCopy || forceRun)){
                 let result
 
                 if (node.ports[port] && node.ports[port].onUpdate instanceof Function) {
@@ -691,10 +676,15 @@ export class GraphManager{
         return typeDict
     }
 
-    addEdge = (newEdge, appId, sendOutput=true) => {
+    addEdge = (newEdge, appId, sendOutput=true, runEditor=false) => {
 
-        let applet = (typeof appId === 'string') ? this.applets[appId] : appI
-
+        let applet
+        if (typeof appId === 'string'){
+            applet = this.applets[appId]
+        } else {
+            appId = appId.props.id
+            applet = this.applets[appId]
+        }
 
         newEdge = this.convertToStandardEdge(newEdge, this.applets[appId].nodes)
 
@@ -800,8 +790,8 @@ export class GraphManager{
             sP.output.edges.set(label, {node: target, port: tP})
 
 
-            if (tP.input.active && tP.output.active && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
-            if (sP.input.active && sP.output.active && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
+            if ((tP.input.active || tP.input.type === null) && (tP.output.active || tP.output.type === null) && tP.analysis) applet.analysis.dynamic.push(...tP.analysis)
+            if ((sP.input.active || sP.input.type === null) && (sP.output.active || sP.output.type === null) && sP.analysis) applet.analysis.dynamic.push(...sP.analysis)
 
             // Push Edge into Registry
             this.applets[appId].edges.push(newEdge)
@@ -809,6 +799,8 @@ export class GraphManager{
             // Update Applet
             this.updateApp(appId)
 
+            // Add to Editor
+            if (runEditor == true && this.applets[appId]?.editor != null) this.applets[appId].editor.addEdge(newEdge)
 
             let input = source.ports[sourcePort]
 
@@ -900,13 +892,18 @@ export class GraphManager{
         }
     }
 
-    getNode = (uuid,app) => {
-        if (app) {
-            return app.graph.nodes.find(n => {
-                if (n.uuid === uuid) return true
-                
-            });
-        } else return undefined;
+    getNode(id,name){
+        let appInfo = this.applets[id]
+        if (appInfo){
+            let node = appInfo.nodes.find(n => {
+                // TODO: Replace eventually, though this isn't actually known to a user...
+                // if (n.uuid === uuid) return true
+                if (n.id == name){
+                    return true
+                }
+            })
+            return node.instance
+        } else return undefined
     }
 
     getNodes = (nodeType, nodes) => {

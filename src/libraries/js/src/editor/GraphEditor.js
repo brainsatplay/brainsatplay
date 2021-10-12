@@ -869,7 +869,7 @@ export class GraphEditor{
         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
 
         if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = await this.manager.addNode(this.app, nodeInfo)
+        if (skipManager == false) nodeInfo = await this.manager.addNode(nodeInfo, this.app, false)
         if (skipInterface == false) this.app.insertInterface(nodeInfo)
         
         let node = this.graph.addNode(nodeInfo)
@@ -1519,12 +1519,13 @@ export class GraphEditor{
                 if (info && n.class === info.class){
                     // clsInfo.class = n.class
                     let baseClass = this.library.plugins[info.category][clsInfo.name]
+
                     if (info.class != baseClass){
                         info.category = null // 'custom'
                         this.addNodeOption(clsInfo)
                     }
                 } else {
-                    if (info.class == null){
+                    if (info != null && info.class == null){
                         let module = await dynamicImport(info.folderUrl)
                         clsInfo.class = module[info.name]
                         await checkWhere(n, info)

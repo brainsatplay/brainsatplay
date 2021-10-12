@@ -79,7 +79,6 @@ const createPluginManifest = () => {
         do {
           m2 = typereg.exec(decoded);
           if (m2) {
-
             let type = m2[1]              
             types.push(type)
             if (decoded.replaceAll instanceof Function) decoded = decoded.replaceAll(m2[0],"")

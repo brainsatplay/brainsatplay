@@ -602,10 +602,13 @@ export class AppletManager {
                     config = {
                         hide: [],
                         applets: Object.keys(appletManifest).map(async (key) => {
-                            return await getAppletSettings(appletManifest[key].folderUrl)
+                            try {
+                                return await getAppletSettings(appletManifest[key].folderUrl)
+                            } catch {}
                         }),
                         presets: presetManifest
                     }
+
                     Promise.all(config.applets).then((resolved) => {
                         config.applets=resolved
                         resolve(new Application(info, parentNode, this.session, [config]))

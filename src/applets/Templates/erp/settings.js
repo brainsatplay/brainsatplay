@@ -1,6 +1,7 @@
 
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
+import { ERP } from './ERP'
 
 export const settings = {
     name: "ERP Template",
@@ -24,12 +25,54 @@ export const settings = {
       nodes: [
         {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {id: 'manager', class: Manager, params: {}},
+        {id: 'erp', class: ERP, params: {}},
+        {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+
+          html: `<div id="content"></div>`,
+          style: `
+          .brainsatplay-ui-container {
+            width: 100%;
+            height: 100%;
+          }
+
+          #content {
+            width: 100%;
+            height: 100%;
+
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          `
+
+        }},
+
       ],
 
       edges: [
         {
           source: 'eeg:atlas', 
-          target: 'manager:data'
+          target: 'erp:atlas'
+        },
+
+        {
+          source: 'manager:timestamp', 
+          target: 'erp:timestamp'
+        },
+
+        {
+          source: 'erp', 
+          target: 'manager:select'
+        },
+
+        {
+          source: 'manager:element', 
+          target: 'ui:content'
         },
       ]
     },

@@ -103,7 +103,6 @@ export class Blink extends Plugin {
             }
         }
 
-        this.analysis = new Set()
         this.lastBlink = {}
         this.lastBlink.left = Date.now()
         this.lastBlink.right = Date.now()
@@ -113,12 +112,8 @@ export class Blink extends Plugin {
         this.props.looping = true
 
         this.props.dataquality = await this.addNode({id: 'dataquality', class: 'DataQuality', params: {method: 'Mean Amplitude'}})
-        this.analysis.add(...Array.from(this.props.dataquality.analysis))
-
         this.props.canvas = await this.addNode({id: 'canvas', class: 'Canvas'})
-        this.analysis.add(...Array.from(this.props.canvas.analysis))
 
-        this.props.canvas.instance.init()
         this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
         this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
@@ -215,10 +210,13 @@ export class Blink extends Plugin {
 
     _calculateBlink = async (user, tags) => {
         let blink = false
-        this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
+
+       if (this.props.dataquality) {
+           this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
         
-        this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
-        this.props.channelQuality = this.props.channelQuality.data
+            this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
+            this.props.channelQuality = this.props.channelQuality.data
+       }
 
         tags.forEach(tag => {
             let side = this._getTagSide(tag)

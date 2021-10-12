@@ -17,7 +17,7 @@ import { EpocPlugin } from './emotiv/EpocPlugin';
 
 
 export const deviceList = [
-    {'name': 'Synthetic', id:'synthetic', company:'Brains@Play', analysis: ['eegcoherence'], cls: syntheticPlugin},
+    {'name': 'Synthetic', id:'synthetic', company:'Brains@Play', variants: ['EEG','HEG'], analysis: ['eegcoherence'], cls: syntheticPlugin},
     {'name': 'Brainstorm', id:'brainstorm',company:'Brains@Play', analysis: ['eegcoherence'], cls: brainstormPlugin},
     {'name': 'Cortex API', id:'cortex', company:'Emotiv', analysis: ['eegcoherence'], cls: EpocPlugin},
     {'name': 'Notion', id:'notion', company:'Neurosity', analysis: ['eegcoherence'], cls: notionPlugin},
