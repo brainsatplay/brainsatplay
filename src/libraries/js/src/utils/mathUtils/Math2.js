@@ -6,20 +6,20 @@
  * We'll add more useful static things like filter kernels etc. as we get to making them.
  * 
  * //Just type these and the variable inputs that pop up should be easy to follow. Everything is commented otherwise till we document it
- * genSineWave()
- * getSineAmplitude()
- * mean()
- * mode()
- * std()
- * relError()
- * informationEntropy()
- * zscore()
- * variance()
- * dot()
- * cross3D()
- * magnitude()
- * distance()
- * normalize()
+ * genSineWave() //generate a sine wave
+ * getSineAmplitude() //get amplitude of a sine at time t
+ * mean() //array mean
+ * mode() //array mode
+ * std() //standard dev
+ * relError() //relative error
+ * informationEntropy() //trying to build a maxent distribution off of this stuff
+ * zscore() //array z score
+ * variance() //variance
+ * dot() //dot product
+ * cross3D() //3d cross product
+ * magnitude() //vector magnitude
+ * distance() //distance function p1-p2
+ * normalize() //array normalization
  * newtonsMethod() //root approximation
  * integral() //1d integral
  * dintegral() //2d integral
@@ -27,39 +27,39 @@
  * pintegral() //2d path integral
  * makeVec() 
  * transpose(mat) //2d mat transpose
- * matmul(a,b)
+ * matmul(a,b) 
  * matscale(mat,scalar)
  * matadd(a,b)
  * matsub(a,b)
- * normalDistribution(samples=[], normalize=true)
- * expectedValue(samples=[],probabilities=this.normalDistribution(samples))
- * originMoment(samples=[],probabilities=this.normalDistribution(samples),order=1)
- * centralMoment(samples=[],probabilities=this.normalDistribution(samples),order=1)
- * linearDiscriminantAnalysis(samples=[], classifier=[])
- * cov2d(mat)
- * conv1D(arr=[],kern=[],pad=0)
- * conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0)
- * cov1d(arr1=[],arr2=[])
- * cov3d(x=[],y=[],z=[])
- * covNd(dimensionalData=[])
- * eigens2x2(mat=[[1,2],[3,4]])
- * eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2])
- * fastpca2d(xarr,yarr)
- * crosscorrelation(arr1,arr2)
- * autocorrelation(arr1)
- * correlograms(dat=[[],[]])
- * sma(arr=[], window)
- * sum(arr=[])
- * reduceArrByFactor(arr,factor=2)
- * makeArr(startValue, stopValue, nSteps)
- * interpolateArray(data, fitCount, scalar=1)
+ * normalDistribution(samples=[], normalize=true) //create a norall (gaussian) distribution
+ * expectedValue(samples=[],probabilities=this.normalDistribution(samples)) //get expected value of an array
+ * originMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) //statistical moment about origin
+ * centralMoment(samples=[],probabilities=this.normalDistribution(samples),order=1) //statistical moment about mean
+ * linearDiscriminantAnalysis(samples=[], classifier=[]) //LDA
+ * conv1D(arr=[],kern=[],pad=0) //1d convolution //1d convolution
+ * conv2D(mat=[[],[],[]],kern=[[],[],[]],pad=0) //2d convolution
+ * cov2d(mat) //2d covariance
+ * cov1d(arr1=[],arr2=[]) //1d covariance
+ * cov3d(x=[],y=[],z=[]) //3d covariance
+ * covNd(dimensionalData=[]) //nd covariance
+ * eigens2x2(mat=[[1,2],[3,4]]) //fast 2x2 eigenvalue 
+ * eigenvectors2x2(mat=[[1,2],[3,4]], eigens=[1,2]) //fast 2x2 eigenvector 
+ * fastpca2d(xarr,yarr) //fast 2d pca
+ * crosscorrelation(arr1,arr2) //crosscor
+ * autocorrelation(arr1) //autocor
+ * correlograms(dat=[[],[]]) //return cross correlations of many signals
+ * sma(arr=[], window) //simple moving average 
+ * sum(arr=[]) //array sum
+ * reduceArrByFactor(arr,factor=2) //reduce array sizes
+ * makeArr(startValue, stopValue, nSteps) //linspace
+ * interpolateArray(data, fitCount, scalar=1) 
  * isExtrema(arr,critical='peak') //peak or valley
  * isCriticalPoint(arr,critical='peak') //peak, valley
  * peakDetect = (smoothedArray,type='peak',window=49) //wider window to find less peaks
  * getPeakThreshold(arr, peakIndices, thresholdVar)
  * 
  * eigens(M=[[],[]], tolerance=0.0001, max_iterations=1000)
- * pca(mat=[[],[]],tolerance = 0.00001) //power iteration method, inp
+ * pca(mat=[[],[]],tolerance = 0.00001) //power iteration method PCA
  * eigenvalue_of_vector(mat, eigenvector)
  * power_iteration(mat, tolerance=0.00001, max_iterations=1000)
  * squared_difference(v1, v2)
@@ -502,58 +502,6 @@ export class Math2 {
 		return dk;
 	}
 
-
-	//2D matrix covariance (e.g. for lists of signals). Pretty fast!!!
-	static cov2d(mat) { //[[x,y,z,w],[x,y,z,w],...] input list of vectors of the same length
-		//Get variance of rows and columns
-		//console.time("cov2d");
-		var mattransposed = this.transpose(mat);
-		//console.log(mattransposed)
-		var matproducts = [];
-
-		var rowmeans = [];
-		var colmeans = [];
-
-		mat.forEach((row, idx) => {
-			rowmeans.push(this.mean(row));
-		});
-
-		mattransposed.forEach((col,idx) => {
-			colmeans.push(this.mean(col));
-		});
-
-		mat.forEach((row,idx) => {
-			matproducts.push([]);
-			for(var col = 0; col < row.length; col++){
-				matproducts[idx].push((mat[idx][col]-rowmeans[idx])*(mat[idx][col]-colmeans[col])/(row.length - 1));
-			}
-		});
-
-		/*
-			mat[y][x] = (x - rowAvg)*(x - colAvg) / (mat[y].length - 1);
-		*/
-
-		//console.log(matproducts);
-		//Transpose matrix
-		var matproductstransposed = this.transpose(matproducts);
-
-		//Matrix multiplication, stolen from: https://stackoverflow.com/questions/27205018/multiply-2-matrices-in-javascript
-		var aNumRows = matproducts.length, aNumCols = matproducts[0].length,
-			bNumRows = matproductstransposed.length, bNumCols = matproductstransposed[0].length,
-			m = new Array(aNumRows);  // initialize array of rows
-		for (var r = 0; r < aNumRows; ++r) {
-		  m[r] = new Array(bNumCols); // initialize the current row
-		  for (var c = 0; c < bNumCols; ++c) {
-			m[r][c] = 0;             // initialize the current cell
-			for (var i = 0; i < aNumCols; ++i) {
-			  m[r][c] += matproducts[r][i] * matproductstransposed[i][c] / (mat[0].length - 1); //divide by row length - 1
-			}
-		  }
-		}
-		//console.timeEnd("cov2d");
-		return m; //Covariance matrix
-	}
-
 	//1D convolution (filtering)
 	static conv1D(arr=[],kern=[1/3,1/3,1/3],pad=Math.floor(kern.length*0.5)) {
 		let result = [];
@@ -636,6 +584,57 @@ export class Math2 {
 		return result;
 
 	}	
+
+	//2D matrix covariance (e.g. for lists of signals). Pretty fast!!!
+	static cov2d(mat) { //[[x,y,z,w],[x,y,z,w],...] input list of vectors of the same length
+		//Get variance of rows and columns
+		//console.time("cov2d");
+		var mattransposed = this.transpose(mat);
+		//console.log(mattransposed)
+		var matproducts = [];
+
+		var rowmeans = [];
+		var colmeans = [];
+
+		mat.forEach((row, idx) => {
+			rowmeans.push(this.mean(row));
+		});
+
+		mattransposed.forEach((col,idx) => {
+			colmeans.push(this.mean(col));
+		});
+
+		mat.forEach((row,idx) => {
+			matproducts.push([]);
+			for(var col = 0; col < row.length; col++){
+				matproducts[idx].push((mat[idx][col]-rowmeans[idx])*(mat[idx][col]-colmeans[col])/(row.length - 1));
+			}
+		});
+
+		/*
+			mat[y][x] = (x - rowAvg)*(x - colAvg) / (mat[y].length - 1);
+		*/
+
+		//console.log(matproducts);
+		//Transpose matrix
+		var matproductstransposed = this.transpose(matproducts);
+
+		//Matrix multiplication, stolen from: https://stackoverflow.com/questions/27205018/multiply-2-matrices-in-javascript
+		var aNumRows = matproducts.length, aNumCols = matproducts[0].length,
+			bNumRows = matproductstransposed.length, bNumCols = matproductstransposed[0].length,
+			m = new Array(aNumRows);  // initialize array of rows
+		for (var r = 0; r < aNumRows; ++r) {
+		  m[r] = new Array(bNumCols); // initialize the current row
+		  for (var c = 0; c < bNumCols; ++c) {
+			m[r][c] = 0;             // initialize the current cell
+			for (var i = 0; i < aNumCols; ++i) {
+			  m[r][c] += matproducts[r][i] * matproductstransposed[i][c] / (mat[0].length - 1); //divide by row length - 1
+			}
+		  }
+		}
+		//console.timeEnd("cov2d");
+		return m; //Covariance matrix
+	}
 
 
 	//Covariance between two 1D arrays
