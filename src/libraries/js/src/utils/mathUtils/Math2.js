@@ -557,6 +557,7 @@ export class Math2 {
 	//1D convolution (filtering)
 	static conv1D(arr=[],kern=[1/3,1/3,1/3],pad=Math.floor(kern.length*0.5)) {
 		let result = [];
+		let _n = 1/kern.length;
 
 		if(pad > 0) {
 			let pads = new Array(pad).fill(0);
@@ -571,7 +572,7 @@ export class Math2 {
 			for(let j = 0; j < kern.length; j++) {
 				acc += arr[i-start] * kern[j];
 			}
-			result.push(acc);
+			result.push(acc* _n);
 		}
 
 		return result;
@@ -608,6 +609,8 @@ export class Math2 {
 		let endr = mat[0].length - kern[0].length + startr; //row end
 		let endl = mat_t[0].length - kern_t[0].length + startl; //column end
 
+		let _n = 1/(kern[0].length*kern_t[0].length);
+
 		let iters = endr*endl; //number of convolutions to perform
 
 		let i = startr;
@@ -624,7 +627,7 @@ export class Math2 {
 					acc += mat[y-startl+k][x-startr+j] * kern[k][j];
 				}
 
-				result[y].push(acc);
+				result[y].push(acc*_n);
 			}
 			
 			i++;
