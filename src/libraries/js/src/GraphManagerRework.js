@@ -3,30 +3,52 @@ import { WorkerManager } from "./utils/workers/Workers";
 
 /*
 .Applet {
-  .devices[]
+  .devices []
   .graph {
+    .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
+        .addEvent(name)
+        .subEvent(name,port)
+        .unsubEvent(name,port)
+    }
     .nodes[0] {
-      .plugins[0] { 
+      .plugins[] { 
         .oninput(in) {
             if(nodegraph) 
-              call pluginsgraph.plugins[0].oninput(in) return result; //i.e. recursive graphs
-            else if (pluginsfunction) call nodefunction(in) return result;
+              call pluginsgraph.plugins[0].oninput(in) return {result}; //i.e. recursive graphs. Graphs may allow asynchronous actions via events
+            else if (pluginsfunction) call nodefunction(in) return {result}; //should return objects with the port names to output to.   
          }
-        .ports{ define node (outer) i/o}
+        .ports[] { 
+            define node (outer) i/o
+        }
+        .addPort()
+        .removePort()
+        .wires[]{
+            connect plugin port (outer) i/o to graph i/o (inner) if using a graph plugin
+        }
+        .addWire()
+        .removeWire()
       } 
       .ports[] {
         define plugin (outer) i/o
       }  
+      .addPort()
+      .removePort()
       .wires[] { 
         connect node (inner) i/o
       }
+      .addWire()
+      .removeWire()
     }
     .ports[] {
       define graph (outer) i/o
     }
+    .addPort()
+    .removePort()
     .wires[] {
       connect plugin (inner) i/o
     }
+    .addWire()
+    .removeWire()
   }
 }
 */
