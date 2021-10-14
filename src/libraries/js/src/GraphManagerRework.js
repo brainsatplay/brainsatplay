@@ -4,7 +4,7 @@ import { WorkerManager } from "./utils/workers/Workers";
 /* proposed structure for runtime graphs
 .Applet {
   .devices []
-  .graph {
+  .graphs[] {
         .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
             .addEvent(name,props) //will want to have multiple i/o definable as props
             .subEvent(name,port)
