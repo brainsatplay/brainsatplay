@@ -9,7 +9,7 @@ import expandSVG from '../../assets/expand-arrows-alt-solid.svg'
 
 import {handleAuthRedirect} from '../../../libraries/js/src/ui/login'
 
-import {Application} from '../../../libraries/js/src/Application'
+import {App} from '../../../libraries/js/src/App'
 import { Dropdown } from "../../../libraries/js/src/ui/Dropdown";
 //By Garrett Flynn, Joshua Brewster (GPL)
 
@@ -399,7 +399,7 @@ export class AppletManager {
                             }
                         }},
                         {header: 'options-menu', content: `<div class="toggle"><img src="${nodeSVG}"></div><p>Edit</p>`, id:"brainsatplay-visual-editor", onload: (el)=> {                    
-                            if (!(appnode.classinstance instanceof Application)) el.style.display = 'none'
+                            if (!(appnode.classinstance instanceof App)) el.style.display = 'none'
                         }, onclick: (el) => {
                             console.error('toggling')
                         }},
@@ -430,7 +430,7 @@ export class AppletManager {
         
                                             Promise.all(config.applets).then((resolved) => {
                                                 config.applets=resolved
-                                                let instance  = new Application(browser, appletMask, this.session, [config])
+                                                let instance  = new App(browser, appletMask, this.session, [config])
 
                                               // FIX
                                                 instance.init()
@@ -597,7 +597,7 @@ export class AppletManager {
 
         return new Promise(resolve => {
             let parentNode = document.getElementById("applets")
-            if (appletCls === Application){
+            if (appletCls === App){
                 if (info.name === 'Applet Browser'){
                     config = {
                         hide: [],
@@ -611,10 +611,10 @@ export class AppletManager {
 
                     Promise.all(config.applets).then((resolved) => {
                         config.applets=resolved
-                        resolve(new Application(info, parentNode, this.session, [config]))
+                        resolve(new App(info, parentNode, this.session, [config]))
                     })
                 } else {
-                    resolve(new Application(info, parentNode, this.session, config))
+                    resolve(new App(info, parentNode, this.session, config))
                 }
             } else {
                 resolve(new appletCls(parentNode, this.session, config))

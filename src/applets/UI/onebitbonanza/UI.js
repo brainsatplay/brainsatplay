@@ -1,7 +1,7 @@
 import logo from '../../../platform/assets/logo_and_sub(v3).png'
 import nasa from '../../../platform/assets/nasa.jpg'
 import {appletManifest} from '../../../platform/appletManifest'
-import {Application} from '../../../libraries/js/src/Application'
+import {App} from '../../../libraries/js/src/App'
 
 import { getApplet, getAppletSettings} from "../../../libraries/js/src/utils/general/importUtils"
 
@@ -117,9 +117,9 @@ class UI{
 
     _createInstance = (appletCls, info=undefined) => {
         let parentNode = document.getElementById(`${this.props.id}-applet`)
-        if (appletCls === Application){
+        if (appletCls === App){
             delete info.intro // Never show intro
-            return new Application(info, parentNode, this.session, [])
+            return new App(info, parentNode, this.session, [])
         } else {
             return new appletCls(parentNode, this.session, [])
         }

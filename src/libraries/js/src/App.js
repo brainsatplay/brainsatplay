@@ -2,7 +2,7 @@ import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
 import './ui/styles/defaults.css'
 
-export class Application{
+export class App{
     constructor(
         info={},
         parent=document.body,

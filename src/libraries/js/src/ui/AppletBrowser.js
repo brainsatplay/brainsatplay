@@ -1,6 +1,6 @@
 import { Train } from '../plugins/machinelearning/Train'
 import { UI } from '../plugins/interfaces/UI'
-import { Application } from '../Application'
+import { App } from '../App'
 import {createCards} from './browserUtils'
 
 //Example Applet for integrating with the UI Manager
@@ -165,7 +165,7 @@ export class AppletBrowser {
             settings.graph.edges.push({ source: `${mode}:element`, target: `${mode}ui:content` })
         })
 
-        this.props.trainingModule = new Application(settings, trainingContainer, this.session)
+        this.props.trainingModule = new App(settings, trainingContainer, this.session)
         this.props.trainingModule.init()
         trainingContainer.style.padding = 0
     }

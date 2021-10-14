@@ -60,7 +60,7 @@ import { EventRouter } from './EventRouter'
 import { DataManager } from './utils/DataManager'
 
 // Project Manager
-import { Application } from './Application'
+import { App } from './App'
 import { ProjectManager } from './utils/ProjectManager'
 import { NotificationManager } from './ui/NotificationManager'
 import { StorageManager } from './StorageManager'
@@ -1376,7 +1376,7 @@ else {
 
 	// App Management
 	initApp(settings, parentNode=document.body, session=this, config=[]){
-		return new Application(settings, parentNode, session, config)
+		return new App(settings, parentNode, session, config)
 	}
 
 
