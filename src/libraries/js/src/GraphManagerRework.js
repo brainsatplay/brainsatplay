@@ -10,7 +10,7 @@ import { WorkerManager } from "./utils/workers/Workers";
         .subEvent(name,port)
         .unsubEvent(name,port)
     }
-    .nodes[0] {
+    .nodes[] {
       .plugins[] { 
         .oninput(in) {
             if(nodegraph) 
