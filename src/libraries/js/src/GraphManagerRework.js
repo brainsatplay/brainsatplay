@@ -5,47 +5,47 @@ import { WorkerManager } from "./utils/workers/Workers";
 .Applet {
   .devices []
   .graph {
-    .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
-        .addEvent(name,props) //will want to have multiple i/o definable as props
-        .subEvent(name,port)
-        .unsubEvent(name,port)
-    }
-    .nodes[] {
-      .plugins[] { 
-        .oninput(in) {
-            if(nodegraph) 
-              call pluginsgraph.plugins[0].oninput(in) return {result}; //i.e. recursive graphs. Graphs may allow asynchronous actions via events
-            else if (pluginsfunction) call nodefunction(in) return {result}; //should return objects with the port names to output to.   
-         }
-        .ports[] { 
-            define node (outer) i/o
+        .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
+            .addEvent(name,props) //will want to have multiple i/o definable as props
+            .subEvent(name,port)
+            .unsubEvent(name,port)
         }
-        .addPort()
-        .removePort()
-        .wires[]{
-            connect plugin port (outer) i/o to graph i/o (inner) if using a graph plugin
+        .nodes[] {
+            .plugins[] { 
+                .oninput(in) {
+                    if(nodegraph) 
+                    call pluginsgraph.plugins[0].oninput(in) return {result}; //i.e. recursive graphs. Graphs may allow asynchronous actions via events
+                    else if (pluginsfunction) call nodefunction(in) return {result}; //should return objects with the port names to output to.   
+                }
+                .ports[] { 
+                    define plugin (outer) i/o
+                }
+                .addPort()
+                .removePort()
+                .wires[]{
+                    connect plugin port (outer) i/o to graph i/o (inner) if using a graph plugin
+                }
+                .addWire()
+                .removeWire()
+            } 
+            .ports[] {
+                define plugin (outer) i/o
+            }  
+            .addPort()
+            .removePort()
+            .wires[] { 
+                connect node (inner) i/o
+            }
+            .addWire()
+            .removeWire()
         }
-        .addWire()
-        .removeWire()
-      } 
-      .ports[] {
-        define plugin (outer) i/o
-      }  
-      .addPort()
-      .removePort()
-      .wires[] { 
-        connect node (inner) i/o
-      }
-      .addWire()
-      .removeWire()
-    }
     .ports[] {
-      define graph (outer) i/o
+        define graph (outer) i/o, mainly for nested graphs
     }
     .addPort()
     .removePort()
     .wires[] {
-      connect plugin (inner) i/o
+        connect node (inner) i/o
     }
     .addWire()
     .removeWire()
@@ -81,11 +81,15 @@ class GraphEventManager {
                 }
             }
         } 
+
+        this.events = new Map();
     }
 
-    subEvent(workerIdx=0,foo='') {  
+    addEvent(name, props) {}
 
-    }
+    subEvent(name, port) {}
+
+    removeEvent(name, port) {}
 
     workerCallback = (msg) => {
 
