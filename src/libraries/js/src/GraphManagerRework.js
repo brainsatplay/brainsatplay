@@ -10,6 +10,12 @@ import { WorkerManager } from "./utils/workers/Workers";
             .addEvent(name,props) //will want to have multiple i/o definable as props
             .subEvent(name,port)
             .unsubEvent(name,port)
+            .ports[] {
+                define event inputs or outputs
+            }
+            .wires[] {
+                connected nodes/plugins/graphs to specific ports
+            }
         }
         .nodes[] { //nodes can be made of one or many plugins or just define raw functionality (e.g. logic, switches, loops)
             .plugins[] { //two plugin modes: function or nested graph with more nodes and plugins
