@@ -280,8 +280,7 @@ export class Math2 {
         })
         return Math.sqrt(dsqrd);
     }
-	stati
-	c normalize(vec) { //nDimensional vector normalization
+	static normalize(vec) { //nDimensional vector normalization
         var norm = 0;
         norm = this.magnitude(vec);
         var vecn = [];
