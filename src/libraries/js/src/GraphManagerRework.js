@@ -1,7 +1,7 @@
 import { StateManager } from "./ui/StateManager";
 import { WorkerManager } from "./utils/workers/Workers";
 
-/* proposed structure
+/* proposed structure for runtime graphs
 .Applet {
   .devices []
   .graph {
@@ -10,40 +10,50 @@ import { WorkerManager } from "./utils/workers/Workers";
             .subEvent(name,port)
             .unsubEvent(name,port)
         }
-        .nodes[] {
-            .plugins[] { 
+        .nodes[] { //nodes can be made of one or many plugins
+            .plugins[] { //two plugin modes: function or nested graph
                 .oninput(in) {
                     if(nodegraph) 
                     call pluginsgraph.plugins[0].oninput(in) return {result}; //i.e. recursive graphs. Graphs may allow asynchronous actions via events
                     else if (pluginsfunction) call nodefunction(in) return {result}; //should return objects with the port names to output to.   
                 }
+                //graph stuff if graph
+                //function stuff if function
                 .ports[] { 
                     define plugin (outer) i/o
                 }
                 .addPort()
                 .removePort()
+
                 .wires[]{
                     connect plugin port (outer) i/o to graph i/o (inner) if using a graph plugin
                 }
                 .addWire()
                 .removeWire()
             } 
+            .addPlugin()
+            .removePlugin()
+
             .ports[] {
                 define plugin (outer) i/o
             }  
             .addPort()
             .removePort()
+
             .wires[] { 
                 connect node (inner) i/o
             }
             .addWire()
             .removeWire()
         }
+        .addNode()
+        .removeNode()
     .ports[] {
         define graph (outer) i/o, mainly for nested graphs
     }
     .addPort()
     .removePort()
+
     .wires[] {
         connect node (inner) i/o
     }
@@ -51,6 +61,12 @@ import { WorkerManager } from "./utils/workers/Workers";
     .removeWire()
   }
 }
+
+Other considerations: 
+ - Clear Entry and exit points. i.e. Create templates for frame loops, thread event updates, or otherwise plugins set to run on intervals
+        - this creates a crystal clear flowgraph hierarchy.
+ - Multithreading-native, so any plugins without DOM or other main thread-only requirements can work in worker threads
+ - Clear as crystal data structures = no head scratching ONLY MOARR POWAAAA
 */
 
 //multithreaded event manager, spawn one per thread and import a single instance elsewhere.
