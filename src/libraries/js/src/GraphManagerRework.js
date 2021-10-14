@@ -24,6 +24,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
                 .ports[] { 
                     define plugin (outer) i/o
+                    .get() //check wire to set input port
+                    .set() //set output port
                 }
                 .addPort()
                 .removePort()
@@ -41,6 +43,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
             .ports[] {
                 define plugin (outer) i/o
+                .get() //check wire to set input port
+                .set() //set output port
             }  
             .addPort()
             .removePort()
@@ -58,6 +62,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
     .ports[] {
         define graph (outer) i/o, mainly for nested graphs
+        .get() //check wire to set input port
+        .set() //set output port
     }
     .addPort()
     .removePort()
