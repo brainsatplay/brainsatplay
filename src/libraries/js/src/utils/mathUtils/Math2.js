@@ -1094,4 +1094,9 @@ export class Math2 {
 
 	//-------------------------------------------------------------
 
+	static p300(raw_signal=[],signal_timestamps=[],event_timestamps=[]) {
+		
+
+	}
+
 }

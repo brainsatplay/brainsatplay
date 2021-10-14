@@ -43,7 +43,8 @@ export class WorkerManager {
 
               var msg = ev.data;
               this.workerResponses.forEach((foo,i) => {
-                  foo(msg);
+                if(typeof foo === 'object') foo.callback(msg);
+                else if (typeof foo === 'function') foo(msg);
               });
           };
 
@@ -54,6 +55,23 @@ export class WorkerManager {
           console.log("worker threads: ", this.workers.length)
           return id; //worker id
         }
+    }
+
+    addCallback(name='',callback=(msg)=>{}) {
+      if(name.length > 0 && !this.workerResponses.find((o)=>{if(typeof o === 'object') {if(o.name === name) return true;}})) {
+        this.workerResponses.push({name:'',callback:callback});
+      }
+    }
+
+    removeCallback(nameOrIdx='') {
+      if(nameOrIdx.length > 0) {
+        let idx;
+        if(this.workerResponses.find((o,i)=>{if(typeof o === 'object') {if(o.name === nameOrIdx) { idx = i; return true;}}})) {
+          this.workerResponses.splice(idx,1);
+        }
+      } else if (typeof nameOrIdx === 'number') {
+        this.workerResponses.splice(nameOrIdx,1);
+      }
     }
 
     postToWorker = (input, id = null, transfer=undefined) => {
@@ -111,24 +129,6 @@ class dummyWorker {
 
         this.manager = new CallbackManager()
 
-        this.parseFunctionFromText = (method) => {
-          //Get the text inside of a function (regular or arrow);
-          let getFunctionBody = (methodString) => {
-            return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
-          }
-        
-          let getFunctionHead = (methodString) => {
-            return methodString.slice(0,methodString.indexOf('{') + 1);
-          }
-        
-          let newFuncHead = getFunctionHead(method);
-          let newFuncBody = getFunctionBody(method);
-        
-          let newFunc = eval(newFuncHead+newFuncBody+"}");
-        
-          return newFunc;
-        
-        }
     }
 
     postMessage=(input)=>{
