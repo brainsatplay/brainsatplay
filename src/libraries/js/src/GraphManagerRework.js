@@ -6,7 +6,7 @@ import { WorkerManager } from "./utils/workers/Workers";
   .devices []
   .graph {
     .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
-        .addEvent(name)
+        .addEvent(name,props) //will want to have multiple i/o definable as props
         .subEvent(name,port)
         .unsubEvent(name,port)
     }
