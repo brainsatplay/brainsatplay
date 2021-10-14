@@ -3,16 +3,16 @@ import { WorkerManager } from "./utils/workers/Workers";
 
 /* proposed structure for runtime graphs
 .Applet {
-  .session
+  .session {}
   .devices []
-  .graphs[] {
+  .graphs[] { //graphs will get device data to pass to nodes when released (e.g. animation graph or a thread algorithm graph with async timings). 
         .events[] { //multithreaded events, these are just discontinuous graph i/o but allow cross-threaded nodes
             .addEvent(name,props) //will want to have multiple i/o definable as props
             .subEvent(name,port)
             .unsubEvent(name,port)
         }
-        .nodes[] { //nodes can be made of one or many plugins
-            .plugins[] { //two plugin modes: function or nested graph
+        .nodes[] { //nodes can be made of one or many plugins or just define raw functionality (e.g. logic, switches, loops)
+            .plugins[] { //two plugin modes: function or nested graph with more nodes and plugins
                 .oninput(in) {
                     if(nodegraph) 
                     call pluginsgraph.plugins[0].oninput(in) return {result}; //i.e. recursive graphs. Graphs may allow asynchronous actions via events
@@ -20,6 +20,8 @@ import { WorkerManager } from "./utils/workers/Workers";
                 }
                 //graph stuff if graph
                 //function stuff if function
+                .props {}
+
                 .ports[] { 
                     define plugin (outer) i/o
                 }
@@ -35,6 +37,8 @@ import { WorkerManager } from "./utils/workers/Workers";
             .addPlugin()
             .removePlugin()
 
+            .props {}
+
             .ports[] {
                 define plugin (outer) i/o
             }  
@@ -49,6 +53,9 @@ import { WorkerManager } from "./utils/workers/Workers";
         }
         .addNode()
         .removeNode()
+
+    .props {} //have ports get and set these porpe
+
     .ports[] {
         define graph (outer) i/o, mainly for nested graphs
     }
