@@ -138,15 +138,13 @@ class App {
             sessionId: null, // Track Brainstorm sessions
         };
 
-
-
-        // SETTINGS -> GRAPH
-        if (!('graphs' in this.settings)) this.settings.graphs = [] // create graph array
-        if ('graph' in this.settings) this.settings.graphs.push(this.settings.graph) // push single graph
+        // INFO -> GRAPH
+        if (!('graphs' in this.info)) this.info.graphs = [] // create graph array
+        if ('graph' in this.info) this.info.graphs.push(this.info.graph) // push single graph
     }
 
     init = () => {
-        this.settings.graphs.forEach(g => this.addGraph) // initialize all graphs
+        this.info.graphs.forEach(g => this.addGraph) // initialize all graphs
     }
 
     addGraph = (name='') => {
