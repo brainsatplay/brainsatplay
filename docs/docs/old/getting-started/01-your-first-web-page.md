@@ -110,7 +110,7 @@ As Brains@Play is modular, we've imported the `index.js` file as a **module**. T
 Now let's open our `index.js` file and embed an empty Brains@Play application into our document.
 
 ``` javascript title="index.js"
-let app =  new brainsatplay.Application() // Create an app
+let app =  new brainsatplay.App() // Create an app
 app.init() // Initialize the app and add it to the HTML document
 ```
 

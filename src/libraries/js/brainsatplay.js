@@ -14,8 +14,8 @@ export {plugins}
 // Session Manager
 export {Session} from './src/Session.js'
 
-// Application
-export {Application} from './src/Application.js'
+// App
+export {App} from './src/App.js'
 
 // export * from './src/analysis/Math2'
 

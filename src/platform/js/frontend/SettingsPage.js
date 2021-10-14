@@ -1,7 +1,7 @@
 
 import { Page } from './Page';
 import { settings } from '../../../applets/UI/profile/settings.js';
-import { Application } from '../../../libraries/js/brainsatplay';
+import { App } from '../../../libraries/js/brainsatplay';
 import { Debug } from '../../../libraries/js/src/plugins/debug';
 
 export class SettingsPage extends Page{
@@ -25,7 +25,7 @@ export class SettingsPage extends Page{
         // Create Profile Page
         // this._addSubPage('Profile')
         // settings.connect = {toggle: 'device-menu'}
-        // this.profileApp = new Application(settings, this.subpages.get('Profile'), this.session)
+        // this.profileApp = new App(settings, this.subpages.get('Profile'), this.session)
         // this.profileApp.init()
 
 

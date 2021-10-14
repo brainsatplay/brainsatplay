@@ -106,7 +106,7 @@ export class ProjectManager {
 }`)
 
         this.helper.file("index.js", `import {settings} from './app/settings.js'
-let app =  new brainsatplay.Application(settings)
+let app =  new brainsatplay.App(settings)
 app.init()`)
 
 
@@ -162,7 +162,7 @@ app.init()`)
                     <script src="${cdnLink}"></script>
                     <script type="module">
                         ${combined}
-                        let app =  new brainsatplay.Application(settings);
+                        let app =  new brainsatplay.App(settings);
                         app.init();
                     </script>
                 </head>
