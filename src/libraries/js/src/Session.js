@@ -1733,6 +1733,7 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 		// Override App Settings with Configuration Settings
+		console.log(applet.info.intro)
 		if (applet.info.intro == null){
 			onsuccess()
 		} else {

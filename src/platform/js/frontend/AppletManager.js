@@ -360,7 +360,7 @@ export class AppletManager {
     }
 
     setAppletDefaultUI = (appnode) => {
-        let manager = appnode.classinstance.AppletHTML ?? appnode.classinstance.ui.manager
+        let manager = appnode.classinstance.AppletHTML ?? appnode.classinstance.ui?.manager
 
         if (manager){
         let appletDiv = manager.node
@@ -581,11 +581,11 @@ export class AppletManager {
         // Assign applets to proper areas
         await Promise.all(this.applets.map(async (applet, i) => {
             if (applet.classinstance != null) {
-                let manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui.manager
+                let manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui?.manager
                 if (manager === null || manager === undefined) { 
                     await applet.classinstance.init(); 
                 }
-                manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui.manager
+                manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui?.manager
                 let appletDiv = (manager) ? manager.node : document.createElement('div');
                 appletDiv.name = applet.name
             }

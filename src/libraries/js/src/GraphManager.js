@@ -165,7 +165,7 @@ export class GraphManager{
     }
 
     _resizeAllNodeFragments = (appId) => {
-        console.log('trying to resize all')
+        console.error('trying to resize all')
         let app =  this.applets[appId]
         if (app){
             let funcs = []

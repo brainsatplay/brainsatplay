@@ -90,7 +90,7 @@ export class App {
         // ------------------- SETUP -------------------
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parentNode; // where to place the container
-        console.log(info)
+        info = this._copySettingsFile(info) // ensure that settings files do not overlap
         this.info = this.parseSettings(info) // parse settings (accounting for stringified functions)
         this.settings = settings // 
     }
@@ -149,6 +149,33 @@ export class App {
 
         // Reinitialize App
         this.init()
+    }
+
+    updateGraph(){
+        let copiedSettings = this._copySettingsFile({graphs: this.info.graphs})
+        this.info.graphs = copiedSettings.graphs // Replace settings
+    }
+
+    _copySettingsFile(info){
+        info = Object.assign({}, info)
+        let keys = ['nodes','edges']
+        info.graphs = [...info.graphs.map(g => Object.assign({}, g))]
+
+        info.graphs.forEach(g => {
+            keys.forEach(k => {
+                if (g[k]){
+                    g[k] = [...g[k]]
+                    g[k].forEach(o => {
+                        o = Object.assign({}, o)
+                        for (let key in o){
+                            if (o[key] === Object) o[key] = Object.assign({}, o[key])
+                        }
+                    })
+                }
+            })
+        })
+
+        return info
     }
 
     // ------------------- GRAPH UTILITIES -------------------
@@ -363,21 +390,21 @@ export class App {
 //             this.graph.nodes.forEach(n => {if ( n.fragment) {n.fragment.deleteNode()}})
 //         }
 
-//         _copySettingsFile(info){
-//             info = Object.assign({}, info)
-//             let keys = ['nodes','edges']
-//             info.graph = Object.assign({}, info.graph)
-//             keys.forEach(k => {
-//                 if (info.graph[k]){
-//                     info.graph[k] = [...info.graph[k]]
-//                     info.graph[k].forEach(o => {
-//                         o = Object.assign({}, o)
-//                         for (let key in o){
-//                             if (o[key] === Object) o[key] = Object.assign({}, o[key])
-//                         }
-//                     })
-//                 }
-//             })
-//             return info
-//         }
+        // _copySettingsFile(info){
+        //     info = Object.assign({}, info)
+        //     let keys = ['nodes','edges']
+        //     info.graph = Object.assign({}, info.graph)
+        //     keys.forEach(k => {
+        //         if (info.graph[k]){
+        //             info.graph[k] = [...info.graph[k]]
+        //             info.graph[k].forEach(o => {
+        //                 o = Object.assign({}, o)
+        //                 for (let key in o){
+        //                     if (o[key] === Object) o[key] = Object.assign({}, o[key])
+        //                 }
+        //             })
+        //         }
+        //     })
+        //     return info
+        // }
 // }
