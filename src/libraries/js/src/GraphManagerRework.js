@@ -120,40 +120,6 @@ class GraphEventManager {
     }
 }
 
-
-class App {
-    constructor(
-        info={},
-        parent=document.body,
-        session=new Session(),
-        settings=[]
-        ) {
-
-        this.info = info; // settings file
-        this.graphs = {}; // graph execution
-        this.state = new StateManager({}); // app-specific state maanger
-        this.container = document.createElement('div') // wraps the app ui
-        this.props = { // Changes to this can be used to auto-update the HTML and track important UI values 
-            id: null, // Keep random ID
-            sessionId: null, // Track Brainstorm sessions
-        };
-
-        // INFO -> GRAPH
-        if (!('graphs' in this.info)) this.info.graphs = [] // create graph array
-        if ('graph' in this.info) this.info.graphs.push(this.info.graph) // push single graph
-    }
-
-    init = () => {
-        this.info.graphs.forEach(g => this.addGraph) // initialize all graphs
-    }
-
-    addGraph = (name='') => {
-        if(!this.graphs[name]) this.graphs[name] = new Graph(name);
-    }
-
-    removeGraph = (name='') => {}
-}
-
 class Graph {
     constructor(name='', parentApplet) {
         this.name = name;

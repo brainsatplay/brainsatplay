@@ -22,6 +22,8 @@ export const settings = {
         {id: 'blink_left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
         {id: 'blink_right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
         {id: 'ui', class: UI, params: {}},
+        {id: 'document', class: brainsatplay.plugins.interfaces.UI},
+
       ],
       edges: [
         {
@@ -31,6 +33,10 @@ export const settings = {
         {
           source: 'blink_right', 
           target: 'ui:right'
+        },
+        {
+          source: 'ui:element', 
+          target: 'document:content'
         }
       ]
     },

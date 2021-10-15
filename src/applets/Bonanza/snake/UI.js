@@ -18,6 +18,12 @@ class UI{
             size: 10
         }
 
+        this.props.container = document.createElement('div')
+        this.props.container.id = this.props.id
+        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 100%'
+        this.props.container.insertAdjacentHTML('beforeend', `<canvas id="${this.props.id}gameCanvas" style="border: 1px solid white;" ></canvas>`)
+
+
         // Port Definition
         this.ports = {
             up: {
@@ -59,20 +65,18 @@ class UI{
                     }
                     return user
                 }
+            },
+
+            element: {
+                data: this.props.container,
+                input: {type: null},
+                output: {type: Element}
             }
         }
     
     }
 
     init = () => {
-
-        this.props.container = document.createElement('div')
-        this.props.container.id = this.props.id
-        this.props.container.style = 'display: flex; align-items: center; justify-content: center; width: 100%; height: 100%'
-        this.props.container.insertAdjacentHTML('beforeend', `<canvas id="${this.props.id}gameCanvas" style="border: 1px solid white;" ></canvas>`)
-
-
-        let setupHTML = (app) => {
 
         const container = this.props.container
         const canvas = this.props.container.querySelector(`[id="${this.props.id}gameCanvas"]`);
@@ -152,9 +156,8 @@ const moveSnake = () => {
             }
 
             main()
-        }
+            this.props.container.onresize = this.responsive
 
-        return {HTMLtemplate: this.props.container, setupHTML}
     }
 
     responsive = () => {

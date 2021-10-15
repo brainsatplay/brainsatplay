@@ -17,7 +17,7 @@ export class UI extends Plugin {
             context: null,
             drawFunctions: {},
             looping: false,
-            fragments: {},
+            fragment: null,
             onload: [],
             onresize: {}
         }
@@ -170,12 +170,12 @@ export class UI extends Plugin {
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, data: document.body}, 
             {key: 'style', input: {type: 'CSS'}, output: {type: null}, data: `.brainsatplay-ui-container {\n\twidth: 100%;\n\theight: 100%;\n}`, onUpdate: (user) => {
                 
-                if (this.app.AppletHTML){ // Wait for HTML to Exist
+                if (this.app.ui.manager){ // Wait for HTML to Exist
                     if (this.props.style == null){
                         this.props.style = document.createElement('style')
                         this.props.style.id = `${this.props.id}style`
                         this.props.style.type = 'text/css';
-                        this.app.AppletHTML.appendStylesheet(() => {return this.props.style});
+                        this.app.ui.manager.appendStylesheet(() => {return this.props.style});
                     }
 
                     // Scope the CSS (add ID scope)
@@ -228,18 +228,27 @@ export class UI extends Plugin {
         let HTMLtemplate = this.props.container
 
         let setupHTML = () => {
-                if (this.ports.setupHTML.data instanceof Function) this.ports.setupHTML.data()
-
-                // Wait to Reference AppletHTML
-                setTimeout(() => {
-                   if (this.ports.style.data) this.session.graph.runSafe(this,'style', {data: this.ports.style.data})
-                }, 250)
+            if (this.ports.setupHTML.data instanceof Function) this.ports.setupHTML.data()
+            // Wait to Reference AppletHTML
+            setTimeout(() => {
+                if (this.ports.style.data) this.session.graph.runSafe(this,'style', {data: this.ports.style.data})
+            }, 250)
         }
 
-        return { HTMLtemplate, setupHTML}
+        this.fragment = new DOMFragment( // Fast HTML rendering container object
+            HTMLtemplate,   //Define the html template string or function with properties
+            this.app.ui.container,    //Define where to append to (use the parentNode)
+            this.props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            undefined,          //Can have an onchange function fire when properties change
+            "NEVER",             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+            undefined, // deinit
+            this.responsive // responsive (CHECK IF CORRECT)
+        )
     }
 
     deinit = () => { 
+        this.fragment.deleteNode()
         if (this.ports.deinit.data instanceof Function) this.ports.deinit.data()
         if (this.props.style != null) this.props.style.remove()
     }

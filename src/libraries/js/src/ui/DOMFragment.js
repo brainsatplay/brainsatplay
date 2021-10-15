@@ -220,7 +220,7 @@ export class DOMFragment {
         }
         else if(typeof node === "object"){
             this.ondelete(this.renderSettings.props);
-            node.parentNode.removeChild(node);
+            if (node) node.parentNode.removeChild(node);
             this.node = null;
         }
     }

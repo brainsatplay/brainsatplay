@@ -1,6 +1,7 @@
 
 import {Studio} from './Studio.js'
 import feature from './feature.png'
+import * as brainsatplay from './../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Brains@Play Studio",
@@ -25,8 +26,11 @@ export const settings = {
     {
       nodes: [
         {id: 'studio', class: Studio, params: {}},
+        {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
       ],
 
-      edges: []
+      edges: [
+        {source: 'studio:element', target: 'ui:content'}
+      ]
     },
 }

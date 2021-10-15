@@ -10,7 +10,8 @@ class UI{
 
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random()*1000000))
+            id: String(Math.floor(Math.random()*1000000)),
+            container: document.createElement('div')
         }
         
 
@@ -62,8 +63,18 @@ class UI{
                         rightEye.style.opacity = rightOpacity;
             }
                 return user
-            }}
+            }},
+
+            element: {
+                data: this.props.container,
+                input: {type: null},
+                output: {type: Element}
+            }
         }
+
+        this.props.container.id = this.props.id
+        this.props.container.style = 'height:100%; width:100%; display: flex; align-items: center; justify-content: center;'
+
 
         this.sub1 = undefined;
         
@@ -73,30 +84,22 @@ class UI{
 
     init = () => {
 
-        let HTMLtemplate = () => {
-            return `
-            <div id='${this.props.id}' style='height:100%; width:100%; display: flex; align-items: center; justify-content: center;'>
-                    <div id="${this.props.id}-left" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
-                        <div id="${this.props.id}-leftiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
-                        <div id="${this.props.id}-leftpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
-                        </div>
-                    </div>
-                    <div id="${this.props.id}-right" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
-                        <div id="${this.props.id}-rightiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
-                        <div id="${this.props.id}-rightpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
-                        </div>
-                    </div> 
-                </div>`
-        }
+            this.props.container.innerHTML = `
+            <div id="${this.props.id}-left" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
+                <div id="${this.props.id}-leftiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
+                <div id="${this.props.id}-leftpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
+                </div>
+            </div>
+            <div id="${this.props.id}-right" style="margin: 25px; border-radius: 50%; background: rgb(255,255,255); transition: opacity 0.12s;">
+                <div id="${this.props.id}-rightiris" style="width: 50%; height: 50%; border-radius: 50%; background: cyan; transform: translate(50%,50%)">
+                <div id="${this.props.id}-rightpupil" style="width: 50%; height: 50%; border-radius: 50%; background: black; transform: translate(50%,50%)"></div>
+                </div>
+            </div> 
+            `
 
+            this.props.container.onresize = this.responsive
 
-        let setupHTML = (app) => {
-         //Add whatever else you need to initialize
-         this.responsive()
-
-        }
-
-        return {HTMLtemplate, setupHTML}
+            this.responsive()
     }
 
     deinit = () => {

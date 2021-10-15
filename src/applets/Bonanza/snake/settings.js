@@ -25,6 +25,7 @@ export const settings = {
         {id: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
         {id: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
         {id: 'ui', class: UI, params: {}},
+        {id: 'document', class: brainsatplay.plugins.interfaces.UI},      
       ],
       edges: [
         {
@@ -43,6 +44,11 @@ export const settings = {
           source: 'right', 
           target: 'ui:right'
         },
+        
+        {
+          source: 'ui:element', 
+          target: 'document:content'
+        }
       ]
     },
 }

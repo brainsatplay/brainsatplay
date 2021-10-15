@@ -1419,6 +1419,7 @@ else {
 	}
 
 	async registerApp(app){
+		// let graphs = ('graphs' in this) ? this.graphs : [this.graph]
 		this.info.apps[app.props.id] = await this.graph.init(app)
 		this.info.apps[app.props.id].settings = app.info
 		return this.info.apps[app.props.id]

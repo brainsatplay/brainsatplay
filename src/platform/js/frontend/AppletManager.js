@@ -360,8 +360,10 @@ export class AppletManager {
     }
 
     setAppletDefaultUI = (appnode) => {
+        let manager = appnode.classinstance.AppletHTML ?? appnode.classinstance.ui.manager
 
-        let appletDiv = appnode.classinstance.AppletHTML.node
+        if (manager){
+        let appletDiv = manager.node
         let appletIdx = appnode.appletIdx - 1
         let defaultUI = document.getElementById(`${appletDiv.id}-brainsatplay-default-ui`)
 
@@ -571,6 +573,7 @@ export class AppletManager {
             }
         }
     }
+    }
 
     //initialize applets added to the list into each container by index
     initApplets = async (settings = []) => {
@@ -578,10 +581,12 @@ export class AppletManager {
         // Assign applets to proper areas
         await Promise.all(this.applets.map(async (applet, i) => {
             if (applet.classinstance != null) {
-                if (applet.classinstance.AppletHTML === null || applet.classinstance.AppletHTML === undefined) { 
+                let manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui.manager
+                if (manager === null || manager === undefined) { 
                     await applet.classinstance.init(); 
                 }
-                let appletDiv; if (applet.classinstance.AppletHTML) appletDiv = applet.classinstance.AppletHTML.node;
+                manager = applet.classinstance.AppletHTML ?? applet.classinstance.ui.manager
+                let appletDiv = (manager) ? manager.node : document.createElement('div');
                 appletDiv.name = applet.name
             }
         }))
@@ -788,8 +793,9 @@ export class AppletManager {
 
         activeNodes.forEach((appnode, i) => {
             // Set Generic Applet Settings
-            if (appnode.classinstance.AppletHTML) this.setAppletDefaultUI(appnode);
+            this.setAppletDefaultUI(appnode);
         });
+
         this.updateOptionVisibility()
     }
 

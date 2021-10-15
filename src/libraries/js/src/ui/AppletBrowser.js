@@ -27,7 +27,7 @@ export class AppletBrowser {
             element: {
                 data: this.props.container,
                 input: {type: null},
-                output: {type: Element}
+                output: {type: 'Element'}
             }
         }
 
@@ -242,7 +242,6 @@ export class AppletBrowser {
 
     filterApplets() {
         let divs = this.props.container.querySelector(`[id="${this.props.id}-appletsection"]`).querySelectorAll('.browser-card')
-        console.log(divs)
         let selectors = this.props.container.querySelector(`[id="${this.props.id}-appletheader"]`).querySelectorAll('select')
 
         let attributes = []

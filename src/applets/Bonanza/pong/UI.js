@@ -2,7 +2,7 @@ class UI {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
-    constructor(label, session, params = {}) {
+    constructor(label, session) {
 
         // Generic Plugin Attributes
         this.label = label
@@ -11,6 +11,7 @@ class UI {
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
+            container: document.createElement('div'),
             paddles: [
                 {username: 'me', x: 0, y: 0, score: 0, color: 'rgb(255, 255, 255)'},
                 {username: 'opponent', x: 0, y: 0, score: 0, color: 'rgb(255, 255, 255)'},
@@ -25,6 +26,9 @@ class UI {
             },
             canvas: null
         }
+
+        this.props.container.id = this.props.id
+        this.props.container.style = `display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;`
 
         // Port Definition
         this.ports = {
@@ -59,34 +63,36 @@ class UI {
                     // nullify if not in your direction
                     if (this.props.ball.direction === -1) return {data: error, forceUpdate: true}
                 }
+            },
+
+            element: {
+                data: this.props.container,
+                input: {type: null},
+                output: {type: Element}
             }
         }
     }
 
     init = () => {
+      let h1Style = `
+            padding: 0px 10px;
+        `
+        this.props.canvas = document.createElement('canvas')
+        this.props.scoreboard = document.createElement('div')
+        this.props.scoreboard.style = 'position: absolute; top: 0; left; 0; display: flex;'
+        this.props.container.insertAdjacentElement('beforeend', this.props.canvas)
+        this.props.container.insertAdjacentElement('beforeend', this.props.scoreboard)
 
-        let HTMLtemplate = () => {
+        this.props.scoreboard.insertAdjacentHTML('beforeend', `
+            <h1 class="me" style="${h1Style}">0</h1>
+            <h1>|</h1>
+            <h1 class="opponent" style="${h1Style}">0</h1>
+        `)
 
-            let h1Style = `
-                padding: 0px 10px;
-            `
-            return `
-            <div id='${this.props.id}' style='display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;'>
-                <canvas id="${this.props.id}gameCanvas" ></canvas>
-                <div id="${this.props.id}scoreboard" style="position: absolute; top: 0; left; 0; display: flex;">
-                    <h1 class="me" style="${h1Style}">0</h1>
-                    <h1>|</h1>
-                    <h1 class="opponent" style="${h1Style}">0</h1>
-                <div>
-            </div>`
-        }
+        setTimeout(() => {
 
-
-        let setupHTML = (app) => {
-
-            const scoreboard =  document.getElementById(`${this.props.id}scoreboard`)
-            const container = document.getElementById(`${this.props.id}`);
-            this.props.canvas = document.getElementById(`${this.props.id}gameCanvas`);
+            const scoreboard = this.props.scoreboard
+            const container = this.props.container
             const context = this.props.canvas.getContext("2d");
             this.props.canvas.width = container.offsetWidth
             this.props.canvas.height = container.offsetHeight
@@ -96,6 +102,7 @@ class UI {
                 else o.x = this.props.canvas.width - this.props.gameOptions.margin
                 o.y = this.props.canvas.height/2
             })
+
             
 
             const drawPaddle = (paddle) => {
@@ -213,9 +220,9 @@ class UI {
 
             reset()
             main()
-        }
 
-        return { HTMLtemplate, setupHTML }
+            this.props.container.onresize = this.responsive
+        }, 25)
     }
 
     _movePaddle = (paddle, dy) => {
@@ -231,17 +238,17 @@ class UI {
     }
 
     responsive = () => {
-        const container = document.getElementById(`${this.props.id}`);
+        const container = this.props.container
         if (container) {
-
+            
             // Map to New Positions
             this.props.paddles.forEach(o => {
                 if (o.username === 'opponent') o.x = this.props.canvas.width - this.props.paddleOptions.width - this.props.gameOptions.margin
                 o.y = container.offsetHeight*(o.y/this.props.canvas.height)
             })
-
-            this.props.canvas.width = container.offsetWidth
-            this.props.canvas.height = container.offsetHeight
+            
+            this.props.canvas.width = container.offsetWidth ?? 0
+            this.props.canvas.height = container.offsetHeight ?? 0
 
         }
     }

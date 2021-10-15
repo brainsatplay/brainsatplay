@@ -24,6 +24,8 @@ export const settings = {
         {id: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
         {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
         {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {id: 'ui', class: UI, params: {}},
+        {id: 'document', class: brainsatplay.plugins.interfaces.UI},   
       ],
       edges: [
 
@@ -50,6 +52,12 @@ export const settings = {
           source: 'buzz:status', 
           target: 'ui'
         },
+
+                
+        {
+          source: 'ui:element', 
+          target: 'document:content'
+        }
       ]
     },
 }

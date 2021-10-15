@@ -37,6 +37,7 @@ export class GraphManager{
         this.state = new StateManager()
     }
 
+    // TODO: Old
     parseParamsForSettings = (settings) => {
         settings.graph.nodes.forEach(n => {
             for (let k in n.params){
@@ -158,13 +159,13 @@ export class GraphManager{
             // Update Event Registry
             this.updateApp(appId)
             nodeInfo.instance.deinit()
-            if (nodeInfo.fragment) nodeInfo.fragment.deleteNode()
             applet.nodes.splice(toRemove,1)
             if (resize) this._resizeAllNodeFragments(appId)
         }
     }
 
     _resizeAllNodeFragments = (appId) => {
+        console.log('trying to resize all')
         let app =  this.applets[appId]
         if (app){
             let funcs = []
@@ -252,13 +253,15 @@ export class GraphManager{
         // Run Init Function and Instantiate External Dependencies
         await this.setUI(node, nodeInfo)
 
+        // Set Configuration
+        if (node.configure instanceof Function ) node.configure(app.settings)
+
+
         return nodeInfo
     }
 
     setUI = async (node,nodeInfo) => {
-
         let ui = await node.init()
-
         // Grab Created UI Functions
         if (ui != null) {
 

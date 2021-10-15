@@ -13,44 +13,28 @@ class Studio{
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
-            container: null,
+            container: document.createElement('div'),
             projects:null,
             app:null
         }
+
+        this.props.container.id = 'brainsatplay-studio'
+        this.props.container.style = 'eight:100%; width:100%;'
 
         // Port Definition
         this.ports = {
             default: {},
             readout: {}, 
-            color: {}
+            color: {},
+            element: {
+                data: this.props.container,
+                input: {type: null},
+                output: {type: Element}
+            }
         }
     }
 
     init = () => {
-        // Simply define the HTML template
-        let HTMLtemplate = () => {return `
-            <div id='brainsatplay-studio' style='height:100%; width:100%;'>
-            </div>`
-        }
-
-
-        let setupHTML = async () => {
-           this.props.container = document.getElementById('brainsatplay-studio')
-           this._createApp(settings)
-        }
-
-        return {HTMLtemplate, setupHTML}
-    }
-
-    default = (input) => {
-        return input
-    }
-
-    deinit = () => {
-        if (this.props.app) this.props.app.deinit()
-    }
-
-    _createApp(settings){
 
         let settingsCopy = Object.assign({}, settings)
         if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
@@ -64,6 +48,15 @@ class Studio{
         }
         this.props.app = this.session.initApp(settingsCopy, this.props.container,this.session,['edit'])
         this.props.app.init()
+
+    }
+
+    default = (input) => {
+        return input
+    }
+
+    deinit = () => {
+        if (this.props.app) this.props.app.deinit()
     }
 }
 
