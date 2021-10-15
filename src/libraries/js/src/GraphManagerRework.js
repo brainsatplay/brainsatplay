@@ -10,6 +10,12 @@ import { WorkerManager } from "./utils/workers/Workers";
             .addEvent(name,props) //will want to have multiple i/o definable as props
             .subEvent(name,port)
             .unsubEvent(name,port)
+            .ports[] {
+                define event inputs or outputs
+            }
+            .wires[] {
+                connected nodes/plugins/graphs to specific ports
+            }
         }
         .nodes[] { //nodes can be made of one or many plugins or just define raw functionality (e.g. logic, switches, loops)
             .plugins[] { //two plugin modes: function or nested graph with more nodes and plugins
@@ -24,6 +30,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
                 .ports[] { 
                     define plugin (outer) i/o
+                    .get() //check wire to set input port
+                    .set() //set output port
                 }
                 .addPort()
                 .removePort()
@@ -41,6 +49,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
             .ports[] {
                 define plugin (outer) i/o
+                .get() //check wire to set input port
+                .set() //set output port
             }  
             .addPort()
             .removePort()
@@ -58,6 +68,8 @@ import { WorkerManager } from "./utils/workers/Workers";
 
     .ports[] {
         define graph (outer) i/o, mainly for nested graphs
+        .get() //check wire to set input port
+        .set() //set output port
     }
     .addPort()
     .removePort()
