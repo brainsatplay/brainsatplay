@@ -188,14 +188,14 @@ export class EventManager {
 }
 
 
-//ports handle input and output for nodes
+//ports handle input and output for nodes/graphs/plugins
 class Port {
-    constructor (name='', onchange = (newValue) => {}, parentNode) {
+    constructor (name='', type='number', parentNode, onchange = this.onchange) {
         this.name = name;
         this.parentNode = parentNode;
+        this.type = type; //number, bool, function, array, object, etc
         this.id = randomId('port');
         this.sub = {port:undefined, id:undefined};
-
         this.onchange = onchange;
         
         this.value;
@@ -222,94 +222,119 @@ class Port {
         return this.value;
     }
 
-    //this will trigger event chains and events
+    //this will trigger event chains
     emit = (value) => {
         graphState.setState({[this.id]:value});
     }
 
+    //you should pass the value to a plugin with this and then have 
+    // the results emitted at the end of your script
     onchange = (newValue) => {
-        //you should pass the value to a plugin with this and then have 
-        // the results emitted at the end of your script
+        this.emit(newValue);
     }
 
 }
 
 
 class Graph {
-    constructor(name='', parentApplet) {
+    constructor(name='') {
         this.name = name;
-        this.parentApplet = parentApplet;
         this.nodes = {};
+        this.ports = {
+            input:{},
+            output:{}
+        };
     }
 
-    addNode = () => {}
+    init = () => {
 
-    removeNode = () => {}
+    }
+
+    addNode = () => {
+        
+    }
+
+    removeNode = () => {
+
+    }
+
+    addPort = (name='', type='number', io='input') => {
+        
+        if(io === 'input' || io === 'i') {
+            this.ports.input[name] = new Port(name,type,this);
+        } else if (io === 'output' || io === 'o') { //output
+            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+        } else { console.error('input valid io definition');}
+        
+    }
+
+    removePort = (name) => {
+        if(this.ports.input[name]) delete this.ports.input[name];
+        if(this.ports.output[name]) delete this.ports.output[name];
+    }
 
 }
 
 class Node {
-    constructor(name='', parentGraph, parentApplet) {
+    constructor(name='', parentGraph) {
         this.name = name;
         this.parentGraph = parentGraph;
-        this.parentApplet = parentApplet;
         this.position = {x:0, y:0, z:0};
-        this.ports = {};
-        this.plugins = {}; //can add entire new graphs
+        this.ports = {
+            input:{},
+            output:{}
+        };
+        this.plugins = {
+            
+        }; //can add entire new graphs
     }
 
-    addPort = (name='') => {
-        if(!this.ports[name]) this.ports[name] = new Port(name, this);
+    init = () => {
+
     }
 
-    connect = (name='',sourceNode,sourcePort,targetNode,targetPort) => {
+    //oninput
+    execute = (input) => {
+        
+    }   
 
-        if(!sourceNode.wires[name] && !targetNode.wires[name]) {
-            let wire = new Wire(name, this);
+    addPlugin = () => {}
 
-        }
-    }
+    removePlugin = () => {}
 
-    addPlugin = (name='') => {
-        if(!this.graphs[name]) this.graphs[name] = new Graph(name, this.parentApplet);
-    }
- 
-    removePort = (name='') => {}
+    addPort = () => {}
 
-    removeWire = (name='') => {}
-
-    removeGraph = (name='') => {}
+    removePort = () => {}
+    
 }
 
 class Plugin {
-    constructor(name='', parentGraph, parentApplet) {
+    constructor(name='', parentGraph) {
         this.name = name;
         this.parentGraph = parentGraph;
-        this.parentApplet = parentApplet;
-        this.ports = {};
-        this.graphs = {}; //can add entire new graphs
+        this.ports = {
+            input:{},
+            output:{}
+        };
+        this.graphs = []; //can add entire new graphs
     }
 
-    addPort = (name='') => {
-        if(!this.ports[name]) this.ports[name] = new Port(name, this);
+    init = () => {
+
     }
 
-    connect = (name='',sourceNode,sourcePort,targetNode,targetPort) => {
+    //oninput
+    execute = (input) => {
 
-        if(!sourceNode.wires[name] && !targetNode.wires[name]) {
-            let wire = new Wire(name, this);
+    } 
 
-        }
-    }
+    addPort = () => {}
 
-    addPlugin = (name='') => {
-        if(!this.graphs[name]) this.graphs[name] = new Graph(name, this.parentApplet);
-    }
- 
-    removePort = (name='') => {}
+    removePort = () => {}
 
-    removeWire = (name='') => {}
+    addGraph = () => {}
 
-    removeGraph = (name='') => {}
+    removeGraph = () => {}
+
 }
 
