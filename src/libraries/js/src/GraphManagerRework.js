@@ -363,7 +363,8 @@ class Plugin {
         this.parentGraph = parentGraph;
         this.ports = {
             input:{},
-            output:{}
+            output:{},
+            subs:{}
         };
         this.graphs = []; //can add entire new graphs
     }
