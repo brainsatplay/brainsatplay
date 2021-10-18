@@ -190,7 +190,7 @@ export class EventManager {
 
 //ports handle input and output for nodes/graphs/plugins
 class Port {
-    constructor (name='', type='number', parentNode, onchange = this.onchange) {
+    constructor (name='', type='number', parentNode, onchange = this.onchange, needsUpdating=false) {
         this.name = name;
         this.id = randomId('port');
         this.parentNode = parentNode;
@@ -199,12 +199,16 @@ class Port {
         this.onchange = onchange;
         
         this.value;
+
+        this.needsUpdating = needsUpdating;
         this.updated = false;
     }
 
     //subscribe to the output of another port
     subscribeTo(port) {
-        this.sub.id = graphState.subscribeTrigger(port.id,(val)=>{this.set(val);});
+        this.sub.id = graphState.subscribeTrigger(port.id,(val)=>{
+            this.set(val);
+        });
     }
 
     unsubscribePort() {
@@ -227,13 +231,14 @@ class Port {
 
     //this will trigger event chains
     emit = (value) => {
-        graphState.setState({[this.id]:value});
+        graphState.setState({[this.id]:value}); //these are all SYNCHRONOUS updates via triggers
     }
 
     //you should pass the value to a plugin with this and then have 
     // the results emitted at the end of your script
     onchange = (newValue) => {
         this.emit(newValue);
+        this.updated = false;
     }
 
 }
@@ -266,7 +271,18 @@ class Graph {
     }
 
     listenPort(port,onchange=(val)=>{}) {
-        let sub = graphState.subscribeTrigger(port.id,onchange);
+        let sub = graphState.subscribeTrigger(port.id,
+            (val) => {
+                let canUpdate = true;
+                for(const port in this.ports.input) {
+                    if(this.ports.input[port].needsUpdating && !this.ports.input[port].updated) {
+                        canUpdate = false;
+                    }
+                }
+                if(canUpdate) {
+                    onchange(val);
+                }
+            });
         if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
         this.ports.sub[port.id].push(sub);
     }
@@ -279,13 +295,13 @@ class Graph {
         }
     }
 
-    addPort = (name='', type='number', io='input') => {
+    addPort = (name='', type='number', io='input', needsUpdating=true) => {
         
         if(io === 'input' || io === 'i') {
-            this.ports.input[name] = new Port(name,type,this);
+            this.ports.input[name] = new Port(name,type,this,needsUpdating);
             return this.ports.input[name];
         } else if (io === 'output' || io === 'o') { //output
-            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+            this.ports.output[name] = new Port(name,type,this,needsUpdating); //default port onchange creates emitter
             return this.ports.output[name];
         } else { console.error('input valid io definition'); }
         
@@ -333,25 +349,38 @@ class Node {
            delete this.plugins[name];
     }
 
-    addPort = (name='', type='number', io='input') => {
+    addPort = (name='', type='number', io='input', needsUpdating=true) => {
         
         if(io === 'input' || io === 'i') {
-            this.ports.input[name] = new Port(name,type,this);
+            this.ports.input[name] = new Port(name,type,this,needsUpdating);
             return this.ports.input[name];
         } else if (io === 'output' || io === 'o') { //output
-            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+            this.ports.output[name] = new Port(name,type,this,needsUpdating); //default port onchange creates emitter
             return this.ports.output[name];
         } else { console.error('input valid io definition'); }
         
     }
+
 
     removePort = (name) => {
         if(this.ports.input[name]) delete this.ports.input[name];
         if(this.ports.output[name]) delete this.ports.output[name];
     }
 
+    //listen to ports. Can listen to multiple ports and wait for all to be updated
     listenPort(port,onchange=(val)=>{}) {
-        let sub = graphState.subscribeTrigger(port.id,onchange);
+        let sub = graphState.subscribeTrigger(port.id,
+            (val) => {
+                let canUpdate = true;
+                for(const port in this.ports.input) {
+                    if(this.ports.input[port].needsUpdating && !this.ports.input[port].updated) {
+                        canUpdate = false;
+                    }
+                }
+                if(canUpdate) {
+                    onchange(val);
+                }
+            });
         if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
         this.ports.sub[port.id].push(sub);
     }
@@ -389,25 +418,38 @@ class Plugin {
 
     } 
 
-    addPort = (name='', type='number', io='input') => {
+    addPort = (name='', type='number', io='input', needsUpdating=true) => {
         
         if(io === 'input' || io === 'i') {
-            this.ports.input[name] = new Port(name,type,this);
+            this.ports.input[name] = new Port(name,type,this,needsUpdating);
             return this.ports.input[name];
         } else if (io === 'output' || io === 'o') { //output
-            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+            this.ports.output[name] = new Port(name,type,this,needsUpdating); //default port onchange creates emitter
             return this.ports.output[name];
         } else { console.error('input valid io definition'); }
         
     }
+
     
     removePort = (name) => {
         if(this.ports.input[name]) delete this.ports.input[name];
         if(this.ports.output[name]) delete this.ports.output[name];
     }
 
+    //listen to ports. Can listen to multiple ports and wait for all to be updated
     listenPort(port,onchange=(val)=>{}) {
-        let sub = graphState.subscribeTrigger(port.id,onchange);
+        let sub = graphState.subscribeTrigger(port.id,
+            (val) => {
+                let canUpdate = true;
+                for(const port in this.ports.input) {
+                    if(this.ports.input[port].needsUpdating && !this.ports.input[port].updated) {
+                        canUpdate = false;
+                    }
+                }
+                if(canUpdate) {
+                    onchange(val);
+                }
+            });
         if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
         this.ports.sub[port.id].push(sub);
     }
