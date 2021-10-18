@@ -36,11 +36,7 @@ import { WorkerManager } from "./utils/workers/Workers";
                 .addPort()
                 .removePort()
 
-                .wires[]{
-                    connect plugin port (outer) i/o to graph i/o (inner) if using a graph plugin
-                }
-                .addWire()
-                .removeWire()
+       
             } 
             .addPlugin()
             .removePlugin()
@@ -55,11 +51,6 @@ import { WorkerManager } from "./utils/workers/Workers";
             .addPort()
             .removePort()
 
-            .wires[] { 
-                connect node (inner) i/o
-            }
-            .addWire()
-            .removeWire()
         }
         .addNode()
         .removeNode()
@@ -74,11 +65,6 @@ import { WorkerManager } from "./utils/workers/Workers";
     .addPort()
     .removePort()
 
-    .wires[] {
-        connect node (inner) i/o
-    }
-    .addWire()
-    .removeWire()
   }
 }
 
@@ -327,31 +313,3 @@ class Plugin {
     removeGraph = (name='') => {}
 }
 
-
-//visualizes port subscriptions
-class Wire {
-    constructor (name='', parentNode) {
-        this.name = name;
-        this.parentNode = parentNode;
-        
-        this.sourcePlugin;
-        this.sourcePort;
-        this.targetPlugin;
-        this.targetPort;
-
-        this.value;
-    }
-
-    set = (newValue) => {
-        this.value = newValue;
-        this.onchange(newValue);
-    }
-
-    get = () => {
-        return this.value;
-    }
-
-    onchange = (newValue) => {
-
-    }
-}
