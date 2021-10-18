@@ -101,8 +101,28 @@ Other considerations:
  * This is going to be integral with the node/plugin system so that's what will handle wiring up event i/o
  * and enable native multithreaded graphs. 
  * Use flags, intervals, and animation loops where appropriate to avoid overrun. 
+ * 
+ * EX:
+ * Thread 1:
+ * Say ports a b and c emit events x y and z respectively at different times
+ * 
+ * This creates 3 events that can call postEvent separately
+ * 
+ * postEvent tags the output object with the event tag based on the port emitting to it
+ * 
+ * 
+ * 
+ * 
  */
-class GraphEventManager {
+
+export function randomId(tag = '') {
+    return `${tag+Math.floor(Math.random()+Math.random()*Math.random()*10000000000000000)}`;
+}
+
+
+const graphState = new StateManager({},undefined,false); //shared state manager. does not loop by default
+
+export class EventManager {
     constructor() {
         if(window) {
             if(!window.workers) { 
@@ -118,19 +138,116 @@ class GraphEventManager {
             }
         } 
 
-        this.events = new Map();
+        this.events = new Map(); 
     }
 
-    addEvent(name, props) {}
+    //subscribe a port to an event
+    subEvent(eventName, port) {
+        let event = this.events.get(eventName);
+        if(event) return graphState.subscribeTrigger(event.id,(val)=>{port.set(val);});
+        else return undefined;
+    }
 
-    subEvent(name, port) {}
+    unsubEvent(eventName, sub) {
+        let event = this.events.get(eventName);
+        if(event) graphState.unsubscribe(event.id,sub);
+    }
 
-    removeEvent(name, port) {}
+    //add an event when a port emits a value (sets state)
+    eventEmitter(eventName, port) {
+        let event = {name:eventName, id:randomId('event'), port:port, sub:undefined};
+        if(port) event.sub = graphState.subscribeTrigger(port.id,(val)=>{this.emit(eventName,val);});
+        this.events.set(eventName,event);
+        
+        return event;
+    }
+
+    //remove an event
+    removeEmitter(eventName) {
+        let event = this.events.get(eventName);
+        graphState.unsubscribeAll(event.id);
+        if(event.sub) graphState.unsubscribe(event.port.id,event.sub);
+        this.events.delete(eventName);
+    }
+
+    emit(eventName, val) {
+        let output = val;
+        if(typeof output === 'object') {
+            output.event = eventName;
+        }
+        else {
+            output = {event:eventName, output:output};
+        }
+        // run this in global scope of window or worker. since window.self = window, we're ok
+        if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
+            postMessage(output); //thread event 
+        }
+
+        let event = this.events.get(eventName);
+        graphState.setState({[event.id]:output}); //local event 
+      
+    }
 
     workerCallback = (msg) => {
+        if(msg.event) {
+            let event = this.events.get(msg.event);
+            if(!event) {  
+                event = this.eventEmitter(msg.event);
+            }
+            
+            graphState.setState({[event.id]:msg.output});
 
+        }
     }
 }
+
+
+//ports handle input and output for nodes
+class Port {
+    constructor (name='', onchange = (newValue) => {}, parentNode) {
+        this.name = name;
+        this.parentNode = parentNode;
+        this.id = randomId('port');
+        this.sub = {port:undefined, id:undefined};
+
+        this.onchange = onchange;
+        
+        this.value;
+    }
+
+    //subscribe to the output of another port
+    subscribeTo(port) {
+        this.sub.id = graphState.subscribeTrigger(port.id,(val)=>{this.set(val);});
+    }
+
+    unsubscribePort() {
+        if(this.sub.port && this.sub.id) graphState.unsubscribe(this.sub.port.id,this.sub.id);
+        this.sub.port = undefined; this.sub.id = undefined;
+    }
+
+    //set value
+    set = (newValue) => {
+        this.value = newValue;
+        this.onchange(newValue);
+    }
+
+    //just a value getter
+    get = () => {
+        return this.value;
+    }
+
+    //this will trigger event chains and events
+    emit = (value) => {
+        graphState.setState({[this.id]:value});
+    }
+
+    onchange = (newValue) => {
+        //you should pass the value to a plugin with this and then have 
+        // the results emitted at the end of your script
+    }
+
+}
+
 
 class Graph {
     constructor(name='', parentApplet) {
@@ -211,39 +328,7 @@ class Plugin {
 }
 
 
-class Port {
-    constructor (name='', parentNode, onchange = (newValue) => {}) {
-        this.name = name;
-        this.parentNode = parentNode;
-
-        this.onchange = onchange;
-        this.wires = {};
-        
-        this.value;
-    }
-
-    connect(sourcePlugin,sourcePort,targetNode,targetPort) {
-
-    }
-
-    checkForUpdates() {
-
-    }
-
-    set = (newValue) => {
-        this.value = newValue;
-        this.onchange(newValue);
-    }
-
-    get = () => {
-        return this.value;
-    }
-
-    onchange = (newValue) => {
-        
-    }
-}
-
+//visualizes port subscriptions
 class Wire {
     constructor (name='', parentNode) {
         this.name = name;

@@ -190,7 +190,7 @@ export class StateManager {
     }
 
     //Trigger-only functions on otherwise looping listeners
-    subscribeTrigger(key=undefined,onchange=(key)=>{}) {
+    subscribeTrigger(key=undefined,onchange=(value)=>{}) {
 
         // console.error('SUBSCRIBING')
         if(key) {

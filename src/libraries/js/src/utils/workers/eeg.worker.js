@@ -37,23 +37,14 @@ self.onmessage = (event) => {
   counter++; //just tracks the number of calls made to the worker
 
   let dict = {output: output, foo: event.data.foo, origin: event.data.origin}
-  try {
-    if(window.document === undefined)
-    {
+  
+if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
       self.postMessage(dict);
       return 0;
-    } else return dict
-  } catch (err) {
-    self.postMessage(dict);
-    return 0;
-  }
+  } else return dict
 }
 
-try {
-  if(window.document === undefined)
-  {
+if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
     addEventListener('message', self.onmessage);
-  } 
-} catch (err) {
-  addEventListener('message', self.onmessage);
-}
+} 
+
