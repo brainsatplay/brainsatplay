@@ -192,9 +192,9 @@ export class EventManager {
 class Port {
     constructor (name='', type='number', parentNode, onchange = this.onchange) {
         this.name = name;
+        this.id = randomId('port');
         this.parentNode = parentNode;
         this.type = type; //number, bool, function, array, object, etc
-        this.id = randomId('port');
         this.sub = {port:undefined, id:undefined};
         this.onchange = onchange;
         
@@ -242,6 +242,7 @@ class Port {
 class Graph {
     constructor(name='') {
         this.name = name;
+        this.id = randomId('graph');
         this.nodes = {};
         this.ports = {
             input:{},
@@ -298,6 +299,7 @@ class Graph {
 class Node {
     constructor(name='', parentGraph) {
         this.name = name;
+        this.id = randomId('node');
         this.parentGraph = parentGraph;
         this.position = {x:0, y:0, z:0};
         this.ports = {
@@ -360,6 +362,7 @@ class Node {
 class Plugin {
     constructor(name='', parentGraph) {
         this.name = name;
+        this.id = randomId('plugin');
         this.parentGraph = parentGraph;
         this.ports = {
             input:{},
