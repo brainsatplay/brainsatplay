@@ -255,12 +255,12 @@ class Graph {
 
     }
 
-    addNode = () => {
-        
+    addNode = (name='') => {
+        if(!this.nodes[name]) this.nodes[name] = new Node(name, this);
     }
 
-    removeNode = () => {
-
+    removeNode = (name='') => {
+        if(this.nodes[name]) delete this.nodes[name];
     }
 
     listenPort(port,onchange=(val)=>{}) {
@@ -321,9 +321,15 @@ class Node {
         
     }   
 
-    addPlugin = () => {}
+    addPlugin = (name='') => {
+        if(!this.plugins[name])
+            this.plugins[name] = new Plugin(name,this);
+    }
 
-    removePlugin = () => {}
+    removePlugin = (name) => {
+        if(this.plugins[name])
+           delete this.plugins[name];
+    }
 
     addPort = (name='', type='number', io='input') => {
         
@@ -360,16 +366,16 @@ class Node {
 }
 
 class Plugin {
-    constructor(name='', parentGraph) {
+    constructor(name='', parentNode) {
         this.name = name;
         this.id = randomId('plugin');
-        this.parentGraph = parentGraph;
+        this.parentNode = parentNode;
         this.ports = {
             input:{},
             output:{},
             subs:{}
         };
-        this.graphs = []; //can add entire new graphs
+        this.graphs = {}; //can add entire new graphs
     }
 
     init = () => {
@@ -412,9 +418,13 @@ class Plugin {
         }
     }
 
-    addGraph = () => {}
+    addGraph = (name) => {
+        if(!this.graphs[name]) this.graphs[name] = new Graph(name);
+    }
 
-    removeGraph = () => {}
+    removeGraph = (name) => {
+        if(this.graphs[name]) delete this.graphs[name];
+    }
 
 }
 
