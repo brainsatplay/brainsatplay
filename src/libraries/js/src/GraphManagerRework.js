@@ -255,12 +255,14 @@ class Graph {
 
     }
 
-    addNode = (name='') => {
-        if(!this.nodes[name]) this.nodes[name] = new Node(name, this);
+    addNode = (className, name='') => {
+        if(!this.nodes[name]) 
+            this.nodes[name] = new Node(name, this); //should instantiate a specific node class
     }
 
     removeNode = (name='') => {
-        if(this.nodes[name]) delete this.nodes[name];
+        if(this.nodes[name]) 
+            delete this.nodes[name];
     }
 
     listenPort(port,onchange=(val)=>{}) {
@@ -321,9 +323,9 @@ class Node {
         
     }   
 
-    addPlugin = (name='') => {
+    addPlugin = (className, name='') => {
         if(!this.plugins[name])
-            this.plugins[name] = new Plugin(name,this);
+            this.plugins[name] = new Plugin(name,this); //want a plugin of a specific class
     }
 
     removePlugin = (name) => {
@@ -418,7 +420,7 @@ class Plugin {
         }
     }
 
-    addGraph = (name) => {
+    addGraph = (className ,name) => {
         if(!this.graphs[name]) this.graphs[name] = new Graph(name);
     }
 
