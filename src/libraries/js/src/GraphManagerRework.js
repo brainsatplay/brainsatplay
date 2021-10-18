@@ -199,6 +199,7 @@ class Port {
         this.onchange = onchange;
         
         this.value;
+        this.updated = false;
     }
 
     //subscribe to the output of another port
@@ -214,11 +215,13 @@ class Port {
     //set value
     set = (newValue) => {
         this.value = newValue;
+        this.updated = true;
         this.onchange(newValue);
     }
 
     //just a value getter
     get = () => {
+        this.updated = false; //set check flag to false
         return this.value;
     }
 
@@ -242,7 +245,8 @@ class Graph {
         this.nodes = {};
         this.ports = {
             input:{},
-            output:{}
+            output:{},
+            subs:{}
         };
     }
 
@@ -258,13 +262,29 @@ class Graph {
 
     }
 
+    listenPort(port,onchange=(val)=>{}) {
+        let sub = graphState.subscribeTrigger(port.id,onchange);
+        if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
+        this.ports.sub[port.id].push(sub);
+    }
+
+    stopListeningPort(port) {
+        if(this.ports.subs[port.id]){
+            this.ports.subs[port.id].forEach((s) => {
+                graphState.unsubscribe(port.id,s);
+            });
+        }
+    }
+
     addPort = (name='', type='number', io='input') => {
         
         if(io === 'input' || io === 'i') {
             this.ports.input[name] = new Port(name,type,this);
+            return this.ports.input[name];
         } else if (io === 'output' || io === 'o') { //output
             this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
-        } else { console.error('input valid io definition');}
+            return this.ports.output[name];
+        } else { console.error('input valid io definition'); }
         
     }
 
@@ -282,7 +302,8 @@ class Node {
         this.position = {x:0, y:0, z:0};
         this.ports = {
             input:{},
-            output:{}
+            output:{},
+            subs:{}
         };
         this.plugins = {
             
@@ -302,9 +323,37 @@ class Node {
 
     removePlugin = () => {}
 
-    addPort = () => {}
+    addPort = (name='', type='number', io='input') => {
+        
+        if(io === 'input' || io === 'i') {
+            this.ports.input[name] = new Port(name,type,this);
+            return this.ports.input[name];
+        } else if (io === 'output' || io === 'o') { //output
+            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+            return this.ports.output[name];
+        } else { console.error('input valid io definition'); }
+        
+    }
 
-    removePort = () => {}
+    removePort = (name) => {
+        if(this.ports.input[name]) delete this.ports.input[name];
+        if(this.ports.output[name]) delete this.ports.output[name];
+    }
+
+    listenPort(port,onchange=(val)=>{}) {
+        let sub = graphState.subscribeTrigger(port.id,onchange);
+        if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
+        this.ports.sub[port.id].push(sub);
+    }
+
+    stopListeningPort(port) {
+        if(this.ports.subs[port.id]){
+            this.ports.subs[port.id].forEach((s) => {
+                graphState.unsubscribe(port.id,s);
+            });
+        }
+    }
+
     
 }
 
@@ -328,9 +377,36 @@ class Plugin {
 
     } 
 
-    addPort = () => {}
+    addPort = (name='', type='number', io='input') => {
+        
+        if(io === 'input' || io === 'i') {
+            this.ports.input[name] = new Port(name,type,this);
+            return this.ports.input[name];
+        } else if (io === 'output' || io === 'o') { //output
+            this.ports.output[name] = new Port(name,type,this); //default port onchange creates emitter
+            return this.ports.output[name];
+        } else { console.error('input valid io definition'); }
+        
+    }
+    
+    removePort = (name) => {
+        if(this.ports.input[name]) delete this.ports.input[name];
+        if(this.ports.output[name]) delete this.ports.output[name];
+    }
 
-    removePort = () => {}
+    listenPort(port,onchange=(val)=>{}) {
+        let sub = graphState.subscribeTrigger(port.id,onchange);
+        if(!this.ports.sub[port.id]) this.ports.sub[port.id] = [];
+        this.ports.sub[port.id].push(sub);
+    }
+
+    stopListeningPort(port) {
+        if(this.ports.subs[port.id]){
+            this.ports.subs[port.id].forEach((s) => {
+                graphState.unsubscribe(port.id,s);
+            });
+        }
+    }
 
     addGraph = () => {}
 
