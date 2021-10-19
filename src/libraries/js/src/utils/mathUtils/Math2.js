@@ -1103,19 +1103,19 @@ export class Math2 {
 		let candidates = [];
 		if(peaks.length > 0) {
 		event_timestamps.forEach((t,j) => {
-			while(signal_timestamps[peaks[p_idx]] < t + 200) { //roll over peaks that are behind of the latest event
+			while(signal_timestamps[peaks[p_idx]] < t + 200) { //roll over peaks that are behind of the latest event + 200ms
 				p_idx++;
 				if(!peaks[p_idx]) break;
 			}
 			
 			let tempi = 0;
 			let tempcandidates = [];
-			while(signal_timestamps[peaks[p_idx+tempi]] < t + 600 ) {
+			while(signal_timestamps[peaks[p_idx+tempi]] < t + 600 ) { //get peaks that are behind the latest event + (200ms-600ms)
 				tempcandidates.push(tempi);
 				tempi++;
 				if(!peaks[p_idx+tempi]) break;
 			}
-			if(tempcandidates.length > 1) {
+			if(tempcandidates.length > 1) { //if multiple peaks found choose the biggest one for the main p300 peak (not worrying about p1,p2,n1,n2 yet)
 				let peakvals = [];
 				tempcandidates.forEach((tc) => {
 					peakvals.push(smoothed[tc]);
