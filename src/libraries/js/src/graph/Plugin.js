@@ -13,6 +13,7 @@ export class Plugin {
     constructor(info, graph) {
 
         // Core Registry
+
         this.nodes = new Map()
         this.edges = new Map()
         this.events = new Map()
@@ -47,7 +48,20 @@ export class Plugin {
             parent: this.app.editor?.viewer ?? document.createElement('div'), // editor or offscreen element
             latencies: {}
         }
+
+
         this.createUI()
+
+
+        // // Initialize Functionality
+        // let func = async () => {
+        //     await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)}))
+        //     await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)}))
+        //     await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)}))
+        //     await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
+        // }
+
+        // func()
 
     }
 
@@ -56,6 +70,7 @@ export class Plugin {
     }
 
     _mergeInfo = (info={}) => {
+        if (!('nodes' in this.info)) this.info.graphs = []
         if (!('nodes' in this.info)) this.info.nodes = []
         if (!('edges' in this.info)) this.info.edges = []
         if (!('events' in this.info)) this.info.events = []
@@ -63,10 +78,16 @@ export class Plugin {
         if ('events' in info) this.info.events.push(...info.events)
         if ('edges' in info) this.info.edges.push(...info.edges)
         if ('nodes' in info) this.info.nodes.push(...info.nodes)
+        if ('graphs' in info) this.info.graphs.push(...info.graphs)
+
         delete info.nodes
         delete info.edges
         delete info.events
-        Object.assign(this, info)
+        delete info.graphs
+
+
+        if (Object.keys(info).length > 0) Object.assign(this, info)
+
     }
 
     // Resize All Active Node Fragments
@@ -83,6 +104,7 @@ export class Plugin {
     init = async (o) => {
 
         this._mergeInfo(o)
+        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)}))
         await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)}))
         await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)}))
         await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
@@ -108,12 +130,12 @@ export class Plugin {
         }
         
         // Create Node based on User-Defined Plugin Class
-        if (o.class.constructor) {
+        if (o.class?.constructor) {
 
             // Try To Extend Class
             o.className = o.class.name
             o.class = this.extend(o.class, Plugin)
-            o.instance = new o.class(o, this) 
+            o.instance = new o.class(o, this)
 
             // Create Ports with backwards compatibility (< 0.0.36)
             let keys = Object.keys(o.instance.ports) 
@@ -135,7 +157,17 @@ export class Plugin {
 
         // this.analysis.add(...Array.from(nodeInfo.analysis))
 
-        // Initialize Node
+        // If There Are Graph Dependencies
+        if (o.instance.graphs) {
+            await Promise.all(o.instance.graphs.map(async (g,i) => {
+                g = new Plugin(g, o.instance)
+                await g.init()
+                o.instance.graphs[i] = g
+                return g
+            }))
+        }
+
+        // Initialize Node        
         await o.instance.init()
 
         // Configure
@@ -286,6 +318,7 @@ export class Plugin {
     update = (port, user) => {
 
         let thisPort = this.get('ports', port)[0]
+
         return thisPort.set(user)
 
         // return this.
@@ -349,6 +382,11 @@ export class Plugin {
     }
 
     //pass specific node uuid
+    getGraph = (val) => {
+        let graphs = this.get('graphs', val, this.graphs)
+        return graphs[0]
+    }
+
     getNode = (val) => {
         let nodes = this.get('nodes', val, this.nodes)
         return nodes[0]

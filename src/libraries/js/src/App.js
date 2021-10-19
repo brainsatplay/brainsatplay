@@ -193,6 +193,7 @@ export class App {
 
 
     addGraph = (info) => {
+                
         let graph = new Plugin(info, {app: this}); // top-level graph
         if(!this.graphs.get(graph.name)) this.graphs.set(graph.name, graph)
     }

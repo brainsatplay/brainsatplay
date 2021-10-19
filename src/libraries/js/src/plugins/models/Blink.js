@@ -1,20 +1,26 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Blink extends Plugin {
+export class Blink {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
-        
-        
+
+
+        // create an internal graph
+        this.graphs = [
+                {
+                    name: 'blinkgraph',
+                    nodes: [
+                        {name: 'dataquality', class: 'DataQuality', params: {method: 'Mean Amplitude'}},
+                        {name: 'canvas', class: 'Canvas'},
+                    ]
+                }
+            ]
 
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
-            canvas: null,
             looping: false,
-            dataquality: null,
             blinkData: {},
             tags: {
                 left: ['AF7','FP1'],
@@ -110,12 +116,14 @@ export class Blink extends Plugin {
     init = async () => {
         this.props.looping = true
 
-        this.props.dataquality = await this.addNode({id: 'dataquality', class: 'DataQuality', params: {method: 'Mean Amplitude'}})
-        this.props.canvas = await this.addNode({id: 'canvas', class: 'Canvas'})
+        let graph = this.getGraph('blinkgraph')
+        console.log(graph)
+        this.props.dataquality = graph.getNode('dataquality')
+        this.props.canvas = graph.getNode('canvas')
 
-        this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
+        this.props.container.insertAdjacentElement('beforeend', this.props.canvas.props.container)
 
-        this.props.canvas.instance.update('draw', 
+        this.props.canvas.update('draw', 
             {  
                 forceRun: true,
                 forceUpdate: true,
@@ -136,8 +144,8 @@ export class Blink extends Plugin {
 
     deinit = () => {
         this.props.looping = false
-        this.props.canvas.instance.deinit()
-        this.props.dataquality.instance.deinit()
+        // this.props.canvas.deinit()
+        // this.props.dataquality.deinit()
     }
 
     _drawSignal = (ctx) => {
@@ -211,9 +219,9 @@ export class Blink extends Plugin {
         let blink = false
 
        if (this.props.dataquality) {
-           this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
+           this.props.dataquality.ports.qualityThreshold.set({value: this.ports.qualityThreshold.data})
         
-            this.props.channelQuality = await this.props.dataquality.instance.update('default',user) // Grab results of dependencies (no mutation)
+            this.props.channelQuality = await this.props.dataquality.update('default',user) // Grab results of dependencies (no mutation)
             this.props.channelQuality = this.props.channelQuality.data
        }
 

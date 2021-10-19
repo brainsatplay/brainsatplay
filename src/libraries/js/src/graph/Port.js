@@ -76,11 +76,31 @@ export class Port {
 
     // Only Set when Different
     set = (port=this, forceUpdate = false) => {
+        port = this._copy(port)
         return this._onchange(port);
     }
 
     get = () => {
         return this.value;
+    }
+
+    _copy(input){
+        let inputCopy = []
+        
+        let isArray = Array.isArray(input)
+        if (!isArray) input = [input]
+
+        input.forEach(u => {
+            inputCopy.push(Object.assign({}, u))
+            for (let key in u){
+                if (u[key] != null && u[key].constructor == Object){
+                    u[key] = Object.assign({}, u[key])
+                }
+            }
+        })
+
+        if (!isArray) inputCopy = inputCopy[0]
+        return inputCopy
     }
 
     _onchange = (port) => {
@@ -90,21 +110,28 @@ export class Port {
         port.value = port.data // backwards compatibility (< 0.0.36)
 
         let res = (this.onchange instanceof Function) ? this.onchange(port) : port // set in constructor
+        // console.log(res)
+
         let tock = performance.now()
         let latency = tock - tick
         this.latency.shift()
         this.latency.push(latency)
 
-        // Update Edges
-        if (this.value != port.value){
-            this.value = this.data = port.value // backwards compatibility (< 0.0.36)
+        if (res){
+            res.value = res.data // backwards compatibility (< 0.0.36) TODO: Test edge-cases
 
-            // Run Across Edges
-            this.edges.output.forEach(o => {o.update()})
-        } else {
-            // console.log('NO CHANGE')
+            // Update Edges
+            if (this.value != res.value){
+
+                // console.log('uPDATE', res.value)
+                this.value = this.data = res.value // backwards compatibility (< 0.0.36)
+
+                // Run Across Edges
+                this.edges.output.forEach(o => {o.update()})
+            } else {
+                // console.log('NO CHANGE')
+            }
         }
-
 
         return res
     }

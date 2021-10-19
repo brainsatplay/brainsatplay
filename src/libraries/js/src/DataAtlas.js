@@ -827,18 +827,20 @@ export class DataAtlas {
 	}
 
 	// Check whether the user is blinking
-	getBlink = (params = {}) => {
+	getBlink = async (params = {}) => {
 		let node = this.graph.getNode('blink')
 		node.updateParams(params)
-		let blink = node.update('default', {data: this.data, forceUpdate: true})
+		console.log(node)
+		let blink = await node.update('default', {data: this.data, forceUpdate: true})
+		console.log(blink)
 		return blink.data
 	}
 
 	// Check whether the user is focused
-	getFocus = (params = {}) => {
+	getFocus = async (params = {}) => {
 		let node = this.graph.getNode('focus')
 		node.updateParams(params)
-		let focused = node.update('default', {data: this.data, forceUpdate: true})
+		let focused = await node.update('default', {data: this.data, forceUpdate: true})
 		return focused.data
 	}
 

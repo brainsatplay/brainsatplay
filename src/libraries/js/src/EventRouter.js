@@ -43,7 +43,7 @@ export class EventRouter{
             let prop = this.device.atlas.data.eegshared.eegChannelTags[0].tag
             let coord = this.device.atlas.getDeviceDataByTag('eeg', prop);
             this.props.deviceSub = atlasTag + "_" + prop
-            this.state.addToState(this.props.deviceSub, coord, () => {
+            this.state.addToState(this.props.deviceSub, coord, async () => {
                 
                 // Only Calculate if Required
                     let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
@@ -54,7 +54,7 @@ export class EventRouter{
 
                     // Blink Detection
                     if (blinkBoth || blinkLeft || blinkRight){
-                        let blinks = this.device.atlas.getBlink({debug: true})
+                        let blinks = await this.device.atlas.getBlink({debug: true})
                         if (blinks){
                             if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
                             if (blinks[0] != null && blinkLeft) this.device.states['blink_left'].data = blinks[0]

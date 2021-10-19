@@ -204,8 +204,8 @@ _activateUI = async () => {
             else if (t === 'int') return'number'
             else return t
         }
-        sourceType = coerceType(this.source.port.output.type)
-        targetType = coerceType(this.target.port.input.type)
+        sourceType = coerceType(this.source.port?.output?.type)
+        targetType = coerceType(this.target.port?.input?.type)
 
         let checkCompatibility = (source,target) => {
             return source == target || (source === undefined || target === undefined) || (target instanceof Object && source instanceof target)

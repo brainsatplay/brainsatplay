@@ -21,21 +21,66 @@ export const settings = {
     graph:
     {
       nodes: [
-        {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
+        // {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        // {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
+        {name:'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
+        {name:'sine', class: brainsatplay.plugins.data.Sine},
         {
           name:'unity', 
           class: Unity, 
           params:{
-              commands: [{
-                object: 'System',
-                function: 'updateData',
-                type: 'number'
-              }, {
-                object: 'System',
-                function: 'updateBlink', // or just blink
-                type: 'boolean'
-              }]
+              commands: 
+              [
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateAlpha',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateAlphaBeta',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateAlphaTheta',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateCoherence',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateFocus',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateThetaBeta',
+                    type: 'number'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateBlink',
+                    type: 'boolean'
+                },
+                {
+                    object: 'GameApplication',
+                    function: 'UpdateO1',
+                    type: 'number'
+                }
+            ]
+              // [{
+              //   object: 'GameApplication',
+              //   function: 'updateData',
+              //   type: 'number'
+              // }, {
+              //   object: 'GameApplication',
+              //   function: 'updateBlink', // or just blink
+              //   type: 'boolean'
+              // }]
           }
         },
         {
@@ -45,13 +90,26 @@ export const settings = {
     ],
 
       edges: [
+
+        // BRAIN
+        // {
+        //   source: 'eeg:atlas',
+        //   target: 'neurofeedback',
+        // },
+        // {
+        //   source: 'neurofeedback',
+        //   target: 'unity:updateData',
+        // },
+
+
+        // TEST
+          {
+            source: 'left',
+            target: 'unity:UpdateBlink',
+          },
         {
-          source: 'eeg:atlas',
-          target: 'neurofeedback',
-        },
-        {
-          source: 'neurofeedback',
-          target: 'unity:updateData',
+          source: 'sine',
+          target: 'unity:UpdateAlpha',
         },
         {
           source: 'unity:element',

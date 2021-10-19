@@ -1503,6 +1503,7 @@ export class GraphEditor{
         }
 
         this.graph.nodes.forEach(async n => {
+            if (n.class != null){
             let clsInfo = this.classRegistry[n.class.name]
 
             let checkWhere = async (n, info) => {
@@ -1526,7 +1527,7 @@ export class GraphEditor{
             }
 
             await checkWhere(n, clsInfo)
-
+        }
         })
 
         this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
