@@ -1093,9 +1093,39 @@ export class Math2 {
 
 	//-------------------------------------------------------------
 
-	static p300(raw_signal=[],signal_timestamps=[],event_timestamps=[]) {
-		
+	//pass in 1 second of raw data ish recommended, event timestamps and signals are ordered from least current to most current 
+	static p300(event_timestamps=[],raw_signal=[],signal_timestamps=[], sps=256) {
+		let smoothingstep = Math.floor(sps/10); //300ms width peak, 1/10th sec smoothing for filtering
+		let smoothed = this.sma(raw_signal,smoothingstep);
+		let peaks = this.peakDetect(smoothed,'peak',smoothingstep);
 
+		let p_idx = 0;
+		let candidates = [];
+		if(peaks.length > 0) {
+		event_timestamps.forEach((t,j) => {
+			while(signal_timestamps[peaks[p_idx]] < t) { //roll over peaks that are behind of the latest event
+				p_idx++;
+				if(!peaks[p_idx]) break;
+			}
+			
+			let tempi = 0;
+			let tempcandidates = [];
+			while(signal_timestamps[peaks[p_idx+tempi]] < t + 600 ) {
+				tempcandidates.push(tempi);
+				tempi++;
+				if(!peaks[p_idx+tempi]) break;
+			}
+			if(tempcandidates.length > 1) {
+				let peakvals = [];
+				tempcandidates.forEach((tc) => {
+					peakvals.push(smoothed[tc]);
+				});
+				let max = Math.max(...peakvals);
+				let maxi = tempcandidates[peakvals.indexOf(max)];
+				candidates.push({event_timestamp:t, event_index:j, peak_timestamp:signal_timestamps[maxi],signal_index:maxi});
+			} else if (tempcandidates.length === 1) candidates.push({event_timestamp:t, event_index:j, peak_timestamp:signal_timestamps[tempcandidates[0]],signal_index:tempcandidates[0]});
+		});
+		} return candidates;
 	}
 
 }
