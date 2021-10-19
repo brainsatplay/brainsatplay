@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Sine extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
 
         this.ports = {
             default: {
@@ -18,7 +18,7 @@ export class Sine extends Plugin {
                     let t = Date.now()/1000
                     let phase = Number.parseFloat(this.ports.phase.data)
                     let value = this.ports.center.data + this.ports.scale.data*Number.parseFloat(this.ports.amplitude.data)*Math.sin(angularVelocity*t + phase)
-                    return {data: value, meta: {label: this.label}}
+                    return {data: value}
                 }
             },
             amplitude: {data: 1, min: 0, max: 1000, step: 0.1},
@@ -39,7 +39,7 @@ export class Sine extends Plugin {
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',{forceRun: true})
+                this.update('default',{forceRun: true})
                 setTimeout(animate,1000/Number.parseFloat(this.ports.rate.data))
             }
         }

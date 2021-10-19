@@ -1,15 +1,15 @@
 import {Math2} from '../../utils/mathUtils/Math2'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 
 export class DataQuality extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
 
 
         this.ports = {
@@ -60,7 +60,6 @@ export class DataQuality extends Plugin {
                     // Output to User Data Object
                     if (this.ports.output.data === 'Mean') user.data = this.session.atlas.mean(arr)
                     else user.data = dict
-                    // user.meta.label = `${this.label}_${this.ports.metric.data}`
         
                 return user
             }

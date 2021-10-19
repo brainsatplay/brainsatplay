@@ -155,7 +155,7 @@ export class Node {
         nodeText.classList.add('node-text')
         nodeText.innerHTML = `
             <h3>${node.constructor.name}</h3>
-            <p>${node.label}<p>
+            <p>${node.name}<p>
         `
 
         element.insertAdjacentElement('beforeend', nodeText)

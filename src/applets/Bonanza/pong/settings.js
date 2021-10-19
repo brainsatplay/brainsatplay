@@ -22,14 +22,14 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
-        {id: 'move', class: brainsatplay.plugins.utilities.Move},
-        {id: 'ui', class: UI, params: {}},
-        {id: 'document', class: brainsatplay.plugins.interfaces.UI},
+        {name: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {name: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
+        {name: 'move', class: brainsatplay.plugins.utilities.Move},
+        {name: 'ui', class: UI, params: {}},
+        {name: 'document', class: brainsatplay.plugins.interfaces.UI},
 
-        {id: 'performance', class: brainsatplay.plugins.machinelearning.Performance, params: {method: 'accuracy'}},
-        {id: 'debug', class: brainsatplay.plugins.debug.Debug},
+        {name: 'performance', class: brainsatplay.plugins.machinelearning.Performance, params: {method: 'accuracy'}},
+        {name: 'debug', class: brainsatplay.plugins.debug.Debug},
 
       ],
       edges: [

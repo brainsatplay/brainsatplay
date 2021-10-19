@@ -6,7 +6,7 @@
 import 'regenerator-runtime/runtime' 
 
 // Plugins
-import * as plugins from './src/plugins/plugins.js'
+import * as plugins from './src/plugins/plugins'
 export {plugins}
 // import {pluginManifest} from './src/plugins/pluginManifest'
 // export {pluginManifest}

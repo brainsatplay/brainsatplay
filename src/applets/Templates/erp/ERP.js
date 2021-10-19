@@ -1,8 +1,8 @@
-import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
+import {Plugin} from '../../../libraries/js/src/graph/Plugin'
 
 export class ERP extends Plugin{
 
-    constructor(label, session){
+    constructor(info, graph){
         super(label,session)
 
 

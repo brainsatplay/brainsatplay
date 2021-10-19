@@ -12,11 +12,11 @@ class Blob{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
+    constructor(info, graph) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         // UI Identifier
         this.props = {

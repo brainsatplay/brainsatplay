@@ -22,12 +22,12 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'heg', class: brainsatplay.plugins.biosignals.HEG},
-        {id: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
+        {name: 'heg', class: brainsatplay.plugins.biosignals.HEG},
+        {name: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
 
-        {id: 'manager', class: Manager, params: {}},
+        {name: 'manager', class: Manager, params: {}},
 
-        {id: 'ui', class: brainsatplay.plugins.interfaces.UI},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.UI},
       ],
 
       edges: [

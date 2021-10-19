@@ -4,11 +4,11 @@ class Studio{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
+    constructor(info, graph) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         // UI Identifier
         this.props = {
@@ -36,18 +36,20 @@ class Studio{
 
     init = () => {
 
-        let settingsCopy = Object.assign({}, settings)
-        if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
-        settingsCopy.editor = {
-            parentId: this.props.container.id,
-            show: true,
-            style: `
-            position: block;
-            z-index: 9;
-            `,
-        }
-        this.props.app = this.session.initApp(settingsCopy, this.props.container,this.session,['edit'])
-        this.props.app.init()
+        // let settingsCopy = Object.assign({}, settings)
+        // if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
+        // settingsCopy.editor = {
+        //     parentId: this.props.container,
+        //     show: true,
+        //     toggle: this.app.editor.toggle,
+        //     style: `
+        //     position: block;
+        //     z-index: 9;
+        //     `,
+        // }
+
+        // this.props.app = this.session.initApp(settingsCopy, this.props.container,this.session,['edit'])
+        // this.props.app.init()
 
     }
 

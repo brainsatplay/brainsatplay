@@ -21,10 +21,10 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
+        {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
         {
-          id:'unity', 
+          name:'unity', 
           class: Unity, 
           params:{
               commands: [{
@@ -39,7 +39,7 @@ export const settings = {
           }
         },
         {
-          id:'ui', 
+          name:'ui', 
           class: brainsatplay.plugins.interfaces.UI
         }
     ],

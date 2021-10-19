@@ -1,11 +1,11 @@
-import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
+import {Plugin} from '../../../libraries/js/src/graph/Plugin'
 
 export class Manager extends Plugin{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
-        super(label, session)
+    constructor(info, graph) {
+        super(info, graph)
 
 
         // UI Identifier

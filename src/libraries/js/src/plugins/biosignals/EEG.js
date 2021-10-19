@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class EEG extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.props = {
@@ -73,7 +73,7 @@ export class EEG extends Plugin {
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
-            this.session.graph.runSafe(this,'status', {forceRun: true})
+            this.update('status', {forceRun: true})
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }

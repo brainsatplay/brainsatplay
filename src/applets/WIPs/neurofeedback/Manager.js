@@ -5,9 +5,9 @@ import * as displays from './../../../libraries/js/src/plugins/displays'
 export class Manager{
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session){
-        this.label = label;
-        this.session = session;
+    constructor(info, graph){
+        ;
+        ;
 
         this.props = {
             container: document.createElement('div')

@@ -22,8 +22,8 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {}},
+        {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name: 'manager', class: Manager, params: {}},
       ],
 
       edges: [

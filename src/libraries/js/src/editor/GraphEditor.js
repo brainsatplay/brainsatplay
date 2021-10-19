@@ -13,11 +13,12 @@ import {pluginManifest} from '../plugins/pluginManifest'
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
-    constructor(manager, applet, parentId, onsuccess) {
-        this.manager = manager
-        this.app = applet
-        this.plugins = this.manager.applets[this.app.props.id]
+    constructor(app, parentId) {
+        // this.manager = manager
+        this.app = app
         this.parentNode = document.getElementById(parentId) ?? document.body
+        this.settings = this.app.info.editor ?? {parentId: this.app.parentNode.id, show: false, create: true}
+
         this.element = null
         this.graph=null
         this.shown = false
@@ -27,6 +28,8 @@ export class GraphEditor{
         this.searchOptions = []
         this.classRegistry = {}
         this.local = window.location.origin.includes('localhost')
+
+        this.toggle = null
 
         this.selectorToggle = null
         this.search = null
@@ -43,7 +46,7 @@ export class GraphEditor{
 
         this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT', 'TEXTAREA']
     
-        if (this.plugins){
+        if (this.app){
 
             // Only One Editor (look three levels up)
             let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
@@ -51,9 +54,11 @@ export class GraphEditor{
             if (!existingEditor && this.parentNode.parentNode.parentNode) existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
             if (existingEditor) existingEditor.remove()
 
-            let template = () => {
-                return `
-                <div id="${this.props.id}GraphEditorMask" class="brainsatplay-default-container brainsatplay-node-editor">
+            this.container = document.createElement('div')
+            this.container.id = `${this.props.id}GraphEditorMask`
+            this.container.classList.add('brainsatplay-default-container')
+            this.container.classList.add('brainsatplay-node-editor')
+            this.container.innerHTML = `
                     <div id="${this.props.id}MainPage" class="main">
                         <div class="brainsatplay-node-editor-preview-wrapper">
                             <div id="${this.props.id}preview" class="brainsatplay-node-editor-preview"></div>
@@ -99,208 +104,195 @@ export class GraphEditor{
                             </div>
                         </div>
                     </div>
-                </div>
                 `
-            }
-    
-            let setup = async () => {
-                this.container = document.getElementById(`${this.props.id}GraphEditorMask`)
-                this.isStudio = document.getElementById('brainsatplay-studio') != null
-
-
-                // Setup Presentation Based On Settings
-                if (this.app.info.editor.style) this.container.style = this.app.info.editor.style 
-                let toggleClass = `.option-brainsatplay-visual-editor`
-                let toggle = this.app.AppletHTML.node.querySelector(toggleClass)
-
-                // Insert Projects
-                this.insertProjects()
-
-                // Publish Button
-                let publishButton = document.getElementById(`${this.props.id}publish`)
-                publishButton.onclick = () => {
-                    this.app.updateGraph()
-                    this.app.session.projects.publish(this.app)
-                }
-                publishButton.classList.add('disabled')
-
-                // Search for Toggle
-                let tries = 0
-                let checkToggle = () => {
-                    if (tries < 10){
-                        if (this.app.AppletHTML){
-                            // Grab
-                            if (!toggle && this.app.AppletHTML.node.parentNode) toggle = this.app.AppletHTML.node.parentNode.querySelector(toggleClass)
-                            if (!toggle && this.app.AppletHTML.node.parentNode.parentNode) toggle = this.app.AppletHTML.node.parentNode.parentNode.querySelector(toggleClass)
-                            if (this.app.info.editor.toggleId) toggle = document.getElementById(this.app.info.editor.toggleId)        
-                            
-                            // Try Clicking
-                            if (toggle) toggle.addEventListener('click', () => {this.toggleDisplay()})
-                            else {
-                                setTimeout(() => {checkToggle()},500)
-                                tries++
-                            }
-                        } else {
-                            tries = 11
-                        }
-                    } 
-                    // else console.warn('toggle not available')
-                }
-
-                checkToggle()
-
-                this.mainPage = document.getElementById(`${this.props.id}MainPage`)
-                this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
-                this.sidebar = document.getElementById(`${this.props.id}GraphEditor`)
-                document.getElementById(`${this.props.id}edit`).style.display = 'none'
-                document.getElementById(`${this.props.id}delete`).style.display = 'none'
-
-                let download = document.getElementById(`${this.props.id}download`)
-                download.onclick = () => {
-                    this.app.session.projects.download(this.app)
-                }
-
-                let reload = document.getElementById(`${this.props.id}reload`)
-                reload.onclick = () => {
-                    applet.reload()
-                }
-
-                let exit = document.getElementById(`${this.props.id}exit`)
-                exit.onclick = () => {
-                    // If Inside Studio, Bring Back UI
-                    if (this.isStudio){
-                        document.getElementById('applet-browser-button').click()
-                        // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
-                        // projectWindow.style.opacity = 1
-                        // projectWindow.style.pointerEvents = 'all'
-
-                    } else { // Otherwise just toggle the editor display
-                        this.toggleDisplay()
-                    }
-                }
-
-
-                this.viewer = document.getElementById(`${this.props.id}NodeViewer`)
-
-                // Insert Node Selector with Right Click
-                this.toggleContextMenuEvent(this.viewer)
-
-                // Add Settings Editor
-                this.createSettingsEditor(applet.info)
-
-                // Scale View of Graph
-
-                let relXParent, relYParent
-                let relX, relY
-                let translation = {x: 0, y:0}
-                let mouseDown
-                this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
-                window.addEventListener('mouseup', e => { mouseDown = false} )
-
-                this.viewer.parentNode.addEventListener('mousemove', e => {
-                    if (this.editing === false){
-
-                        // Transform relative to Parent
-                        let rectParent = e.target.parentNode.getBoundingClientRect();
-                        let curXParent = (e.clientX - rectParent.left)/rectParent.width; //x position within the element.
-                        let curYParent = (e.clientY - rectParent.top)/rectParent.height;  //y position within the element.
-                    
-                        if (mouseDown){
-                            let tX = (curXParent-relXParent)*rectParent.width
-                            let tY = (curYParent-relYParent)*rectParent.height
-
-                            if (!isNaN(tX) && isFinite(tX)) translation.x += tX
-                            if (!isNaN(tY) && isFinite(tY)) translation.y += tY
-                            updateUI()
-                        } 
-                        // else {
-                        //     // Grab Target Coords for Scaling
-                        //     let rect = e.target.getBoundingClientRect();
-                        //     // let rect = this.viewer.getBoundingClientRect()
-                        //     let p1 = {x: e.clientX, y: e.clientY}
-                        //     let position = this.mapPositionFromScale(p1, rect)
-                        //     console.log({x: e.clientX, y: e.clientY}, position)
-                        //     this.viewer.style['transformOrigin'] = `${position.x}px ${position.y}px`;
-                        // }
-                        relXParent = curXParent
-                        relYParent = curYParent
-                    }
-                })
-
-                let updateUI = () => {
-                    this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
-                }
-
-                // Change scale
-                this.viewer.parentNode.addEventListener('wheel', (e)=>{
-                    this.context.scale += 0.01*-e.deltaY
-                    if (this.context.scale < 0.5) this.context.scale = 0.5 // clamp
-                    if (this.context.scale > 3.0) this.context.scale = 3.0 // clamp
-                    updateUI()
-
-                    for (let key in this.graph.nodes){
-                        this.graph.nodes[key].updateAllEdges()
-                    }
-                })
-                
-                // Search for Plugins
-                this.createPluginSearch(this.mainPage)
-
-                // Create Tabs
-                this.createViewTabs()
-
-                // Add Graph Tab and Save Functionality
-                this.addGraphTab()
-
-                // Populate Used Nodes and Edges
-                this.graph = new Graph(this.viewer)
-
-
-                // Setup Nodes
-                let i = 0
-                let length = Object.keys(this.plugins.nodes).length
-                this.plugins.nodes.forEach(async n => {
-                    let node = await this.addNode(n,true, true, true) 
         
-                    // Default Positioning
-                    let iterator = Math.ceil(Math.sqrt(length))
-                    let row = Math.floor(i % iterator)
-                    let col = Math.floor(i/iterator)
-        
-                    let padding = 10
-                    let availableSpace = 100 - 2*padding
-                    let leftShift = 0.5 * availableSpace/(iterator+1)
-                    let downShift = 0.5 * availableSpace/(iterator+2)
-                    
-                    if (!n.style.includes('top') && !n.style.includes('left')) {
-                        node.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-                        node.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
-                        i++
-                    }
-                })
-
-                // Setup Edges
-                await this.graph.initEdges(this.plugins.edges)
-
-                // Add Edge Reactivity
-                this.graph.edges.forEach(e => {
-                    this.addEdgeReactivity(e)
-                })
-
-                onsuccess(this)
-            }
-    
             this.element = new DOMFragment(
-                template,
+                this.container,
                 this.parentNode,
                 undefined,
-                setup
+                () => {
+                    // Set UI Attributes
+                    this.mainPage = this.container.querySelector(`[id="${this.props.id}MainPage"]`)
+                    this.viewer = this.container.querySelector(`[id="${this.props.id}NodeViewer"]`)
+                    this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
+                    this.sidebar = this.container.querySelector(`[id="${this.props.id}GraphEditor"]`)
+                    this.download = this.container.querySelector(`[id="${this.props.id}download"]`)
+                    this.reload = this.container.querySelector(`[id="${this.props.id}reload"]`)
+                    this.exit = this.container.querySelector(`[id="${this.props.id}exit"]`)
+
+                } // setup function, moved to init
             )
         }
 
-
         window.addEventListener('resize', this.responsive)
 
+    }
+
+    init = async (graph=this.app.graphs.values().next().value) => {
+
+            this.graph = graph
+
+            this.isStudio = document.getElementById('brainsatplay-studio') != null
+
+            if (!document.getElementById(this.settings.parentId)) this.settings.parentId = this.app.parentNode.id
+
+
+            // Setup Presentation Based On Settings
+            if (this.settings.style) this.container.style = this.settings.style 
+
+
+            // find toggle (wait a bit)
+            // setTimeout(() => {
+            //     this.setToggle()
+            // }, 2000)
+
+            // Insert Projects
+            this.insertProjects()
+
+            // Publish Button
+            let publishButton = this.element.node.querySelector(`[id="${this.props.id}publish"]`)
+            publishButton.onclick = () => {
+                this.app.updateGraph()
+                this.app.session.projects.publish(this.app)
+            }
+            publishButton.classList.add('disabled')
+
+            this.element.node.querySelector(`[id="${this.props.id}edit"]`).style.display = 'none'
+            this.element.node.querySelector(`[id="${this.props.id}delete"]`).style.display = 'none'
+
+            this.download.onclick = () => {
+                this.app.session.projects.download(this.app)
+            }
+
+
+            this.reload.onclick = () => {
+                applet.reload()
+            }
+
+            this.exit.onclick = () => {
+
+                // If Inside Studio, Bring Back UI
+                if (this.isStudio){
+                    document.getElementById('applet-browser-button').click()
+                    // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                    // projectWindow.style.opacity = 1
+                    // projectWindow.style.pointerEvents = 'all'
+
+                } else { // Otherwise just toggle the editor display
+                    this.toggleDisplay()
+                }
+
+            }
+
+
+            // Insert Node Selector with Right Click
+            this.toggleContextMenuEvent(this.viewer)
+
+            // Add Settings Editor
+            this.createSettingsEditor(this.app)
+
+            // Scale View of Graph
+
+            let relXParent, relYParent
+            let relX, relY
+            let translation = {x: 0, y:0}
+            let mouseDown
+            this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
+            window.addEventListener('mouseup', e => { mouseDown = false} )
+
+            this.viewer.parentNode.addEventListener('mousemove', e => {
+                if (this.editing === false){
+
+                    // Transform relative to Parent
+                    let rectParent = e.target.parentNode.getBoundingClientRect();
+                    let curXParent = (e.clientX - rectParent.left)/rectParent.width; //x position within the element.
+                    let curYParent = (e.clientY - rectParent.top)/rectParent.height;  //y position within the element.
+                
+                    if (mouseDown){
+                        let tX = (curXParent-relXParent)*rectParent.width
+                        let tY = (curYParent-relYParent)*rectParent.height
+
+                        if (!isNaN(tX) && isFinite(tX)) translation.x += tX
+                        if (!isNaN(tY) && isFinite(tY)) translation.y += tY
+                        updateUI()
+                    } 
+                    // else {
+                    //     // Grab Target Coords for Scaling
+                    //     let rect = e.target.getBoundingClientRect();
+                    //     // let rect = this.viewer.getBoundingClientRect()
+                    //     let p1 = {x: e.clientX, y: e.clientY}
+                    //     let position = this.mapPositionFromScale(p1, rect)
+                    //     console.log({x: e.clientX, y: e.clientY}, position)
+                    //     this.viewer.style['transformOrigin'] = `${position.x}px ${position.y}px`;
+                    // }
+                    relXParent = curXParent
+                    relYParent = curYParent
+                }
+            })
+
+            let updateUI = () => {
+                this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
+            }
+
+            // Change scale
+            this.viewer.parentNode.addEventListener('wheel', (e)=>{
+                this.context.scale += 0.01*-e.deltaY
+                if (this.context.scale < 0.5) this.context.scale = 0.5 // clamp
+                if (this.context.scale > 3.0) this.context.scale = 3.0 // clamp
+                updateUI()
+
+                for (let key in this.graph.nodes){
+                    this.graph.nodes[key].updateAllEdges()
+                }
+            })
+            
+            // Search for Plugins
+            this.createPluginSearch(this.mainPage)
+
+            // Create Tabs
+            this.createViewTabs()
+
+            // Add Graph Tab and Save Functionality
+            this.addGraphTab()
+
+            // Populate Used Nodes and Edges
+            // this.graph = new Graph(this.viewer)
+
+
+            // Setup Nodes
+            let i = 0
+            let length = this.graph.nodes.size
+            this.graph.nodes.forEach(async n => {
+                let node = await this.addNode(n,true, true, true) 
+    
+                // Default Positioning
+                let iterator = Math.ceil(Math.sqrt(length))
+                let row = Math.floor(i % iterator)
+                let col = Math.floor(i/iterator)
+    
+                let padding = 10
+                let availableSpace = 100 - 2*padding
+                let leftShift = 0.5 * availableSpace/(iterator+1)
+                let downShift = 0.5 * availableSpace/(iterator+2)
+                
+                if (!n.style.includes('top') && !n.style.includes('left')) {
+                    node.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                    node.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                    i++
+                }
+            })
+
+            // Add Edge Reactivity
+            this.graph.edges.forEach(e => {
+                this.addEdgeReactivity(e)
+            })
+
+            if (this.settings.display) this.toggleDisplay()
+        }
+
+    setToggle = (toggle = this.settings.toggle) => {
+        this.toggle = (typeof toggle === 'string') ? this.app.ui.container.querySelector(`[id="${toggle}"]`) : toggle
+        if (this.toggle) this.toggle.addEventListener('click', () => {this.toggleDisplay()})
     }
 
     _onMouseOverEdge = (e) => {
@@ -322,7 +314,7 @@ export class GraphEditor{
 
     insertProjects = async () => {
 
-        this.props.projectContainer = document.getElementById(`${this.props.id}projects`)
+        this.props.projectContainer = this.element.node.querySelector(`[id="${this.props.id}projects"]`)
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
 
@@ -461,7 +453,7 @@ export class GraphEditor{
 
     createViewTabs = () => {
 
-        let parentNode = document.getElementById(`${this.props.id}ViewTabs`)
+        let parentNode = this.element.node.querySelector(`[id="${this.props.id}ViewTabs"]`)
 
         // Add Tab Div
         let tabs = document.createElement('div')
@@ -473,7 +465,7 @@ export class GraphEditor{
         this.files['Graph Editor'] = {}
         this.files['Graph Editor'].container = this.viewer
         this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
-        let save = document.getElementById(`${this.props.id}save`)
+        let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
         let onsave = () => {
             this.files['Graph Editor'].tab.classList.remove('edited')
             this.app.updateGraph()
@@ -512,7 +504,7 @@ export class GraphEditor{
     }
 
     addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
-        let tab = document.querySelector(`[data-target="${id}"]`);
+        let tab = this.element.node.querySelector(`[data-target="${id}"]`);
         if (tab == null){
             tab = document.createElement('button')
             tab.classList.add('tablinks')
@@ -522,7 +514,7 @@ export class GraphEditor{
             if (label != 'Graph Editor'){
                 let onClose = () => {
                     tab.style.display = 'none'
-                    let editorTab = document.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
+                    let editorTab = this.element.node.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
                     editorTab.click()
                 }
                 this.addCloseIcon(tab,onClose)
@@ -534,10 +526,10 @@ export class GraphEditor{
 
                 if (tab.style.display !== 'none'){
                     // Close Other Tabs
-                    let allTabs =  document.querySelector('.tab').querySelectorAll('.tablinks')
+                    let allTabs =  this.element.node.querySelector('.tab').querySelectorAll('.tablinks')
                     for (let otherTab of allTabs){
                         let tabId = otherTab.getAttribute('data-target')
-                        let target = document.getElementById(tabId)
+                        let target = this.element.node.querySelector(`[id="${tabId}"]`)
                         if(id != tabId) {
                             if (target) target.style.display = 'none'
                             otherTab.classList.remove('active')
@@ -551,7 +543,7 @@ export class GraphEditor{
                 }
             }
 
-            document.querySelector('.tab').insertAdjacentElement('beforeend', tab)
+            this.element.node.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
         }
         this.clickTab(tab)
@@ -579,7 +571,7 @@ export class GraphEditor{
     }
 
     createSettingsEditor(settings){
-            let settingsContainer = document.getElementById(`${this.props.id}settings`)
+            let settingsContainer = this.element.node.querySelector(`[id="${this.props.id}settings"]`)
 
             let toParse ={}
 
@@ -682,7 +674,7 @@ export class GraphEditor{
                 setTimeout(() => {
 
                 this.responsive()
-                this.manager._resizeAllNodeFragments(this.app.props.id)
+                if (this.graph) this.graph._resize()
                 },100)
             } else {
                 this.element.node.style.opacity = 0
@@ -692,7 +684,7 @@ export class GraphEditor{
                 this.app.AppletHTML.parentNode.appendChild(this.appNode)
                 setTimeout(() => {
                     this.responsive()
-                    this.manager._resizeAllNodeFragments(this.app.props.id)
+                    if (this.graph) this.graph._resize()
                 },100)
             }
         }
@@ -739,7 +731,7 @@ export class GraphEditor{
     };
 
     animateLatency(node, port, latency){
-        let instance = this.graph.nodes[node.label]
+        let instance = this.graph.nodes[node.name]
         let pct = Math.min(1,latency/1)
 
         let map = [
@@ -756,7 +748,7 @@ export class GraphEditor{
     }
 
     animateNode(node,type){
-        let instance = this.graph.nodes[node.label]
+        let instance = this.graph.nodes[node.name]
         if (instance){
             let portEl = instance.element.querySelector(`.${type}-ports`).querySelector(`.port-${node.port}`)
             if (portEl) {
@@ -772,11 +764,11 @@ export class GraphEditor{
     }
 
     animateEdge(source,target){
-        let instance = this.graph.nodes[source.label]
+        let instance = this.graph.nodes[source.name]
         instance.edges.forEach(e=>{
             if(e.structure.source.port === source.port){
                 if (e.structure.target){
-                    if (e.structure.target.node === target.label && e.structure.target.port == target.port){
+                    if (e.structure.target.node === target.name && e.structure.target.port == target.port){
                         e.node.curve.classList.add('updated')
                         e.node.curve.setAttribute('data-update', Date.now())
                         setTimeout(()=>{
@@ -819,7 +811,7 @@ export class GraphEditor{
         // if (e.source) e.source = e.source.replace(':default', '')
         // if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
-        let res = await this.graph.addEdge(e)
+        let res = await this.graph.getEdge(e)
 
         if (res.msg === 'OK'){
             let edge = res.edge
@@ -840,7 +832,7 @@ export class GraphEditor{
     }
 
     // updatePorts(node){
-    //     let n = this.graph.nodes[node.label]
+    //     let n = this.graph.nodes[node.name]
     //     if (n) {
     //         n.updatePorts(node)
     //         this.addPortEvents(n)
@@ -848,12 +840,12 @@ export class GraphEditor{
     // }
     
     removePort(node,port){
-        let n = this.graph.nodes[node.label]
+        let n = this.graph.nodes[node.name]
         if (n) n.removePort(port)
     }
 
     addPort(node,port){
-        let n = this.graph.nodes[node.label]
+        let n = this.graph.nodes[node.name]
         if (n){
             n.addPort(port)
             this.addPortEvents(n)
@@ -861,50 +853,51 @@ export class GraphEditor{
     }
 
     removePort(node,port){
-        this.graph.nodes[node.label].removePort(port)
+        this.graph.nodes[node.name].removePort(port)
     }
 
-    async addNode(nodeInfo, skipManager = false, skipInterface = false, skipClick=false){
+    async addNode(node, skipManager = false, skipInterface = false, skipClick=false){
         
         if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
 
-        if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        if (skipManager == false) nodeInfo = await this.manager.addNode(nodeInfo, this.app, false)
-        if (skipInterface == false) this.app.insertInterface(nodeInfo)
+        // console.log(nodeInfo)
+        // if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
+        // if (skipManager == false) nodeInfo = await this.manager.addNode(nodeInfo, this.app, false)
+        // if (skipInterface == false) this.app.insertInterface(nodeInfo)
         
-        let node = this.graph.addNode(nodeInfo)
+        // let node = this.graph.getNode(nodeInfo.name)
 
         let top
         let left
-        if (nodeInfo.style){
-            top = nodeInfo.style.match(/top: ([^;].+); /)
-            left = nodeInfo.style.match(/left: ([^;].+);\s?/)
+        if (node.style){
+            top = node.style.match(/top: ([^;].+); /)
+            left = node.style.match(/left: ([^;].+);\s?/)
         }
 
-        dragUtils.dragElement(this.graph.parentNode,node.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
+        dragUtils.dragElement(this.viewer, node.ui.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
             this.editing = false
-            node.nodeInfo.style = node.element.style.cssText
+            node.style = node.ui.element.style.cssText
         })
 
         if (skipManager == false) this.app.info.graph.nodes.push(nodeInfo) // Change actual settings file
-        this.addNodeEvents(this.graph.nodes[nodeInfo.id])
-        this.addPortEvents(this.graph.nodes[nodeInfo.id])
+        this.addNodeEvents(node)
+        this.addPortEvents(node)
 
-        if (!skipClick) node.element.querySelector('.brainsatplay-display-node').click()
+        if (!skipClick) node.ui.element.querySelector('.brainsatplay-display-node').click()
 
         // Place Node if Location is Provided
         if (top || left){
-            if (top) node.element.style.top = top[1]
-            if (left) node.element.style.left = left[1]
+            if (top) node.ui.element.style.top = top[1]
+            if (left) node.ui.element.style.left = left[1]
         } else if (this.nextNode) {
             let rect = this.viewer.getBoundingClientRect()
             let position = this.mapPositionFromScale(this.nextNode.position, rect)
-            node.element.style.top = `${position.x}px`
-            node.element.style.left = `${position.y}px`
+            node.ui.element.style.top = `${position.x}px`
+            node.ui.element.style.left = `${position.y}px`
             this.nextNode = null
         }
 
-        node.nodeInfo.style = node.element.style.cssText // Set initial translation
+        node.style = node.ui.element.style.cssText // Set initial translation
 
         return node
     }
@@ -924,18 +917,18 @@ export class GraphEditor{
     }
 
     addNodeEvents(node){
-        let nodeElement = node.element.querySelector('.brainsatplay-display-node')
+        let nodeElement = node.ui.element.children[0]
 
         nodeElement.onclick = () => {
-            let clickedNode = this.graph.parentNode.querySelector('.clicked')
+            let clickedNode = this.app.parentNode.querySelector('.clicked')
             if (clickedNode) clickedNode.classList.remove('clicked')
             nodeElement.classList.add('clicked')
 
             // Plugin GUI
-            let selectedParams = document.getElementById(`${this.props.id}params`)
+            let selectedParams = this.element.node.querySelector(`[id="${this.props.id}params"]`)
             selectedParams.innerHTML = ''
-            let plugin = node.nodeInfo.instance
-            let toParse = plugin.ports
+            let plugin = node
+            let toParse = node.ports
 
 
             let inputDict = {}
@@ -951,17 +944,17 @@ export class GraphEditor{
 
 
             // Edit and Delete Buttons
-            document.getElementById(`${this.props.id}delete`).style.display = ''
-            document.getElementById(`${this.props.id}delete`).onclick = () => {
-                this.removeNode(node.nodeInfo)
+            this.element.node.querySelector(`[id="${this.props.id}delete"]`).style.display = ''
+            this.element.node.querySelector(`[id="${this.props.id}delete"]`).onclick = () => {
+                this.removeNode(node)
             }
-            let edit = document.getElementById(`${this.props.id}edit`)
-            let editable = this.app.session.projects.checkIfSaveable(node.nodeInfo.class)
+            let edit = this.element.node.querySelector(`[id="${this.props.id}edit"]`)
+            let editable = this.app.session.projects.checkIfSaveable(node.class)
 
             if (editable){
                 edit.style.display = ''
                 edit.onclick = (e) => {
-                this.createFile(node.nodeInfo.class)
+                this.createFile(node.class)
             }} else edit.style.display = 'none'
         }
     }
@@ -1112,10 +1105,7 @@ export class GraphEditor{
                 }
     
                 settings.onSave = (res) => {
-                    // if (defaultType === 'Function') res = res[key]
-                    // plugin.ports[key].data
                     if (plugin) this.setPort(plugin, key, res)
-                   this.manager._resizeAllNodeFragments(this.app.props.id)
                 }
     
                 settings.onClose = (res) => {
@@ -1317,7 +1307,7 @@ export class GraphEditor{
         let filename = `${name}.js`
 
         let getNode = (target) => {
-            return this.plugins.nodes.find(n => {
+            return this.graph.nodes.find(n => {
                 if (n.class.id == target.id) return n
             })
         }
@@ -1437,7 +1427,7 @@ export class GraphEditor{
     }
 
     addPortEvents(node){
-        let portElements = node.element.querySelectorAll('.node-port')
+        let portElements = node.ui.element.querySelectorAll('.node-port')
 
         for (let portElement of portElements){
             // Listen for clicks to draw SVG edge
@@ -1447,9 +1437,9 @@ export class GraphEditor{
         }
     }
 
-    removeNode = (nodeInfo) => {
-        this.manager.remove(this.app.props.id, nodeInfo.class.id, nodeInfo.instance.label)
-        this.graph.removeNode(nodeInfo)
+    removeNode = (node) => {
+        this.manager.remove(this.app.props.id, node.class.id, node.instance.name)
+        this.graph.removeNode(node.id)
     }
  
 
@@ -1463,7 +1453,7 @@ export class GraphEditor{
         this.selectorMenu = document.createElement('div')
         this.selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
-        this.selectorToggle = document.getElementById(`${this.props.id}add`)
+        this.selectorToggle = this.element.node.querySelector(`[id="${this.props.id}add"]`)
 
         let toggleVisibleSelector = (e) => {
             if(!e.target.closest('.brainsatplay-node-selector-menu') && !e.target.closest(`[id="${this.props.id}add"]`)) this.selectorToggle.click()
@@ -1512,7 +1502,7 @@ export class GraphEditor{
             this.addNodeOption(this.classRegistry[className])
         }
 
-        this.plugins.nodes.forEach(async n => {
+        this.graph.nodes.forEach(async n => {
             let clsInfo = this.classRegistry[n.class.name]
 
             let checkWhere = async (n, info) => {
@@ -1602,7 +1592,7 @@ export class GraphEditor{
                 change = 1
             }
 
-            let count = document.querySelector(`.${o.category}-count`)
+            let count = this.element.node.querySelector(`.${o.category}-count`)
             if (count) {
                 let numMatching = Number.parseFloat(count.innerHTML) + change
                 count.innerHTML = numMatching
@@ -1683,7 +1673,7 @@ export class GraphEditor{
             
             element.onclick = () => {
                 onClick()
-                document.getElementById(`${this.props.id}add`).click() // Close menu
+                this.element.node.querySelector(`[id="${this.props.id}add"]`).click() // Close menu
             }
 
             // element.insertAdjacentElement('beforeend',labelDiv)
@@ -1728,14 +1718,14 @@ export class GraphEditor{
 
 
     responsive = () => {
-        let selector = document.getElementById(`${this.props.id}nodeSelector`)
+        let selector = this.element.node.querySelector(`[id="${this.props.id}nodeSelector"]`)
 
         if (selector){
             selector.style.height = `${selector.parentNode.offsetHeight}px`
             selector.style.width = `${selector.parentNode.offsetWidth}px`
         }
 
-        let tabContainer = document.getElementById(`${this.props.id}ViewTabs`)
+        let tabContainer = this.element.node.querySelector(`[id="${this.props.id}ViewTabs"]`)
         if (tabContainer){
             let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth
             this.mainPage.style.width = `${mainWidth}px`
@@ -1763,9 +1753,12 @@ export class GraphEditor{
     }
 
     deinit(){
+        // console.log(this.element)
         if (this.element){
             this.element.node.style.opacity = '0'
+            // console.log(this.element.node)
             setTimeout(() => {this.element.node.remove()}, 500)
         }
+        window.removeEventListener('resize', this.responsive)
     }
 }

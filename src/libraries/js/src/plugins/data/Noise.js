@@ -1,15 +1,15 @@
 import {Noise as NoiseJS} from 'noisejs'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 
 export class Noise extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.ports = {
@@ -26,7 +26,7 @@ export class Noise extends Plugin {
                         this.props.lastSample*=Number.parseFloat(this.ports.intensity.data)
                         this.props.lastTime = Date.now()
                     }
-                    return {data: this.props.lastSample, meta: {label: this.label}}
+                    return {data: this.props.lastSample}
                 }
             },
             type: {
@@ -78,7 +78,7 @@ export class Noise extends Plugin {
 
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'default',{forceRun: true})
+                this.update('default',{forceRun: true})
                 setTimeout(animate, Math.min(100, this.ports.interval.data))
             }
         }

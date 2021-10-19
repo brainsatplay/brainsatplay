@@ -1,15 +1,15 @@
 import { WorkerManager } from "../../utils/workers/Workers"
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 
 export class Thread extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -27,7 +27,7 @@ export class Thread extends Plugin {
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    if (user.meta.source != this.label) this._postData(user.data); 
+                    if (user.meta.source != this.name) this._postData(user.data); 
                     else return user;
                 }
             },
@@ -54,7 +54,7 @@ export class Thread extends Plugin {
         if(!window.workers.workerResponses) { window.workers.workerResponses = []; } //placeholder till we can get webworkers working outside of the index.html
 		this.props.workerId = window.workers.addWorker(); // add a worker for this DataAtlas analyzer instance
         window.workers.workerResponses.push(this._onMessage);
-        this.session.graph.runSafe(this, 'add', this.ports.add)
+        this.update( 'add', this.ports.add)
     }
 
     deinit = () => {
@@ -63,7 +63,7 @@ export class Thread extends Plugin {
 
     _onMessage = (msg) => {
         if (msg.origin === this.props.id){
-            this.session.graph.runSafe(this, 'input', {data: msg.output})
+            this.update( 'input', {data: msg.output})
             this.props.workerWaiting = false;
         }
     }

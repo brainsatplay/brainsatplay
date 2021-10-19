@@ -1,4 +1,4 @@
-import {Plugin} from './Plugin'
+import {Plugin} from '../graph/Plugin'
 
 /* 
 
@@ -10,14 +10,14 @@ export class Blank extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000)) // ensures that duplicates of the same class are linked
     
-    constructor(label, session) {
-        super(label, session)
+    constructor(info, graph) {
+        super(info, graph)
 
         // LABEL (required)
-        this.label = label // name of the plugin
+         // name of the plugin
 
         // SESSION (required)
-        this.session = session // session that the plugin is used in 
+         // session that the plugin is used in 
 
         // ADded AFTER CONSTRUCTION
         // this.app: The application that this plugin is running in

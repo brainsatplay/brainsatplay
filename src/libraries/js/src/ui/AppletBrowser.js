@@ -8,10 +8,8 @@ export class AppletBrowser {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        this.label = label
-        this.session = session
-
+    constructor(info, graph) {
+        
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random() * 1000000)), //Keep random ID,
             trainingModules: {},
@@ -62,10 +60,11 @@ export class AppletBrowser {
             if (cmd.presets != null) this.props.presets = cmd.presets
         });
 
+        console.log(this)
         this._createBrowser()
     }
 
-    _createBrowser = () => {
+    _createBrowser(){
                 // if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
                 if (this.showPresets) {this._createFeature()}
@@ -160,8 +159,8 @@ export class AppletBrowser {
 
         // Training Selection
         trainingModes.forEach((mode, i) => {
-            settings.graph.nodes.push({ id: mode, class: Train, params: { mode , applets: this.props.applets} })
-            settings.graph.nodes.push({ id: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
+            settings.graph.nodes.push({ name: mode, class: Train, params: { mode , applets: this.props.applets} })
+            settings.graph.nodes.push({ name: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
             settings.graph.edges.push({ source: `${mode}:element`, target: `${mode}ui:content` })
         })
 

@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Blink extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
 
 
         this.props = {
@@ -31,10 +31,9 @@ export class Blink extends Plugin {
                 input: {type: Object, name: 'DataAtlas'},
                 output: {type: Array},
                 onUpdate: async (user) => {
-                    let leftBlinks = await this.session.atlas.graph.runSafe(this,'left',user)
-                    let rightBlinks = await this.session.atlas.graph.runSafe(this,'right',user)
+                    let leftBlinks = await this.update('left',user)
+                    let rightBlinks = await this.update('right',user)
                     user.data = [leftBlinks.data, rightBlinks.data]
-                    user.meta.label = 'blink'
                     return user
                 }
             },
@@ -116,7 +115,7 @@ export class Blink extends Plugin {
 
         this.props.container.insertAdjacentElement('beforeend', this.props.canvas.instance.props.container)
 
-        this.session.atlas.graph.runSafe(this.props.canvas.instance, 'draw', 
+        this.props.canvas.instance.update('draw', 
             {  
                 forceRun: true,
                 forceUpdate: true,
@@ -214,7 +213,7 @@ export class Blink extends Plugin {
        if (this.props.dataquality) {
            this.props.dataquality.ports.qualityThreshold.data = this.ports.qualityThreshold.data
         
-            this.props.channelQuality = await this.session.atlas.graph.runSafe(this.props.dataquality.instance,'default',user) // Grab results of dependencies (no mutation)
+            this.props.channelQuality = await this.props.dataquality.instance.update('default',user) // Grab results of dependencies (no mutation)
             this.props.channelQuality = this.props.channelQuality.data
        }
 

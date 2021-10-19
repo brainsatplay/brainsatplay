@@ -23,10 +23,10 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {}},
-        {id: 'erp', class: ERP, params: {}},
-        {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name: 'manager', class: Manager, params: {}},
+        {name: 'erp', class: ERP, params: {}},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
 
           html: `<div id="content"></div>`,
           style: `

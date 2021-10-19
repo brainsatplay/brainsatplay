@@ -5,16 +5,16 @@ import WebXRPolyfill from 'webxr-polyfill';
 const polyfill = new WebXRPolyfill();
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js';
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Scene extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        super(info, graph)
+        
+        
 
         let camera = new THREE.PerspectiveCamera()
         let renderer = new THREE.WebGLRenderer( { antialias: true } )

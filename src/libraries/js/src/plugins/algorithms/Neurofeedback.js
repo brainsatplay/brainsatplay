@@ -1,11 +1,11 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Neurofeedback extends Plugin {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
-        super(label, session)
+    constructor(info, graph) {
+        super(info, graph)
 
         this.getBandFreqs = (frequencies) => {//Returns an object with the frequencies and indices associated with the bandpass window (for processing the FFT results)
             let oneto20freqs = [[],[]]

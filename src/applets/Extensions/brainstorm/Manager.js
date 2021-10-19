@@ -1,9 +1,7 @@
 export class Manager{
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session){
-        this.label = label;
-        this.session = session;
+    constructor(info, graph){
 
         this.props = {
             container: document.createElement('div'),
@@ -35,7 +33,7 @@ export class Manager{
 
     init = () => {
 
-        this.session.graph.runSafe(this, 'element', {data: this.props.container})
+        this.update( 'element', {data: this.props.container})
 
         this.session.info.auth.username = 'user' + Math.floor(10000*Math.random())
         this.session.info.auth.url = new URL(`${location.protocol}//localhost:443`)

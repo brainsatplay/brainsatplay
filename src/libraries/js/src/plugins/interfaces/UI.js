@@ -1,19 +1,19 @@
 import {DOMFragment} from '../../ui/DOMFragment'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 
 export class UI extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        super(info, graph)
+        
+        
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             canvas: null,
-            container: null,
+            container: document.createElement('div'),
             context: null,
             drawFunctions: {},
             looping: false,
@@ -156,7 +156,7 @@ export class UI extends Plugin {
 
                         // Fill Width/Height by Default
                         if (!this.ports.style.data.includes(`#${node.id}`)) {
-                            this.session.graph.runSafe(this, 'style', {data: this.ports.style.data + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`})
+                            this.update( 'style', {data: this.ports.style.data + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`})
                         }
 
                     }
@@ -164,7 +164,7 @@ export class UI extends Plugin {
 
                 // // Remove Unused IDs as Ports
                 Array.from(removedIds).forEach(id => {
-                    this.session.graph.removePort(this, id) // Remove Port of Non-Empty Ids                                     
+                    this.removePort(id) // Remove Port of Non-Empty Ids                                     
                 })
             }}, 
             // {key: 'parentNode', input: {type: Element}, output: {type: null}, data: document.body}, 
@@ -218,11 +218,10 @@ export class UI extends Plugin {
 
     init = () => {
 
-        this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
         this.props.container.classList.add('brainsatplay-ui-container')
         this.props.container.style = this.ports.containerStyle.data
-        this.session.graph.runSafe(this,'html', {data: this.ports.html.data})
+        this.update('html', {data: this.ports.html.data})
 
         // Create Stylesheet
         let HTMLtemplate = this.props.container
@@ -231,7 +230,7 @@ export class UI extends Plugin {
             if (this.ports.setupHTML.data instanceof Function) this.ports.setupHTML.data()
             // Wait to Reference AppletHTML
             setTimeout(() => {
-                if (this.ports.style.data) this.session.graph.runSafe(this,'style', {data: this.ports.style.data})
+                if (this.ports.style.data) this.update('style', {data: this.ports.style.data})
             }, 250)
         }
 

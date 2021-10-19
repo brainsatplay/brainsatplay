@@ -4,7 +4,7 @@
 import { StateManager } from "./ui/StateManager";
 
 import { WorkerManager } from "./utils/workers/Workers"
-import { GraphManager } from "./GraphManager"
+import { Plugin } from "./graph/Plugin"
 
 import { Blink } from "./plugins/models/Blink"
 import { Focus } from "./plugins/models/Focus"
@@ -39,9 +39,9 @@ export class DataAtlas {
 		this.props = {
 			id: this._getRandomId()
 		}
-		
 
-		this.graph = new GraphManager({atlas: this})
+		this.graph = null // initialized later
+		
 
 		let analysisDict = {
 			eegcoherence: false,
@@ -166,22 +166,14 @@ export class DataAtlas {
 	init = async () => {
 
 		// Add Default Analysis Options
-		let app = {
-			props: {
-				id: this.props.id
-			},
-			info: {
-				graph: {
-					nodes: [
-						{id: 'blink', class: Blink}, // Blink Detection
-						{id: 'focus', class: Focus}, // Focus Detection
-					],
-				}
-			}
-		}
+		this.graph = new Plugin({
+			nodes: [
+				{name: 'blink', class: Blink}, // Blink Detection
+				{name: 'focus', class: Focus}, // Focus Detection
+			],
+		}, {app:{session:{atlas: this}}}); // top-level graph
+		await this.graph.init()
 
-		this.liveGraph = await this.graph.init(app)
-		this.graph.start(this.props.id)
 	}
 
 	deinit = () => {
@@ -836,17 +828,17 @@ export class DataAtlas {
 
 	// Check whether the user is blinking
 	getBlink = (params = {}) => {
-		let node = this.graph.getNode(this.props.id, 'blink')
-		this.graph.updateParams(node, params)
-		let blink = this.graph.runSafe(node,'default', {data: this.data, forceUpdate: true})
+		let node = this.graph.getNode('blink')
+		node.updateParams(params)
+		let blink = node.update('default', {data: this.data, forceUpdate: true})
 		return blink.data
 	}
 
 	// Check whether the user is focused
 	getFocus = (params = {}) => {
-		let node = this.graph.getNode(this.props.id, 'focus')
-		this.graph.updateParams(node, params)
-		let focused = this.graph.runSafe(node,'default', {data: this.data, forceUpdate: true})
+		let node = this.graph.getNode('focus')
+		node.updateParams(params)
+		let focused = node.update('default', {data: this.data, forceUpdate: true})
 		return focused.data
 	}
 

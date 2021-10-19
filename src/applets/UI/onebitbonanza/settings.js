@@ -20,7 +20,7 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'ui', class: UI, params: {}}
+        {name: 'ui', class: UI, params: {}}
       ],
       edges: [
         // {

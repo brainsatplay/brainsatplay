@@ -262,7 +262,7 @@ app.init()`)
                 classNames.push(n.class.name)
                 classes.push(n.class)
             } else if (found) {
-                classNames.push(found.label)
+                classNames.push(found.name)
             } else if (classNames.includes(n.class.name)) {
                 classNames.push(n.class.name)
             }

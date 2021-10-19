@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 export class Peak extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
+    constructor(info, graph, params={}) {
+        super(info, graph)
 
-        this.label = label
-        this.session = session
+        
+        
         
 
         this.props = {

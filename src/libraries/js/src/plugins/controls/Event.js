@@ -1,16 +1,14 @@
 // Generic Event Trigger. Uses Key Presses by Default.
 
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Event extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
-
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
         this.ports = {}
 
             // // Set type of control
@@ -43,7 +41,6 @@ export class Event extends Plugin {
             
             this.ports.default = {
                 data: false,
-                meta: {label: `${this.ports.keycode.data}`},
                 input: {type: 'boolean'},
                 output: {type: 'boolean'}
             }
@@ -60,14 +57,14 @@ export class Event extends Plugin {
     }
 
     handleKeyDown = (e) => {
-        if (this.matchKey(e.code) && this.ports['default'].data != true){
-            this.session.graph.runSafe(this,'default',{data: true})
+        if (this.matchKey(e.code)){
+            this.update('default',{data: true})
         } 
     }
     
     handleKeyUp = (e) => {
         if (this.matchKey(e.code)){
-                this.session.graph.runSafe(this,'default', {data: false})
+            this.update('default', {data: false})
         }
     }
 

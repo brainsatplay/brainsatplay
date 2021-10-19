@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Buffer extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
 
         this.ports = {
             default: {
@@ -16,7 +16,6 @@ export class Buffer extends Plugin {
                     this.props.buffer.push(user.data)
                     if (this.props.buffer.length > this.ports.size.data) this.props.buffer.shift()
                     user.data = this.props.buffer
-                    user.meta.label = this.label
                     return user
                 }
             },

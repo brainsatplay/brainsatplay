@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 export class WebRTC extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.props = {
@@ -24,7 +24,7 @@ export class WebRTC extends Plugin {
                     let valid = this.validURL(user.data)
                     if (valid){
                         this.ports.url.data = user.data
-                        this.session.graph.runSafe(this,'connected', {data: true, forceUpdate: true})
+                        this.update('connected', {data: true, forceUpdate: true})
                     }
                 }
             }, 
@@ -71,7 +71,7 @@ export class WebRTC extends Plugin {
     }
 
     init = () => {
-        this.session.graph.runSafe(this, 'connected', {data: true, forceUpdate: true})
+        this.update( 'connected', {data: true, forceUpdate: true})
     }
 
     deinit = () => {
@@ -110,7 +110,7 @@ export class WebRTC extends Plugin {
         dataChannel.addEventListener('message', event => {
             const msg = event.data;
             console.log(msg)
-            this.session.graph.runSafe(this,'message', {data: msg, forceUpdate: true})
+            this.update('message', {data: msg, forceUpdate: true})
         });
     }
 

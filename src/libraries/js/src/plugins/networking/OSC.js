@@ -1,15 +1,15 @@
 // import * as oscHelper from 'osc'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class OSC extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
 

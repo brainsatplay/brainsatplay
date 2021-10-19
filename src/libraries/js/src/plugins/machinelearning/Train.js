@@ -2,7 +2,7 @@ import {Blink} from '../models/Blink'
 import {LDA} from './LDA'
 import {createCards} from '../../ui/browserUtils';
 import * as brainsatplay from '../../../brainsatplay'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 
 export class Train extends Plugin {
@@ -10,10 +10,10 @@ export class Train extends Plugin {
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
     
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        super(info, graph)
+        
+        
         
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),            
@@ -80,7 +80,7 @@ export class Train extends Plugin {
             this.props.trainingOverlay.classList.toggle('shown')
         }
 
-        // this.session.graph.runSafe(this,'ui',{forceRun: true, forceUpdate: true})
+        // this.update('ui',{forceRun: true, forceUpdate: true})
     }
 
     deinit = () => {

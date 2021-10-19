@@ -1,8 +1,10 @@
 import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
 import {StateManager} from './ui/StateManager'
+import {Plugin} from './graph/Plugin'
 
 import './ui/styles/defaults.css'
+import { GraphEditor } from './editor/GraphEditor'
 
 export class App {
     constructor(
@@ -15,7 +17,8 @@ export class App {
         // ------------------- SETUP -------------------
         this._setCoreAttributes(info, parentNode, session, settings)
 
-        this.graphs = {}; // graph execution
+        this.graphs = new Map() // graph execution
+        this.devices = []
         this.state = new StateManager({}); // app-specific state maanger
         
         this.ui = {
@@ -26,6 +29,18 @@ export class App {
             id: null, // Keep random ID
             sessionId: null, // Track Brainstorm sessions
         };
+
+        this.editor = new GraphEditor(this)
+
+        // Set shortcuts
+        document.addEventListener('keyup', this.shortcutManager, false);
+    }
+
+    shortcutManager = (e) => {
+        if (e.ctrlKey && e.key === 'e') {
+            if (this.editor) this.editor.toggleDisplay()
+            // else this.session.graph.edit(this)
+        }
     }
 
     // ------------------- START THE APPLICATION -------------------
@@ -38,7 +53,9 @@ export class App {
         this.props.id = this.ui.container.id = String(Math.floor(Math.random()*1000000))
 
         // Add Functionality to Applet
-        this.info.graphs.forEach(g => this.addGraph) // initialize all graphs
+        this.info.graphs.forEach(g => this.addGraph(g)) // initialize all graphs
+        
+        await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // initialize all graphs
 
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
@@ -52,41 +69,29 @@ export class App {
             this.responsive
         )
 
+
+        console.log('initing editor', this)
+        this.editor.init()
+
         // Register App in Session
-        this.graph = await this.session.registerApp(this) // renamE
+        // this.graph = await this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
         this.session.createIntro(this, (sessionInfo) => {
             // this.tutorialManager.init();
-            // setupHTML()
-
             // Multiplayer Configuration
             this.session.startApp(this.props.id, sessionInfo?.id ?? this.sessionId)
-            
-            if (!('editor' in this.info)){
-                this.info.editor = {}
-                this.info.editor.parentId = this.parentNode.id
-                this.info.editor.show = false
-                this.info.editor.create = true
-            }
+        })    
 
-            if (!document.getElementById(this.info.editor.parentId)) this.info.editor.parentId = this.parentNode.id
-
-
-            if (this.info.editor.create != false) this.editor = this.session.graph.edit(this, this.info.editor.parentId, (editor)=> {
-                if (this.info.editor.show !== false) editor.toggleDisplay()
-            })
-        })
-
-    
     }
 
+    // Properly set essential attributes for the App class (used on construction and when reloaded)
     _setCoreAttributes = (info={}, parentNode=document.body, session=new Session(), settings=[]) => {
 
-        // ------------------- CONVERSIONS -------------------
-        if (!('graphs' in info)) info.graphs = [] // create graph array
-        if ('graph' in info) info.graphs.push(info.graph) // push single graph
-                
+        // ------------------- DEFAULTS -------------------
+        if (!('editor' in info)) info.editor = {}
+        if (info.editor.toggle == null) info.editor.toggle = "brainsatplay-visual-editor"
+
         // ------------------- SETUP -------------------
         this.session = session; //Reference to the Session to access data and subscribe
         this.parentNode = parentNode; // where to place the container
@@ -95,12 +100,12 @@ export class App {
         this.settings = settings // 
     }
 
-    // Runs after UI is created
+    // Executes after UI is created
     _setupUI = () => {
         if (this.info.connect) this._createDeviceManager(this.info.connect)
     }
 
-    // Create a Device Manager
+    // Populate the UI with a Device Manager
     _createDeviceManager = ({parentNode, toggle, filter, autosimulate, onconnect, ondisconnect}) => {
         if (typeof toggle === 'string') toggle = document.querySelector(`[id="${toggle}"]`)
         this.session.connectDevice(parentNode, toggle, filter, autosimulate, onconnect, ondisconnect)
@@ -112,8 +117,8 @@ export class App {
         if (this.AppletHTML) {
             // Soft Deinit
             if (soft) {
-                this._deinit()
-                if (this.intro) this.intro.deleteNode()
+                this.session.removeApp(this.props.id)
+                if (this.intro.deleteNode instanceof Function) this.intro.deleteNode()
                 // this._removeAllFragments()
             }
 
@@ -122,11 +127,11 @@ export class App {
                 this.AppletHTML.deleteNode();
                 this.AppletHTML = null
             }
-        }
-    }
 
-    _deinit = () => {
-        this.session.removeApp(this.props.id)
+            this.graphs.forEach(g => g.deinit())
+            this.editor.deinit()
+            document.removeEventListener('keyup', this.shortcutManager);
+        }
     }
 
     // ------------------- Additional Utilities -------------------
@@ -157,11 +162,17 @@ export class App {
     }
 
     _copySettingsFile(info){
-        info = Object.assign({}, info)
-        let keys = ['nodes','edges']
-        info.graphs = [...info.graphs.map(g => Object.assign({}, g))]
+        let infoCopy = Object.assign({}, info)
 
-        info.graphs.forEach(g => {
+        // ------------------- CONVERSIONS -------------------
+        if (!('graphs' in infoCopy)) infoCopy.graphs = [] // create graph array
+        if ('graph' in infoCopy) infoCopy.graphs.push(infoCopy.graph) // push single graph
+                
+        // ------------------- CONVERSIONS -------------------
+        let keys = ['nodes','edges']
+        infoCopy.graphs = [...infoCopy.graphs.map(g => Object.assign({}, g))]
+
+        infoCopy.graphs.forEach(g => {
             keys.forEach(k => {
                 if (g[k]){
                     g[k] = [...g[k]]
@@ -175,17 +186,25 @@ export class App {
             })
         })
 
-        return info
+        return infoCopy
     }
 
     // ------------------- GRAPH UTILITIES -------------------
 
 
-    addGraph = (name='') => {
-        if(!this.graphs[name]) this.graphs[name] = new Graph(name);
+    addGraph = (info) => {
+        let graph = new Plugin(info, {app: this}); // top-level graph
+        if(!this.graphs.get(graph.name)) this.graphs.set(graph.name, graph)
     }
 
-    removeGraph = (name='') => {}
+    startGraph = async (g) => {
+        await g.init()
+    }
+
+    removeGraph = (name='') => {
+        this.graphs.get(name).deinit()
+        this.graphs.delete(name)
+    }
 
     // ------------------- HELPER FUNCTIONS -------------------
 

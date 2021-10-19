@@ -1,14 +1,14 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Performance extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.props = {
@@ -39,7 +39,7 @@ export class Performance extends Plugin {
                 onUpdate: (user) => {
                     this.props.history.push(user.data)
                     // console.log( this.props.history)
-                    this.session.graph.runSafe(this, 'default', {forceRun: true})
+                    this.update( 'default', {forceRun: true})
                 }
             },
             method: {

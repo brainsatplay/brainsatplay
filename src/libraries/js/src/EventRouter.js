@@ -62,8 +62,8 @@ export class EventRouter{
                         }
                     } else {
                         // Turn Debug Off
-                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
-		                this.device.atlas.graph.updateParams(node, {debug: false})
+                        let node = this.device.atlas.graph.getNode('blink')
+                        if (node) node.updateParams({debug: false})
                     }
 
                     // Focus Detection
@@ -72,8 +72,8 @@ export class EventRouter{
                         this.device.states['focus'].data = this.device.atlas.getFocus({debug: true})
                     } else {
                         this.device.atlas.settings.analysisDetails.system['eegcoherence'] = false
-                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'focus')
-		                this.device.atlas.graph.updateParams(node, {debug: false})
+                        let node = this.device.atlas.graph.getNode('focus')
+                        if (node) node.updateParams({debug: false})
                     }
             });
         }
@@ -323,7 +323,7 @@ export class EventRouter{
 
     _placeNodeElement = (name, parentNode=document.body) => {
         let container = parentNode.querySelector('.brainsatplay-debugger')
-        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, name)
+        let node = this.device.atlas.graph.getNode(name)
 
         if (node){
 
@@ -332,7 +332,7 @@ export class EventRouter{
                 node.ports.element.data.style.top = 0
                 node.ports.element.data.style.right = 0
             }
-            this.device.atlas.graph.updateParams(node, {debug: true})
+            node.updateParams({debug: true})
             if (container) container.insertAdjacentElement('beforeend', node.ports.element.data)
         }
 

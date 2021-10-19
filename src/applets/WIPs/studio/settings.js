@@ -25,8 +25,8 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'studio', class: Studio, params: {}},
-        {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
+        {name: 'studio', class: Studio, params: {}},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
       ],
 
       edges: [

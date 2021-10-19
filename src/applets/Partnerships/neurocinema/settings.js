@@ -19,29 +19,29 @@ export const settings = {
       nodes: [ 
 
         // Manual Control
-        {id:'event', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        {name:'event', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
 
         // Data-Based Controls
-        {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
+        {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
 
-        {id:'buffer', class: brainsatplay.plugins.transforms.Buffer},
-        {id:'arithmetic', class: brainsatplay.plugins.transforms.Arithmetic},
+        {name:'buffer', class: brainsatplay.plugins.transforms.Buffer},
+        {name:'arithmetic', class: brainsatplay.plugins.transforms.Arithmetic},
 
-        {id:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
+        {name:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
 
         // File Manager
-        {id:'manager', class: Ramchurn},
+        {name:'manager', class: Ramchurn},
 
         // Video Player
-        {id:'video', class: brainsatplay.plugins.interfaces.Video, params: {cut: true, files: [], ui: false}},
+        {name:'video', class: brainsatplay.plugins.interfaces.Video, params: {cut: true, files: [], ui: false}},
 
         // Audio
-        // {id:'audio', class: brainsatplay.plugins.audio.Audio},
-        {id:'mixer', class: brainsatplay.plugins.audio.Mixer},
+        // {name:'audio', class: brainsatplay.plugins.audio.Audio},
+        {name:'mixer', class: brainsatplay.plugins.audio.Mixer},
 
         // UI
-        {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="vidContainer" class="video-container"></div><div id="filmSelection"></div>`,
           style: `
           .brainsatplay-ui-container {
@@ -142,20 +142,20 @@ export const settings = {
 
     // graph: {
     //   nodes: [
-    //     {id:'eeg', class: brainsatplay.plugins.biosignals.EEG},
-    //     {id:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
+    //     {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+    //     {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, metric: 'Focus'},
 
-    //     {id:'buffer', class: brainsatplay.plugins.transforms.Buffer},
-    //     {id:'arithmetic', class: brainsatplay.plugins.transforms.Arithmetic},
+    //     {name:'buffer', class: brainsatplay.plugins.transforms.Buffer},
+    //     {name:'arithmetic', class: brainsatplay.plugins.transforms.Arithmetic},
 
-    //     {id:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
+    //     {name:'peakDetector', class: brainsatplay.plugins.transforms.Peak},
 
-    //     {id:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-    //     {id:'player', class: brainsatplay.plugins.interfaces.Video, params: {
+    //     {name:'changeView', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+    //     {name:'player', class: brainsatplay.plugins.interfaces.Video, params: {
     //       cut: true,
     //       ramchurn: true
     //     }},
-    //     {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+    //     {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
     //       html: `<div id="vidContainer" class="video-container"></div>`,
     //       style: `
     //       .brainsatplay-ui-container {

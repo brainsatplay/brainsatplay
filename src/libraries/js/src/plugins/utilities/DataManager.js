@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class DataManager extends Plugin{
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.ports = {
@@ -15,7 +15,7 @@ export class DataManager extends Plugin{
                 input: {type: undefined},
                 output: {type: null},
                 onUpdate: (user) => {
-                    this.session.atlas.makeNote(`${user.meta.label} ${user.data}`)
+                    this.session.atlas.makeNote(`${user.meta.name} ${user.data}`) // NOTE: Fix by grabbing source label
                 }
             },
             get:{
@@ -55,7 +55,7 @@ export class DataManager extends Plugin{
                         this.session.dataManager.readFromDB(filename, 0,size, (data,file) => {
                             this.session.dataManager.getCSVHeader(filename, (header)=> { 
                             loaded = this.session.dataManager.parseDBData(data,header.split(','),file,true);
-                            resolve({data: loaded, meta:{label: `${this.label}_loaded`}})
+                            resolve({data: loaded, meta:{label: `${this.name}_loaded`}})
                         });
                         })
                         })
@@ -70,7 +70,7 @@ export class DataManager extends Plugin{
 
     init = () => {
         if (this.ports.latest.output.active){
-            this.session.graph.runSafe(this,'latest',{data: true})
+            this.update('latest',{data: true})
         }
     }
 

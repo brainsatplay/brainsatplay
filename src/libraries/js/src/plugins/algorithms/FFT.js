@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class FFT extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.ports = {
@@ -19,10 +19,10 @@ export class FFT extends Plugin {
                     let arr =user.data
             
                     // Pass to Worker
-                    if (u.meta.label != this.label){
+                    if (u.meta.label != this.name){
                         if (Array.isArray(arr)){
                             this._analysisFunction(arr)
-                            user.meta.label = this.label
+                            user.meta.label = this.name
                         }else {
                             console.log('invalid type')
                         }
@@ -60,6 +60,6 @@ export class FFT extends Plugin {
 
     _workerOnMessage = (res) => {
         this.waiting = false
-        this.session.graph.runSafe(this,'default', {data:res.output[1][0], meta: {label: this.label}})
+        this.update('default', {data:res.output[1][0], meta: {label: this.label}})
     }
 }

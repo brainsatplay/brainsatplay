@@ -2,16 +2,16 @@ import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
 import vertexShader from './shader/vertex.glsl'
 import blankFragment from './shader/blankFragment.glsl'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Material extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        super(info, graph)
+        
+        
         
 
         this.props = {
@@ -114,10 +114,10 @@ export class Material extends Plugin {
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.ports, () => {
                 this.props.lastRendered = Date.now()
-                this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+                this.update('default',{forceRun: true, forceUpdate: true})
         })
 
-        this.session.graph.runSafe(this,'type',{data: this.ports.type.data}) // FIX: Shouldn't be necessary
+        this.update('type',{data: this.ports.type.data}) // FIX: Shouldn't be necessary
         
         this._passShaderMaterial()
     }
@@ -164,7 +164,7 @@ export class Material extends Plugin {
     _passShaderMaterial = () => {
         if (this.ports.vertexShader.data && this.ports.fragmentShader.data) {
             this.ports.type.data = 'ShaderMaterial'
-            this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+            this.update('default',{forceRun: true, forceUpdate: true})
         }
         else this.ports.type.data = this.props.lastMaterialType || 'MeshBasicMaterial'
     }

@@ -1,16 +1,16 @@
 import * as THREE from 'three'
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 class Trees extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
+    constructor(info, graph, params={}) {
+        super(info, graph)
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
 
         // UI Identifier
@@ -182,7 +182,7 @@ class Trees extends Plugin {
         }
 
         this.ports.add.data = this.props.groups
-        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
+        this.update('add',{forceRun: true, forceUpdate: true})
     }
 
     deinit = () => {}

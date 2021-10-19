@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 
 export class Video  extends Plugin {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
-    constructor(label, session, params = {}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params = {}) {
+        super(info, graph)
+        
+        
         
 
 
@@ -39,7 +39,7 @@ export class Video  extends Plugin {
                 output: { type: null },
                 onUpdate: (user) => {
                     this.ports.url.data = user.data
-                    this.session.graph.runSafe(this, 'files', { data: [this.ports.url.data] })
+                    this.update( 'files', { data: [this.ports.url.data] })
                 }
             },
             files: {
@@ -311,10 +311,10 @@ export class Video  extends Plugin {
         effects.forEach(str => {
             let el = document.getElementById(this.props.id + `use${str}`)
             el.onclick = () => {
-                this.session.graph.runSafe(this, str, { data: !this.ports[str].data })
+                this.update( str, { data: !this.ports[str].data })
                 el.blur()
             }
-            this.session.graph.runSafe(this, str, { data: this.ports[str].data }) // Pass default values
+            this.update( str, { data: this.ports[str].data }) // Pass default values
         })
 
         this.timeSlider.addEventListener("change", () => {
@@ -357,7 +357,7 @@ export class Video  extends Plugin {
         }
 
         this.looping = true;
-        this.session.graph.runSafe(this, 'files', { data: this.ports.files.data }) // Initialize default files
+        this.update( 'files', { data: this.ports.files.data }) // Initialize default files
         this.initVideos();
     }
 
@@ -428,7 +428,7 @@ export class Video  extends Plugin {
 
     localFileVideoPlayer = () => {
         var playSelectedFiles = (event) => {
-            this.session.graph.runSafe(this, 'files', { data: event.target.files })
+            this.update( 'files', { data: event.target.files })
             inputNode.blur()
         }
         var inputNode = document.getElementById(this.props.id + 'fs');

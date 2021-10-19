@@ -1733,7 +1733,6 @@ else {
 
 	createIntro = (applet, onsuccess= () => {}) => {
 		// Override App Settings with Configuration Settings
-		console.log(applet.info.intro)
 		if (applet.info.intro == null){
 			onsuccess()
 		} else {
@@ -1798,8 +1797,8 @@ else {
 		let setup = () => {
 
 		// Setup HTML References
-		let modeScreen = document.getElementById(`${applet.props.id}mode-screen`)
-		let sessionSelection = document.getElementById(`${applet.props.id}sessionSelection`)
+		let modeScreen = applet.ui.container.querySelector(`[id="${applet.props.id}mode-screen"]`)
+		let sessionSelection = applet.ui.container.querySelector(`[id="${applet.props.id}sessionSelection"]`)
 
 
 		if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
@@ -1808,11 +1807,11 @@ else {
 			exitSession.classList.add('brainsatplay-default-button')
 			exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
 			exitSession.innerHTML = 'Exit Session'
-			document.getElementById(`${applet.props.id}IntroFragment`).insertAdjacentElement('afterend', exitSession)
+			applet.ui.container.querySelector(`[id="${applet.props.id}IntroFragment"]`).insertAdjacentElement('afterend', exitSession)
 		}
 
 
-		const hero = document.getElementById(`${applet.props.id}appHero`)
+		const hero = applet.ui.container.querySelector(`[id="${applet.props.id}appHero"]`)
 		const loadingBarElement = document.querySelector('.brainsatplay-intro-loadingbar')
 
 		// Select Mode
@@ -1838,10 +1837,10 @@ else {
 			multiplayer.style.pointerEvents = 'none'
 		}
 		
-		// Create Session Brower
+		// Create Session Browser
 		let baseBrowserId = `${applet.props.id}${applet.info.name}`
-		document.getElementById(`${applet.props.id}multiplayerDiv`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
-		document.getElementById(`${applet.props.id}multiplayerDiv`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
+		applet.ui.container.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
+		applet.ui.container.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
 		let waitForReturnedMsg = (msgs, callback = () => { }) => {
 			if (msgs.includes(this.state.data.commandResult.msg)) {
@@ -1862,7 +1861,7 @@ else {
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
-		let sessionSearch = document.getElementById(`${baseBrowserId}search`)
+		let sessionSearch = applet.ui.container.querySelector(`[id="${baseBrowserId}search"]`)
 
 		
 		let connectToGame = (g, spectate) => {
@@ -2016,13 +2015,13 @@ else {
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
-		let createSession = document.getElementById(`${applet.props.id}createSession`)
+		let createSession = applet.ui.container.querySelector(`[id="${applet.props.id}createSession"]`)
 
 		createSession.onclick = () => {
 			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
-
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
+
 		// createSession.style.display = 'none'
 		sessionSearch.style.display = 'none'
 
@@ -2056,7 +2055,7 @@ else {
 
 		applet.intro = new DOMFragment(
 			template,
-			document.getElementById(`${applet.props.id}`),
+			applet.ui.container,
 			undefined,
 			setup
 		)

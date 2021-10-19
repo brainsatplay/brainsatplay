@@ -1,13 +1,11 @@
-import {Plugin} from '../Plugin'
-export class Brainstorm  extends Plugin {
+import {Plugin} from '../../graph/Plugin'
+
+export class Brainstorm extends Plugin {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
-        
+    constructor(info, graph) {
+        super(info, graph)
 
         this.props = {
             subscriptions: {},
@@ -56,7 +54,7 @@ export class Brainstorm  extends Plugin {
                                     let subId1 = this.session.streamAppData(label, this.session.graph.registry.local[sourceName].registry[sourcePort].state, sessionId, () => { })
                                     this.props.subscriptions[label].push({ id: subId1, target: null })
 
-                                    this._addUserSubscription(this.session.info.auth.id, label, sessionId, ()=>{}, this.session.info.auth.username) // Subscribe to yourself
+                                    this._addUserSubscription(this.session.info.auth.id, info, graphId, ()=>{}, this.session.info.auth.username) // Subscribe to yourself
 
                                     // Subscribe to each user as they are added to the session
                                     if (this.session.state.data[sessionId]){
@@ -77,7 +75,7 @@ export class Brainstorm  extends Plugin {
                                             // Add Subscription to Each User in the Game
                                             if (sessionInfo.users){
                                                 Object.keys(sessionInfo.users).forEach(userId => {
-                                                    this._addUserSubscription(userId, label, sessionId, ()=>{}, sessionInfo.users[userId])
+                                                    this._addUserSubscription(userId, info, graphId, ()=>{}, sessionInfo.users[userId])
                                                 })
                                             }
                                         })
@@ -99,10 +97,10 @@ export class Brainstorm  extends Plugin {
 
     deinit = () => { }
 
-    _addUserSubscription = (userId, label, sessionId, callback, username) => {
+    _addUserSubscription = (userId, info, graphId, callback, username) => {
 
         let _sendData = (user) => {
-            let res = this.session.graph.runSafe(this, label, user)
+            let res = this.update( label, user)
             callback(res)
         }
 
@@ -126,7 +124,7 @@ export class Brainstorm  extends Plugin {
         }
     }
 
-    _getBrainstormData(label, sessionId) {
+    _getBrainstormData(info, graphId) {
         if (label && sessionId) {
             label = label.replace('brainstorm_', '')
             let brainstorm = this.session.getBrainstormData(sessionId, [label], 'app', 'plugin')

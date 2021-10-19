@@ -15,8 +15,8 @@ export const settings = {
 
     graph: {
       nodes: [
-        {id: 'browser', class: AppletBrowser},
-        {id: 'ui', class: brainsatplay.plugins.interfaces.UI}
+        {name: 'browser', class: AppletBrowser},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.UI}
       ],
       edges: [
         {

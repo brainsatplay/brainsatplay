@@ -16,13 +16,13 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
-        {id: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
-        {id: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
-        {id: 'click', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        {id: 'move', class: brainsatplay.plugins.utilities.Move},
-        {id: 'cursor', class: brainsatplay.plugins.interfaces.Cursor, params: {}},
+        {name: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {name: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
+        {name: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
+        {name: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
+        {name: 'click', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        {name: 'move', class: brainsatplay.plugins.utilities.Move},
+        {name: 'cursor', class: brainsatplay.plugins.interfaces.Cursor, params: {}},
       ],
       edges: [
 

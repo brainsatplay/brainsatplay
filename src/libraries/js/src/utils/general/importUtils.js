@@ -1,5 +1,5 @@
 import {appletManifest} from '../../../../../platform/appletManifest'
-import {App} from '../../App'
+// import {App} from '../../App'
 
 export let dynamicImport = async (url) => {
     let module = await import(url);
@@ -16,8 +16,6 @@ export let getApplet = async (settings) => {
     if (settings.module){
         let module = await dynamicImport(appletManifest[settings.name].folderUrl+"/"+settings.module + '.js');
         return module[settings.module];
-    } else {
-        return App
     }
 }
 

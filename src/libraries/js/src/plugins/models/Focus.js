@@ -1,12 +1,12 @@
-import {Plugin} from '../Plugin'
+import {Plugin} from '../../graph/Plugin'
 export class Focus extends Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        super(info, graph)
+        
+        
         
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
