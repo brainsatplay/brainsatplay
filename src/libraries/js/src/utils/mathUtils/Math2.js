@@ -1093,7 +1093,7 @@ export class Math2 {
 
 	//-------------------------------------------------------------
 
-	//pass in 1 second of raw data ish recommended, event timestamps and signals are ordered from least current to most current 
+	//pass in 1 second of raw data ish recommended, desired event timestamps and signals are ordered from least current to most current 
 	static p300(event_timestamps=[],raw_signal=[],signal_timestamps=[], sps=256) {
 		let smoothingstep = Math.floor(sps/10); //300ms width peak, 1/10th sec smoothing for filtering
 		let smoothed = this.sma(raw_signal,smoothingstep);
@@ -1103,7 +1103,7 @@ export class Math2 {
 		let candidates = [];
 		if(peaks.length > 0) {
 		event_timestamps.forEach((t,j) => {
-			while(signal_timestamps[peaks[p_idx]] < t) { //roll over peaks that are behind of the latest event
+			while(signal_timestamps[peaks[p_idx]] < t + 200) { //roll over peaks that are behind of the latest event
 				p_idx++;
 				if(!peaks[p_idx]) break;
 			}
