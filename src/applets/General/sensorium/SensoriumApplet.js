@@ -7,6 +7,7 @@ import { SoundJS } from '../../../libraries/js/src/utils/general/Sound';
 import { LiveEditor } from '../../../libraries/js/src/ui/LiveEditor'
 import { Math2 } from '../../../libraries/js/src/utils/mathUtils/Math2';
 
+import {Plugin} from '../../../libraries/js/src/graph/Plugin'
 import * as settingsFile from './settings'
 
 import * as THREE from 'three'
@@ -15,7 +16,6 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module'
 
 import {addChannelOptions, addCoherenceOptions } from '../../../platform/js/frontend/menus/selectTemplates'
 
-import {GraphManager} from '../../../libraries/js/src/GraphManager'
 import {Buzz} from '../../../libraries/js/src/plugins/haptics/Buzz'
 
 //Import shader urls
@@ -122,22 +122,13 @@ export class SensoriumApplet {
 
 
         // Plugins
-        this.graph = new GraphManager(this.session)
-        let app = {
-			props: {
-				id: this.props.id
-			},
-			info: {
-                name: this.info.name, 
-                graph: {
-                    nodes: [
-                        {id: 'buzz', class: Buzz},
-                    ],
-                }
-            }
-		}
+        this.graph = new Plugin({
+            name: this.info.name, 
+			nodes: [
+                {id: 'buzz', class: Buzz},
+			],
+		}, {app:this}); // top-level graph
 
-        this.graph.init(app)
         this.graph.streams = ['modifiers','hostData']
 
         this.tutorialManager = null
@@ -367,7 +358,7 @@ void main(){
     //---------------------------------
 
     //Initalize the app with the DOMFragment component for HTML rendering/logic to be used by the UI manager. Customize the app however otherwise.
-    init() {
+    async init() {
 
         //HTML render function, can also just be a plain template string, add the random ID to named divs so they don't cause conflicts with other UI elements
         let HTMLtemplate = (props=this.props) => { 
@@ -411,7 +402,7 @@ void main(){
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.registerApp(this)
-            this.session.startApp(this.props.id)
+            this.session.startApp(this)
 
             document.getElementById(props.id+'changeview').onclick = () => {
                 this.swapCurrentView();
@@ -608,6 +599,7 @@ void main(){
         
         this.ct = 0;
 
+		await this.graph.init()
 
     /**
      * Scene

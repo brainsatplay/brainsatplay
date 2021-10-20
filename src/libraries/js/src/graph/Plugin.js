@@ -1,6 +1,6 @@
 import {Port} from "./Port"
 import {Edge} from "./Edge"
-import {EventManager} from "./EventManager"
+import {Event} from "./Event"
 import {pluginManifest} from '../plugins/pluginManifest'
 import {dynamicImport} from '../utils/general/importUtils'
 
@@ -10,35 +10,30 @@ export class Plugin {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(info, graph) {
+    constructor(info, parent) {
 
         // Core Registry
-
         this.nodes = new Map()
         this.edges = new Map()
         this.events = new Map()
+        this.graphs = [] //can add entire new graphs
         this.ports = {}
 
-        // MERGE INFO
+        // Original Application Settings
         this.info = {}
         this._mergeInfo(info)
 
-        // GRAPH
-        this.graph = graph; // Has this.app, might be empty otherwise
-        this.app = this.graph.app
+        // Reference to Higher Levels of the Application
+        this.parent = parent;
+        this.app = this.parent.app
         this.session = this.app.session
-
-        // this.graphs = {}; //can add entire new graphs
-
-        // Managers
-        this.eventManager = new EventManager(info, this)
 
         // Global Properties
         this.props = {  }
 
         // Metadata
         this.id = this._random()
-        this.position = {x:0, y:0, z:0};
+        this.position = {x:0, y:0, z:0}; // unused
         this.name = info.name ?? `graph_${this.id}`
         this.className = info.className ?? info.class?.name
         this.analysis = new Set()
@@ -50,24 +45,13 @@ export class Plugin {
         }
 
 
+        // Instantiate Editor Tab
         if (this.app.editor){
             this.ui.parent = this.app.editor.createGraph(this)
             if (this.ui.parent) {
                 this.createUI()
             }
         }
-
-
-        // // Initialize Functionality
-        // let func = async () => {
-        //     await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)}))
-        //     await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)}))
-        //     await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)}))
-        //     await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
-        // }
-
-        // func()
-
     }
 
     _random = () => {
@@ -90,7 +74,6 @@ export class Plugin {
         delete info.events
         delete info.graphs
 
-
         if (Object.keys(info).length > 0) Object.assign(this, info)
 
     }
@@ -109,9 +92,9 @@ export class Plugin {
     init = async (o) => {
 
         this._mergeInfo(o)
-        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)}))
-        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)}))
-        await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)}))
+        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // informal collection of nodes and edges
+        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // raw nodes
+        await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)})) // raw edges
         await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
 
     }
@@ -167,17 +150,14 @@ export class Plugin {
             this.app.controls.push(o.instance)
         }
 
-        // Debug
-        o.instance.debug()
-        
+        o.instance.debug() // instantiate debug elements in appropriate containers
 
-        // If There Are Graph Dependencies
-        if (o.instance.graphs) {
-            await Promise.all(o.instance.graphs.map(async (g,i) => {
+        let graphDeps = o.instance.graphs // instantiate subgraphs
+        if (graphDeps) {
+            await Promise.all(graphDeps.map(async (g,i) => {
                 g = new Plugin(g, o.instance)
                 await g.init()
                 o.instance.graphs[i] = g
-                return g
             }))
         }
 
@@ -312,10 +292,6 @@ export class Plugin {
 
     }
 
-    // addPort = (port, info) => {
-    //     if (this.session.graph) return this.session.graph.addPort(this,port, info)
-    // }
-
     removePort = (query) => {
         let p = this.getPort(query)
         if (p) {
@@ -340,14 +316,12 @@ export class Plugin {
     }
 
     requestNode = async (nodeType) => {
-        if (this.session.graph) {
-            let nodes = this.get('nodes',nodeType)
-            if (nodes.length > 0){
-                return nodes[0] // return first node of specified type
-            } else {
-                let nodeInfo = await this.addNode(nodeType)
-                return nodeInfo.instance  // returns new instance of the node
-            }
+        let nodes = this.get('nodes',nodeType)
+        if (nodes.length > 0){
+            return nodes[0] // return first node of specified type
+        } else {
+            let nodeInfo = await this.addNode(nodeType)
+            return nodeInfo.instance  // returns new instance of the node
         }
     }
 
@@ -357,11 +331,9 @@ export class Plugin {
         sourceNode,
         sourcePort,
         targetPort) => {
-        if (this.session.graph) {
-            let node = this.getNode(sourceNode);
-            let edges = this.getEdges(node, this.app)
-            let nodeInfo = await this.addEdge(source={node:sourceNode,port:sourcePort},target={node:this.name, port:targetPort});
-        }
+        let node = this.getNode(sourceNode);
+        let edges = this.getEdges(node, this.app)
+        let nodeInfo = await this.addEdge(source={node:sourceNode,port:sourcePort},target={node:this.name, port:targetPort});
     }
 
 
@@ -376,6 +348,7 @@ export class Plugin {
                 for (let key in pool) arr.push(pool[key])
                 pool = arr
             }
+
             let res = pool.filter(o => {
 
                 if (Array.isArray(o)) o = o[1] // handle maps
@@ -395,7 +368,6 @@ export class Plugin {
         } else return [];
     }
 
-    //pass specific node uuid
     getGraph = (val) => {
         let graphs = this.get('graphs', val, this.graphs)
         return graphs[0]
@@ -410,22 +382,7 @@ export class Plugin {
         return this.ports[name]
     }
 
-    /* Edges can be specified in several ways: 
-
-        1. By Labels: structure = {source: 'eeg:atlas', target: 'neurofeedback:default'}
-        2. By Classnames: structure = {source: {name: 'EEG', port: 'atlas'}, target: {name: 'Neurofeedback', port: 'default'}}
-    
-    */
-
-    //get a single edge on the graph based on the specified parameters
-    getEdge = (source={node:'',port:''},target={node:'',port:''}) => {
-        return this.session.graph.getEdge(source, target, this.app); // returns list of matching edges
-    }
-
-    //pass node class name, label or uuid
-    getEdges = (targetNode) => {
-        return this.session.graph.getEdges(targetNode, this.app); // returns list of matching edges
-    }
+    getEdge = () => {}
 
     // ----------------- UI Management -----------------
 

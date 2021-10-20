@@ -1,8 +1,8 @@
 export class Edge {
-    constructor (source, target, graph) {
+    constructor (source, target, parent) {
 
         this.id = String(Math.floor(Math.random()*1000000))
-        this.graph = graph
+        this.parent = parent
 
         // Information
         this.source = source;
@@ -26,7 +26,7 @@ export class Edge {
             this.subscription
             
             // Create UI
-            if (this.graph.app.editor){
+            if (this.parent.app.editor){
                 this._createUI()
             }
     }
@@ -40,8 +40,8 @@ export class Edge {
 
         if (sP && tP){
             // Activate Functionality
-            this.graph.app.state.data[this.id] = this.value
-            this.subscription = this.graph.app.state.subscribeTrigger(this.id, this.onchange)
+            this.parent.app.state.data[this.id] = this.value
+            this.subscription = this.parent.app.state.subscribeTrigger(this.id, this.onchange)
 
             // Register Edge in Ports
             this.source.node.edges.set(this.id, this)
@@ -51,11 +51,11 @@ export class Edge {
 
             // Activate Dyhamic Analyses
         
-            if (tP.analysis && (tP.edges.input.size > 0 || tP.type === null) && (tP.edges.output.size > 0 || tP.type === null)) this.graph.app.analysis.dynamic.push(...tP.analysis)
-            if (sP.analysis && (sP.edges.input.size > 0 || sP.type === null) && (sP.edges.output.size > 0 || sP.type === null)) this.graph.app.analysis.dynamic.push(...sP.analysis)
+            if (tP.analysis && (tP.edges.input.size > 0 || tP.type === null) && (tP.edges.output.size > 0 || tP.type === null)) this.parent.app.analysis.dynamic.push(...tP.analysis)
+            if (sP.analysis && (sP.edges.input.size > 0 || sP.type === null) && (sP.edges.output.size > 0 || sP.type === null)) this.parent.app.analysis.dynamic.push(...sP.analysis)
 
             // Activate UI
-            if (this.graph.app.editor) await this._activateUI()
+            if (this.parent.app.editor) await this._activateUI()
 
             // Always activate edge with initial value (if provided)
 
@@ -79,7 +79,7 @@ export class Edge {
     }
 
     deinit = () => {
-        this.graph.app.session.removeStreaming(this.id, this.subscription , this.graph.app.state, 'trigger');
+        this.parent.app.session.removeStreaming(this.id, this.subscription , this.parent.app.state, 'trigger');
         if (this.source.node) this.source.node.edges.delete(this.id)
         if (this.target.node) this.target.node.edges.delete(this.id)
         if (this.source.port) this.source.port.edges.output.delete(this.id)
@@ -277,7 +277,7 @@ insert = async () => {
   return new Promise((resolve)=> {
 
 
-  this.graph.app.editor.insertEdge(this)
+  this.parent.app.editor.insertEdge(this)
   
   this.types.forEach(t => {
     if (this[t].port == null) { // TODO: Fix and check

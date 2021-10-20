@@ -565,7 +565,7 @@ app.init()`)
                             n.class = classMap[n.class].class
                         })
 
-                        settings = this.session.graph.parseParamsForSettings(settings)
+                        // settings = this.session.graph.parseParamsForSettings(settings)
 
                         resolve(settings)
                     } catch (e) {

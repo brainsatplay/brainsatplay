@@ -24,7 +24,7 @@ export class Enumerate extends Plugin {
                             // Objects
                             let newKeys = Object.keys(user.data)
                             if (JSON.stringify(this.props.keys) != JSON.stringify(newKeys)){
-                                this.props.keys.forEach(k => this.session.graph.removePort(this, k))
+                                this.props.keys.forEach(k => this.removePort(k))
                                 this.props.keys = [...newKeys]
                                 this.props.keys.forEach(k => {
                                     if (this.ports[k] == null && k != 'default'){
@@ -32,7 +32,7 @@ export class Enumerate extends Plugin {
                                             edit: false,
                                             data: user.data[k],
                                             input: {type: null},
-                                            output: this.session.graph.getTypeDict(user.data[k]),
+                                            output: {type: 'auto'},
                                             onUpdate: (user) => {
                                                 return user
                                             }

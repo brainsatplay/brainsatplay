@@ -21,6 +21,9 @@ export class Port {
         
         this.value = settings.data 
 
+        // Autoset Output Type
+        if (this.output?.type === 'auto') this.output = this._getTypeDict(this.value)
+
         // METADATA
         this.latency = Array.from({length: 20}, e => 0)
         this.label = (this.name === 'default') ? this.node.name : `${this.node.name}_${this.name}`
@@ -60,7 +63,7 @@ export class Port {
     }
 
     connect(e) {
-        this.plugin.graph.addEdge(e)
+        this.node.parent.addEdge(e)
     }
 
     checkForUpdates() {
@@ -77,12 +80,10 @@ export class Port {
     // Only Set when Different
     set = (port=this, forceUpdate = false) => {
 
-        // Copy Input
-        port = this._copy(port)
+        port = this._copy(port) // avoids mutating original port object
 
-        // Add Default Metadata
         if (!(port.meta)) port.meta = {}
-        port.meta.source = port
+        port.meta.source = port // allows tracing where data has arrived from
 
         return this._onchange(port);
     }
@@ -114,7 +115,7 @@ export class Port {
         let tick = performance.now()
 
         port.data = port.value ?? port.data // backwards compatibility (< 0.0.36)
-        port.value = port.data // backwards compatibility (< 0.0.36)
+        port.value = port.data
 
         let res = (this.onchange instanceof Function) ? this.onchange(port) : port // set in constructor
 
@@ -127,8 +128,20 @@ export class Port {
             if (!(res instanceof Object)) console.error(res, this.node, this, port)
             res.value = res.data // backwards compatibility (< 0.0.36) TODO: Test edge-cases
 
+            // Check if Equal to Previous Value
+            let case1,case2
+            if (typeof res.value === 'object' || typeof res.value === 'function'){
+                case1 = this.value
+                case2 = res.value
+            } else {
+                case1 = JSON.stringifyFast(this.value)
+                case2 = JSON.stringifyFast(res.value)
+            } 
+            
+            let thisEqual = case1 === case2
+
             // Update Edges
-            if (this.value != res.value){
+            if (!thisEqual){
                 this.value = this.data = res.value // backwards compatibility (< 0.0.36)
 
                 // Run Across Edges
@@ -196,4 +209,25 @@ export class Port {
         return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
         // or output as hex if preferred
     };
+
+    _getTypeDict = (val) => {
+        let typeDict = {type: val}
+        if (typeDict.type != null){
+
+            // Catch Objects
+            if (typeDict.type instanceof Object) {
+
+                // Catch Arrays
+                if (Array.isArray(typeDict.type)) typeDict.type = Array
+
+                // Catch Other Object Types
+                else {
+                    typeDict.type = Object
+                    typeDict.name = val.name ?? typeDict.type.name
+                }
+            }
+            else typeDict.type = typeof typeDict.type
+        }
+        return typeDict
+    }
 }

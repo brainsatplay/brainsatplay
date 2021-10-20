@@ -84,7 +84,7 @@ export class NexusApplet {
         let setupHTML = (props=this.props) => {
             this.session.createIntro(this)
             this.session.registerApp(this)
-            this.session.startApp(this.props.id)
+            this.session.startApp(this)
         }
 
         this.AppletHTML = new DOMFragment( // Fast HTML rendering container object

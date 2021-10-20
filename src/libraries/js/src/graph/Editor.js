@@ -1,18 +1,17 @@
-import {Graph} from './Graph'
 import {LiveEditor} from '../ui/LiveEditor'
 import { DOMFragment } from '../ui/DOMFragment'
 import { StateManager } from '../ui/StateManager'
 
 // Project Selection
 import {appletManifest} from '../../../../platform/appletManifest' // MUST REMOVE LINKS TO PLATFORM
-import { getApplet, getAppletSettings, dynamicImport } from "../../../../libraries/js/src/utils/general/importUtils"
+import { getApplet, getAppletSettings, dynamicImport } from "../utils/general/importUtils"
 import {pluginManifest} from '../plugins/pluginManifest'
 
 
 // Node Interaction
-import * as dragUtils from './dragUtils'
+import * as dragUtils from '../ui/dragUtils'
 
-export class GraphEditor{
+export class Editor{
     constructor(app, parent=document.body) {
         // this.manager = manager
         this.app = app
@@ -254,13 +253,6 @@ export class GraphEditor{
             // Create Tabs
             this.createViewTabs()
 
-            // Populate Used Nodes and Edges
-            // this.graph = new Graph(this.viewer)
-
-            // this.graphs.forEach(graph => {
-            //     this.createGraph(graph)
-            // })
-
             if (this.settings.display) this.toggleDisplay()
         }
 
@@ -464,8 +456,8 @@ export class GraphEditor{
                 this.addEdgeReactivity(e)
             })
             
-            return this.files[graph.graph.name]?.container
-        } else return this.files[graph.graph.name].container // 
+            return this.files[graph.parent.name]?.container
+        } else return this.files[graph.parent.name]?.container // 
     }
 
     saveFileEvent = (filename, onsave) => {
@@ -695,7 +687,7 @@ export class GraphEditor{
     }
 
     removeEdge(e, ignoreManager=false){
-        e.graph.removeEdge(e)
+        e.parent.removeEdge(e)
         if (!ignoreManager) this.manager.removeEdge(this.app.props.id, e.structure)
     }
 
@@ -810,7 +802,7 @@ export class GraphEditor{
 
     insertNode = (n) => {
 
-            let info = this.files[n.graph.name]
+            let info = this.files[n.parent.name]
             if (info?.container) {
                 info.container.insertAdjacentElement('beforeend', n.ui.element)
 
@@ -845,18 +837,18 @@ export class GraphEditor{
     }
 
     insertEdge = (e) => {
-        let viewer = this.files[e.graph.name]?.container
+        let viewer = this.files[e.parent.name]?.container
         if (viewer) viewer.insertAdjacentElement('beforeend', e.element)
     }
 
     addEdge = async (e) => {
 
-        if (this.files[e.graph.name].tab) this.files[e.graph.name].tab.classList.add('edited')
+        if (this.files[e.parent.name].tab) this.files[e.parent.name].tab.classList.add('edited')
 
         // if (e.source) e.source = e.source.replace(':default', '')
         // if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
-        let res = await e.graph.getEdge(e)
+        let res = await e.parent.getEdge(e)
 
         if (res.msg === 'OK'){
             let edge = res.edge
@@ -899,7 +891,7 @@ export class GraphEditor{
 
      addNode(node, skipManager = false, skipInterface = false, skipClick=false){
         
-        let graphTab = this.files[node.graph.name]
+        let graphTab = this.files[node.parent.name]
         if (graphTab.tab) graphTab.tab.classList.add('edited')
 
         let top
@@ -1289,7 +1281,7 @@ export class GraphEditor{
 
                     if (oldValue != newValue) {
                         if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
-                        if (this.files[plugin.graph.name].tab) this.files[plugin.graph.name].tab.classList.add('edited')
+                        if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
                     }
             })
         })
@@ -1435,7 +1427,7 @@ export class GraphEditor{
 
             if (activeNode == null){
                 onsave()
-                this.clickTab(this.files[activeNode.graph.name].tab)
+                this.clickTab(this.files[activeNode.parent.name].tab)
                 this.addNode({class:target})
                 activeNode = getNode(target)
             }
@@ -1470,7 +1462,7 @@ export class GraphEditor{
 
     removeNode = (node) => {
         this.manager.remove(this.app.props.id, node.class.id, node.instance.name)
-        node.graph.removeNode(node.id)
+        node.parent.removeNode(node.id)
     }
  
 

@@ -71,7 +71,7 @@ export class Train extends Plugin {
         } else {
             trainingInfo.class = Blink
         }
-        trainingInfo = this.session.graph.instantiateNode(trainingInfo,this.session)
+        trainingInfo = this.addNode(trainingInfo)
 
         this.props.trainingOverlay = this._createTrainingIntro(trainingInfo)
 

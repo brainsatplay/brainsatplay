@@ -1,6 +1,5 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-// import {GraphEditor} from './editor/GraphEditor'
 import {dynamicImport} from './utils/general/importUtils'
 import {pluginManifest} from './plugins/pluginManifest'
 import {Brainstorm} from './plugins/networking/Brainstorm'
@@ -1040,7 +1039,7 @@ export class GraphManager{
     // Create a Node Editor
     edit(applet, parentNode = document.body){
         if (this.applets[applet.props.id]){
-            this.applets[applet.props.id].editor = new GraphEditor(applet, parentNode)
+            this.applets[applet.props.id].editor = new Editor(applet, parentNode)
             return this.applets[applet.props.id].editor
         }
     }

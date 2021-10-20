@@ -50,9 +50,6 @@ import { DataAtlas } from './DataAtlas'
 // Device Plugins
 import { deviceList } from './devices/deviceList';
 
-// Plugins
-import {GraphManager} from './GraphManager'
-
 // Event Router
 import { EventRouter } from './EventRouter'
 
@@ -126,7 +123,6 @@ export class Session {
 		this.streamObj = new streamSession(this.info);
 		this.streamObj.deviceStreams = this.deviceStreams; //reference the same object
 
-		this.graph = new GraphManager(this)
 		this.dataManager = new DataManager(this);
 		this.storage = new StorageManager(this)
 		this.notifications = new NotificationManager()
@@ -457,7 +453,7 @@ export class Session {
 					let updatedOnConnect = (device) => {
 						if (onconnect instanceof Function) onconnect(device)
 						for (let app in this.info.apps){
-							let connectFunc = this.info.apps[app].settings?.connect?.onconnect
+							let connectFunc = this.info.apps[app]?.connect?.onconnect
 							if (connectFunc instanceof Function) connectFunc(device)
 						}
 						div.querySelector('p').innerHTML = "Disconnect"
@@ -468,7 +464,7 @@ export class Session {
 					let updatedOnDisconnect = (device) => {
 						if (ondisconnect instanceof Function) ondisconnect(device)
 						for (let app in this.info.apps){
-							let connectFunc = this.info.apps[app].settings?.connect?.ondisconnect
+							let connectFunc = this.info.apps[app]?.connect?.ondisconnect
 							if (connectFunc instanceof Function) connectFunc(device)
 						}
 						setIndicator(false)
@@ -1381,21 +1377,20 @@ else {
 	}
 
 
-	startApp(appId,sessionId){
-		this.graph.start(appId, sessionId)
+	startApp(app,sessionId){
 		// Update Routing UI
-		this.updateApps(appId)
-		return this.info.apps[appId]
+		this.updateApps(app)
+		return app
 	}
 
-	updateApps(appId){
+	updateApps(app){
 		let analysisSet = new Set()
 
 		// Update Per-App Routes
 		for(let id in this.info.apps) {
 			if (this.info.apps[id]){
-				analysisSet.add(...[...this.info.apps[id].analysis.default,...this.info.apps[id].analysis.dynamic])
-				if (appId == null || appId === id) this.updateApp(id)
+				analysisSet.add(...[...this.info.apps[id].analysis?.default ?? [],...this.info.apps[id].analysis?.dynamic ?? []])
+				if (app == null || app.props.id === id) this.updateApp(app)
 			}
 		}
 
@@ -1408,11 +1403,11 @@ else {
 
 	}
 
-	updateApp(appId){
-		if (this.info.apps[appId]){
+	updateApp(app){
+		if (app){
 			this.deviceStreams.forEach(d => {
 				if (d.info.events) {
-					d.info.events.addApp(appId, this.info.apps[appId].controls)
+					d.info.events.addApp(app.props.id, app.controls)
 					d.info.events.updateRouteDisplay()
 				}
 			})
@@ -1420,17 +1415,14 @@ else {
 	}
 
 	async registerApp(app){
-		// let graphs = ('graphs' in this) ? this.graphs : [this.graph]
 		this.info.apps[app.props.id] = app
-		// this.info.apps[app.props.id].settings = app.info
 		return this.info.apps[app.props.id]
 	}
 
 	removeApp(appId){
-		let info = this.graph.remove(appId)
+		// let info = this.graph.remove(appId)
 		if (this.info.apps[appId]) {
-			this.info.apps[appId].analysis.default = []
-			this.updateApps(appId)
+			this.updateApps()
 			
 			// Update Routing UI
 			this.deviceStreams.forEach(d => {
@@ -1443,8 +1435,6 @@ else {
 			if (this.info.apps[appId].editor) this.info.apps[appId].editor.deinit()
 			delete this.info.apps[appId]
 		}
-
-		return info
 	}
 
 
@@ -1757,6 +1747,9 @@ else {
 		let exitSession = applet.info.intro.exitSession
 		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
 
+		let appletContainer = applet.ui?.container ?? applet.AppletHTML.node
+
+
 		let template = `
 		<div id="${applet.props.id}IntroFragment">
 			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 100;">
@@ -1798,8 +1791,8 @@ else {
 		let setup = () => {
 
 		// Setup HTML References
-		let modeScreen = applet.ui.container.querySelector(`[id="${applet.props.id}mode-screen"]`)
-		let sessionSelection = applet.ui.container.querySelector(`[id="${applet.props.id}sessionSelection"]`)
+		let modeScreen = appletContainer.querySelector(`[id="${applet.props.id}mode-screen"]`)
+		let sessionSelection = appletContainer.querySelector(`[id="${applet.props.id}sessionSelection"]`)
 
 
 		if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
@@ -1808,11 +1801,11 @@ else {
 			exitSession.classList.add('brainsatplay-default-button')
 			exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
 			exitSession.innerHTML = 'Exit Session'
-			applet.ui.container.querySelector(`[id="${applet.props.id}IntroFragment"]`).insertAdjacentElement('afterend', exitSession)
+			appletContainer.querySelector(`[id="${applet.props.id}IntroFragment"]`).insertAdjacentElement('afterend', exitSession)
 		}
 
 
-		const hero = applet.ui.container.querySelector(`[id="${applet.props.id}appHero"]`)
+		const hero = appletContainer.querySelector(`[id="${applet.props.id}appHero"]`)
 		const loadingBarElement = document.querySelector('.brainsatplay-intro-loadingbar')
 
 		// Select Mode
@@ -1840,8 +1833,8 @@ else {
 		
 		// Create Session Browser
 		let baseBrowserId = `${applet.props.id}${applet.info.name}`
-		applet.ui.container.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
-		applet.ui.container.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
+		appletContainer.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
+		appletContainer.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
 		let waitForReturnedMsg = (msgs, callback = () => { }) => {
 			if (msgs.includes(this.state.data.commandResult.msg)) {
@@ -1862,7 +1855,7 @@ else {
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
-		let sessionSearch = applet.ui.container.querySelector(`[id="${baseBrowserId}search"]`)
+		let sessionSearch = appletContainer.querySelector(`[id="${baseBrowserId}search"]`)
 
 		
 		let connectToGame = (g, spectate) => {
@@ -2016,7 +2009,7 @@ else {
 			sessionSelection.style.pointerEvents = 'auto'
 		}
 
-		let createSession = applet.ui.container.querySelector(`[id="${applet.props.id}createSession"]`)
+		let createSession = appletContainer.querySelector(`[id="${applet.props.id}createSession"]`)
 
 		createSession.onclick = () => {
 			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
@@ -2056,7 +2049,7 @@ else {
 
 		applet.intro = new DOMFragment(
 			template,
-			applet.ui.container,
+			appletContainer,
 			undefined,
 			setup
 		)

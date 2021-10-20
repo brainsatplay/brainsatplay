@@ -65,7 +65,7 @@ export class YoutubeApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.registerApp(this)
-            this.session.startApp(this.props.id)
+            this.session.startApp(this)
 
             this.c = document.getElementById(this.props.id+'canvas');
             this.gl = this.c.getContext("webgl");
