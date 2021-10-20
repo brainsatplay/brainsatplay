@@ -19,18 +19,17 @@ export class Brainstorm extends Plugin {
                 onUpdate: (user) => {
                     // Register as New Port
                     let port = user.meta.source
-                    let sessionId = user.meta.session
+                    let sessionId = this.app.props.sessionId
 
                     // Register New Port
                     if (port != null) {
-                        let label = port
-                        let splitId = label.split('_')
-                        let sourceName = splitId[0]
-                        let sourcePort = splitId[1] ?? 'default'
+
+                        console.log('SOuRce', port)
+                        let label = port.label
 
                         // Register New Port
                         this.addPort(
-                            port,
+                            label,
                             {
                                 data: user.data,
                                 input: { type: null },
@@ -51,7 +50,7 @@ export class Brainstorm extends Plugin {
                                 if (found == null) {
 
                                     // Create Brainstorm Stream
-                                    let subId1 = this.session.streamAppData(label, this.session.graph.registry.local[sourceName].registry[sourcePort].state, sessionId, () => { })
+                                    let subId1 = this.session.streamAppData(label, this.session.graph.registry.local[port.node.name].registry[port.name].state, sessionId, () => { })
                                     this.props.subscriptions[label].push({ id: subId1, target: null })
 
                                     this._addUserSubscription(this.session.info.auth.id, info, graphId, ()=>{}, this.session.info.auth.username) // Subscribe to yourself

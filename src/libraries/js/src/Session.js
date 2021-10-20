@@ -152,7 +152,7 @@ export class Session {
 	}
 
 	/**
-     * @method module:brainsatplay.Session.setLoginInfo
+     * @method module:brainsatplay.Session.connect
      * @description Connect local device and add it. Use [reconnect()]{@link module:brainsatplay.Session.reconnect} if disconnecting and reconnecting device in same session.
      * @param {string} device "freeeeg32", "freeeeg32_19", "muse", "notion"
      * @param {array} analysis "eegfft", "eegcoherence", etc
@@ -260,6 +260,7 @@ export class Session {
 
 		if (Object.keys(newStream.info.events.routes).length > 0){
 			newStream.configureRoutes(contentChild)
+
 			for (let id in this.info.apps){
 				newStream.info.events.addApp(id, this.info.apps[id].controls)
 			}
@@ -810,8 +811,8 @@ export class Session {
 	//Remove arbitrary data streams made with streamAppData
 	removeStreaming(id, responseIdx, manager = this.state, type) {
 		if (responseIdx == null){
-			manager.removeState(id, sequential)
-			manager.removeState(id+"_flag", sequential)
+			manager.removeState(id, type)
+			manager.removeState(id+"_flag", type)
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
 			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
 			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
@@ -1420,8 +1421,8 @@ else {
 
 	async registerApp(app){
 		// let graphs = ('graphs' in this) ? this.graphs : [this.graph]
-		this.info.apps[app.props.id] = await this.graph.init(app)
-		this.info.apps[app.props.id].settings = app.info
+		this.info.apps[app.props.id] = app
+		// this.info.apps[app.props.id].settings = app.info
 		return this.info.apps[app.props.id]
 	}
 

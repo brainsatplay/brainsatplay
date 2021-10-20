@@ -54,7 +54,7 @@ export class HEG extends Plugin {
 
     init = () => {
         this.props.toUnsubscribe = this.session.subscribeToDevices('heg', (data) => {
-            this.session.graph.triggerAllActivePorts(this)
+            this.updateAll()
         })
     }
 

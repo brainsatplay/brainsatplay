@@ -45,12 +45,17 @@ export class Plugin {
 
         // UI
         this.ui = {
-            parent: this.app.editor?.viewer ?? document.createElement('div'), // editor or offscreen element
+            parent: null, 
             latencies: {}
         }
 
 
-        this.createUI()
+        if (this.app.editor){
+            this.ui.parent = this.app.editor.createGraph(this)
+            if (this.ui.parent) {
+                this.createUI()
+            }
+        }
 
 
         // // Initialize Functionality
@@ -91,7 +96,7 @@ export class Plugin {
     }
 
     // Resize All Active Node Fragments
-    _resize = () => {
+    _resizeUI = () => {
             let funcs = []
             // Gather Resize Functions
             this.nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
@@ -157,6 +162,15 @@ export class Plugin {
 
         // this.analysis.add(...Array.from(nodeInfo.analysis))
 
+        // Check if Controls
+        if (o.instance.className === 'Event'){
+            this.app.controls.push(o.instance)
+        }
+
+        // Debug
+        o.instance.debug()
+        
+
         // If There Are Graph Dependencies
         if (o.instance.graphs) {
             await Promise.all(o.instance.graphs.map(async (g,i) => {
@@ -184,8 +198,7 @@ export class Plugin {
 
     updateParams = (params) => {
         for (let param in params) {
-            let port = this.get('ports',param)
-            port = port[0]
+            let port = this.getPort(param)
             if (port) {
                 port.set({value: params[param]})
             }
@@ -226,12 +239,13 @@ export class Plugin {
         // NOTE: Add check for existing edge
         // if(!sourceNode.wires[name] && !targetNode.wires[name]) {
             let edge = new Edge(source, target, this)
-            this.edges.set(edge.id, edge)
-            source.port.edges.output.push(edge)
-            target.port.edges.input.push(edge)
 
-        // Initialize Edge
-           await edge.init()
+            // Initialize Edge
+           let res = await edge.init()
+
+            if (res) this.edges.set(edge.id, edge)
+            else edge.deinit()
+
     }
 
     removeEdge = (e) => {
@@ -286,14 +300,15 @@ export class Plugin {
 
 
         // UI
-        let portTypes = Object.keys(port.edges)
-        portTypes.forEach(s => {
-            this.ui[`${s}Ports`].insertAdjacentElement('beforeend', port.ui[s])
-        })
+        if (this.ui.parent) {
+            let portTypes = Object.keys(port.edges)
+            portTypes.forEach(s => {
+                this.ui[`${s}Ports`].insertAdjacentElement('beforeend', port.ui[s])
+            })
+            this.ui.portLabels.insertAdjacentElement('beforeend', port.ui.label)
 
-        this.ui.portLabels.insertAdjacentElement('beforeend', port.ui.label)
-
-        this.resizeElement()
+            this.resizeElement()
+        }
 
     }
 
@@ -316,13 +331,12 @@ export class Plugin {
 
     // trigger
     update = (port, user) => {
-
-        let thisPort = this.get('ports', port)[0]
-
+        let thisPort = this.getPort(port)
         return thisPort.set(user)
+    }
 
-        // return this.
-        // return this.update( port, user)
+    updateAll(){
+        for (let port in this.ports) this.update(port)
     }
 
     requestNode = async (nodeType) => {
@@ -452,14 +466,15 @@ export class Plugin {
 
         element.insertAdjacentElement('beforeend', this.ui.portManager)
         this.ui.element.insertAdjacentElement('beforeend', element)
-        this.ui.parent.insertAdjacentElement('beforeend', this.ui.element)
+
+        this.app.editor.insertNode(this)
 
         this.resizeElement()
 
         return this.ui.element
     }
 
-    updateAllEdges = () => {
+    resizeAllEdges = () => {
         this.edges.forEach(e => {
             e.resizeElement()
         })
@@ -478,5 +493,21 @@ export class Plugin {
 
         if (this.ui.portManager.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
         if (this.ui.portManager.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
+    }
+
+    // ---------------- DEBUG HELPER ----------------
+    debug = (parentNode = document.body) => {
+    
+        let container = parentNode.querySelector('.brainsatplay-debugger')
+
+        if ('debug' in this.ports) {
+            // if (parentNode === document.body) {
+            //     this.ports.element.data.style.position = 'absolute'
+            //     this.ports.element.data.style.top = 0
+            //     this.ports.element.data.style.right = 0
+            // }
+            this.updateParams({debug: true})
+            if (container) container.insertAdjacentElement('beforeend', this.ports.element.data)
+        }
     }
 }

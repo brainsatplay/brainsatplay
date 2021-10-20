@@ -13,10 +13,11 @@ import {pluginManifest} from '../plugins/pluginManifest'
 import * as dragUtils from './dragUtils'
 
 export class GraphEditor{
-    constructor(app, parentId) {
+    constructor(app, parent=document.body) {
         // this.manager = manager
         this.app = app
-        this.parentNode = document.getElementById(parentId) ?? document.body
+
+        this.parentNode = (typeof parent === 'string') ? document.getElementById(parent) : parent 
         this.settings = this.app.info.editor ?? {parentId: this.app.parentNode.id, show: false, create: true}
 
         this.element = null
@@ -48,11 +49,11 @@ export class GraphEditor{
     
         if (this.app){
 
-            // Only One Editor (look three levels up)
-            let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
-            if (!existingEditor && this.parentNode.parentNode) existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
-            if (!existingEditor && this.parentNode.parentNode.parentNode) existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
-            if (existingEditor) existingEditor.remove()
+            // // Only One Editor (look three levels up)
+            // let existingEditor = this.parentNode.querySelector(`.brainsatplay-node-editor`)
+            // if (!existingEditor && this.parentNode.parentNode) existingEditor = this.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            // if (!existingEditor && this.parentNode.parentNode.parentNode) existingEditor = this.parentNode.parentNode.parentNode.querySelector(`.brainsatplay-node-editor`)
+            // if (existingEditor) existingEditor.remove()
 
             this.container = document.createElement('div')
             this.container.id = `${this.props.id}GraphEditorMask`
@@ -65,9 +66,7 @@ export class GraphEditor{
                         </div>
                         <div id="${this.props.id}ViewTabs" class="brainsatplay-node-editor-tabs">
                         </div>
-                        <div id="${this.props.id}NodeVieweContainer" class="brainsatplay-node-viewer">
-                            <div id="${this.props.id}NodeViewer" class="brainsatplay-node-viewer grid">
-                            </div>
+                        <div id="${this.props.id}NodeViewerContainer" class="brainsatplay-node-viewer">
                         </div>
                     </div>
                     <div id="${this.props.id}GraphEditor" class="brainsatplay-node-sidebar">
@@ -113,6 +112,7 @@ export class GraphEditor{
                 () => {
                     // Set UI Attributes
                     this.mainPage = this.container.querySelector(`[id="${this.props.id}MainPage"]`)
+                    this.viewerContainer = this.container.querySelector(`[id="${this.props.id}NodeViewerContainer"]`)
                     this.viewer = this.container.querySelector(`[id="${this.props.id}NodeViewer"]`)
                     this.preview = this.mainPage.querySelector('.brainsatplay-node-editor-preview')
                     this.sidebar = this.container.querySelector(`[id="${this.props.id}GraphEditor"]`)
@@ -126,11 +126,11 @@ export class GraphEditor{
 
         window.addEventListener('resize', this.responsive)
 
+        this.init()
+
     }
 
-    init = async (graph=this.app.graphs.values().next().value) => {
-
-            this.graph = graph
+    init = async () => {
 
             this.isStudio = document.getElementById('brainsatplay-studio') != null
 
@@ -186,7 +186,7 @@ export class GraphEditor{
 
 
             // Insert Node Selector with Right Click
-            this.toggleContextMenuEvent(this.viewer)
+            this.toggleContextMenuEvent(this.viewerContainer)
 
             // Add Settings Editor
             this.createSettingsEditor(this.app)
@@ -197,10 +197,10 @@ export class GraphEditor{
             let relX, relY
             let translation = {x: 0, y:0}
             let mouseDown
-            this.viewer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
+            this.viewerContainer.parentNode.addEventListener('mousedown', e => {mouseDown = true} )
             window.addEventListener('mouseup', e => { mouseDown = false} )
 
-            this.viewer.parentNode.addEventListener('mousemove', e => {
+            this.viewerContainer.addEventListener('mousemove', e => {
                 if (this.editing === false){
 
                     // Transform relative to Parent
@@ -231,18 +231,20 @@ export class GraphEditor{
             })
 
             let updateUI = () => {
-                this.viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
+                let viewer = this.files[this.graph.name]?.container
+                viewer.style['transform'] = `translate(${translation.x}px, ${translation.y}px) scale(${this.context.scale*100}%)`
             }
 
-            // Change scale
-            this.viewer.parentNode.addEventListener('wheel', (e)=>{
+            // Change scale (NOTE: Fix)
+            this.viewerContainer.addEventListener('wheel', (e)=>{
                 this.context.scale += 0.01*-e.deltaY
                 if (this.context.scale < 0.5) this.context.scale = 0.5 // clamp
                 if (this.context.scale > 3.0) this.context.scale = 3.0 // clamp
                 updateUI()
 
                 for (let key in this.graph.nodes){
-                    this.graph.nodes[key].updateAllEdges()
+                    console.log('updating all edges', this.graph.nodes[key])
+                    this.graph.nodes[key].resizeAllEdges()
                 }
             })
             
@@ -252,40 +254,12 @@ export class GraphEditor{
             // Create Tabs
             this.createViewTabs()
 
-            // Add Graph Tab and Save Functionality
-            this.addGraphTab()
-
             // Populate Used Nodes and Edges
             // this.graph = new Graph(this.viewer)
 
-
-            // Setup Nodes
-            let i = 0
-            let length = this.graph.nodes.size
-            this.graph.nodes.forEach(async n => {
-                let node = await this.addNode(n,true, true, true) 
-    
-                // Default Positioning
-                let iterator = Math.ceil(Math.sqrt(length))
-                let row = Math.floor(i % iterator)
-                let col = Math.floor(i/iterator)
-    
-                let padding = 10
-                let availableSpace = 100 - 2*padding
-                let leftShift = 0.5 * availableSpace/(iterator+1)
-                let downShift = 0.5 * availableSpace/(iterator+2)
-                
-                if (!n.style.includes('top') && !n.style.includes('left')) {
-                    node.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-                    node.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
-                    i++
-                }
-            })
-
-            // Add Edge Reactivity
-            this.graph.edges.forEach(e => {
-                this.addEdgeReactivity(e)
-            })
+            // this.graphs.forEach(graph => {
+            //     this.createGraph(graph)
+            // })
 
             if (this.settings.display) this.toggleDisplay()
         }
@@ -461,19 +435,37 @@ export class GraphEditor{
         parentNode.insertAdjacentElement('afterbegin', tabs)
     }
 
-    addGraphTab(){
-        this.files['Graph Editor'] = {}
-        this.files['Graph Editor'].container = this.viewer
-        this.files['Graph Editor'].tab = this.addTab('Graph Editor', this.viewer.parentNode.id)
-        let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
-        let onsave = () => {
-            this.files['Graph Editor'].tab.classList.remove('edited')
-            this.app.updateGraph()
-            this.app.session.projects.save(this.app)
-            this.lastSavedProject = this.app.info.name
-        }
-        save.onclick = onsave
-        this.saveFileEvent('Graph Editor', onsave)
+    createGraph(graph){
+
+        // If there are nodes to visualize, do so
+        if (graph.info.nodes.length > 0){
+
+            let container = document.createElement('div')
+            container.id = `${this.props.id}NodeViewer`
+            container.classList.add('brainsatplay-node-viewer')
+            container.classList.add('grid')
+            this.viewerContainer.insertAdjacentElement('beforeend', container)
+
+            // Create Graph Tab and Save Functionaity
+            this.files[graph.name] = {container, nodes: []}
+            this.files[graph.name].tab = this.addTab(graph, this.viewerContainer.id)
+            let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
+            let onsave = () => {
+                this.files[graph.name].tab.classList.remove('edited')
+                this.app.updateGraph()
+                this.app.session.projects.save(this.app)
+                this.lastSavedProject = this.app.info.name
+            }
+            save.onclick = onsave
+            this.saveFileEvent(graph.name, onsave)
+
+            // Add Edge Reactivity
+            graph.edges.forEach(e => {
+                this.addEdgeReactivity(e)
+            })
+            
+            return this.files[graph.graph.name]?.container
+        } else return this.files[graph.graph.name].container // 
     }
 
     saveFileEvent = (filename, onsave) => {
@@ -503,18 +495,20 @@ export class GraphEditor{
         parent.insertAdjacentElement('beforeend', closeIcon)
     }
 
-    addTab(label, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
+    addTab(o, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}){
         let tab = this.element.node.querySelector(`[data-target="${id}"]`);
         if (tab == null){
             tab = document.createElement('button')
             tab.classList.add('tablinks')
             tab.setAttribute('data-target', id)
-            tab.innerHTML = label
 
-            if (label != 'Graph Editor'){
+            let isGraph = typeof o !== 'string'
+            if (isGraph){
+                tab.innerHTML = o.name
+
                 let onClose = () => {
                     tab.style.display = 'none'
-                    let editorTab = this.element.node.querySelector(`[data-target="${this.viewer.parentNode.id}"]`);
+                    let editorTab = this.element.node.querySelector(`[data-target="${this.viewerContainer.id}"]`);
                     editorTab.click()
                 }
                 this.addCloseIcon(tab,onClose)
@@ -541,6 +535,10 @@ export class GraphEditor{
                     }
                     this.responsive()
                 }
+
+
+                if (isGraph) this.graph = o
+
             }
 
             this.element.node.querySelector('.tab').insertAdjacentElement('beforeend', tab)
@@ -654,7 +652,7 @@ export class GraphEditor{
 
             delete this.state.data[`activeSettingsFile`]
             this.state.addToState(`activeSettingsFile`, settings, () => {
-                if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+                // if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
             })
 
 
@@ -674,7 +672,10 @@ export class GraphEditor{
                 setTimeout(() => {
 
                 this.responsive()
-                if (this.graph) this.graph._resize()
+                if (this.graph) {
+                    this.graph._resizeUI() 
+                    this.graph.resizeAllEdges()
+                }
                 },100)
             } else {
                 this.element.node.style.opacity = 0
@@ -684,14 +685,17 @@ export class GraphEditor{
                 this.app.AppletHTML.parentNode.appendChild(this.appNode)
                 setTimeout(() => {
                     this.responsive()
-                    if (this.graph) this.graph._resize()
+                    if (this.graph) {
+                        this.graph._resizeUI()
+                        this.graph.resizeAllEdges()
+                    }
                 },100)
             }
         }
     }
 
     removeEdge(e, ignoreManager=false){
-        this.graph.removeEdge(e)
+        e.graph.removeEdge(e)
         if (!ignoreManager) this.manager.removeEdge(this.app.props.id, e.structure)
     }
 
@@ -731,7 +735,7 @@ export class GraphEditor{
     };
 
     animateLatency(node, port, latency){
-        let instance = this.graph.nodes[node.name]
+        let instance = node
         let pct = Math.min(1,latency/1)
 
         let map = [
@@ -748,7 +752,7 @@ export class GraphEditor{
     }
 
     animateNode(node,type){
-        let instance = this.graph.nodes[node.name]
+        let instance = node
         if (instance){
             let portEl = instance.element.querySelector(`.${type}-ports`).querySelector(`.port-${node.port}`)
             if (portEl) {
@@ -764,7 +768,7 @@ export class GraphEditor{
     }
 
     animateEdge(source,target){
-        let instance = this.graph.nodes[source.name]
+        let instance = source
         instance.edges.forEach(e=>{
             if(e.structure.source.port === source.port){
                 if (e.structure.target){
@@ -804,14 +808,55 @@ export class GraphEditor{
         }
     }
 
+    insertNode = (n) => {
+
+            let info = this.files[n.graph.name]
+            if (info?.container) {
+                info.container.insertAdjacentElement('beforeend', n.ui.element)
+
+                let node = this.addNode(n,true, true, true) 
+                info.nodes.push(node)
+
+                // Reorganize Nodes in a Grid
+                let i = 0;
+                info.nodes.forEach(n => {
+
+                    let length = info.nodes.length
+
+                    // Default Positioning
+                    let iterator = Math.ceil(Math.sqrt(length))
+                    let row = Math.floor(i % iterator)
+                    let col = Math.floor(i/iterator)
+
+                    let padding = 10
+                    let availableSpace = 100 - 2*padding
+                    let leftShift = 0.5 * availableSpace/(iterator+1)
+                    let downShift = 0.5 * availableSpace/(iterator+2)
+                    
+                    if (!n.style.includes('top') && !n.style.includes('left')) {
+                        n.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                        n.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                    }
+
+                    i++
+                })
+
+            }
+    }
+
+    insertEdge = (e) => {
+        let viewer = this.files[e.graph.name]?.container
+        if (viewer) viewer.insertAdjacentElement('beforeend', e.element)
+    }
+
     addEdge = async (e) => {
 
-        if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+        if (this.files[e.graph.name].tab) this.files[e.graph.name].tab.classList.add('edited')
 
         // if (e.source) e.source = e.source.replace(':default', '')
         // if (e.target) e.target = e.target.replace(':default', '')
         this.editing = true
-        let res = await this.graph.getEdge(e)
+        let res = await e.graph.getEdge(e)
 
         if (res.msg === 'OK'){
             let edge = res.edge
@@ -840,32 +885,22 @@ export class GraphEditor{
     // }
     
     removePort(node,port){
-        let n = this.graph.nodes[node.name]
-        if (n) n.removePort(port)
+        node.removePort(port)
     }
 
     addPort(node,port){
-        let n = this.graph.nodes[node.name]
-        if (n){
-            n.addPort(port)
-            this.addPortEvents(n)
-        }
+        node.addPort(port)
+        this.addPortEvents(node)
     }
 
     removePort(node,port){
-        this.graph.nodes[node.name].removePort(port)
+        node.removePort(port)
     }
 
-    async addNode(node, skipManager = false, skipInterface = false, skipClick=false){
+     addNode(node, skipManager = false, skipInterface = false, skipClick=false){
         
-        if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
-
-        // console.log(nodeInfo)
-        // if (nodeInfo.id == null) nodeInfo.id = nodeInfo.class.id
-        // if (skipManager == false) nodeInfo = await this.manager.addNode(nodeInfo, this.app, false)
-        // if (skipInterface == false) this.app.insertInterface(nodeInfo)
-        
-        // let node = this.graph.getNode(nodeInfo.name)
+        let graphTab = this.files[node.graph.name]
+        if (graphTab.tab) graphTab.tab.classList.add('edited')
 
         let top
         let left
@@ -874,7 +909,9 @@ export class GraphEditor{
             left = node.style.match(/left: ([^;].+);\s?/)
         }
 
-        dragUtils.dragElement(this.viewer, node.ui.element, this.context, () => {node.updateAllEdges()}, () => {this.editing = true}, () => {
+        dragUtils.dragElement(graphTab.container, node.ui.element, this.context, () => {
+            node.resizeAllEdges()
+        }, () => {this.editing = true}, () => {
             this.editing = false
             node.style = node.ui.element.style.cssText
         })
@@ -890,7 +927,7 @@ export class GraphEditor{
             if (top) node.ui.element.style.top = top[1]
             if (left) node.ui.element.style.left = left[1]
         } else if (this.nextNode) {
-            let rect = this.viewer.getBoundingClientRect()
+            let rect = graphTab.container.getBoundingClientRect()
             let position = this.mapPositionFromScale(this.nextNode.position, rect)
             node.ui.element.style.top = `${position.x}px`
             node.ui.element.style.left = `${position.y}px`
@@ -1252,7 +1289,7 @@ export class GraphEditor{
 
                     if (oldValue != newValue) {
                         if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
-                        if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
+                        if (this.files[plugin.graph.name].tab) this.files[plugin.graph.name].tab.classList.add('edited')
                     }
             })
         })
@@ -1306,13 +1343,7 @@ export class GraphEditor{
         if (name == null || name === '') name = `${target.name}`
         let filename = `${name}.js`
 
-        let getNode = (target) => {
-            return this.graph.nodes.find(n => {
-                if (n.class.id == target.id) return n
-            })
-        }
-
-         let activeNode = getNode(target)
+         let activeNode = target
         
 
         if (this.files[filename] == null){
@@ -1404,7 +1435,7 @@ export class GraphEditor{
 
             if (activeNode == null){
                 onsave()
-                this.clickTab(this.files['Graph Editor'].tab)
+                this.clickTab(this.files[activeNode.graph.name].tab)
                 this.addNode({class:target})
                 activeNode = getNode(target)
             }
@@ -1439,7 +1470,7 @@ export class GraphEditor{
 
     removeNode = (node) => {
         this.manager.remove(this.app.props.id, node.class.id, node.instance.name)
-        this.graph.removeNode(node.id)
+        node.graph.removeNode(node.id)
     }
  
 
@@ -1502,6 +1533,8 @@ export class GraphEditor{
             this.addNodeOption(this.classRegistry[className])
         }
 
+        // TODO: Traverse all graphs
+        // this.graphs.forEach(g => {
         this.graph.nodes.forEach(async n => {
             if (n.class != null){
             let clsInfo = this.classRegistry[n.class.name]
@@ -1529,6 +1562,7 @@ export class GraphEditor{
             await checkWhere(n, clsInfo)
         }
         })
+    // })
 
         this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
         this.responsive()
@@ -1737,18 +1771,20 @@ export class GraphEditor{
             else this.preview.parentNode.style.height = 'auto'
         }
 
-        // Set Grid Width and Height (only get bigger...)
-        let newWidth = this.viewer.parentNode.clientWidth
-        let oldWidth = Number.parseFloat(this.viewer.style.width.replace('px',''))
-        if (oldWidth < newWidth || isNaN(oldWidth)) this.viewer.style.width = `${newWidth}px`
-        let newHeight = this.viewer.parentNode.clientHeight
-        let oldHeight = Number.parseFloat(this.viewer.style.height.replace('px',''))
-        if (oldHeight < newHeight || isNaN(oldHeight)) this.viewer.style.height = `${newHeight}px`
-
-
         if(this.graph){
+
+            let graphViewer = this.files[this.graph.name]?.container
+
+            // Set Grid Width and Height (only get bigger...)
+            let newWidth = this.viewerContainer.clientWidth
+            let oldWidth = Number.parseFloat(graphViewer.style.width.replace('px',''))
+            if (oldWidth < newWidth || isNaN(oldWidth)) graphViewer.style.width = `${newWidth}px`
+            let newHeight = graphViewer.parentNode.clientHeight
+            let oldHeight = Number.parseFloat(graphViewer.style.height.replace('px',''))
+            if (oldHeight < newHeight || isNaN(oldHeight)) graphViewer.style.height = `${newHeight}px`
+            
             for (let key in this.graph.nodes){
-                this.graph.nodes[key].updateAllEdges()
+                this.graph.nodes[key].resizeAllEdges()
             }
         }
     }

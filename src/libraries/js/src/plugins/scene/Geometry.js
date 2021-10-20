@@ -1,16 +1,12 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-import {Plugin} from '../../graph/Plugin'
 
-export class Geometry extends Plugin {
+export class Geometry {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
         
-        
-
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             geometry: null,
@@ -117,7 +113,9 @@ export class Geometry extends Plugin {
             }, 
 
         }
+    }
 
+    init = () => {
         // Subscribe to Changes in Parameters
         this.update('default',{forceRun: true, forceUpdate: true})
 
@@ -125,10 +123,6 @@ export class Geometry extends Plugin {
             this.props.lastRendered = Date.now()
             this.update('default',{forceRun: true, forceUpdate: true})
         })
-    }
-
-    init = () => {
-
     }
 
     deinit = () => {

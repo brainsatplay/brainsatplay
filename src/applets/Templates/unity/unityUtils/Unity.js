@@ -73,7 +73,9 @@ export class Unity{
                 output: {type: null},
                 onUpdate: (user) => {
                     // let data = JSON.stringify(user.data)
-                    let data = user.data
+                    let data = user.data.toString()
+                    // let data = user.data
+                    console.log(data)
                     if (this.props.instance) this.props.instance.SendMessage(o.object, o.function, data);
                 }
             })

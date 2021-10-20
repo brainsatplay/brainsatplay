@@ -1,16 +1,13 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-import {Plugin} from '../../graph/Plugin'
 
-export class Object3D extends Plugin {
+export class Object3D {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        // super(info, graph)
         
-        
-
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             geometry: null,
@@ -109,6 +106,9 @@ export class Object3D extends Plugin {
         }
 
         this._setObject()
+    }
+
+    init = () => {
 
         this.update('add',{forceRun: true, forceUpdate: true})
         this.props.prevType = this.ports.type.data
@@ -122,9 +122,6 @@ export class Object3D extends Plugin {
                 this.props.prevType = this.ports.type.data
             }
         })
-    }
-
-    init = () => {
 
         this.props.looping = true
 

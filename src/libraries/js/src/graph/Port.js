@@ -15,15 +15,15 @@ export class Port {
 
         this.onchange = settings.onchange ?? settings.onUpdate // backwards compatibility (< 0.0.36)
         this.edges = {
-            input: [],
-            output: []
+            input: new Map(),
+            output: new Map()
         };        
         
         this.value = settings.data 
 
         // METADATA
         this.latency = Array.from({length: 20}, e => 0)
-
+        this.label = (this.name === 'default') ? this.node.name : `${this.node.name}_${this.name}`
 
         // UI
         this.ui = {
@@ -76,7 +76,14 @@ export class Port {
 
     // Only Set when Different
     set = (port=this, forceUpdate = false) => {
+
+        // Copy Input
         port = this._copy(port)
+
+        // Add Default Metadata
+        if (!(port.meta)) port.meta = {}
+        port.meta.source = port
+
         return this._onchange(port);
     }
 
@@ -110,7 +117,6 @@ export class Port {
         port.value = port.data // backwards compatibility (< 0.0.36)
 
         let res = (this.onchange instanceof Function) ? this.onchange(port) : port // set in constructor
-        // console.log(res)
 
         let tock = performance.now()
         let latency = tock - tick
@@ -118,12 +124,11 @@ export class Port {
         this.latency.push(latency)
 
         if (res){
+            if (!(res instanceof Object)) console.error(res, this.node, this, port)
             res.value = res.data // backwards compatibility (< 0.0.36) TODO: Test edge-cases
 
             // Update Edges
             if (this.value != res.value){
-
-                // console.log('uPDATE', res.value)
                 this.value = this.data = res.value // backwards compatibility (< 0.0.36)
 
                 // Run Across Edges
@@ -136,7 +141,59 @@ export class Port {
         return res
     }
 
+    animate = (side) => {
+        let el = this.ui[side].children[0]
+
+        this.setLatency(this.getLatency())
+
+        // Animate Port
+        el.classList.add('updated')
+        el.setAttribute('data-update', Date.now())
+        setTimeout(()=>{
+            if (el.getAttribute('data-update') < Date.now() - 450){
+                el.classList.remove('updated')
+            }
+        }, 500)
+    }
+
+    setLatency = (val) => {
+
+        // Animate Latency
+        let pct = Math.min(1,val/.1)
+
+        let map = [
+            { pct: 0.0, color: { r: 0x39, g: 0xff, b: 0x14 } },
+            { pct: 0.5, color: { r: 0xfa, g: 0xed, b: 0x27 } },
+            { pct: 1.0, color: { r: 0xff, g: 0x14, b: 0x39 } } 
+        ];
+        
+        this.ui.latency.style.width = `${pct*100}%`
+        this.ui.latency.style.background = this._getColorfromMap(pct, map)
+    }
+
     getLatency = () => {
         return this.latency.reduce((a,b) => a + b) / this.latency.length
     }
+
+    // Animation Helper Functions
+    _getColorfromMap = (pct, map) => {
+        for (var i = 1; i < map.length - 1; i++) {
+            if (pct < map[i].pct) {
+                break;
+            }
+        }
+        var lower = map[i - 1];
+        var upper = map[i];
+        var range = upper.pct - lower.pct;
+        var rangePct = (pct - lower.pct) / range;
+        var pctLower = 1 - rangePct;
+        var pctUpper = rangePct;
+        var color = {
+            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+        };
+        return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+        // or output as hex if preferred
+    };
 }

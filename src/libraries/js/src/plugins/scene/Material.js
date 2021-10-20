@@ -2,17 +2,12 @@ import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
 import vertexShader from './shader/vertex.glsl'
 import blankFragment from './shader/blankFragment.glsl'
-import {Plugin} from '../../graph/Plugin'
 
-export class Material extends Plugin {
+export class Material  {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
-        
-        
-        
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -77,7 +72,7 @@ export class Material extends Plugin {
                 output: {type: null},
                 onUpdate: (user) => {
                     this.props.lastMaterialType = user.data
-                    return user.data
+                    return user
                 }
             },
             fragmentShader: {
@@ -117,7 +112,7 @@ export class Material extends Plugin {
                 this.update('default',{forceRun: true, forceUpdate: true})
         })
 
-        this.update('type',{data: this.ports.type.data}) // FIX: Shouldn't be necessary
+        this.update('type',this.ports.type) // FIX: Shouldn't be necessary
         
         this._passShaderMaterial()
     }

@@ -6,9 +6,6 @@ export class EEG extends Plugin {
 
     constructor(info, graph, params={}) {
         super(info, graph)
-        
-        
-        
 
         this.props = {
             deviceSubscriptions: [],
@@ -67,7 +64,7 @@ export class EEG extends Plugin {
 
     init = () => {
         this.props.toUnsubscribe = this.session.subscribeToDevices('eeg', (data) => {
-            this.session.graph.triggerAllActivePorts(this)
+            this.updateAll()
         })
     }
 

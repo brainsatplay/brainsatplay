@@ -14,8 +14,6 @@ export class Scene extends Plugin {
     constructor(info, graph) {
         super(info, graph)
         
-        
-
         let camera = new THREE.PerspectiveCamera()
         let renderer = new THREE.WebGLRenderer( { antialias: true } )
 
@@ -55,6 +53,8 @@ export class Scene extends Plugin {
                 input: {type: Object},
                 output: {type: null},
                 onUpdate: (user) => {
+
+                    console.log(user)
                     if (!Array.isArray(user.data)) user.data = [user.data]
                     user.data.forEach(mesh => {
 

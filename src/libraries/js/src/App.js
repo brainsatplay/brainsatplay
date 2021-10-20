@@ -30,7 +30,16 @@ export class App {
             sessionId: null, // Track Brainstorm sessions
         };
 
-        this.editor = new GraphEditor(this)
+        this.editor = new GraphEditor(this, parentNode)
+
+        // Track Analysis
+        this.analysis = {
+            default: [],
+            dynamic: []
+        }
+
+        // Track Controls
+        this.controls = []
 
         // Set shortcuts
         document.addEventListener('keyup', this.shortcutManager, false);
@@ -70,11 +79,12 @@ export class App {
         )
 
 
-        console.log('initing editor', this)
-        this.editor.init()
+        // console.log('initing editor', this)
+        // this.editor.init()
 
+        console.log('TOP LEVEL', this)
         // Register App in Session
-        // this.graph = await this.session.registerApp(this) // Rename
+        this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
         this.session.createIntro(this, (sessionInfo) => {

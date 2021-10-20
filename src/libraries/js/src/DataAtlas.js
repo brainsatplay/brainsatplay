@@ -830,9 +830,7 @@ export class DataAtlas {
 	getBlink = async (params = {}) => {
 		let node = this.graph.getNode('blink')
 		node.updateParams(params)
-		console.log(node)
 		let blink = await node.update('default', {data: this.data, forceUpdate: true})
-		console.log(blink)
 		return blink.data
 	}
 

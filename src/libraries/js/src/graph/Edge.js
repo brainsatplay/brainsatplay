@@ -8,98 +8,142 @@ export class Edge {
         this.source = source;
         this.target = target;
 
-        // Interface
-        this.parentNode = null
-        this.element = null
-        this.svg = {
-            element: null,
-            size: 500,
-            radius: 5
-        }
-        this.box = null
-        this.node = {}
-        this.drag = null
-        this.types = ['source', 'target']
+            // Interface
+            this.parentNode = null
+            this.element = null
+            this.svg = {
+                element: null,
+                size: 500,
+                radius: 5
+            }
+            this.box = null
+            this.node = {}
+            this.drag = null
+            this.types = ['source', 'target']
 
-        // Functionality
-        this.value;
-        this.subscription
-        
-        // Create UI
-        this._createUI()
+            // Functionality
+            this.value;
+            this.subscription
+            
+            // Create UI
+            if (this.graph.app.editor){
+                this._createUI()
+            }
     }
 
 
     init = async () => {
 
-        // Activate Functionality
-        this.graph.app.state.data[this.id] = this.value
-        this.subscription = this.graph.app.state.subscribeTrigger(this.id, this.onchange)
 
-        // Activate UI
-        await this._activateUI()
+        let sP = this.source.port
+        let tP = this.target.port
 
-        // Always activate edge with initial value
-        this.update()
+        if (sP && tP){
+            // Activate Functionality
+            this.graph.app.state.data[this.id] = this.value
+            this.subscription = this.graph.app.state.subscribeTrigger(this.id, this.onchange)
+
+            // Register Edge in Ports
+            this.source.node.edges.set(this.id, this)
+            this.target.node.edges.set(this.id, this)
+            sP.edges.output.set(this.id,this)
+            tP.edges.input.set(this.id, this)
+
+            // Activate Dyhamic Analyses
+        
+            if (tP.analysis && (tP.edges.input.size > 0 || tP.type === null) && (tP.edges.output.size > 0 || tP.type === null)) this.graph.app.analysis.dynamic.push(...tP.analysis)
+            if (sP.analysis && (sP.edges.input.size > 0 || sP.type === null) && (sP.edges.output.size > 0 || sP.type === null)) this.graph.app.analysis.dynamic.push(...sP.analysis)
+
+            // Activate UI
+            if (this.graph.app.editor) await this._activateUI()
+
+            // Always activate edge with initial value (if provided)
+
+            let input = this.source.port.value
+
+            let brainstormTarget = this.target.node.className === 'Brainstorm'
+            let isElement = input instanceof Element || input instanceof HTMLDocument
+            let isFunction = input instanceof Function
+
+            // if ((brainstormTarget || isElement || isFunction)) {
+                await this.update() // If new connection must pass (1) an element / function, or (2) anything to the Brainstorm
+            // }
+
+            return this
+        } else {
+            console.error('EDGE CANNOT BE CREATED')
+            return undefined
+        }
         
 
     }
 
     deinit = () => {
         this.graph.app.session.removeStreaming(this.id, this.subscription , this.graph.app.state, 'trigger');
+        if (this.source.node) this.source.node.edges.delete(this.id)
+        if (this.target.node) this.target.node.edges.delete(this.id)
+        if (this.source.port) this.source.port.edges.output.delete(this.id)
+        if (this.target.port) this.target.port.edges.input.delete(this.id)
     }
 
     // Pass Information from Source to Target
     update = () => {
         let returned = this.target.port.set(this.source.port)
+        this.animate()
+
         return returned
     }
 
+    animate = () => {
+        if (this.node.curve){
+            this.source.port.animate('output')
+            this.target.port.animate('input')
+
+            this.node.curve.classList.add('updated')
+            this.node.curve.setAttribute('data-update', Date.now())
+            setTimeout(()=>{
+                if (this.node.curve.getAttribute('data-update') < Date.now() - 450){
+                    this.node.curve.classList.remove('updated')
+                }
+            }, 500)
+        }
+    }
 
 
     // Interface Handler
 
     resizeElement = () => {
 
-        // Derive Queries
-        let types = Object.keys(this.structure)
-        let k1 = types.shift()
-        let type = (o.structure[k1].node.includes(this.nodeInfo.id)) ? k1 : null
-        if (type == null) type = (k1 === 'source') ? 'target' : 'source'
-        let className = (type === 'source') ? 'p1' : 'p2'
-
         // Grab Elements
-        let portElement = this[type].port.element
-        portElement.classList.add('active') // Label Active Node
+        let arr = [
+            {type: 'source', port: 'output', node: 'p1'}, 
+            {type: 'target', port: 'input', node: 'p2'},
+        ]
 
-        let portDim = portElement.getBoundingClientRect()
-        let svgP = this.svgPoint(o.svg, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
+        let svgPorts = arr.map(o => {
 
-        // Update Edge Anchor
-        this.updateElement(
-            this.node[className],
-            {
-                cx: svgP.x,
-                cy: svgP.y
-            }
-        );
+            let portElement = this[o.type].port.ui[o.port]
+            portElement.children[0].classList.add('active') // Label Active Node
+            let portDim = portElement.getBoundingClientRect()
+            let svgPort = this.svgPoint(this.svg.element, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
 
-        // Grab Other Side of Edge
-        let otherType = (type == 'source') ? 'target' : 'source'
-        let otherElement = this[otherType].port.element
-        let svgO
-        if (otherElement) {
-            let otherDim = otherElement.getBoundingClientRect()
-            svgO = this.svgPoint(this.svg, otherDim.left + otherDim.width / 2, otherDim.top + otherDim.height / 2)
-        } else {
-            svgO = svgP
-        }
-        // Update Control Points
-        let sP = (type == 'source') ? svgP : svgO
-        let tP = (type == 'source') ? svgO : svgP
+            // Update Edge Anchor
+            this.updateElement(
+                this.node[o.node],
+                {
+                    cx: svgPort.x,
+                    cy: svgPort.y
+                }
+            );
 
-        this.updateControlPoints(sP, tP)
+            return svgPort
+        })
+
+        if (svgPorts.length === 1) svgPorts.push(svgPorts[0])
+
+        this.updateControlPoints(...svgPorts)
         this.drawCurve();
+
     }
 
   mouseAsTarget = (type, upCallback) => {
@@ -141,7 +185,7 @@ export class Edge {
           // NOTE: Fix and check
         //   this[`${type}Node`] = this[type].element.querySelector(`.${type}-ports`).getElementsByClassName(`port-${this.structure[type].port}`)[0]
           this[type].node.registerEdge(this)
-          this[type].node.updateAllEdges(this)
+          this[type].node.resizeAllEdges(this)
           upCallback(true)
         } else {
           upCallback('Cannot connect two ports of the same type.')
@@ -232,8 +276,9 @@ insert = async () => {
 
   return new Promise((resolve)=> {
 
-  this.graph.app.editor.viewer.insertAdjacentElement('beforeend', this.element)
 
+  this.graph.app.editor.insertEdge(this)
+  
   this.types.forEach(t => {
     if (this[t].port == null) { // TODO: Fix and check
       this.mouseAsTarget(t,(res) => {
@@ -246,8 +291,7 @@ insert = async () => {
 this.drawCurve();
 
 this.types.forEach(t => {
-    console.log(t, this[t])
-  this[t].node.updateAllEdges(this)
+  this[t].node.resizeAllEdges(this)
 })
 
 // Resolve if both source and target are selected
@@ -378,8 +422,6 @@ const
 // curve
 const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${c3.x},${c3.y} T${p2.x},${p2.y}` +
   (this.node.curve.classList.contains('fill') ? ' Z' : '');
-
-  console.log('DRAW', d)
   this.updateElement( this.node.curve, { d } );
 }
 

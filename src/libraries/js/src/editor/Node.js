@@ -65,6 +65,7 @@ export class Node {
     }
 
     updateAllEdges = () => {
+        console.log('updating all', this.edges)
         this.edges.forEach(o => {
             this.updateEdge(o)
         })
@@ -182,4 +183,5 @@ export class Node {
         if (this.portManager.offsetWidth < minWidth) this.portManager.style.width = `${minWidth}px`
         if (this.portManager.offsetHeight < minHeight) this.portManager.style.height = `${minHeight}px`
     }
+
 }

@@ -68,7 +68,7 @@ export class Edge{
             this[type] = this.nodes[this.structure[type].node]
             this[`${type}Node`] = this[type].element.querySelector(`.${type}-ports`).getElementsByClassName(`port-${this.structure[type].port}`)[0]
             this[type].registerEdge(this)
-            this[type].updateAllEdges(this)
+            this[type].resizeAllEdges(this)
             upCallback(true)
           } else {
             upCallback('Cannot connect two ports of the same type.')
