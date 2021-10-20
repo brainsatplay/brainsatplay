@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import {Plugin} from '../../graph/Plugin'
 
-class Trees extends Plugin {
+
+class Trees {
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
 
         // Generic Plugin Attributes
         
@@ -182,7 +182,7 @@ class Trees extends Plugin {
         }
 
         this.ports.add.data = this.props.groups
-        this.update('add',{forceRun: true, forceUpdate: true})
+        this.update('add',{forceUpdate: true})
     }
 
     deinit = () => {}

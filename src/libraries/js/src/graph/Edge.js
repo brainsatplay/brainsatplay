@@ -1,7 +1,7 @@
 export class Edge {
     constructor (source, target, parent) {
 
-        this.id = String(Math.floor(Math.random()*1000000))
+        this.uuid = String(Math.floor(Math.random()*1000000))
         this.parent = parent
 
         // Information
@@ -39,15 +39,16 @@ export class Edge {
         let tP = this.target.port
 
         if (sP && tP){
+
             // Activate Functionality
-            this.parent.app.state.data[this.id] = this.value
-            this.subscription = this.parent.app.state.subscribeTrigger(this.id, this.onchange)
+            this.parent.app.state.data[this.uuid] = this.value
+            this.subscription = this.parent.app.state.subscribeTrigger(this.uuid, this.onchange)
 
             // Register Edge in Ports
-            this.source.node.edges.set(this.id, this)
-            this.target.node.edges.set(this.id, this)
-            sP.edges.output.set(this.id,this)
-            tP.edges.input.set(this.id, this)
+            this.source.node.edges.set(this.uuid, this)
+            this.target.node.edges.set(this.uuid, this)
+            sP.edges.output.set(this.uuid,this)
+            tP.edges.input.set(this.uuid, this)
 
             // Activate Dyhamic Analyses
         
@@ -57,17 +58,14 @@ export class Edge {
             // Activate UI
             if (this.parent.app.editor) await this._activateUI()
 
-            // Always activate edge with initial value (if provided)
-
-            let input = this.source.port.value
-
+            // Update Brainstorm ASAP
             let brainstormTarget = this.target.node.className === 'Brainstorm'
-            let isElement = input instanceof Element || input instanceof HTMLDocument
-            let isFunction = input instanceof Function
 
-            // if ((brainstormTarget || isElement || isFunction)) {
-                await this.update() // If new connection must pass (1) an element / function, or (2) anything to the Brainstorm
-            // }
+            if (brainstormTarget) {
+                this.parent.app.streams.push(this.source.port.label) // Keep track of streams
+            }
+
+            await this.update() // Indiscriminately activate edge with initial value
 
             return this
         } else {
@@ -79,16 +77,16 @@ export class Edge {
     }
 
     deinit = () => {
-        this.parent.app.session.removeStreaming(this.id, this.subscription , this.parent.app.state, 'trigger');
-        if (this.source.node) this.source.node.edges.delete(this.id)
-        if (this.target.node) this.target.node.edges.delete(this.id)
-        if (this.source.port) this.source.port.edges.output.delete(this.id)
-        if (this.target.port) this.target.port.edges.input.delete(this.id)
+        this.parent.app.session.removeStreaming(this.uuid, this.subscription , this.parent.app.state, 'trigger');
+        if (this.source.node) this.source.node.edges.delete(this.uuid)
+        if (this.target.node) this.target.node.edges.delete(this.uuid)
+        if (this.source.port) this.source.port.edges.output.delete(this.uuid)
+        if (this.target.port) this.target.port.edges.input.delete(this.uuid)
     }
 
     // Pass Information from Source to Target
-    update = () => {
-        let returned = this.target.port.set(this.source.port)
+     update = async (port=this.source.port) => {
+        let returned = await this.target.port.set(port)
         this.animate()
 
         return returned
@@ -205,7 +203,7 @@ export class Edge {
 _createUI = () => {
     this.element = document.createElement('div')
     this.element.classList.add('edge')
-    this.element.insertAdjacentHTML('beforeend',`<svg xmlns="http://www.w3.org/2000/svg" id="${this.id}svg" viewBox="0 0 ${this.svg.size} ${this.svg.size}">
+    this.element.insertAdjacentHTML('beforeend',`<svg xmlns="http://www.w3.org/2000/svg" id="${this.uuid}svg" viewBox="0 0 ${this.svg.size} ${this.svg.size}">
           <circle cx="0" cy="0" r="${this.svg.radius}" class="p1 control" />
           <circle cx="0" cy="0" r="${this.svg.radius}" class="p2 control" />
   
@@ -218,7 +216,7 @@ _createUI = () => {
   
           <path d="M0,0 Q0,0 0,0" class="curve"/>
     </svg>`)
-    this.svg.element = this.element.querySelector(`[id="${this.id}svg"]`)
+    this.svg.element = this.element.querySelector(`[id="${this.uuid}svg"]`)
     const vb = this.svg.element.getAttribute('viewBox').split(' ').map(v => +v)
     this.box = {
         xMin: vb[0], xMax: vb[0] + vb[2] - 1,

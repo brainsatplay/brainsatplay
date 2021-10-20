@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import {Plugin} from '../../graph/Plugin'
 
-export class Group extends Plugin {
+
+export class Group {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 

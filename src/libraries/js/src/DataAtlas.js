@@ -179,7 +179,7 @@ export class DataAtlas {
 	deinit = () => {
 		this.settings.runAnalysisLoop = false;
 		window.workers.terminate(this.workerId);
-		this.graph.remove(this.props.id)
+		this.graph.deinit()
 	}
 
 	_getRandomId = () => {

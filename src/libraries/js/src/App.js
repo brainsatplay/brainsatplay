@@ -32,6 +32,9 @@ export class App {
 
         this.editor = new Editor(this, parentNode)
 
+        // Track Data Streams
+        this.streams = []
+
         // Track Analysis
         this.analysis = {
             default: [],
@@ -81,15 +84,24 @@ export class App {
         // console.log('initing editor', this)
         // this.editor.init()
 
-        console.log('TOP LEVEL', this)
         // Register App in Session
         this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
         this.session.createIntro(this, (sessionInfo) => {
+
             // this.tutorialManager.init();
+
             // Multiplayer Configuration
-            this.session.startApp(this, sessionInfo?.id ?? this.sessionId)
+            this.session.startApp(this, sessionInfo?.id ?? this.props.id)
+
+            // Activate All Edges
+            this.graphs.forEach(async g => {
+                for (const arr of Array.from(g.edges)) {
+                    await arr[1].update() // second time (first inside edge, this time for brainstorm)
+                }
+            })
+
         })    
 
     }

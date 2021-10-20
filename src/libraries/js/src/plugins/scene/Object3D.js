@@ -6,7 +6,7 @@ export class Object3D {
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        // super(info, graph)
+        // 
         
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -110,7 +110,7 @@ export class Object3D {
 
     init = () => {
 
-        this.update('add',{forceRun: true, forceUpdate: true})
+        this.update('add',{ forceUpdate: true})
         this.props.prevType = this.ports.type.data
 
         // Subscribe to Changes in Parameters
@@ -118,7 +118,7 @@ export class Object3D {
             this._updateProps()
             // Replace Mesh if Necessary
             if (this.props.prevType != this.ports.type.data) {
-                this.update('add',{forceRun: true, forceUpdate: true})
+                this.update('add',{ forceUpdate: true})
                 this.props.prevType = this.ports.type.data
             }
         })

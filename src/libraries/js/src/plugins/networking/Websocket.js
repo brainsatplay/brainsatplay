@@ -1,10 +1,10 @@
-import {Plugin} from '../../graph/Plugin'
-export class Websocket extends Plugin {
+
+export class Websocket {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

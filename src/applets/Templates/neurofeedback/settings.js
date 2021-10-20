@@ -27,12 +27,12 @@ export const settings = {
         {name: 'brainstorm', class: brainsatplay.plugins.networking.Brainstorm, params: {
 
           onUserConnected: (u) => {
-            let parser = settings.graph.nodes.find(n => n.id === 'parser')
+            let parser = settings.graph.nodes.find(n => n.name === 'parser')
             parser.instance._userAdded(u)
           },
       
           onUserDisconnected: (u) => {
-            let parser = settings.graph.nodes.find(n => n.id === 'parser')
+            let parser = settings.graph.nodes.find(n => n.name === 'parser')
             parser.instance._userRemoved(u)
           },
 

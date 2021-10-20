@@ -32,9 +32,9 @@ export class Plugin {
         this.props = {  }
 
         // Metadata
-        this.id = this._random()
+        this.uuid = this._random()
         this.position = {x:0, y:0, z:0}; // unused
-        this.name = info.name ?? `graph_${this.id}`
+        this.name = info.name ?? `graph_${this.uuid}`
         this.className = info.className ?? info.class?.name
         this.analysis = new Set()
 
@@ -75,6 +75,7 @@ export class Plugin {
         delete info.graphs
 
         if (Object.keys(info).length > 0) Object.assign(this, info)
+        if (Object.keys(info).length > 0) Object.assign(this.info, info)
 
     }
 
@@ -92,9 +93,13 @@ export class Plugin {
     init = async (o) => {
 
         this._mergeInfo(o)
-        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // informal collection of nodes and edges
-        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // raw nodes
-        await Promise.all(this.info.edges.map(async e => {await this.addEdge(e)})) // raw edges
+        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
+        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
+        
+        for (const e of this.info.edges) {
+            await this.addEdge(e) // provided edges (read in series)
+        }
+
         await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
 
     }
@@ -122,8 +127,8 @@ export class Plugin {
 
             // Try To Extend Class
             o.className = o.class.name
-            o.class = this.extend(o.class, Plugin)
-            o.instance = new o.class(o, this)
+            let extendedClass = this.extend(o.class, Plugin)
+            o.instance = new extendedClass(o, this)
 
             // Create Ports with backwards compatibility (< 0.0.36)
             let keys = Object.keys(o.instance.ports) 
@@ -141,7 +146,7 @@ export class Plugin {
             o.instance = new Plugin(o, this) // recursion begins
         }
 
-        this.nodes.set(o.instance.id, o.instance)
+        this.nodes.set(o.instance.uuid, o.instance)
 
         // this.analysis.add(...Array.from(nodeInfo.analysis))
 
@@ -172,7 +177,7 @@ export class Plugin {
 
     removeNode = (o) => {
         o.deinit()
-        this.nodes.delete(o.id)
+        this.nodes.delete(o.uuid)
     }
     
 
@@ -223,14 +228,13 @@ export class Plugin {
             // Initialize Edge
            let res = await edge.init()
 
-            if (res) this.edges.set(edge.id, edge)
+            if (res) this.edges.set(edge.uuid, edge)
             else edge.deinit()
-
     }
 
     removeEdge = (e) => {
         e.deinit()
-        this.edges.delete(e.id)
+        this.edges.delete(e.uuid)
     }
 
     convertToStandardEdge = (source, target) => { //???
@@ -311,7 +315,7 @@ export class Plugin {
         return thisPort.set(user)
     }
 
-    updateAll(){
+    updateAll = () => {
         for (let port in this.ports) this.update(port)
     }
 
@@ -355,7 +359,7 @@ export class Plugin {
 
                 if (o.name === val) return true
                 else if (o.class?.name === val || o.className === val) return true
-                else if (o.id === val) return true
+                else if (o.uuid === val) return true
                 
                 // else if (port == null) return true
                 // else if (e.target === str) return true
@@ -386,7 +390,7 @@ export class Plugin {
 
     // ----------------- UI Management -----------------
 
-    createUI() {
+    createUI = () => {
         this.ui.element = document.createElement(`div`)
         this.ui.element.classList.add("brainsatplay-default-node-div")
 
@@ -432,13 +436,14 @@ export class Plugin {
     }
 
     resizeAllEdges = () => {
+
         this.edges.forEach(e => {
             e.resizeElement()
         })
     }
 
 
-    resizeElement(){
+    resizeElement = () => {
         let portContainers = this.ui.element.getElementsByClassName(`node-port-container`)
 
         let minWidth = 100

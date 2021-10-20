@@ -46,7 +46,7 @@ class UI {
             
                     // Update Paddle Position
                     this._movePaddle(paddle,mean*this.ports.paddlespeed.data)
-                    this.update('error', {forceRun: true, forceUpdate: true})
+                    this.update('error', {forceUpdate: true})
             
                     // Replace User Data with Mean
                     user.data = mean

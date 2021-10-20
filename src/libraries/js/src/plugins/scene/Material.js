@@ -109,7 +109,7 @@ export class Material  {
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.ports, () => {
                 this.props.lastRendered = Date.now()
-                this.update('default',{forceRun: true, forceUpdate: true})
+                this.update('default',{forceUpdate: true})
         })
 
         this.update('type',this.ports.type) // FIX: Shouldn't be necessary
@@ -159,7 +159,7 @@ export class Material  {
     _passShaderMaterial = () => {
         if (this.ports.vertexShader.data && this.ports.fragmentShader.data) {
             this.ports.type.data = 'ShaderMaterial'
-            this.update('default',{forceRun: true, forceUpdate: true})
+            this.update('default',{forceUpdate: true})
         }
         else this.ports.type.data = this.props.lastMaterialType || 'MeshBasicMaterial'
     }

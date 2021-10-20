@@ -1,11 +1,11 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Scheduler extends Plugin{
+
+export class Scheduler {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 
@@ -155,8 +155,8 @@ export class Scheduler extends Plugin{
                 // Stop on Last Trial
                 if (this.props.currentTrial >= this.ports.trialCount.data){ // Stop Loop
                     this.props.state = ''
-                    this.update('state',{forceRun: true, forceUpdate: true})
-                    this.update('done',{forceRun: true, forceUpdate: true})
+                    this.update('state',{forceUpdate: true})
+                    this.update('done',{forceUpdate: true})
                 }
             } 
 
@@ -164,13 +164,13 @@ export class Scheduler extends Plugin{
             else if (trialTimeElapsed > (this.ports.duration.data)*1000 && this.props.currentTrial < this.ports.trialCount.data - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
                 this.props.iti = true
-                this.update('state',{forceRun: true, forceUpdate: true})
+                this.update('state',{forceUpdate: true})
             }
         } else {
             this._startNewTrial()
         }
 
-        this.update('default', {forceRun: true, forceUpdate: true})
+        this.update('default', {forceUpdate: true})
         if (this.props.active && loop && this.props.currentTrial != this.ports.trialCount.data) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -179,6 +179,6 @@ export class Scheduler extends Plugin{
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
         this.props.state = this.ports.progression.data[this.props.currentTrial]
-        this.update('state',{forceRun: true, forceUpdate: true})
+        this.update('state',{forceUpdate: true})
     }
 }

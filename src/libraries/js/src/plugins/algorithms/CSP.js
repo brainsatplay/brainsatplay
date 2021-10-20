@@ -1,14 +1,14 @@
 import bci from 'bcijs/browser.js'
 import {Math2} from '../../utils/mathUtils/Math2';
-import {Plugin} from '../../graph/Plugin'
 
-export class CSP extends Plugin {
+
+export class CSP {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

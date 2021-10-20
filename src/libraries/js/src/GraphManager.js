@@ -470,7 +470,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports) this.runSafe(node,port, {
-            forceRun: true, 
+            , 
             // forceUpdate: true
         })
     }

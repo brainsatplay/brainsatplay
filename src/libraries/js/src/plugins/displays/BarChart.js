@@ -1,13 +1,13 @@
 import {eegBarChart} from '../../utils/graphics/eegvisuals'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class BarChart extends Plugin {
+
+export class BarChart {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

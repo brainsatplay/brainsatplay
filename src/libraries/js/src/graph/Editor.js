@@ -956,20 +956,18 @@ export class Editor{
             // Plugin GUI
             let selectedParams = this.element.node.querySelector(`[id="${this.props.id}params"]`)
             selectedParams.innerHTML = ''
-            let plugin = node
             let toParse = node.ports
-
 
             let inputDict = {}
             for (let key in toParse){
-                let {container, input} = this.createInput(plugin.ports, key, plugin)
+                let {container, input} = this.createInput(node.ports, key, node)
                 if (container) {
                     inputDict[key] = input
                     selectedParams.insertAdjacentElement('beforeend', container)
                 }
             }
 
-            this.subscribeToChanges(inputDict,toParse, 'ports', plugin)
+            this.subscribeToChanges(inputDict,toParse, 'ports', node)
 
 
             // Edit and Delete Buttons
@@ -978,7 +976,7 @@ export class Editor{
                 this.removeNode(node)
             }
             let edit = this.element.node.querySelector(`[id="${this.props.id}edit"]`)
-            let editable = this.app.session.projects.checkIfSaveable(node.class)
+            let editable = this.app.session.projects.checkIfSaveable(node)
 
             if (editable){
                 edit.style.display = ''

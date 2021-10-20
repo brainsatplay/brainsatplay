@@ -1,11 +1,11 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Sine extends Plugin {
+
+export class Sine {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 
@@ -39,7 +39,7 @@ export class Sine extends Plugin {
 
         let animate = () => {
             if (this.props.looping){
-                this.update('default',{forceRun: true})
+                this.update('default',{})
                 setTimeout(animate,1000/Number.parseFloat(this.ports.rate.data))
             }
         }

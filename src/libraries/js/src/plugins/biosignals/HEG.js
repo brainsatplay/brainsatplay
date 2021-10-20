@@ -1,13 +1,12 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class HEG extends Plugin {
+
+export class HEG {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
         
-        
+        this.session = graph.app.session
         
 
         this.props = {

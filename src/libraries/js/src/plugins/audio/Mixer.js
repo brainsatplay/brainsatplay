@@ -1,13 +1,13 @@
 import {Audio} from './Audio'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class Mixer extends Plugin {
+
+export class Mixer {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

@@ -456,11 +456,13 @@ app.init()`)
 
     // Only save if a class instance can be created from the constructor string
     checkIfSaveable(node){
+
         let editable = false
         try {
-            let constructor = node.prototype.constructor.toString()
+            console.log(node)
+            let constructor = node.info.class.prototype.constructor.toString() // save original class
             let cls = eval(`(${constructor})`)
-            let instance = new cls() // This triggers the catch
+            let instance = new cls(node.info, node.parent) // This triggers the catch
             editable = true
         }
         catch (e) {console.log('Cannot Save Node', e)}

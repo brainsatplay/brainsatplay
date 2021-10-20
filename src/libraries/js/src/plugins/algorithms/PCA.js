@@ -1,13 +1,13 @@
 import {Math2} from '../../utils/mathUtils/Math2'
-import {Plugin} from '../../graph/Plugin'
 
-export class PCA extends Plugin {
+
+export class PCA {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

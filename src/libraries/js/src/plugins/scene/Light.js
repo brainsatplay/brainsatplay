@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-import {Plugin} from '../../graph/Plugin'
 
-export class Light extends Plugin {
+
+export class Light {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 

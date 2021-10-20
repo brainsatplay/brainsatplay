@@ -117,11 +117,11 @@ export class Geometry {
 
     init = () => {
         // Subscribe to Changes in Parameters
-        this.update('default',{forceRun: true, forceUpdate: true})
+        this.update('default',{forceUpdate: true})
 
         this.props.state.addToState('params', this.ports, () => {
             this.props.lastRendered = Date.now()
-            this.update('default',{forceRun: true, forceUpdate: true})
+            this.update('default',{forceUpdate: true})
         })
     }
 

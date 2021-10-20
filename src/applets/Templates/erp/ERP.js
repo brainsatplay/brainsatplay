@@ -1,10 +1,7 @@
-import {Plugin} from '../../../libraries/js/src/graph/Plugin'
 
-export class ERP extends Plugin{
+export class ERP {
 
     constructor(info, graph){
-        super(label,session)
-
 
         this.props = {
             erps: {

@@ -1,11 +1,11 @@
-import {Plugin} from '../../graph/Plugin'
-export class WebRTC extends Plugin {
+
+export class WebRTC {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

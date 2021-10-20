@@ -6,12 +6,12 @@ import {Plugin} from '../graph/Plugin'
 
 */
 
-export class Blank extends Plugin {
+export class Blank {
 
     static id = String(Math.floor(Math.random()*1000000)) // ensures that duplicates of the same class are linked
     
     constructor(info, graph) {
-        super(info, graph)
+        
 
         // LABEL (required)
          // name of the plugin

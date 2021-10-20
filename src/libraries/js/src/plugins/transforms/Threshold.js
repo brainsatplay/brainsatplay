@@ -1,10 +1,10 @@
-import {Plugin} from '../../graph/Plugin'
-export class Threshold extends Plugin {
+
+export class Threshold {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

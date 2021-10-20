@@ -1378,6 +1378,7 @@ else {
 
 
 	startApp(app,sessionId){
+		app.props.sessionId = sessionId
 		// Update Routing UI
 		this.updateApps(app)
 		return app
@@ -2012,7 +2013,8 @@ else {
 		let createSession = appletContainer.querySelector(`[id="${applet.props.id}createSession"]`)
 
 		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.graph.streams)]);
+			console.log(applet)
+			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
 
@@ -2675,7 +2677,8 @@ class streamSession {
 						else args = param.slice(1);
 						let result = (args.length !== 0) ? option.callback(...args) : option.callback()
 						if (result !== undefined) {
-							if (param[2] !== 'ignore'){
+							if (param[2] !== 'ignore'
+							){
 								userData[param.join('_')] = result;
 							}
 						}

@@ -1,12 +1,12 @@
 import {Plugin} from '../Plugin'
 
-export class SSVEP extends Plugin {
+export class SSVEP {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

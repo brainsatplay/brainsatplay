@@ -1,11 +1,11 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Line extends Plugin {
+
+export class Line {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 

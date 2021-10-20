@@ -1,11 +1,11 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Buzz extends Plugin {
+
+export class Buzz {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 
@@ -114,13 +114,13 @@ export class Buzz extends Plugin {
             motor2: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,user.data,0,0],[0,0,0,0]])}},
             motor3: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,0,user.data,0],[0,0,0,0]])}},
             motor4: {data: 1, min:0, max: 1, step: .01, onUpdate: (user) => {this.props.device.vibrateMotors([[0,0,0,user.data],[0,0,0,0]])}},
-            led1color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led1color.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            led2color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led2color.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            led3color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led3color.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            led1intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led1intensity.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            led2intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led2intensity.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            led3intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led3intensity.data = user.data; this.update( 'leds', {data: true, forceRun: true})}},
-            position: {data: 0, min: 0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.position.data = user.data; this.update( 'mapOnBand', {data: true, forceRun: true})}},
+            led1color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led1color.data = user.data; this.update( 'leds', {data: true, })}},
+            led2color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led2color.data = user.data; this.update( 'leds', {data: true, })}},
+            led3color: {data: `#00ff00`, input: {type: 'color'}, output: {type: 'color'}, onUpdate: (user) => {this.ports.led3color.data = user.data; this.update( 'leds', {data: true, })}},
+            led1intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led1intensity.data = user.data; this.update( 'leds', {data: true, })}},
+            led2intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led2intensity.data = user.data; this.update( 'leds', {data: true, })}},
+            led3intensity: {data: 0, min:0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.led3intensity.data = user.data; this.update( 'leds', {data: true, })}},
+            position: {data: 0, min: 0, max: 1, step: 0.01, onUpdate: (user) => {this.ports.position.data = user.data; this.update( 'mapOnBand', {data: true, })}},
         }
     }
 
@@ -131,7 +131,7 @@ export class Buzz extends Plugin {
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
-            this.update('status', {forceRun: true})
+            this.update('status', {})
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }

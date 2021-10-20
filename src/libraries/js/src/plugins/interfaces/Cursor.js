@@ -1,13 +1,13 @@
 import {transformCSSForBCICursor} from '../../ui/cssForBCI'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class Cursor extends Plugin {
+
+export class Cursor {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 

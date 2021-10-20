@@ -1,10 +1,10 @@
-import {Plugin} from '../../graph/Plugin'
-export class Peak extends Plugin {
+
+export class Peak {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
 
         
         

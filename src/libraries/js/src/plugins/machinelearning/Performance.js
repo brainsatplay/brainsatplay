@@ -1,12 +1,12 @@
-import {Plugin} from '../../graph/Plugin'
 
-export class Performance extends Plugin {
+
+export class Performance {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         
@@ -39,7 +39,7 @@ export class Performance extends Plugin {
                 onUpdate: (user) => {
                     this.props.history.push(user.data)
                     // console.log( this.props.history)
-                    this.update( 'default', {forceRun: true})
+                    this.update( 'default', {})
                 }
             },
             method: {

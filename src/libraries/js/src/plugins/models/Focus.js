@@ -1,10 +1,10 @@
-import {Plugin} from '../../graph/Plugin'
-export class Focus extends Plugin {
+
+export class Focus {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph) {
-        super(info, graph)
+        
         
         
         

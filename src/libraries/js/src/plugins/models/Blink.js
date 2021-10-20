@@ -125,7 +125,6 @@ export class Blink {
 
         this.props.canvas.update('draw', 
             {  
-                forceRun: true,
                 forceUpdate: true,
                 data: {active: true, function: (ctx) => {
                     if (this.props.looping){

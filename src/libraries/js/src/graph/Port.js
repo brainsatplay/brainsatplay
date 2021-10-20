@@ -9,7 +9,7 @@ export class Port {
         Object.assign(this, settings) // backwards compatibility (< 0.0.36)
 
         this.name = name
-        this.id = String(Math.floor(Math.random()*1000000))
+        this.uuid = String(Math.floor(Math.random()*1000000))
 
         this.node = node;
 
@@ -48,7 +48,7 @@ export class Port {
             el.classList.add(`node-port`)
             el.classList.add(`port-${this.name}`)
             el.classList.add(`type-${nodeType}`)
-            el.setAttribute('data-node', this.node.id)
+            el.setAttribute('data-node', this.node.uuid)
             el.setAttribute('data-port', this.name)
             this.ui[s].insertAdjacentElement('beforeend', el)
         })
@@ -78,14 +78,19 @@ export class Port {
     }
 
     // Only Set when Different
-    set = (port=this, forceUpdate = false) => {
+    set = async (port=this, forceUpdate = false) => {
 
-        port = this._copy(port) // avoids mutating original port object
+        let portCopy = this._copy(port) // avoids mutating original port object
 
-        if (!(port.meta)) port.meta = {}
-        port.meta.source = port // allows tracing where data has arrived from
+        // Add Metadata
+        if (!(portCopy.meta)) portCopy.meta = {}
+        portCopy.meta.source = port // allows tracing where data has arrived from
 
-        return this._onchange(port);
+        // Add User Data
+        if (!('id' in portCopy)) portCopy.id = this.node.session?.info?.auth?.id
+        if (!('username' in portCopy)) portCopy.username = this.node.session?.info?.auth?.username
+
+        return await this._onchange(portCopy);
     }
 
     get = () => {
@@ -111,45 +116,21 @@ export class Port {
         return inputCopy
     }
 
-    _onchange = (port) => {
+    _onchange = async (port) => {
         let tick = performance.now()
 
         port.data = port.value ?? port.data // backwards compatibility (< 0.0.36)
         port.value = port.data
 
-        let res = (this.onchange instanceof Function) ? this.onchange(port) : port // set in constructor
+        let res = (this.onchange instanceof Function) ? await this.onchange(port) : port // set in constructor
+
 
         let tock = performance.now()
         let latency = tock - tick
         this.latency.shift()
         this.latency.push(latency)
 
-        if (res){
-            if (!(res instanceof Object)) console.error(res, this.node, this, port)
-            res.value = res.data // backwards compatibility (< 0.0.36) TODO: Test edge-cases
-
-            // Check if Equal to Previous Value
-            let case1,case2
-            if (typeof res.value === 'object' || typeof res.value === 'function'){
-                case1 = this.value
-                case2 = res.value
-            } else {
-                case1 = JSON.stringifyFast(this.value)
-                case2 = JSON.stringifyFast(res.value)
-            } 
-            
-            let thisEqual = case1 === case2
-
-            // Update Edges
-            if (!thisEqual){
-                this.value = this.data = res.value // backwards compatibility (< 0.0.36)
-
-                // Run Across Edges
-                this.edges.output.forEach(o => {o.update()})
-            } else {
-                // console.log('NO CHANGE')
-            }
-        }
+        if (res) await this.update(res)
 
         return res
     }
@@ -169,10 +150,39 @@ export class Port {
         }, 500)
     }
 
+    update = async (port) => {
+        port.value = port.data // backwards compatibility (< 0.0.36) TODO: Test edge-cases
+
+        // Check if Equal to Previous Value
+        let case1,case2
+        if (typeof port.value === 'object' || typeof port.value === 'function'){
+            case1 = this.value
+            case2 = port.value
+        } else {
+            case1 = JSON.stringifyFast(this.value)
+            case2 = JSON.stringifyFast(port.value)
+        } 
+        
+        let thisEqual = case1 === case2
+
+        // Update Edges
+        if (!thisEqual || port.forceUpdate){
+
+            this.value = port.value
+            this.data = port.data
+            this.meta = port.meta
+
+            // Run Across Edges
+            this.edges.output.forEach(o => {o.update()})
+        } else {
+            // console.log('NO CHANGE')
+        }
+    }
+
     setLatency = (val) => {
 
         // Animate Latency
-        let pct = Math.min(1,val/.1)
+        let pct = Math.min(1,val/1)
 
         let map = [
             { pct: 0.0, color: { r: 0x39, g: 0xff, b: 0x14 } },

@@ -1,13 +1,13 @@
 import {Noise as NoiseJS} from 'noisejs'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class Noise extends Plugin {
+
+export class Noise {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         
@@ -78,7 +78,7 @@ export class Noise extends Plugin {
 
         let animate = () => {
             if (this.props.looping){
-                this.update('default',{forceRun: true})
+                this.update('default',{})
                 setTimeout(animate, Math.min(100, this.ports.interval.data))
             }
         }

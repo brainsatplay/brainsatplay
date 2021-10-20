@@ -1,13 +1,13 @@
 import {Math2} from '../../utils/mathUtils/Math2'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class DataQuality extends Plugin {
+
+export class DataQuality {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
 

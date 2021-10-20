@@ -1,13 +1,13 @@
 import {SoundJS} from '../../utils/general/Sound'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class Audio extends Plugin {
+
+export class Audio {
     
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

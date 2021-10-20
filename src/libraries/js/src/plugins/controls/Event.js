@@ -1,13 +1,13 @@
 // Generic Event Trigger. Uses Key Presses by Default.
 
-import {Plugin} from '../../graph/Plugin'
 
-export class Event extends Plugin {
+
+export class Event {
 
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         this.ports = {}
 

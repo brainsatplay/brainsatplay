@@ -1,5 +1,5 @@
 // import '../../../libraries/js/src/ui/plotly.min.js'
-import {Plugin} from '../../graph/Plugin'
+
 
 
 // import 'https://cdn.plot.ly/plotly-2.0.0.min.js'
@@ -27,13 +27,13 @@ Date.prototype.customFormat = function(formatString){
     return formatString.replace("#hhhh#",hhhh).replace("#hhh#",hhh).replace("#hh#",hh).replace("#h#",h).replace("#mm#",mm).replace("#m#",m).replace("#SS#",SS).replace("#S#",S).replace("#ss#",ss).replace("#s#",s).replace("#ampm#",ampm).replace("#AMPM#",AMPM);
   };
 
-class Plot extends Plugin {
+class Plot {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
 
         // Generic Plugin Attributes
         

@@ -1,13 +1,13 @@
 import {BiquadChannelFilterer} from '../../utils/signal_processing/BiquadFilters'
-import {Plugin} from '../../graph/Plugin'
 
-export class Filter extends Plugin {
+
+export class Filter {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         

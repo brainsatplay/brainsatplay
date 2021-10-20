@@ -1,13 +1,13 @@
 import {DOMFragment} from '../../ui/DOMFragment'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class UI extends Plugin {
+
+export class UI {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph) {
-        super(info, graph)
+        
         
         
         this.props = {

@@ -1,15 +1,15 @@
 import {SmoothieChartMaker} from '../../utils/graphics/eegvisuals'
 import {uPlotMaker} from '../../utils/graphics/eegvisuals'
 import uPlot from 'uplot'
-import {Plugin} from '../../graph/Plugin'
 
 
-export class TimeSeries extends Plugin {
+
+export class TimeSeries {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         
@@ -85,7 +85,7 @@ export class TimeSeries extends Plugin {
     }
 
     init = () => {
-        this.update('style', {forceRun: true})
+        this.update('style', {})
     }
 
     deinit = () => {

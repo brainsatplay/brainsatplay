@@ -1,13 +1,13 @@
 import { WorkerManager } from "../../utils/workers/Workers"
-import {Plugin} from '../../graph/Plugin'
 
 
-export class Thread extends Plugin {
+
+export class Thread {
 
     static id = String(Math.floor(Math.random()*1000000))
     
     constructor(info, graph, params={}) {
-        super(info, graph)
+        
         
         
         
