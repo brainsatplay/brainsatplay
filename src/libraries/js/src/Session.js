@@ -1372,7 +1372,7 @@ else {
 
 
 	// App Management
-	initApp(settings, parentNode=document.body, session=this, config=[]){
+	createApp(settings, parentNode=document.body, session=this, config=[]){
 		return new App(settings, parentNode, session, config)
 	}
 

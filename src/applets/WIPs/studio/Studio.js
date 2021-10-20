@@ -34,22 +34,22 @@ class Studio{
         }
     }
 
-    init = () => {
+    init = async () => {
 
-        // let settingsCopy = Object.assign({}, settings)
-        // if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
-        // settingsCopy.editor = {
-        //     parentId: this.props.container,
-        //     show: true,
-        //     toggle: this.app.editor.toggle,
-        //     style: `
-        //     position: block;
-        //     z-index: 9;
-        //     `,
-        // }
+        let settingsCopy = Object.assign({}, settings)
+        if (settingsCopy.name === 'Blank Project') settingsCopy.name = 'My Project'
+        settingsCopy.editor = {
+            parentId: this.props.container,
+            show: true,
+            toggle: this.app.editor.toggle,
+            style: `
+            position: block;
+            z-index: 9;
+            `,
+        }
 
-        // this.props.app = this.session.initApp(settingsCopy, this.props.container,this.session,['edit'])
-        // this.props.app.init()
+        this.props.app = this.session.createApp(settingsCopy, this.props.container,this.session,['edit'])
+        await this.props.app.init()
 
     }
 

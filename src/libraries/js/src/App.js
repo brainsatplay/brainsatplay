@@ -9,28 +9,29 @@ import { Editor } from './graph/Editor'
 export class App {
     constructor(
         info={},
-        parentNode=document.body,
+        parent=document.body,
         session=new Session(),
         settings=[]
         ) {
         
         // ------------------- SETUP -------------------
-        this._setCoreAttributes(info, parentNode, session, settings)
+        this.ui = {
+            container: document.createElement('div') // wraps the app ui
+        }
+
+        this._setCoreAttributes(info, parent, session, settings)
 
         this.graphs = new Map() // graph execution
         this.devices = []
         this.state = new StateManager({}); // app-specific state maanger
         
-        this.ui = {
-            container: document.createElement('div') // wraps the app ui
-        }
 
         this.props = { // Changes to this can be used to auto-update the HTML and track important UI values 
             id: null, // Keep random ID
             sessionId: null, // Track Brainstorm sessions
         };
 
-        this.editor = new Editor(this, parentNode)
+        this.editor = new Editor(this, parent)
 
         // Track Data Streams
         this.streams = []
@@ -71,7 +72,7 @@ export class App {
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
             this.ui.container,       //Define the html template string or function with properties
-            this.parentNode,    //Define where to append to (use the parentNode)
+            this.ui.parent,    //Define where to append to (use the parentNode)
             this.props,         //Reference to the HTML render properties (optional)
             this._setupUI,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
             undefined,          //Can have an onchange function fire when properties change
@@ -107,7 +108,7 @@ export class App {
     }
 
     // Properly set essential attributes for the App class (used on construction and when reloaded)
-    _setCoreAttributes = (info={}, parentNode=document.body, session=new Session(), settings=[]) => {
+    _setCoreAttributes = (info={}, parent=document.body, session=new Session(), settings=[]) => {
 
         // ------------------- DEFAULTS -------------------
         if (!('editor' in info)) info.editor = {}
@@ -115,7 +116,7 @@ export class App {
 
         // ------------------- SETUP -------------------
         this.session = session; //Reference to the Session to access data and subscribe
-        this.parentNode = parentNode; // where to place the container
+        this.ui.parent = parent; // where to place the container
         info = this._copySettingsFile(info) // ensure that settings files do not overlap
         this.info = this.parseSettings(info) // parse settings (accounting for stringified functions)
         this.settings = settings // 
@@ -161,8 +162,8 @@ export class App {
 
     // ------------------- Manipulation Utilities -------------------
 
-    replace = (info=this.info,parentNode=this.parentNode,session=this.session, settings=this.settings) => {
-        this._setCoreAttributes(info, parentNode, session, settings)
+    replace = (info=this.info,parent=this.parent,session=this.session, settings=this.settings) => {
+        this._setCoreAttributes(info, parent, session, settings)
         this.deinit(true)
         this.init()
     }

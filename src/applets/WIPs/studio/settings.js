@@ -18,6 +18,7 @@ export const settings = {
     },
 
     editor: {
+      show: false,
       create: false
     },
 

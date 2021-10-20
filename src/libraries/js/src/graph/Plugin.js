@@ -41,7 +41,8 @@ export class Plugin {
         // UI
         this.ui = {
             parent: null, 
-            latencies: {}
+            latencies: {},
+            graph: null // replace this with the Editor view
         }
 
 
@@ -83,7 +84,11 @@ export class Plugin {
     _resizeUI = () => {
             let funcs = []
             // Gather Resize Functions
-            this.nodes.forEach(n => {if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)})
+            this.nodes.forEach(n => {
+                // if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
+                // else 
+                if (n.responsive instanceof Function) funcs.push( n.responsive)
+            })
             // Repeat to Scale Everything Appropriately
             funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
             funcs.forEach(f => f()) // Catch outliers

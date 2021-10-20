@@ -180,7 +180,7 @@ export class Train {
         continueToggle.innerHTML = 'Start Training'
         continueToggle.onclick = () => {
             // FIX: Integrate selectedModel
-            this.props.trainingGame = this.session.initApp(selectedSettings, this.props.gameOverlay,this.session)
+            this.props.trainingGame = this.session.createApp(selectedSettings, this.props.gameOverlay,this.session)
             this.props.trainingGame.init()
             this.props.gameOverlay.classList.toggle('shown')
 
