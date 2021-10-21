@@ -1,25 +1,28 @@
+// Code Editor
+import {LiveEditor} from '../ui/LiveEditor'
+
 export class Port {
-    constructor (node, name, settings,
+    constructor (node, name, info,
         //  onchange = (newValue) => {}
          ) {
         
         // Default Port Metadata
         this.meta = {}
-
-        Object.assign(this, settings) // backwards compatibility (< 0.0.36)
+        this.info = info
+        Object.assign(this, info) // backwards compatibility (< 0.0.36)
 
         this.name = name
         this.uuid = String(Math.floor(Math.random()*1000000))
 
         this.node = node;
 
-        this.onchange = settings.onchange ?? settings.onUpdate // backwards compatibility (< 0.0.36)
+        this.onchange = info.onchange ?? info.onUpdate // backwards compatibility (< 0.0.36)
         this.edges = {
             input: new Map(),
             output: new Map()
         };        
         
-        this.value = settings.data 
+        this.value = info.data // backwards compatibility (< 0.0.36)
 
         // Autoset Output Type
         if (this.output?.type === 'auto') this.output = this._getTypeDict(this.value)
@@ -33,8 +36,13 @@ export class Port {
             label: document.createElement('div'),
             input: {},
             output: {},
-            latency: document.createElement('div')
+            latency: document.createElement('div'),
+            code: document.createElement('div'),
+            editor: null
         }
+
+        let defaultType = this.getType()
+        if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)) this.createEditor(this)
 
         let portTypes = Object.keys(this.edges)
         portTypes.forEach(s => {
@@ -261,4 +269,62 @@ export class Port {
         }
         return typeDict
     }
+
+    getType = () => {
+        let defaultType
+        if (this.output?.type === null) defaultType = this.input?.type // Input if output is null
+        else if (this.output?.type === undefined) defaultType = typeof this.data // Data type if output is undefined
+        else defaultType = this.output?.type // Otherwise specified output type
+
+        if (typeof defaultType !== 'string' && defaultType?.name) defaultType = defaultType.name
+
+        // Filter out elements
+        defaultType = (defaultType === "object" ? this.data instanceof HTMLElement : this.data && typeof this.data === "object" && this.data !== null && this.data.nodeType === 1 && typeof this.data.nodeName==="string") ? 'Element' : defaultType
+        return defaultType
+    }
+
+    // Create Port Editor
+    createEditor = () => {
+
+        this.ui.code.style = `
+            width: 75vw;
+            height: 75vh;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 1000;
+            transform: translate(-50%, -50%)
+        `
+        
+        document.body.insertAdjacentElement('beforeend', this.ui.code)
+
+        let settings = {}
+        settings.onOpen = (res) => {
+            this.ui.code.style.pointerEvents = 'all'
+            this.ui.code.style.opacity = '1'
+        }
+
+        settings.onSave = (res) => {
+            res.forceUpdate = true
+            this.set(res)
+        }
+
+        settings.onClose = (res) => {
+            this.ui.code.style.pointerEvents = 'none'
+            this.ui.code.style.opacity = '0'
+        }
+
+        if (['HTML', 'CSS', 'GLSL'].includes(this.output?.type)){
+            settings.language = this.output.type.toLowerCase()
+        } else {
+            settings.language = 'javascript'
+        }
+
+        settings.target = this
+        settings.key = 'value'
+
+        this.ui.editor = new LiveEditor(settings, this.ui.code)
+        settings.onClose()
+    }
+
 }

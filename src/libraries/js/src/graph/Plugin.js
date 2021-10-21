@@ -4,6 +4,9 @@ import {Event} from "./Event"
 import {pluginManifest} from '../plugins/pluginManifest'
 import {dynamicImport} from '../utils/general/importUtils'
 
+// Code Editor
+import {LiveEditor} from '../ui/LiveEditor'
+
 // Node Interaction
 import * as dragUtils from '../ui/dragUtils'
 
@@ -44,8 +47,9 @@ export class Plugin {
         // UI
         this.ui = {
             element: document.createElement('div'),
-            latencies: {},
-            graph: document.createElement('div'), // replace this with the Editor view,
+            code: document.createElement('div'),
+            codeEditor: null,
+            graph: document.createElement('div'),
             context: {
                 scale: 1
             },
@@ -67,6 +71,7 @@ export class Plugin {
         this.ui.graph.addEventListener('mousemove', this._pan)
 
         this.createUI()
+        this.createCodeEditor()
 
         if (this.app.editor) {
             this.app.editor.addGraph(this) // place in editor as a tab
@@ -168,6 +173,7 @@ export class Plugin {
 
         this.ui.graph.removeEventListener('wheel', this._scale)
         this.ui.graph.removeEventListener('mousemove', this._pan)
+        window.removeEventListener('keydown', this._save)
 
         this.ui.element.remove()
         this.ui.graph.remove()
@@ -544,6 +550,101 @@ export class Plugin {
 
         if (this.ui.portManager.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
         if (this.ui.portManager.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
+    }
+
+    createCodeEditor = () => {
+
+            console.log(this)
+            let cls = this.info?.class
+            if (cls){
+                let name = `${cls.name}`
+                let filename = `${name}.js`
+    
+            let settings = {}
+
+            this.ui.code.id = this._random()
+            this.ui.code.className = 'brainsatplay-node-code'
+
+            settings.language = 'javascript'
+            settings.onInput = () => {
+                // if (tab) tab.classList.add('edited')
+            }
+
+            settings.onSave = (cls) => {
+                let instance = new cls({id:cls.name, class: cls}, graph)
+                // let instance = instanceInfo
+                // tab.classList.remove('edited')
+
+                    Object.getOwnPropertyNames( instance ).forEach(k => {
+                        if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
+                            this[k] = instance[k]
+                        }
+
+                        if (k === 'ports'){
+                            for (let port in instance.ports){
+                                if (this.ports[port] == null) this.ports[port] = instance.ports[port]
+                                else {
+                                    let keys = [
+                                        'default', 
+                                        'options', 
+                                        'meta', 
+                                        'input', 
+                                        'output', 
+                                        'onUpdate'
+                                    ]
+
+                                    let typeKeys = [
+                                        'input', 
+                                        'output',
+                                    ]
+                                    
+                                    keys.forEach(str => {
+                                        if (!typeKeys.includes(str)) this.ports[port][str] = instance.ports[port][str]
+                                        else {
+                                            this.ports[port][str]['type'] = instance.ports[port][str]['type']
+                                        }
+                                    })
+                                }
+                            }
+                        }
+                    })
+
+                    // Set New Class
+                    this.class = cls
+                cls.id =  this.ui.code.id // Assign a reliable id to the class
+                settings.target = cls // Update target replacing all matching nodes
+            }
+
+            settings.target = cls
+            settings.className = name
+            settings.shortcuts = {
+                save: true
+            }
+            settings.showClose = false
+
+            this.ui.codeEditor = new LiveEditor(settings, this.ui.code)
+
+            window.addEventListener('keydown', this._save)
+        } else delete this.ui.code // no code for graphs
+    }
+
+    // Save Whole Application
+    _saveGraph = (e) => {
+        // this.files[graph.name].tab.classList.remove('edited')
+        this.app.updateGraph()
+        this.app.session.projects.save(this.app)
+        this.app.editor.lastSavedProject = this.app.info.name
+    }
+
+    // Save Class Code
+    _save = (e) => {
+        if (this.ui.code.offsetParent != null){
+            if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                e.preventDefault();
+                this.ui.codeEditor.save()
+                this._saveGraph(e)
+            }
+        }
     }
 
 

@@ -372,21 +372,12 @@ export class Editor{
         // if (graph.info.nodes.length > 0){
 
             let container = graph.ui.graph
-            this.editor.insertAdjacentElement('beforeend', container)
-
             // Create Graph Tab and Save Functionaity
             this.files[graph.name] = {name: graph.name, container, nodes: [], graph}
-            this.files[graph.name].tab = this.addTab(this.files[graph.name], graph.id)
+            this.files[graph.name].tab = this.addTab(this.files[graph.name])
 
             let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
-            let onsave = () => {
-                this.files[graph.name].tab.classList.remove('edited')
-                this.app.updateGraph()
-                this.app.session.projects.save(this.app)
-                this.lastSavedProject = this.app.info.name
-            }
-            save.onclick = onsave
-            this.saveFileEvent(graph.name, onsave)
+            save.onclick = graph._saveGraph // actually saves app
 
             return this.files[graph.parent.name]?.container
         // } else return this.files[graph.parent.name]?.container // 
@@ -395,7 +386,6 @@ export class Editor{
     saveFileEvent = (filename, onsave) => {
         this.files[filename].saveEvent = (e) => {
 
-            console.log()
             if (this.files[filename].container.offsetParent != null){
                 if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
                     e.preventDefault();
@@ -421,17 +411,17 @@ export class Editor{
         parent.insertAdjacentElement('beforeend', closeIcon)
     }
 
-    addTab(o, id=String(Math.floor(Math.random()*1000000)), onOpen=()=>{}, lock=false){
+    addTab(o, onOpen=()=>{}, lock=false){
         if (o.tab == null){
             o.tab = document.createElement('button')
             o.tab.classList.add('tablinks')
-            o.tab.setAttribute('data-target', id)
             o.tab.innerHTML = o.name
 
             // Format Containers
             o.container.style.position = 'absolute'
             o.container.style.top = '0'
             o.container.style.left = '0'
+            this.editor.insertAdjacentElement('beforeend', o.container)
 
             let isGraph = !!o.graph
             if (isGraph){
@@ -871,50 +861,10 @@ export class Editor{
                 input.classList.add('brainsatplay-default-button')
                 input.style.width = 'auto'
                 input.innerHTML = `Edit ${defaultType}`
-                
-                let container = document.createElement('div')
-                container.style = `
-                    width: 75vw;
-                    height: 75vh;
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    z-index: 1000;
-                    transform: translate(-50%, -50%)
-                `
-                
-                document.body.insertAdjacentElement('beforeend', container)
-                let settings = {}
-                settings.onOpen = (res) => {
-                    container.style.pointerEvents = 'all'
-                    container.style.opacity = '1'
-                }
-    
-                settings.onSave = (res) => {
-                    res.forceUpdate = true
-                    if (plugin) plugin.port[key].set(res)
-                }
-    
-                settings.onClose = (res) => {
-                    container.style.pointerEvents = 'none'
-                    container.style.opacity = '0'
-                }
 
-                if (defaultType === 'Function'){
-                    settings.language = 'javascript'
-                } else {
-                    settings.language = defaultType.toLowerCase()
-                }
-
-                settings.target = toParse[key]
-                settings.key = 'data'
-
-                settings.onClose()
-
-                let editor
                 input.onclick = () => {
-                    if (editor == null) editor = new LiveEditor(settings, container)
-                    else settings.onOpen()
+                    console.log(toParse[key])
+                    toParse[key].ui.editor.onOpen()
                 }
             } else if (defaultType === 'file'){
                 
@@ -1085,100 +1035,25 @@ export class Editor{
         if (this.files[filename] == null){
             this.files[filename] = {}
 
-            let tab
-            let settings = {}
-            let container = this.createView(undefined, 'brainsatplay-node-code', '')
-            settings.language = 'javascript'
-            settings.onOpen = (res) => {
-                container.style.pointerEvents = 'all'
-                container.style.opacity = '1'
-            }
-
-            settings.onInput = () => {
-                if (tab) tab.classList.add('edited')
-            }
-
-            settings.onSave = (cls) => {
-                let instance = new cls({id:cls.name, class: cls}, graph)
-                // let instance = instanceInfo
-                tab.classList.remove('edited')
-
-                if (activeNode){
-                    Object.getOwnPropertyNames( instance ).forEach(k => {
-                        if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
-                            activeNode[k] = instance[k]
-                        }
-
-                        if (k === 'ports'){
-                            for (let port in instance.ports){
-                                if (activeNode.ports[port] == null) activeNode.ports[port] = instance.ports[port]
-                                else {
-                                    let keys = [
-                                        'default', 
-                                        'options', 
-                                        'meta', 
-                                        'input', 
-                                        'output', 
-                                        'onUpdate'
-                                    ]
-
-                                    let typeKeys = [
-                                        'input', 
-                                        'output',
-                                    ]
-                                    
-                                    keys.forEach(str => {
-                                        if (!typeKeys.includes(str)) activeNode.ports[port][str] = instance.ports[port][str]
-                                        else {
-                                            activeNode.ports[port][str]['type'] = instance.ports[port][str]['type']
-                                        }
-                                    })
-                                }
-                            }
-                        }
-                    })
-
-                    // Set New Class
-                    activeNode.class = cls
-                }
-                cls.id = container.id // Assign a reliable id to the class
-                settings.target = cls // Update target replacing all matching nodes
-            }
-
-            settings.onClose = (res) => {
-                container.style.pointerEvents = 'none'
-                container.style.opacity = '0'
-            }
-
-            settings.target = cls
-            settings.className = name
-            settings.shortcuts = {
-                save: true
-            }
-            settings.showClose = false
-
-            let editor = new LiveEditor(settings,container)
-            this.files[filename].name = filename
-            this.files[filename].container = container
-            this.files[filename].editor = editor
-            tab = this.addTab(this.files[filename], container.id, settings.onOpen, true)
-            this.files[filename].tab = tab
-
-            // Insert Into Editor
-            this.editor.insertAdjacentElement('beforeend', container)
-
-            let onsave = () => {
-                this.files[filename].editor.save()
-            }
-
-            this.saveFileEvent(filename, onsave)
+            // this.saveFileEvent(filename, onsave)
 
             if (activeNode == null){
                 onsave()
                 // this.clickTab(this.files[graph.name].tab)
                 let nodeInfo = await graph.addNode({class:cls})
                 activeNode = nodeInfo.instance
-            }
+            } 
+
+
+            this.files[filename].name = filename
+            this.files[filename].container = activeNode.ui.code
+            // this.files[filename].editor = activeNode.ui.code
+            this.files[filename].tab = this.addTab(this.files[filename], (res) => {
+                activeNode.ui.code.style.pointerEvents = 'all'
+                activeNode.ui.code.style.opacity = '1'
+            }, true)
+
+            // this.editor.insertAdjacentElement('beforeend', activeNode.ui.code)
 
             // Add Option to Selector
             this.addNodeOption({id:cls.id, label: cls.name, class:cls})
