@@ -239,7 +239,7 @@ export class App {
                     let value = n.params[k]
                     let regex = new RegExp('([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>')
                     let func = (typeof value === 'string') ? value.substring(0,8) == 'function' : false
-                    let arrow = regex.test(value)
+                    let arrow = (typeof value === 'string') ? regex.test(value) : false
                     n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
                 }
             })

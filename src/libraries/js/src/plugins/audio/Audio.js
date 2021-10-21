@@ -7,10 +7,6 @@ export class Audio {
     static id = String(Math.floor(Math.random()*1000000))
 
     constructor(info, graph, params={}) {
-        
-        
-        
-        
 
         this.props = {
             sourceGain: null,
@@ -28,16 +24,25 @@ export class Audio {
                 output: {type: 'boolean'},
                 // data: [],
                 onUpdate: async (user) => {
-                    return new Promise(resolve => {
+                    return new Promise(async (resolve, reject) => {
+
                         if (user.data){
-                            this.deinit()
+                            this._deinit()
                             let file = user.data
                             if (file instanceof FileList || Array.isArray(file)) file = file[0]
                             this.props.file = file
-                            this.decodeAudio(this.props.file, () => {
-                                console.log('decoded')
-                                resolve({data: true}) 
-                            })
+
+                            if (this.props.file){
+                                if (typeof this.props.file === 'string'){
+                                    await this._convertToBlob(this.props.file)
+                                    // reject()
+                                } else {
+                                    this.decodeAudio(this.props.file, () => {
+                                        console.log('decoded')
+                                        resolve({data: true}) 
+                                    })
+                                }
+                            }
                         }
                     })
                 }
@@ -76,26 +81,25 @@ export class Audio {
 
     init = () => {
 
-        (async () => {
+    }
 
-            if (typeof this.ports.file.data === 'string'){
+    _convertToBlob = async (str) => {
+        await fetch(str).then(r => r.blob()).then(blobFile => {
+            let name = str.split('/')
+            name = name[name.length -1]
+            this.update('file', {data: false})
+            let file = new File([blobFile], name)
+            this.update('file', {data: [file]})
+            // this.ports.file.onUpdate({data: [file]})
+        })
+    }
 
-                await fetch(this.ports.file.data).then(r => r.blob()).then(blobFile => {
-                    let name = this.ports.file.data.split('/')
-                    name = name[name.length -1]
-                    let file = new File([blobFile], name)
-                    this.ports.file.data = false
-                    this.update('file', {data: [file]})
-                    // this.ports.file.onUpdate({data: [file]})
-                })
-            }
-
-        })()
-
+    _deinit = () => {
+        this.endAudio();
     }
 
     deinit = () => {
-        this.endAudio();
+        this._deinit()
     }
 
     // preload = () => {
@@ -155,7 +159,7 @@ export class Audio {
         
         if (this.props.sourceNode){
             if (this.props.status === 1){
-                this.deinit()
+                this._deinit()
                 await this.decodeAudio(this.props.file)
             }
 

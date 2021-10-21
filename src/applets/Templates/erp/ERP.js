@@ -64,7 +64,7 @@ export class ERP {
     }
 
     init = async () => {
-        // this.props.lda = await this.addNode({id: 'lda', class: 'LDA', params: {}})
+        // this.props.lda = await this.addNode({inamed: 'lda', class: 'LDA', params: {}})
     }
 
    deinit = () => {

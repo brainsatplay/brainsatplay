@@ -141,7 +141,7 @@ export class LiveEditor {
             this.toggle = this.container.querySelector(`[id="${this.props.id}referenceToggle"]`)
             if (this.props.language === 'glsl'){
                 this.insertGLSLReference()
-                toggle.style.display = ''
+                this.toggle.style.display = ''
                 this.toggle.onclick = () => {
                     if(!this.quickrefhidden) {
                         this.reference.style.display = 'none';

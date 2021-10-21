@@ -96,6 +96,8 @@ export class Manager {
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => {
+
+                    console.log('thiS IS READY', user)
                     if (user.data === true) {
                         this.props.img.style.opacity = '80%'
                         this.props.msg.style.display = 'none'

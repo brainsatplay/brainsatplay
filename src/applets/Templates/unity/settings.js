@@ -1,9 +1,10 @@
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
-import {Unity} from './unityUtils/Unity'
 
-
-// MUST IMPORT ALL THE FILES FROM BUILD AND TEMPLATEDATA
-// import * as webbuild from './webbuild.loader' // Loader may be univeral
+// Link to Project Assets
+import './webbuild/Build/webbuild.wasm'
+import './webbuild/Build/webbuild.data'
+import * as webconfig from './webbuild/Build/buildconfig'
+import * as webbuild from './webbuild/Build/webbuild.loader'
 
 export const settings = {
     name: "Unity Template",
@@ -26,8 +27,10 @@ export const settings = {
         {name:'blink', class: brainsatplay.plugins.controls.Event},
         {
           name:'unity', 
-          class: Unity, 
+          class: brainsatplay.plugins.utilities.Unity, 
           params:{
+              webbuild, 
+              webconfig,
               onUnityEvent: async function event(ev){
 
                 // Parse Messages from Unity

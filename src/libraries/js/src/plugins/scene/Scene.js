@@ -54,7 +54,6 @@ export class Scene {
                 output: {type: null},
                 onUpdate: (user) => {
 
-                    console.log(user)
                     if (!Array.isArray(user.data)) user.data = [user.data]
                     user.data.forEach(mesh => {
 

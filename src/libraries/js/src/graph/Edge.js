@@ -86,7 +86,8 @@ export class Edge {
                 // for (let key in res.edge.structure) for (let cls of res.edge[`${key}Node`].classList) if (cls.includes('type-')) this.search.value = cls.replace('type-','')
                 // this.matchOptions()
                 // this.selectorToggle.click()
-                reject('EDGE CANNOT BE CREATED')
+                console.error('EDGE CANNOT BE CREATED', this.source, this.target)
+                reject()
             }
         }
     })
@@ -105,10 +106,11 @@ export class Edge {
 
     // Pass Information from Source to Target
      update = async (port=this.source.port) => {
-        let returned = await this.target.port.set(port)
-        this.animate()
-
-        return returned
+         if (port.value !== undefined){
+            let returned = await this.target.port.set(port)
+            this.animate()
+            return returned
+         }
     }
 
     animate = () => {
@@ -293,8 +295,7 @@ insert = async () => {
 
   return new Promise((resolve)=> {
 
-
-  this.parent.app.editor.insertEdge(this)
+  this.parent.ui.graph.insertAdjacentElement('beforeend', this.element)
   
   this.types.forEach(t => {
     if (this[t].port == null) { // TODO: Fix and check

@@ -31,7 +31,7 @@ export class Mixer {
                         let audioPromises = []
                         let resolved = 0
                         this.ports.files.data.forEach(async (f, i) => {
-                            let audio = this.addNode({id: `audio${i}`, class: Audio})
+                            let audio = this.addNode({name: `audio${i}`, class: Audio})
                             console.log(audio) // TODO: Fix
                             let promise = audio.ports.file.onUpdate({data: f})
                             audioPromises.push(promise)

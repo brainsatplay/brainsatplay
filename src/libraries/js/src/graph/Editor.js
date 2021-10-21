@@ -388,9 +388,15 @@ export class Editor{
     }
     
     removeGraph = (graph) => {
-        this.files[graph.name].tab.querySelector('.closeIcon').click()
-        window.removeEventListener('keydown', this.files[graph.name].saveEvent)
-        delete this.files[graph.name]
+        if (this.files[graph.name]){
+            for (const key in this.files[graph.name].files){
+                let elements = this.files[graph.name].files[key]
+                if (elements.tab){
+                    elements.tab.querySelector('.closeIcon').click()
+                }
+            }
+            delete this.files[graph.name]
+        }
     }
 
     addGraph(graph){
@@ -413,19 +419,6 @@ export class Editor{
 
             return this.files[graph.parent.name]?.container
         // } else return this.files[graph.parent.name]?.container // 
-    }
-
-    saveFileEvent = (filename, onsave) => {
-        this.files[filename].saveEvent = (e) => {
-
-            if (this.files[filename].container.offsetParent != null){
-                if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
-                    e.preventDefault();
-                    onsave()
-                }
-            }
-        }
-        window.addEventListener('keydown', this.files[filename].saveEvent)
     }
 
     addCloseIcon(parent, callback){
@@ -617,9 +610,6 @@ export class Editor{
             this.subscribeToChanges(inputDict,toParse, 'settings')
 
             delete this.state.data[`activeSettingsFile`]
-            this.state.addToState(`activeSettingsFile`, settings, () => {
-                // if (this.files['Graph Editor'].tab) this.files['Graph Editor'].tab.classList.add('edited')
-            })
 
 
         }
@@ -755,11 +745,6 @@ export class Editor{
         })
     }
 
-
-    insertEdge = (e) => {
-        let viewer = this.files[e.parent.name]?.container
-        if (viewer) viewer.insertAdjacentElement('beforeend', e.element)
-    }
 
     mapPositionFromScale = (position, rect) => {
         let relYPx = (position.y - rect.top)

@@ -13,14 +13,14 @@ export const settings = {
         "display":{"production":false,"development":true},
         "graph":{
                 "nodes":[
-                        {"id":"eeg","class":brainsatplay.plugins.biosignals.EEG},
-                        {"id":"audio","class":brainsatplay.plugins.audio.Audio,"params":{file}},
-                        {"id":"manager","class":Manager,"params":{image}},
-                        {"id":"ui","class":brainsatplay.plugins.interfaces.UI,"params":{"style":"\n          .brainsatplay-ui-container {\n           width: 100%;\n            height: 100%;\n         z-index: 1;     }\n\n          #content {\n            width: 100%;\n            height: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n          }\n          "}},
+                        {"name":"eeg","class":brainsatplay.plugins.biosignals.EEG},
+                        {"name":"audio","class":brainsatplay.plugins.audio.Audio,"params":{file}},
+                        {"name":"manager","class":Manager,"params":{image}},
+                        {"name":"ui","class":brainsatplay.plugins.interfaces.UI,"params":{"style":"\n          .brainsatplay-ui-container {\n           width: 100%;\n            height: 100%;\n         z-index: 1;     }\n\n          #content {\n            width: 100%;\n            height: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n          }\n          "}},
 
                         // {"id":"mic","class":brainsatplay.plugins.audio.Microphone},   
-                        {"id":"spectrogram","class":brainsatplay.plugins.displays.Spectrogram},
-                        {"id":"background","class":brainsatplay.plugins.interfaces.UI,"params":{"style":"\n          .brainsatplay-ui-container {\n        width: 100%;\n            height: 100%;\n  position: absolute; top: 0; left: 0;        }\n\n          #content {\n            width: 100%;\n            height: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n          }\n          "}},
+                        {"name":"spectrogram","class":brainsatplay.plugins.displays.Spectrogram},
+                        {"name":"background","class":brainsatplay.plugins.interfaces.UI,"params":{"style":"\n          .brainsatplay-ui-container {\n        width: 100%;\n            height: 100%;\n  position: absolute; top: 0; left: 0;        }\n\n          #content {\n            width: 100%;\n            height: 100%;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n          }\n          "}},
                 ],"edges":[
 
                         {"source":"eeg:atlas","target":"manager:data"}, // send data

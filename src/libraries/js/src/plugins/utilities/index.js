@@ -4,6 +4,7 @@ import {DataManager} from './DataManager'
 import {MapArray} from './MapArray'
 import {Thread} from './Thread'
 import {Storage} from './Storage'
+import {Unity} from './Unity'
 
 export {
     Move,
@@ -11,5 +12,6 @@ export {
     DataManager,
     MapArray,
     Thread,
-    Storage
+    Storage,
+    Unity
 }

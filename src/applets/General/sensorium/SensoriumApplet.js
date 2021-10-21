@@ -125,7 +125,7 @@ export class SensoriumApplet {
         this.graph = new Plugin({
             name: this.info.name, 
 			nodes: [
-                {id: 'buzz', class: Buzz},
+                {name: 'buzz', class: Buzz},
 			],
 		}, {app:this}); // top-level graph
 

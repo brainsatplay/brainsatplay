@@ -65,7 +65,7 @@ export class Train {
         this.props.start.classList.toggle('disabled')
 
         // Create Training Overlay
-        let trainingInfo = {id: this.props.id, class: null}
+        let trainingInfo = {name: this.props.id, class: null}
         if (this.ports.mode.data === 'Motor Imagery'){
             trainingInfo.class = LDA
         } else {

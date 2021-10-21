@@ -236,7 +236,7 @@ export class Graph {
             }))
         }
 
-        // Initialize Node        
+        // Initialize Node   
         await o.instance.init()
 
         // Configure
@@ -346,10 +346,12 @@ export class Graph {
             else if (typeof structure[type] === 'string') {
                 let structSplit = structure[type].split(':')
                 standardStruct[type] = {node: structSplit[0], port: structSplit[1] ?? 'default'}
+
             }
 
             // Replace Object Specification with Active Nodes and Ports
             nodes = this.get('nodes',standardStruct[type].node, this.nodes)
+
             standardStruct[type].node = nodes[0]
             if (standardStruct[type].node) standardStruct[type].port = standardStruct[type].node.ports[standardStruct[type].port]
             else standardStruct[type].port = null
