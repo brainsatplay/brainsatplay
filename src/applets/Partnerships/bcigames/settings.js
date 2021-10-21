@@ -49,7 +49,18 @@ export const settings = {
         },
         {
           name:'ui', 
-          class: brainsatplay.plugins.interfaces.UI
+          class: brainsatplay.plugins.interfaces.UI,
+          params: {
+            html: `
+            <div id="content"></div>
+            <div id="instructions">Press s to start</div>
+            `,
+
+            style: `#instructions {
+              position: absolute;
+              top: 0; left: 0 ;
+            }`
+          }
         }
     ],
 
