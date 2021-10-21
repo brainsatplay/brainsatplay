@@ -398,9 +398,12 @@ export class Editor{
         // If there are nodes to visualize, do so
         // if (graph.info.nodes.length > 0){
 
-            let container = graph.ui.graph
             // Create Graph Tab and Save Functionaity
-            this.files[graph.name] = {name: graph.name, type: 'graph', container, nodes: [], graph}
+            this.files[graph.name] = {name: graph.name, type: 'graph', nodes: [], graph}
+            this.files[graph.name].elements = {
+                code: graph.ui.code,
+                graph: graph.ui.graph
+            }
 
             this.createFileElement(this.files[graph.name])
             // this.files[graph.name].tab = this.addTab(this.files[graph.name])
@@ -440,47 +443,48 @@ export class Editor{
         parent.insertAdjacentElement('beforeend', closeIcon)
     }
 
-    addTab(o, onOpen=()=>{}, lock=false){
-        if (o.tab == null){
-            o.tab = document.createElement('button')
-            o.tab.classList.add('tablinks')
-            o.tab.innerHTML = o.name
+    addTab(o, type, onOpen=()=>{}, lock=false){
+        if (o.files[type].tab == null){
+            let tab = document.createElement('button')
+            tab.classList.add('tablinks')
+            tab.innerHTML = o.name
 
             // Format Containers
-            o.container.style.position = 'absolute'
-            o.container.style.top = '0'
-            o.container.style.left = '0'
-            this.editor.insertAdjacentElement('beforeend', o.container)
+            o.elements[type].style.position = 'absolute'
+            o.elements[type].style.top = '0'
+            o.elements[type].style.left = '0'
+            this.editor.insertAdjacentElement('beforeend', o.elements[type])
 
             let isGraph = !!o.graph
             if (isGraph){
                 let onClose = () => {
-                    o.tab.style.display = 'none'
-                    let editorTab = o.tab
+                    tab.style.display = 'none'
+                    let editorTab = tab
                     editorTab.click()
                 }
-                this.addCloseIcon(o.tab,onClose)
+                this.addCloseIcon(tab,onClose)
             } else {
-                this.addCloseIcon(o.tab)
+                this.addCloseIcon(tab)
             }
 
-            o.tab.onclick = () => {
+            tab.onclick = () => {
 
-                if (o.tab.style.display !== 'none'){
+                if (tab.style.display !== 'none'){
 
                     // Close Other Tabs
                     for (const name in this.files){
                         let file = this.files[name]
                         // for (let tab of allTabs){
-                            console.log(name, file)
-                            if (file.tab && file.container){
-                                if(file.tab != o.tab) {
-                                    file.container.style.display = 'none'
-                                    file.tab.classList.remove('active')
-                                } else {
-                                    file.container.style.display = ''
-                                    file.tab.classList.add('active')
-                                    onOpen(file.container)
+                            for (let type in file.files){
+                                if (file.files[type]?.tab && file.elements[type]){
+                                    if(file.files[type]?.tab != tab) {
+                                        file.elements[type].style.display = 'none'
+                                        file.files[type]?.tab.classList.remove('active')
+                                    } else {
+                                        file.elements[type].style.display = ''
+                                        tab.classList.add('active')
+                                        onOpen(file.elements[type])
+                                    }
                                 }
                             }
                         // }
@@ -490,20 +494,22 @@ export class Editor{
 
                 if (isGraph) this.graph = o.graph
                 else this.graph = null
-                this.currentFile = o
+                this.currentFile = o.files[type]
 
                 this.responsive()
             }
 
-            this.element.node.querySelector('.tab').insertAdjacentElement('beforeend', o.tab)
+            this.element.node.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
+            o.files[type].tab  = tab
         }
+
         
         let currentTab = this.currentFile?.tab
-        this.clickTab(o.tab)
+        this.clickTab(o.files[type].tab)
         if (currentTab && !lock) this.clickTab(currentTab)
 
-        return o.tab
+        return o.files[type].tab 
     }
 
     clickTab = (tab) => {
@@ -1079,7 +1085,11 @@ export class Editor{
 
             this.files[filename].name = filename
             this.files[filename].type = 'code'
-            this.files[filename].container = activeNode.ui.code
+            // this.files[filename].container = activeNode.ui.code
+            this.files[filename].elements = {
+                code: activeNode.ui.code,
+                graph: activeNode.ui.graph
+            }
             this.createFileElement(this.files[filename])
 
             // this.editor.insertAdjacentElement('beforeend', activeNode.ui.code)
@@ -1094,21 +1104,33 @@ export class Editor{
     }
 
     createFileElement = (fileDict) => {
-        fileDict.file = document.createElement('div')
-        fileDict.file.innerHTML = fileDict.name
+
+        fileDict.files = {}
+        for (let type in fileDict.elements){
+
+            if (fileDict.elements[type]){
+            fileDict.files[type] = {}
+
+            fileDict.files[type].toggle = document.createElement('div')
+            fileDict.files[type].toggle.innerHTML = fileDict.name
+                
+            fileDict.files[type].toggle.classList.add('brainsatplay-option-node')
+            fileDict.files[type].toggle.style.padding = '10px 20px'
+            fileDict.files[type].toggle.style.display = 'block'
+            fileDict.files[type].container = fileDict.elements[type]
+
+            fileDict.files[type].toggle.onclick = () => {
+                fileDict.files[type].tab = this.addTab(fileDict, type, (el) => {
+                    el.style.pointerEvents = 'all'
+                    el.style.opacity = '1'
+                }, true)
+            }
+
+            this.filesidebar[type].insertAdjacentElement('beforeend', fileDict.files[type].toggle)
             
-        fileDict.file.classList.add('brainsatplay-option-node')
-        fileDict.file.style.padding = '10px 20px'
-        fileDict.file.style.display = 'block'
-        fileDict.file.onclick = () => {
-            fileDict.tab = this.addTab(fileDict, (el) => {
-                el.style.pointerEvents = 'all'
-                el.style.opacity = '1'
-            }, true)
+            fileDict.files[type].toggle.click()
         }
-        this.filesidebar[fileDict.type].insertAdjacentElement('beforeend', fileDict.file)
-        
-        fileDict.file.click()
+        }
     }
  
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
