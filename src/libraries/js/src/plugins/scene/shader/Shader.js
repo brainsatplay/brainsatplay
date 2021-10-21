@@ -1,6 +1,4 @@
 import fragmentShader from './fragment.glsl'
-import {Plugin} from '../../../graph/Plugin'
-
 export class Shader {
 
     static id = String(Math.floor(Math.random()*1000000))

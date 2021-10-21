@@ -1,5 +1,3 @@
-import {Plugin} from '../graph/Plugin'
-
 /* 
 
     This is an example plugin for the Brains@Play software library. 

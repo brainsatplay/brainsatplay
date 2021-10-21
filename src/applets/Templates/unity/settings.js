@@ -21,14 +21,23 @@ export const settings = {
     graph:
     {
       nodes: [
-        // {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        // {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback},
-        {name:'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
-        {name:'sine', class: brainsatplay.plugins.data.Sine},
+        {name:'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name:'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {metric: 'Focus'}},
+        {name:'blink', class: brainsatplay.plugins.controls.Event},
         {
           name:'unity', 
           class: Unity, 
           params:{
+              onUnityEvent: async function event(ev){
+
+                if (typeof ev === 'string'){
+                  console.log('MESSAGE: ' + ev)
+                } else {
+                  let blink = this.node.parent.getNode('blink')
+                  await blink.update('default', {value: true})
+                  await blink.update('default', {value: false})
+                }
+              },
               commands: 
               [
                 {
@@ -72,15 +81,6 @@ export const settings = {
                     type: 'number'
                 }
             ]
-              // [{
-              //   object: 'GameApplication',
-              //   function: 'updateData',
-              //   type: 'number'
-              // }, {
-              //   object: 'GameApplication',
-              //   function: 'updateBlink', // or just blink
-              //   type: 'boolean'
-              // }]
           }
         },
         {
@@ -92,25 +92,20 @@ export const settings = {
       edges: [
 
         // BRAIN
-        // {
-        //   source: 'eeg:atlas',
-        //   target: 'neurofeedback',
-        // },
-        // {
-        //   source: 'neurofeedback',
-        //   target: 'unity:updateData',
-        // },
+        {
+          source: 'eeg:atlas',
+          target: 'neurofeedback',
+        },
+        {
+          source: 'neurofeedback',
+          target: 'unity:UpdateFocus',
+        },
 
-
-        // TEST
           {
-            source: 'left',
+            source: 'blink',
             target: 'unity:UpdateBlink',
           },
-        {
-          source: 'sine',
-          target: 'unity:UpdateAlpha',
-        },
+
         {
           source: 'unity:element',
           target: 'ui:content',

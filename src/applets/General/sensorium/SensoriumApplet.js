@@ -7,7 +7,7 @@ import { SoundJS } from '../../../libraries/js/src/utils/general/Sound';
 import { LiveEditor } from '../../../libraries/js/src/ui/LiveEditor'
 import { Math2 } from '../../../libraries/js/src/utils/mathUtils/Math2';
 
-import {Plugin} from '../../../libraries/js/src/graph/Plugin'
+import {Graph} from '../../../libraries/js/src/graph/Graph'
 import * as settingsFile from './settings'
 
 import * as THREE from 'three'

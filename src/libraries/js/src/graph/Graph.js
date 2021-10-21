@@ -10,9 +10,9 @@ import {LiveEditor} from '../ui/LiveEditor'
 // Node Interaction
 import * as dragUtils from '../ui/dragUtils'
 
-// A Plugin is a collection of other Plugins and Functions that execute together as specified by Edges
+// A Graph is a collection of Plugins (subgraphs) that execute together as specified by Edges
 
-export class Plugin {
+export class Graph {
 
     static id = String(Math.floor(Math.random()*1000000))
 
@@ -73,10 +73,42 @@ export class Plugin {
         this.createUI()
         this.createCodeEditor()
 
-        if (this.app.editor) {
-            this.app.editor.addGraph(this) // place in editor as a tab
-        }
+        if (this.app.editor) this.app.editor.addGraph(this) // place in editor as a tab
     }
+
+
+    init = async (o) => {
+
+        this._mergeInfo(o)
+        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
+        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
+        
+        for (const e of this.info.edges) {
+            await this.addEdge(e) // provided edges (read in series)
+        }
+
+        await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
+
+    }
+
+    deinit = () => {
+
+        this.nodes.forEach(n => this.removeNode(n))
+        this.edges.forEach(e => this.removeEdge(e))
+        this.events.forEach(ev => this.removeEvent(ev))
+
+        this.ui.graph.removeEventListener('wheel', this._scale)
+        this.ui.graph.removeEventListener('mousemove', this._pan)
+        window.removeEventListener('keydown', this._save)
+
+        this.ui.element.remove()
+        this.ui.graph.remove()
+
+        if (this.app.editor) this.app.editor.removeGraph(this)
+
+    }
+
+    configure = () => {}
 
     _scale = (e) => {
         this.ui.context.scale += 0.01*-e.deltaY
@@ -150,40 +182,6 @@ export class Plugin {
             funcs.forEach(f => f()) // Catch outliers
     }
 
-
-    init = async (o) => {
-
-        this._mergeInfo(o)
-        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
-        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
-        
-        for (const e of this.info.edges) {
-            await this.addEdge(e) // provided edges (read in series)
-        }
-
-        await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
-
-    }
-
-    deinit = () => {
-
-        this.nodes.forEach(n => this.removeNode(n))
-        this.edges.forEach(e => this.removeEdge(e))
-        this.events.forEach(ev => this.removeEvent(ev))
-
-        this.ui.graph.removeEventListener('wheel', this._scale)
-        this.ui.graph.removeEventListener('mousemove', this._pan)
-        window.removeEventListener('keydown', this._save)
-
-        this.ui.element.remove()
-        this.ui.graph.remove()
-
-        if (this.app.editor) this.app.editor.removeGraph(this)
-
-    }
-
-    configure = () => {}
-
     // ------------------- NODES / PLUGINS / GRAPHS -------------------
 
     addNode = async (o) => { 
@@ -199,8 +197,8 @@ export class Plugin {
 
             // Try To Extend Class
             o.className = o.class.name
-            let extendedClass = this.extend(o.class, Plugin)
-            o.instance = new extendedClass(o, this)
+            let Plugin = this.extend(o.class, Graph)
+            o.instance = new Plugin(o, this)
 
             // Create Ports with backwards compatibility (< 0.0.36)
             let keys = Object.keys(o.instance.ports) 
@@ -213,9 +211,9 @@ export class Plugin {
             o.instance.updateParams(o.params)
         } 
 
-        // Wrap Node Inside a Default Plugin
+        // Wrap Node Inside a Graph
         else {
-            o.instance = new Plugin(o, this) // recursion begins
+            o.instance = new Graph(o, this) // recursion begins
         }
 
         this.nodes.set(o.instance.uuid, o.instance)
@@ -232,7 +230,7 @@ export class Plugin {
         let graphDeps = o.instance.graphs // instantiate subgraphs
         if (graphDeps) {
             await Promise.all(graphDeps.map(async (g,i) => {
-                g = new Plugin(g, o.instance)
+                g = new Graph(g, o.instance)
                 await g.init()
                 o.instance.graphs[i] = g
             }))
@@ -274,7 +272,7 @@ export class Plugin {
         if (ChildClass.prototype instanceof ParentClass) return ChildClass // already extended
         else {             
 
-            function Extended(...args){
+            function Plugin(...args){
                 const _super = (...args) => {
                     let parent = new ParentClass(...args)
                     let child = new ChildClass(...args)
@@ -304,9 +302,9 @@ export class Plugin {
                 constructor.call(this, _super, args);
             }
 
-            Object.setPrototypeOf(Extended, ParentClass);
-            Object.setPrototypeOf(Extended.prototype, ParentClass.prototype);
-            return Extended;
+            Object.setPrototypeOf(Plugin, ParentClass);
+            Object.setPrototypeOf(Plugin.prototype, ParentClass.prototype);
+            return Plugin;
         }
      }
 
@@ -554,7 +552,6 @@ export class Plugin {
 
     createCodeEditor = () => {
 
-            console.log(this)
             let cls = this.info?.class
             if (cls){
                 let name = `${cls.name}`

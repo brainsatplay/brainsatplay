@@ -1,5 +1,3 @@
-import {Plugin} from '../Plugin'
-
 export class Midi {
 
     static id = String(Math.floor(Math.random()*1000000))

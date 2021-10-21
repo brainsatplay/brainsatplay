@@ -4,7 +4,7 @@
 import { StateManager } from "./ui/StateManager";
 
 import { WorkerManager } from "./utils/workers/Workers"
-import { Plugin } from "./graph/Plugin"
+import { Graph } from "./graph/Graph"
 
 import { Blink } from "./plugins/models/Blink"
 import { Focus } from "./plugins/models/Focus"
@@ -166,7 +166,7 @@ export class DataAtlas {
 	init = async () => {
 
 		// Add Default Analysis Options
-		this.graph = new Plugin({
+		this.graph = new Graph({
 			nodes: [
 				{name: 'blink', class: Blink}, // Blink Detection
 				{name: 'focus', class: Focus}, // Focus Detection

@@ -1,4 +1,3 @@
-import {Plugin} from '../../../libraries/js/src/graph/Plugin'
 
 export class Manager {
 

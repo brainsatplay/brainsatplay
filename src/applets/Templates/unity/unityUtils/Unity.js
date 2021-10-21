@@ -11,23 +11,11 @@ export class Unity{
     
     constructor(info, graph) {
 
-            // Declare functions that will be called by Unity instance window callbacks here.
-            function OnUnityEvent() {
-                console.log("OnUnityEvent call")
-            }
-    
-            function OnUnityEvent(param) {
-                console.log("OnUnityEvent with parameters call" + param)
-            }
-    
-            // Unity instance window callbacks that we call from .jslib in Unity.
-            // Modify these signatures to respond to whatever you want to send from Unity.
-            window.PassUnityEvent = () => {
-                OnUnityEvent()
-            }
-            window.PassUnityEvent = (param) => {
-                OnUnityEvent(param)
-            }
+        // Unity instance window callbacks that we call from .jslib in Unity.
+        // Modify these signatures to respond to whatever you want to send from Unity.
+        window.PassUnityEvent = (param) => {
+            this.update('unityEvent', {value: param})
+        }
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -47,6 +35,25 @@ export class Unity{
                 input: {type: null},
                 output: {type: null},
             },
+
+            unityEvent: {
+                input: {type: null},
+                output: {type: 'string'},
+                onUpdate: (user) => { 
+                    this.ports.onUnityEvent.data(user.value)
+                }
+            },
+
+            // Declare functions that will be called by Unity instance window callbacks here.
+            onUnityEvent: {
+                data: (param) => {
+                    console.log("OnUnityEvent with parameters call" + param)
+                },
+                input: {type: Function},
+                output: {type: 'string'}
+            },
+
+            // Declare commands that can be sent to Unity
             commands: {
                 data: [],
                 input: {type: Array},
@@ -73,9 +80,9 @@ export class Unity{
                 output: {type: null},
                 onUpdate: (user) => {
                     // let data = JSON.stringify(user.data)
-                    let data = user.data.toString()
-                    // let data = user.data
-                    console.log(data)
+                    // let data = user.data.toString()
+                    let data = user.data
+                    if (typeof data === 'boolean') data = (data) ? 1 : 0
                     if (this.props.instance) this.props.instance.SendMessage(o.object, o.function, data);
                 }
             })

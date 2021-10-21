@@ -1,7 +1,7 @@
 import {Session} from './Session'
 import {DOMFragment} from './ui/DOMFragment'
 import {StateManager} from './ui/StateManager'
-import {Plugin} from './graph/Plugin'
+import {Graph} from './graph/Graph'
 
 import './ui/styles/defaults.css'
 import { Editor } from './graph/Editor'
@@ -216,7 +216,7 @@ export class App {
 
     addGraph = (info) => {
                 
-        let graph = new Plugin(info, {app: this}); // top-level graph
+        let graph = new Graph(info, {app: this}); // top-level graph
         if(!this.graphs.get(graph.name)) this.graphs.set(graph.name, graph)
     }
 
