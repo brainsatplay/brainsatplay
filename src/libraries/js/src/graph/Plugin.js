@@ -4,6 +4,9 @@ import {Event} from "./Event"
 import {pluginManifest} from '../plugins/pluginManifest'
 import {dynamicImport} from '../utils/general/importUtils'
 
+// Node Interaction
+import * as dragUtils from '../ui/dragUtils'
+
 // A Plugin is a collection of other Plugins and Functions that execute together as specified by Edges
 
 export class Plugin {
@@ -40,18 +43,66 @@ export class Plugin {
 
         // UI
         this.ui = {
-            parent: null, 
+            element: document.createElement('div'),
             latencies: {},
-            graph: null // replace this with the Editor view
+            graph: document.createElement('div'), // replace this with the Editor view,
+            context: {
+                scale: 1
+            },
+            editing: false,
+            mouseDown: false,
+            translation: {x: 0, y:0},
+            relXParent: null, 
+            relYParent: null
         }
 
+        // Graph UI
+        this.ui.graph.id = `${this.props.id}NodeViewer`
+        this.ui.graph.classList.add('brainsatplay-node-viewer')
+        this.ui.graph.classList.add('grid')
 
-        // Instantiate Editor Tab
-        if (this.app.editor){
-            this.ui.parent = this.app.editor.createGraph(this)
-            if (this.ui.parent) {
-                this.createUI()
-            }
+        this.ui.graph.addEventListener('mousedown', e => {this.ui.mouseDown = true} )
+        window.addEventListener('mouseup', e => { this.ui.mouseDown = false} )
+        this.ui.graph.addEventListener('wheel', this._scale)
+        this.ui.graph.addEventListener('mousemove', this._pan)
+
+        this.createUI()
+
+        if (this.app.editor) {
+            this.app.editor.addGraph(this) // place in editor as a tab
+        }
+    }
+
+    _scale = (e) => {
+        this.ui.context.scale += 0.01*-e.deltaY
+        if (this.ui.context.scale < 0.5) this.ui.context.scale = 0.5 // clamp
+        if (this.ui.context.scale > 3.0) this.ui.context.scale = 3.0 // clamp
+        this._transform()
+    }
+
+    _transform = () => {
+        this.ui.graph.style['transform'] = `translate(${this.ui.translation.x}px, ${this.ui.translation.y}px) scale(${this.ui.context.scale*100}%)`
+    }
+
+    _pan = (e) => {
+
+        if (this.ui.editing === false){
+
+            // Transform relative to Parent
+            let rectParent = e.target.parentNode.getBoundingClientRect();
+            let curXParent = (e.clientX - rectParent.left)/rectParent.width; //x position within the element.
+            let curYParent = (e.clientY - rectParent.top)/rectParent.height;  //y position within the element.
+        
+            if (this.ui.mouseDown){
+                let tX = (curXParent-this.ui.relXParent)*rectParent.width
+                let tY = (curYParent-this.ui.relYParent)*rectParent.height
+
+                if (!isNaN(tX) && isFinite(tX)) this.ui.translation.x += tX
+                if (!isNaN(tY) && isFinite(tY)) this.ui.translation.y += tY
+                this._transform()
+            } 
+            this.ui.relXParent = curXParent
+            this.ui.relYParent = curYParent
         }
     }
 
@@ -110,9 +161,19 @@ export class Plugin {
     }
 
     deinit = () => {
+
         this.nodes.forEach(n => this.removeNode(n))
         this.edges.forEach(e => this.removeEdge(e))
         this.events.forEach(ev => this.removeEvent(ev))
+
+        this.ui.graph.removeEventListener('wheel', this._scale)
+        this.ui.graph.removeEventListener('mousemove', this._pan)
+
+        this.ui.element.remove()
+        this.ui.graph.remove()
+
+        if (this.app.editor) this.app.editor.removeGraph(this)
+
     }
 
     configure = () => {}
@@ -177,6 +238,9 @@ export class Plugin {
         // Configure
         if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
 
+        // Add to Graph UI
+        this.insertNode(o.instance)
+
         return o
     }
 
@@ -208,6 +272,25 @@ export class Plugin {
                 const _super = (...args) => {
                     let parent = new ParentClass(...args)
                     let child = new ChildClass(...args)
+
+                    // Merge Init
+                    let childInit = child.init
+                    let parentInit = parent.init
+
+                    parent.init = child.init = () => {
+                        childInit()
+                        parentInit()
+                    }
+
+                    // Merge Deinit
+                    let cDeinit = child.deinit
+                    let pDeinit = parent.deinit
+
+                    parent.deinit = child.deinit = () => {
+                        cDeinit()
+                        pDeinit()
+                    }
+
                     Object.assign(parent, child); // provide child references
                     Object.assign(child, parent); // provide parent methods
                     Object.assign(this, parent);
@@ -264,8 +347,8 @@ export class Plugin {
             // Replace Object Specification with Active Nodes and Ports
             nodes = this.get('nodes',standardStruct[type].node, this.nodes)
             standardStruct[type].node = nodes[0]
-            standardStruct[type].port = standardStruct[type].node.ports[standardStruct[type].port]
-
+            if (standardStruct[type].node) standardStruct[type].port = standardStruct[type].node.ports[standardStruct[type].port]
+            else standardStruct[type].port = null
         })
         return standardStruct
     }
@@ -289,7 +372,7 @@ export class Plugin {
 
 
         // UI
-        if (this.ui.parent) {
+        if (this.ui.graph) {
             let portTypes = Object.keys(port.edges)
             portTypes.forEach(s => {
                 this.ui[`${s}Ports`].insertAdjacentElement('beforeend', port.ui[s])
@@ -396,7 +479,6 @@ export class Plugin {
     // ----------------- UI Management -----------------
 
     createUI = () => {
-        this.ui.element = document.createElement(`div`)
         this.ui.element.classList.add("brainsatplay-default-node-div")
 
         let element = document.createElement(`div`)
@@ -433,8 +515,6 @@ export class Plugin {
         element.insertAdjacentElement('beforeend', this.ui.portManager)
         this.ui.element.insertAdjacentElement('beforeend', element)
 
-        this.app.editor.insertNode(this)
-
         this.resizeElement()
 
         return this.ui.element
@@ -449,17 +529,123 @@ export class Plugin {
 
 
     resizeElement = () => {
-        let portContainers = this.ui.element.getElementsByClassName(`node-port-container`)
 
         let minWidth = 100
         let minHeight = 0
-        for (let container of portContainers) {
-            minHeight = Math.max(minHeight, container.clientHeight)
+
+        if (this.ui.element.parentNode){ // only if there is something containing this element
+            let portContainers = this.ui.element.getElementsByClassName(`node-port-container`)
+
+            for (let container of portContainers) {
+                minHeight = Math.max(minHeight, container.clientHeight)
+            }
+            minWidth = Math.max(minWidth, this.ui.portLabels.offsetWidth)
         }
-        minWidth = Math.max(minWidth, this.ui.portLabels.offsetWidth)
 
         if (this.ui.portManager.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
         if (this.ui.portManager.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
+    }
+
+
+    insertNode = (node) => {
+        this.ui.graph.insertAdjacentElement('beforeend', node.ui.element)
+
+        let top
+        let left
+        if (node.style){
+            top = node.style.match(/top: ([^;].+); /)
+            left = node.style.match(/left: ([^;].+);\s?/)
+        }
+
+        dragUtils.dragElement(this.ui.graph, node.ui.element, this.ui.context, () => {
+            node.resizeAllEdges()
+        }, () => {this.ui.editing = true}, () => {
+            this.ui.editing = false
+            node.style = node.ui.element.style.cssText
+        })
+        this.addNodeEvents(node)
+
+        // node.ui.element.querySelector('.brainsatplay-display-node').click()
+
+        // Place Node if Location is Provided
+        if (top || left){
+            if (top) node.ui.element.style.top = top[1]
+            if (left) node.ui.element.style.left = left[1]
+        } else if (this.nextNode) {
+            let rect = graphTab.container.getBoundingClientRect()
+            let position = this.mapPositionFromScale(this.nextNode.position, rect)
+            node.ui.element.style.top = `${position.x}px`
+            node.ui.element.style.left = `${position.y}px`
+            this.nextNode = null
+        }
+
+        node.style = node.ui.element.style.cssText // Set initial translation
+
+
+        // Reorganize Nodes in a Grid
+        let i = 0;
+        let length = this.nodes.size
+        this.nodes.forEach(n => {
+
+            // Default Positioning
+            let iterator = Math.ceil(Math.sqrt(length))
+            let row = Math.floor(i % iterator)
+            let col = Math.floor(i/iterator)
+
+            let padding = 10
+            let availableSpace = 100 - 2*padding
+            let leftShift = 0.5 * availableSpace/(iterator+1)
+            let downShift = 0.5 * availableSpace/(iterator+2)
+            
+            if (!n.style || (!n.style.includes('top') && !n.style.includes('left'))) {
+                n.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                n.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+            }
+
+            i++
+        })
+    }
+
+    addNodeEvents = (node) => {
+        let nodeElement = node.ui.element.children[0]
+
+        nodeElement.onclick = () => {
+
+            let clickedNode = this.app.ui.parent.querySelector('.clicked')
+            if (clickedNode) clickedNode.classList.remove('clicked')
+            nodeElement.classList.add('clicked')
+
+            // Plugin GUI
+            let selectedParams = this.app.editor.params
+            selectedParams.innerHTML = ''
+            let toParse = node.ports
+
+            let inputDict = {}
+            for (let key in toParse){
+                let {container, input} = this.app.editor.createInput(node.ports, key, node)
+                if (container) {
+                    inputDict[key] = input
+                    selectedParams.insertAdjacentElement('beforeend', container)
+                }
+            }
+
+            this.app.editor.subscribeToChanges(inputDict,toParse, 'ports', node)
+
+            // Edit and Delete Buttons
+            this.app.editor.delete.style.display = ''
+            this.app.editor.delete.onclick = () => {
+                this.removeNode(node)
+            }
+
+            node.editable = this.session.projects.checkIfSaveable(node)
+
+            if (node.editable){
+                this.app.editor.edit.style.display = ''
+                this.app.editor.edit.onclick = (e) => {
+                    this.app.editor.createFile(node, undefined, node.parent)
+                }
+            } else this.app.editor.edit.style.display = 'none'
+        }
     }
 
     // ---------------- DEBUG HELPER ----------------

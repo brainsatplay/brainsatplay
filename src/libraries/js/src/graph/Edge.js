@@ -26,6 +26,7 @@ export class Edge {
             this.subscription
             
             // Create UI
+            this.editing = false
             if (this.parent.app.editor){
                 this._createUI()
             }
@@ -33,6 +34,7 @@ export class Edge {
 
 
     init = async () => {
+        return new Promise(async (resolve, reject) => {
 
 
         let sP = this.source.port
@@ -66,13 +68,28 @@ export class Edge {
             }
 
             await this.update() // Indiscriminately activate edge with initial value
+            this.addReactivity() 
 
-            return this
+            resolve(this)
         } else {
-            console.error('EDGE CANNOT BE CREATED')
-            return undefined
+
+            this.parent.editing = true
+
+            let res = await this.parent.getEdge(this)
+    
+            if (res){
+                this.addReactivity() 
+                this.parent.editing = false
+                resolve(this)
+            } else {
+                // // Grab Type of Incomplete Port
+                // for (let key in res.edge.structure) for (let cls of res.edge[`${key}Node`].classList) if (cls.includes('type-')) this.search.value = cls.replace('type-','')
+                // this.matchOptions()
+                // this.selectorToggle.click()
+                reject('EDGE CANNOT BE CREATED')
+            }
         }
-        
+    })
 
     }
 
@@ -82,6 +99,8 @@ export class Edge {
         if (this.target.node) this.target.node.edges.delete(this.uuid)
         if (this.source.port) this.source.port.edges.output.delete(this.uuid)
         if (this.target.port) this.target.port.edges.input.delete(this.uuid)
+        this.element.remove()
+
     }
 
     // Pass Information from Source to Target
@@ -422,5 +441,23 @@ const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${c3.x},${c3.y} T${p2.x},${p2.y}` +
   (this.node.curve.classList.contains('fill') ? ' Z' : '');
   this.updateElement( this.node.curve, { d } );
 }
+
+
+    addReactivity = () => {
+        this.node['curve'].addEventListener('mouseover', () => {this._onMouseOverEdge()})
+        this.node['curve'].addEventListener('mouseout', () => {this._onMouseOutEdge()})
+        this.node['curve'].addEventListener('click', () => {this._onClickEdge()})
+    }
+
+    _onMouseOverEdge = () => {
+        this.node['curve'].style.opacity = 0.3
+    }
+
+    _onMouseOutEdge = () => {
+        this.node['curve'].style.opacity = 1
+    }
+    _onClickEdge = () => {
+        this.deinit()
+    }
 
 }
