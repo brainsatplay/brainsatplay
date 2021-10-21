@@ -60,6 +60,21 @@ export class Editor{
             this.container.classList.add('brainsatplay-default-container')
             this.container.classList.add('brainsatplay-node-editor')
             this.container.innerHTML = `
+                    <div id="${this.props.id}FileSidebar" class="brainsatplay-node-sidebar" style="min-width: 150px; width: 150px; height: 100%; background: black">
+                        <div class='header node-sidebar-section'>
+                            <h3>Project Files</h3>
+                        </div>
+
+                        <div class="brainsatplay-option-type option-type-collapsible">Graphs</div>
+                        <div class="graphs option-type-content">
+
+                        </div>
+
+                        <div class="brainsatplay-option-type option-type-collapsible">Code</div>
+                        <div class="code option-type-content">
+
+                        </div>
+                    </div>
                     <div id="${this.props.id}MainPage" class="main">
                         <div class="brainsatplay-node-editor-preview-wrapper">
                             <div id="${this.props.id}preview" class="brainsatplay-node-editor-preview">
@@ -113,6 +128,18 @@ export class Editor{
                 undefined,
                 () => {
                     // Set UI Attributes
+                    this.filesidebar = {}
+                    this.filesidebar.container = this.container.querySelector(`[id="${this.props.id}FileSidebar"]`)
+                    this.filesidebar.graph = this.filesidebar.container.querySelector(`.graphs`)
+                    this.addDropdownFunctionality(this.filesidebar.graph.previousElementSibling)
+
+                    this.filesidebar.code = this.filesidebar.container.querySelector(`.code`) 
+                    this.addDropdownFunctionality(this.filesidebar.code.previousElementSibling)
+
+                    
+                    this.filesidebar.header = this.filesidebar.container.querySelector(`.header`) 
+                    this.filesidebar.header.querySelector('h3').innerHTML = this.app.info.name
+
                     this.mainPage = this.container.querySelector(`[id="${this.props.id}MainPage"]`)
                     this.editor = this.container.querySelector(`[id="${this.props.id}Editor"]`)
                     this.viewer = this.container.querySelector(`[id="${this.props.id}NodeViewer"]`)
@@ -194,7 +221,7 @@ export class Editor{
             this.toggleContextMenuEvent(this.editor)
 
             // Add Settings Editor
-            this.createSettingsEditor(this.app)
+            this.createSettingsEditor(this.app.info)
 
             // Search for Plugins
             this.createPluginSearch(this.mainPage)
@@ -373,8 +400,10 @@ export class Editor{
 
             let container = graph.ui.graph
             // Create Graph Tab and Save Functionaity
-            this.files[graph.name] = {name: graph.name, container, nodes: [], graph}
-            this.files[graph.name].tab = this.addTab(this.files[graph.name])
+            this.files[graph.name] = {name: graph.name, type: 'graph', container, nodes: [], graph}
+
+            this.createFileElement(this.files[graph.name])
+            // this.files[graph.name].tab = this.addTab(this.files[graph.name])
 
             let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
             save.onclick = graph._saveGraph // actually saves app
@@ -443,13 +472,16 @@ export class Editor{
                     for (const name in this.files){
                         let file = this.files[name]
                         // for (let tab of allTabs){
-                            if(file.tab != o.tab) {
-                                file.container.style.display = 'none'
-                                file.tab.classList.remove('active')
-                            } else {
-                                file.container.style.display = ''
-                                file.tab.classList.add('active')
-                                onOpen()
+                            console.log(name, file)
+                            if (file.tab && file.container){
+                                if(file.tab != o.tab) {
+                                    file.container.style.display = 'none'
+                                    file.tab.classList.remove('active')
+                                } else {
+                                    file.container.style.display = ''
+                                    file.tab.classList.add('active')
+                                    onOpen(file.container)
+                                }
                             }
                         // }
                     }
@@ -496,6 +528,8 @@ export class Editor{
 
     createSettingsEditor(settings){
             let settingsContainer = this.element.node.querySelector(`[id="${this.props.id}settings"]`)
+
+            settings = Object.assign({}, settings) // shallow copy
 
             let toParse ={}
 
@@ -599,10 +633,10 @@ export class Editor{
                 this.defaultpreview.style.display = 'none'
                 setTimeout(() => {
                     this.responsive()
-                    if (this.graph) {
-                        this.graph._resizeUI() 
-                        this.graph.resizeAllEdges()
-                    }
+                    this.app.graphs.forEach(g => {
+                        g._resizeUI() 
+                        if (g === this.graph) this.graph.resizeAllEdges()
+                    })
                 },50)
             } else {
                 this.element.node.style.opacity = 0
@@ -614,10 +648,10 @@ export class Editor{
 
                 setTimeout(() => {
                     this.responsive()
-                    if (this.graph) {
-                        this.graph._resizeUI()
-                        this.graph.resizeAllEdges()
-                    }
+                    this.app.graphs.forEach(g => {
+                        g._resizeUI() 
+                        if (g === this.graph) this.graph.resizeAllEdges()
+                    })
                 },50)
             }
         }
@@ -762,7 +796,7 @@ export class Editor{
             defaultType = (defaultType === "object" ? toParse[key].data instanceof HTMLElement : toParse[key].data && typeof toParse[key].data === "object" && toParse[key].data !== null && toParse[key].data.nodeType === 1 && typeof toParse[key].data.nodeName==="string") ? 'Element' : defaultType
 
         // Cannot Handle Objects or Elements
-        if (defaultType != 'undefined' && defaultType != 'Element'){
+        if (defaultType && defaultType != 'undefined' && defaultType != 'Element'){
             if (optionsType == 'object' && specifiedOptions != null){
                     let options = ``
                     toParse[key].options.forEach(option => {
@@ -863,7 +897,6 @@ export class Editor{
                 input.innerHTML = `Edit ${defaultType}`
 
                 input.onclick = () => {
-                    console.log(toParse[key])
                     toParse[key].ui.editor.onOpen()
                 }
             } else if (defaultType === 'file'){
@@ -930,6 +963,7 @@ export class Editor{
             }
             else {
                     input = document.createElement('input')
+
                     // Check if Color String
                     if (defaultType == 'color' || /^#[0-9A-F]{6}$/i.test(toParse[key].value)){
                         input.type = 'color'
@@ -1035,10 +1069,8 @@ export class Editor{
         if (this.files[filename] == null){
             this.files[filename] = {}
 
-            // this.saveFileEvent(filename, onsave)
 
             if (activeNode == null){
-                onsave()
                 // this.clickTab(this.files[graph.name].tab)
                 let nodeInfo = await graph.addNode({class:cls})
                 activeNode = nodeInfo.instance
@@ -1046,14 +1078,12 @@ export class Editor{
 
 
             this.files[filename].name = filename
+            this.files[filename].type = 'code'
             this.files[filename].container = activeNode.ui.code
-            // this.files[filename].editor = activeNode.ui.code
-            this.files[filename].tab = this.addTab(this.files[filename], (res) => {
-                activeNode.ui.code.style.pointerEvents = 'all'
-                activeNode.ui.code.style.opacity = '1'
-            }, true)
+            this.createFileElement(this.files[filename])
 
             // this.editor.insertAdjacentElement('beforeend', activeNode.ui.code)
+
 
             // Add Option to Selector
             this.addNodeOption({id:cls.id, label: cls.name, class:cls})
@@ -1063,6 +1093,24 @@ export class Editor{
         }
     }
 
+    createFileElement = (fileDict) => {
+        fileDict.file = document.createElement('div')
+        fileDict.file.innerHTML = fileDict.name
+            
+        fileDict.file.classList.add('brainsatplay-option-node')
+        fileDict.file.style.padding = '10px 20px'
+        fileDict.file.style.display = 'block'
+        fileDict.file.onclick = () => {
+            fileDict.tab = this.addTab(fileDict, (el) => {
+                el.style.pointerEvents = 'all'
+                el.style.opacity = '1'
+            }, true)
+        }
+        this.filesidebar[fileDict.type].insertAdjacentElement('beforeend', fileDict.file)
+        
+        fileDict.file.click()
+    }
+ 
     createView(id=String(Math.floor(Math.random()*1000000)), className, content){
         let view = document.createElement('div')
         view.id = id
@@ -1361,7 +1409,7 @@ export class Editor{
 
         let tabContainer = this.element.node.querySelector(`[id="${this.props.id}ViewTabs"]`)
         if (tabContainer){
-            let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth
+            let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth - this.filesidebar.container.offsetWidth
             this.mainPage.style.width = `${mainWidth}px`
             if (this.preview.innerHTML != '') {
                 this.preview.style.height = `${window.innerHeight * this.mainPage.style.width/window.innerWidth}px`

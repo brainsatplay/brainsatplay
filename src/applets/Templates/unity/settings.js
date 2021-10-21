@@ -30,6 +30,7 @@ export const settings = {
           params:{
               onUnityEvent: async function event(ev){
 
+                // Parse Messages from Unity
                 if (typeof ev === 'string'){
                   console.log('MESSAGE: ' + ev)
                 } else {
@@ -37,6 +38,7 @@ export const settings = {
                   await blink.update('default', {value: true})
                   await blink.update('default', {value: false})
                 }
+
               },
               commands: 
               [
