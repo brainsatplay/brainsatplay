@@ -58,7 +58,7 @@ export const settings = {
 
             style: `#instructions {
               position: absolute;
-              top: 0; left: 0 ;
+              bottom: 25px; left: 25px;
             }`
           }
         }

@@ -580,7 +580,7 @@ export class Graph {
             }
 
             settings.onSave = (cls) => {
-                let instance = new cls({id:cls.name, class: cls}, graph)
+                let instance = new cls({id:cls.name, class: cls}, this.parent)
                 // let instance = instanceInfo
                 // tab.classList.remove('edited')
 
@@ -609,7 +609,7 @@ export class Graph {
                                     
                                     keys.forEach(str => {
                                         if (!typeKeys.includes(str)) this.ports[port][str] = instance.ports[port][str]
-                                        else {
+                                        else if (this.ports[port][str] != null) {
                                             this.ports[port][str]['type'] = instance.ports[port][str]['type']
                                         }
                                     })
@@ -778,4 +778,10 @@ export class Graph {
             if (container) container.insertAdjacentElement('beforeend', this.ports.element.data)
         }
     }
+
+    // ---------------- EXPORT HELPER ----------------
+    info = () => {
+        return this.info
+      }
+  
 }

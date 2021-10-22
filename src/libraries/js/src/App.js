@@ -187,7 +187,12 @@ export class App {
 
         // ------------------- CONVERSIONS -------------------
         if (!('graphs' in infoCopy)) infoCopy.graphs = [] // create graph array
-        if ('graph' in infoCopy) infoCopy.graphs.push(infoCopy.graph) // push single graph
+        if ('graph' in infoCopy) {
+            infoCopy.graphs.push(infoCopy.graph) // push single graph
+            delete infoCopy.graph
+        }
+
+        infoCopy.graphs = infoCopy.graphs.filter(g => Object.keys(g).length > 0)
                 
         // ------------------- CONVERSIONS -------------------
         let keys = ['nodes','edges']
@@ -231,8 +236,10 @@ export class App {
 
     // Unstringify Functions
     parseSettings = (settings) => {
+
+        console.log(this, settings)
         settings.graphs.forEach(g => {
-            g.nodes.forEach(n => {
+            if (g.nodes) g.nodes.forEach(n => {
                 for (let k in n.params){
                     let value = n.params[k]
                     let regex = new RegExp('([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>')

@@ -237,8 +237,11 @@ app.init()`)
     appToFile(app) {
 
         let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
-        info.graph = Object.assign({}, info.graph)
-        info.graph.nodes = info.graph.nodes.map(n => Object.assign({}, n))
+        info.graphs = Array.from(app.graphs).map(arr => Object.assign({}, arr[1]))
+        info.graphs.forEach(g => {
+            if (g.edges) g.edges = Array.from(g.edges).map(arr => Object.assign({}, arr[1].info()))
+           if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].info()))
+        })
 
         // Default Settings
         info.connect = true
@@ -252,26 +255,32 @@ app.init()`)
         // Add imports
         let classNames = []
         let classes = []
-        app.info.graph.nodes.forEach(n => {
+        info.graphs.forEach(g => {
+        g.nodes.forEach(n => {
             let found = plugins.find(o => { 
                 if (o.id === n.class.id) return o 
             })
             // let saveable = this.checkIfSaveable(n.class)
+
+            // Not in plugins
             if (!found && !classNames.includes(n.class.name)) {
                 imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
                 classNames.push(n.class.name)
                 classes.push(n.class)
-            } else if (found) {
-                classNames.push(found.name)
+            } 
+            
+            // In Plugins
+            else if (found) {
+                classNames.push(found.label)
             } else if (classNames.includes(n.class.name)) {
                 classNames.push(n.class.name)
             }
         })
+    })
 
 
-        console.log(info)
-
-        info.graph.nodes.forEach((n, i) => {
+        info.graphs.forEach(g => {
+        g.nodes.forEach((n, i) => {
 
             // FIX
             for (let k in n.params){ 
@@ -304,13 +313,15 @@ app.init()`)
             delete n['controls']
             delete n['analysis']
             n.class = `${classNames[i]}`
-        })
+        })})
 
-        for (let key in info.graph) {
-            if (key != 'nodes' && key != 'edges') {
-                delete info.graph[key]
+        info.graphs.forEach(g => {
+            for (let key in g) {
+                if (key != 'nodes' && key != 'edges') {
+                    delete g[key]
+                }
             }
-        }
+        })
 
         info = JSON.stringify(info, '\t')
 
@@ -459,7 +470,6 @@ app.init()`)
 
         let editable = false
         try {
-            console.log(node)
             let constructor = node.info.class.prototype.constructor.toString() // save original class
             let cls = eval(`(${constructor})`)
             let instance = new cls(node.info, node.parent) // This triggers the catch
@@ -558,13 +568,16 @@ app.init()`)
 
                     let settings
                     try {
+
                         let moduleText = "data:text/javascript;base64," + btoa(info.settings);
                         let module = await import(moduleText);
                         settings = module.settings
 
                         // Replace Random IDs with Classes
-                        settings.graph.nodes.forEach(n => {
-                            n.class = classMap[n.class].class
+                        settings.graphs.forEach(g => {
+                            g.nodes.forEach(n => {
+                                if (n?.class && classMap[n.class]?.class) n.class = classMap[n.class]?.class
+                            })
                         })
 
                         // settings = this.session.graph.parseParamsForSettings(settings)

@@ -167,7 +167,9 @@ export class LiveEditor {
                             // +'}'
                             );
                     } 
-                    catch (er) {console.log(er)}
+                    catch (er) {
+                        // console.log(er)
+                    }
 
                     if(newFunc){
                         this.target[this.key] = newFunc;

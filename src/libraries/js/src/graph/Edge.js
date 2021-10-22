@@ -461,4 +461,12 @@ const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${c3.x},${c3.y} T${p2.x},${p2.y}` +
         this.deinit()
     }
 
+    // ---------------- EXPORT HELPER ----------------
+    info = () => {
+      return {
+        source: {node: this.source.node.name, port: this.source.port.name},
+        target: {node: this.target.node.name, port: this.target.port.name}
+      }
+    }
+
 }
