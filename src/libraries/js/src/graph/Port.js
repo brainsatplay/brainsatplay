@@ -38,7 +38,8 @@ export class Port {
             output: {},
             latency: document.createElement('div'),
             code: document.createElement('div'),
-            editor: null
+            editor: null,
+            // lastclicked: null
         }
 
         let defaultType = this.getType()
@@ -61,7 +62,8 @@ export class Port {
 
             // Listen for clicks to draw SVG edge
             el.onpointerdown = (e) => {
-                this.connect(this)
+                if (s === 'output') this.connect({source: {port: this,node: this.node}})
+                else this.connect({target: {port: this,node: this.node}})
             }
 
             this.ui[s].insertAdjacentElement('beforeend', el)
@@ -77,22 +79,8 @@ export class Port {
     }
 
 
-    connect(targetPort=this, sourcePort) {
-
-
-        let e = {}
-        e['target'] = {}
-        e['target'].node = targetPort.node
-        e['target'].port = targetPort
-
-        if (sourcePort){
-            e['source'] = {}
-            e['source'].node = sourcePort.node
-            e['source'].port = sourcePort
-        } 
-
+    connect(e) {
         this.node.parent.addEdge(e)
-
     }
 
     checkForUpdates() {

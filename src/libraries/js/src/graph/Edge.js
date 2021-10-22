@@ -26,7 +26,6 @@ export class Edge {
             this.subscription
             
             // Create UI
-            this.editing = false
             if (this.parent.app.editor){
                 this._createUI()
             }
@@ -34,64 +33,44 @@ export class Edge {
 
 
     init = async () => {
-        return new Promise(async (resolve, reject) => {
 
-
-        let sP = this.source.port
-        let tP = this.target.port
-
-        if (sP && tP){
-
-            // Activate Functionality
-            this.parent.app.state.data[this.uuid] = this.value
-            this.subscription = this.parent.app.state.subscribeTrigger(this.uuid, this.onchange)
-
-            // Register Edge in Ports
-            this.source.node.edges.set(this.uuid, this)
-            this.target.node.edges.set(this.uuid, this)
-            sP.edges.output.set(this.uuid,this)
-            tP.edges.input.set(this.uuid, this)
-
-            // Activate Dyhamic Analyses
-        
-            if (tP.analysis && (tP.edges.input.size > 0 || tP.type === null) && (tP.edges.output.size > 0 || tP.type === null)) this.parent.app.analysis.dynamic.push(...tP.analysis)
-            if (sP.analysis && (sP.edges.input.size > 0 || sP.type === null) && (sP.edges.output.size > 0 || sP.type === null)) this.parent.app.analysis.dynamic.push(...sP.analysis)
-
-            // Activate UI
-            if (this.parent.app.editor) await this._activateUI()
-
-            // Update Brainstorm ASAP
-            let brainstormTarget = this.target.node.className === 'Brainstorm'
-
-            if (brainstormTarget) {
-                this.parent.app.streams.push(this.source.port.label) // Keep track of streams
-            }
-
-            await this.update() // Indiscriminately activate edge with initial value
-            this.addReactivity() 
-
-            resolve(this)
-        } else {
-
-            this.parent.editing = true
-
-            let res = await this.parent.getEdge(this)
-    
-            if (res){
-                this.addReactivity() 
-                this.parent.editing = false
-                resolve(this)
-            } else {
-                // // Grab Type of Incomplete Port
-                // for (let key in res.edge.structure) for (let cls of res.edge[`${key}Node`].classList) if (cls.includes('type-')) this.search.value = cls.replace('type-','')
-                // this.matchOptions()
-                // this.selectorToggle.click()
-                console.error('EDGE CANNOT BE CREATED', this.source, this.target)
-                reject()
-            }
+        let res = await this._activateUI()
+        if (res === true){
+          await this._activate()
         }
-    })
+        return res
+    }
 
+    _activate = async () => {
+
+      let sP = this.source.port
+      let tP = this.target.port
+
+      // Activate Functionality
+      this.parent.app.state.data[this.uuid] = this.value
+      this.subscription = this.parent.app.state.subscribeTrigger(this.uuid, this.onchange)
+
+      // Register Edge in Ports
+      this.source.node.edges.set(this.uuid, this)
+      this.target.node.edges.set(this.uuid, this)
+      sP.edges.output.set(this.uuid,this)
+      tP.edges.input.set(this.uuid, this)
+
+      // Activate Dyhamic Analyses
+  
+      if (tP.analysis && (tP.edges.input.size > 0 || tP.type === null) && (tP.edges.output.size > 0 || tP.type === null)) this.parent.app.analysis.dynamic.push(...tP.analysis)
+      if (sP.analysis && (sP.edges.input.size > 0 || sP.type === null) && (sP.edges.output.size > 0 || sP.type === null)) this.parent.app.analysis.dynamic.push(...sP.analysis)
+
+
+      // Update Brainstorm ASAP
+      let brainstormTarget = this.target.node.className === 'Brainstorm'
+
+      if (brainstormTarget) {
+          this.parent.app.streams.push(this.source.port.label) // Keep track of streams
+      }
+
+      await this.update() // Indiscriminately activate edge with initial value
+      this.addReactivity() 
     }
 
     deinit = () => {
@@ -141,26 +120,28 @@ export class Edge {
 
         let svgPorts = arr.map(o => {
 
-            let portElement = this[o.type].port.ui[o.port]
-            portElement.children[0].classList.add('active') // Label Active Node
-            let portDim = portElement.getBoundingClientRect()
-            let svgPort = this.svgPoint(this.svg.element, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
+            let port = this[o.type].port
+            if (port){
+                let portElement = port.ui[o.port]
+                portElement.children[0].classList.add('active') // Label Active Node
+                let portDim = portElement.getBoundingClientRect()
+                let svgPort = this.svgPoint(this.svg.element, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
 
-            // Update Edge Anchor
-            this.updateElement(
-                this.node[o.node],
-                {
-                    cx: svgPort.x,
-                    cy: svgPort.y
-                }
-            );
-
-            return svgPort
+                // Update Edge Anchor
+                this.updateElement(
+                    this.node[o.node],
+                    {
+                        cx: svgPort.x,
+                        cy: svgPort.y
+                    }
+                );
+                return svgPort
+            }
         })
 
-        if (svgPorts.length === 1) svgPorts.push(svgPorts[0])
+        svgPorts = svgPorts.filter(s => s != undefined)
+        if (svgPorts.length > 1) this.updateControlPoints(...svgPorts)
 
-        this.updateControlPoints(...svgPorts)
         this.drawCurve();
 
     }
@@ -169,10 +150,13 @@ export class Edge {
 
     let label = (type === 'source') ? 'p1' : 'p2'
     let otherType = (type === 'source') ? 'target' : 'source'
+    let inorout = (otherType === 'source') ? 'output' : 'input'
+
     
       let onMouseMove = (e) => {
 
-        let dims = this[otherType].port.element.getBoundingClientRect()
+        this.resizeElement()
+        let dims = this[otherType].port.ui[inorout].getBoundingClientRect()
         let svgO = this.svgPoint(this.svg.element, dims.left + dims.width/2, dims.top + dims.height/2)
         let svgP = this.svgPoint(this.svg.element, e.clientX, e.clientY)
         
@@ -185,6 +169,7 @@ export class Edge {
               cy: svgP.y
           }
       );
+      
       let points = (type === 'source') ? [svgP, svgO] : [svgO, svgP]
 
       this.updateControlPoints(...points)
@@ -196,21 +181,17 @@ export class Edge {
 
 
     let onMouseUp = (e) => {
-      if (e.target != this[otherType].port.element && e.target.classList.contains('node-port')){
+      if (e.target != this[otherType].port.ui[inorout] && e.target.classList.contains('node-port')){
         if (Array.from(e.target.parentNode.parentNode.classList).find(str => str.includes(type))){
-          this.structure[type]  = {node: e.target.getAttribute('data-node'), port: e.target.getAttribute('data-port')}
-          this[type] = this.nodes[this.structure[type].node]
-
-          // NOTE: Fix and check
-        //   this[`${type}Node`] = this[type].element.querySelector(`.${type}-ports`).getElementsByClassName(`port-${this.structure[type].port}`)[0]
-          this[type].node.registerEdge(this)
-          this[type].node.resizeAllEdges(this)
+          let node = this.parent.getNode(e.target.getAttribute('data-node'))
+          let port = node.getPort(e.target.getAttribute('data-port'))
+          this[type]  = {node, port}
           upCallback(true)
         } else {
           upCallback('Cannot connect two ports of the same type.')
         }
       } else {
-        this.element.remove()
+        this.deinit()
         upCallback('Edge not completed.')
       }
       window.removeEventListener('mouseup', onMouseUp)
@@ -251,15 +232,13 @@ _createUI = () => {
 }
 
 _activateUI = async () => {
-    return new Promise(async (resolve)=> {
+    return new Promise(async (resolve, reject)=> {
 
     let res = await this.insert(this.parentNode) // insert into UI
         
-    let found,compatible, sourceType, targetType
+    let match,compatible, sourceType, targetType;
 
-    let complete = this.target.node != null && this.target.port != null && this.source.node != null && this.source.port != null
-    
-    if (complete){
+    if (res){
 
         // Check Edge Compatibility
         let coerceType = (t) => {
@@ -276,46 +255,53 @@ _activateUI = async () => {
 
         compatible = checkCompatibility(sourceType, targetType)
     }
+      
+    // match = this.parent.matchEdge(this)
 
-if (res === true && complete && compatible){
-        // this.edges.push(edge)
-        resolve({msg: 'OK', edge: this})
-} else {
-    this.removeEdge(edge)
-    if (res != true) resolve({msg: 'edge is incomplete', edge: edge})
-    else if (compatible == false) reject(`Source (${sourceType}) and Target (${targetType}) ports are not of compatible types`)
-    else if (found == null) reject('edge already exists')
-    else reject(res)
-}
+      if (res === true && match == null && compatible){
+              resolve(true)
+      } else {
+
+          this.deinit()
+          if (res != true) resolve({msg: 'edge is incomplete', edge: this})
+          else if (compatible == false) reject(`Source (${sourceType}) and Target (${targetType}) ports are not of compatible types`)
+          else if (match == null) reject('edge already exists') // not currently checking
+          else reject(res)
+
+      }
     })
 }
 
 
-insert = async () => {
+insert = () => {
+  return new Promise(async (resolve)=> {
 
-  return new Promise((resolve)=> {
+      this.parent.ui.graph.insertAdjacentElement('beforeend', this.element)
 
-  this.parent.ui.graph.insertAdjacentElement('beforeend', this.element)
-  
-  this.types.forEach(t => {
-    if (this[t].port == null) { // TODO: Fix and check
-      this.mouseAsTarget(t,(res) => {
-        if (res === true) resolve(true) 
-        else resolve(res)
+      this.parent.ui.editing = true
+
+      this.types.forEach(t => {
+        if (this[t].port == null){
+          this.mouseAsTarget(t,async (res) => {
+            if (res === true) {
+              this.parent.ui.editing = false
+              await this._activate()
+              resolve(true) 
+            }
+            else resolve(res)
+          })
+        }
       })
-    }
+      
+      this.drawCurve();
+
+      this.types.forEach(t => {
+        if (this[t].node) this[t].node.resizeAllEdges(this)
+      })
+
+      if (this.source.port && this.target.port) resolve(true)
   })
 
-this.drawCurve();
-
-this.types.forEach(t => {
-  this[t].node.resizeAllEdges(this)
-})
-
-// Resolve if both source and target are selected
-if (this.types.length === 2) resolve(true) // TODO: What is this supposed to check?
-
-})
 }
 
 

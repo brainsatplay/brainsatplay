@@ -1020,28 +1020,28 @@ export class Editor{
     // Change the INTERNAL Params (running through port and setting output manually)
     updatePortFromGUI(input, plugin, key, toParse) {
 
+        let value
         if (this.elementTypesToUpdate.includes(input.tagName)){
             if (input.tagName === 'TEXTAREA') {
                 try{
-                    toParse[key].data = JSON.parse(input.value)
+                    value = JSON.parse(input.value)
                 } catch (e) {console.warn('JSON not parseable', e)}
             }
-            else if (input.type === 'checkbox') toParse[key].data = input.checked
-            else if (input.type === 'file') toParse[key].data = input.files;
+            else if (input.type === 'checkbox') value = input.checked
+            else if (input.type === 'file') value = input.files;
             else if (['number','range'].includes(input.type)) {
                 let possibleUpdate = Number.parseFloat(input.value)
 
-                if (!isNaN(possibleUpdate)) toParse[key].data = possibleUpdate
+                if (!isNaN(possibleUpdate)) value = possibleUpdate
                 else return
 
                 if (input.type === 'range') {
                     input.parentNode.querySelector('output').innerHTML = input.value
                 }
             }
-            else toParse[key].data = input.value
+            else value = input.value
             
-            toParse.forceUpdate = true
-           plugin.port[key].set(toParse)
+            plugin.ports[key].set({value, forceUpdate: true})
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
         }
     }
@@ -1306,7 +1306,7 @@ export class Editor{
         })
     }
 
-    addNodeOption(classInfo={id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Plugin, category: null, types: []}, onClick){
+    addNodeOption(classInfo={id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Blank, category: null, types: []}, onClick){
 
         if (!('types' in classInfo)) classInfo.types = []
 
@@ -1323,7 +1323,6 @@ export class Editor{
 
             await this.graph.addNode(classInfo)
             this.responsive()
-            this.selectorToggle.click()
         }
 
         
@@ -1385,7 +1384,7 @@ export class Editor{
                 })
 
                 this.searchOptions.push({name, element, types, category: type})
-                if (type == null) contentOfType.style.maxHeight = contentOfType.scrollHeight + "px"; // Resize options without a type (i.e. not hidden)
+                if (type == null) contentOfType.style.maxHeight = 'none'; // Resize options without a type (i.e. not hidden)
 
                 let count = options.querySelector(`.${type}-count`)
                 let header = options.querySelector(`.nodetype-${type}`)

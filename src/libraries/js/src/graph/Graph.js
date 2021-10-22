@@ -319,18 +319,19 @@ export class Graph {
      }
 
     // ------------------- EDGES -------------------
-    addEdge = async ({source={node:'',port:''},target={node:'',port:''}}) => {
+    addEdge = async ({source={node:null,port:null},target={node:null,port:null}}) => {
 
         ({source, target} = this.convertToStandardEdge(source, target));
 
         // NOTE: Add check for existing edge
         // if(!sourceNode.wires[name] && !targetNode.wires[name]) {
+
             let edge = new Edge(source, target, this)
 
             // Initialize Edge
-           let res = await edge.init()
+            let res = await edge.init()
 
-            if (res) this.edges.set(edge.uuid, edge)
+            if (res === true) this.edges.set(edge.uuid, edge)
             else edge.deinit()
     }
 
@@ -345,26 +346,31 @@ export class Graph {
         let nodes, ports;
         Object.keys(standardStruct).forEach(type => {
 
-            // Object Specification
-            if (structure[type] instanceof Object) {
-                nodes = this.get('nodes',structure[type].node)
-                standardStruct[type].node = nodes[0]?.name ?? structure[type].node
-                standardStruct[type].port = structure[type].port ?? 'default'
-            } 
-            
-            // String Specification (old)
-            else if (typeof structure[type] === 'string') {
-                let structSplit = structure[type].split(':')
-                standardStruct[type] = {node: structSplit[0], port: structSplit[1] ?? 'default'}
+            // Correct
+            if (structure[type].node instanceof Graph && structure[type].port instanceof Port){
+                standardStruct = structure
+            } else {
+                // Object Specification
+                if (structure[type] instanceof Object) {
+                    nodes = this.get('nodes', structure[type].node)
+                    standardStruct[type].node = nodes[0]?.name ?? structure[type].node
+                    standardStruct[type].port = structure[type].port ?? 'default'
+                } 
+                
+                // String Specification (old)
+                else if (typeof structure[type] === 'string') {
+                    let structSplit = structure[type].split(':')
+                    standardStruct[type] = {node: structSplit[0], port: structSplit[1] ?? 'default'}
 
+                }
+
+                // Replace Object Specification with Active Nodes and Ports
+                nodes = this.get('nodes',standardStruct[type].node, this.nodes)
+
+                standardStruct[type].node = nodes[0]
+                if (standardStruct[type].node) standardStruct[type].port = standardStruct[type].node.ports[standardStruct[type].port]
+                else standardStruct[type].port = null
             }
-
-            // Replace Object Specification with Active Nodes and Ports
-            nodes = this.get('nodes',standardStruct[type].node, this.nodes)
-
-            standardStruct[type].node = nodes[0]
-            if (standardStruct[type].node) standardStruct[type].port = standardStruct[type].node.ports[standardStruct[type].port]
-            else standardStruct[type].port = null
         })
         return standardStruct
     }
