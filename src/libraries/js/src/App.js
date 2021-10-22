@@ -28,7 +28,9 @@ export class App {
 
         this.props = { // Changes to this can be used to auto-update the HTML and track important UI values 
             id: null, // Keep random ID
-            sessionId: null, // Track Brainstorm sessions
+            sessionId: null, // Track Brainstorm sessions,
+            ready: false,
+            edgeCallbacks: []
         };
 
         this.editor = new Editor(this, parent)
@@ -86,9 +88,11 @@ export class App {
         this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
-        this.session.createIntro(this, (sessionInfo) => {
+        this.session.createIntro(this, async (sessionInfo) => {
 
             // this.tutorialManager.init();
+
+            this.props.ready = true
 
             // Multiplayer Configuration
             this.session.startApp(this, sessionInfo?.id ?? this.props.id)
@@ -99,7 +103,6 @@ export class App {
                     await arr[1].update() // second time (first inside edge, this time for brainstorm)
                 }
             })
-
         })    
 
     }
@@ -122,6 +125,7 @@ export class App {
     // Executes after UI is created
     _setupUI = () => {
         if (this.info.connect) this._createDeviceManager(this.info.connect)
+        setTimeout(() => this.graphs.forEach(g => g._resizeUI()), 250) // resize again
     }
 
     // Populate the UI with a Device Manager

@@ -67,9 +67,11 @@ export class Edge {
 
       if (brainstormTarget) {
           this.parent.app.streams.push(this.source.port.label) // Keep track of streams
+          await this.update() // Pass to Brainstorm
       }
 
-      await this.update() // Indiscriminately activate edge with initial value
+      if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (only if app is completely initialized)
+
       this.addReactivity() 
     }
 
@@ -282,14 +284,17 @@ insert = () => {
 
       this.types.forEach(t => {
         if (this[t].port == null){
-          this.mouseAsTarget(t,async (res) => {
-            if (res === true) {
-              this.parent.ui.editing = false
-              await this._activate()
-              resolve(true) 
-            }
-            else resolve(res)
-          })
+
+          if (this.parent.app.props.ready){
+            this.mouseAsTarget(t,async (res) => {
+              if (res === true) {
+                this.parent.ui.editing = false
+                await this._activate()
+                resolve(true) 
+              }
+              else resolve(res)
+            })
+          }
         }
       })
       
@@ -300,6 +305,7 @@ insert = () => {
       })
 
       if (this.source.port && this.target.port) resolve(true)
+      else resolve(false)
   })
 
 }

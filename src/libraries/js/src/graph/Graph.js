@@ -175,7 +175,6 @@ export class Graph {
 
         if (Object.keys(info).length > 0) Object.assign(this, info)
         if (Object.keys(info).length > 0) Object.assign(this.info, info)
-
     }
 
     // Resize All Active Node Fragments
@@ -185,8 +184,10 @@ export class Graph {
             this.nodes.forEach(n => {
                 // if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
                 // else 
+                console.log(n)
                 if (n.responsive instanceof Function) funcs.push( n.responsive)
             })
+            console.log(funcs)
             // Repeat to Scale Everything Appropriately
             funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
             funcs.forEach(f => f()) // Catch outliers
@@ -287,23 +288,16 @@ export class Graph {
                     let parent = new ParentClass(...args)
                     let child = new ChildClass(...args)
 
-                    // Merge Init
-                    let childInit = child.init
-                    let parentInit = parent.init
-
-                    parent.init = child.init = () => {
-                        childInit()
-                        parentInit()
-                    }
-
-                    // Merge Deinit
-                    let cDeinit = child.deinit
-                    let pDeinit = parent.deinit
-
-                    parent.deinit = child.deinit = () => {
-                        cDeinit()
-                        pDeinit()
-                    }
+                    let mergeMethods = ['init', 'deinit', 'responsive', 'configure']
+                    mergeMethods.forEach(f => {
+                        // Merge Init
+                        let cM = child[f]
+                        let pM = parent[f]
+                        parent[f] = child[f] = (...args) => {
+                            if (cM instanceof Function) cM(...args)
+                            if (pM instanceof Function) pM(...args)
+                        }
+                    })
 
                     Object.assign(parent, child); // provide child references
                     Object.assign(child, parent); // provide parent methods

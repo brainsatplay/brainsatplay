@@ -179,18 +179,7 @@ export class Editor{
         }
 
         this.exit.onclick = () => {
-
-            // If Inside Studio, Bring Back UI
-            if (this.isStudio){
-                document.getElementById('applet-browser-button').click()
-                // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
-                // projectWindow.style.opacity = 1
-                // projectWindow.style.pointerEvents = 'all'
-
-            } else { // Otherwise just toggle the editor display
-                this.toggleDisplay()
-            }
-
+            this.toggleDisplay()
         }
 
         // Create Tab Container
@@ -204,8 +193,6 @@ export class Editor{
     init = async () => {
 
             this.settings = Object.assign({parentId: this.app.ui.parent.id, show: false, create: true}, this.app.info.editor ?? {})
-
-            this.isStudio = document.getElementById('brainsatplay-studio') != null
 
             if (!document.getElementById(this.settings.parentId)) this.settings.parentId = this.app.ui.parent.id
 

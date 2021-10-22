@@ -142,6 +142,7 @@ export class UI {
                                 ) {
                                     node.insertAdjacentElement('beforeend', data)
                                     node.setAttribute('data-active', true)
+
                                     setTimeout(() => {
                                         if (data.onload instanceof Function) data.onload()
                                         if (data.onresize instanceof Function) {

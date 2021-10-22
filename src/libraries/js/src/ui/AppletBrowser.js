@@ -60,7 +60,6 @@ export class AppletBrowser {
             if (cmd.presets != null) this.props.presets = cmd.presets
         });
 
-        console.log(this)
         this._createBrowser()
     }
 
