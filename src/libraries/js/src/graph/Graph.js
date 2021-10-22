@@ -104,6 +104,16 @@ export class Graph {
         this.ui.element.remove()
         this.ui.graph.remove()
 
+        // Remove Editor Tab
+        let files = this.app.editor.files[this.uuid].files
+        for (let type in files) {
+            for (let key in files[type]){
+                let el = files[type][key]
+                if (el) el.remove()
+            }
+        }
+
+
         if (this.app.editor) this.app.editor.removeGraph(this)
 
     }
@@ -742,7 +752,12 @@ export class Graph {
             if (node.editable){
                 this.app.editor.edit.style.display = ''
                 this.app.editor.edit.onclick = (e) => {
-                    this.app.editor.createFile(node, undefined, node.parent)
+                    let files = this.app.editor.files[node.uuid].files
+                    let graphtoggle = files.graph?.tab ?? files.graph?.toggle
+                    let codetoggle = files.code?.tab ?? files.code?.toggle
+
+                    if (codetoggle) codetoggle.click()
+                    // .createFile(node, undefined, node.parent)
                 }
             } else this.app.editor.edit.style.display = 'none'
         }

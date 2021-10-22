@@ -18,9 +18,6 @@ export class Editor{
 
         this.parentNode = (typeof parent === 'string') ? document.getElementById(parent) : parent 
 
-        this.settings = Object.assign({parentId: this.app.ui.parent.id, show: false, create: true}, this.app.info.editor ?? {})
-
-        this.element = null
         this.graph=null
         this.shown = false
         this.context = {
@@ -122,11 +119,11 @@ export class Editor{
                     </div>
                 `
         
-            this.element = new DOMFragment(
-                this.container,
-                this.parentNode,
-                undefined,
-                () => {
+            // this.element = new DOMFragment(
+            //     this.container,
+            //     this.parentNode,
+            //     undefined,
+            //     () => {
                     // Set UI Attributes
                     this.filesidebar = {}
                     this.filesidebar.container = this.container.querySelector(`[id="${this.props.id}FileSidebar"]`)
@@ -138,7 +135,6 @@ export class Editor{
 
                     
                     this.filesidebar.header = this.filesidebar.container.querySelector(`.header`) 
-                    this.filesidebar.header.querySelector('h3').innerHTML = this.app.info.name
 
                     this.mainPage = this.container.querySelector(`[id="${this.props.id}MainPage"]`)
                     this.editor = this.container.querySelector(`[id="${this.props.id}Editor"]`)
@@ -152,70 +148,71 @@ export class Editor{
                     this.params = this.container.querySelector(`[id="${this.props.id}params"]`)
                     this.edit = this.container.querySelector(`[id="${this.props.id}edit"]`)
                     this.delete = this.container.querySelector(`[id="${this.props.id}delete"]`)
-                } // setup function, moved to init
-            )
-        }
+                // } // setup function, moved to init
+            // )
 
         window.addEventListener('resize', this.responsive)
 
+
+        // Setup UI
+        this.insertProjects()
+
+        // Setup User Interactions
+        let publishButton = this.container.querySelector(`[id="${this.props.id}publish"]`)
+        publishButton.onclick = () => {
+            this.app.updateGraph()
+            this.app.session.projects.publish(this.app)
+        }
+        publishButton.classList.add('disabled')
+
+        this.edit.style.display = 'none'
+        this.delete.style.display = 'none'
+
+        this.download.classList.add('disabled')
+        this.download.onclick = () => {
+            this.app.session.projects.download(this.app)
+        }
+
+        this.reload.classList.add('disabled')
+        this.reload.onclick = () => {
+            this.app.reload()
+        }
+
+        this.exit.onclick = () => {
+
+            // If Inside Studio, Bring Back UI
+            if (this.isStudio){
+                document.getElementById('applet-browser-button').click()
+                // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
+                // projectWindow.style.opacity = 1
+                // projectWindow.style.pointerEvents = 'all'
+
+            } else { // Otherwise just toggle the editor display
+                this.toggleDisplay()
+            }
+
+        }
+
+        // Create Tab Container
+        this.createViewTabs()
+
         this.init()
+    }
 
     }
 
     init = async () => {
 
+            this.settings = Object.assign({parentId: this.app.ui.parent.id, show: false, create: true}, this.app.info.editor ?? {})
+
             this.isStudio = document.getElementById('brainsatplay-studio') != null
 
             if (!document.getElementById(this.settings.parentId)) this.settings.parentId = this.app.ui.parent.id
 
+            this.filesidebar.header.querySelector('h3').innerHTML = this.app.info.name
 
             // Setup Presentation Based On Settings
             if (this.settings.style) this.container.style = this.settings.style 
-
-
-            // find toggle (wait a bit)
-            // setTimeout(() => {
-            //     this.setToggle()
-            // }, 2000)
-
-            // Insert Projects
-            this.insertProjects()
-
-            // Publish Button
-            let publishButton = this.element.node.querySelector(`[id="${this.props.id}publish"]`)
-            publishButton.onclick = () => {
-                this.app.updateGraph()
-                this.app.session.projects.publish(this.app)
-            }
-            publishButton.classList.add('disabled')
-
-            this.edit.style.display = 'none'
-            this.delete.style.display = 'none'
-
-            this.download.onclick = () => {
-                this.app.session.projects.download(this.app)
-            }
-
-
-            this.reload.onclick = () => {
-                applet.reload()
-            }
-
-            this.exit.onclick = () => {
-
-                // If Inside Studio, Bring Back UI
-                if (this.isStudio){
-                    document.getElementById('applet-browser-button').click()
-                    // let projectWindow = document.getElementById('brainsatplay-studio').querySelector('.projects')
-                    // projectWindow.style.opacity = 1
-                    // projectWindow.style.pointerEvents = 'all'
-
-                } else { // Otherwise just toggle the editor display
-                    this.toggleDisplay()
-                }
-
-            }
-
 
             // Insert Node Selector with Right Click
             this.toggleContextMenuEvent(this.editor)
@@ -225,9 +222,6 @@ export class Editor{
 
             // Search for Plugins
             this.createPluginSearch(this.mainPage)
-
-            // Create Tabs
-            this.createViewTabs()
 
             if (this.settings.show) this.toggleDisplay()
         }
@@ -240,7 +234,7 @@ export class Editor{
 
     insertProjects = async () => {
 
-        this.props.projectContainer = this.element.node.querySelector(`[id="${this.props.id}projects"]`)
+        this.props.projectContainer = this.container.querySelector(`[id="${this.props.id}projects"]`)
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
 
@@ -379,7 +373,7 @@ export class Editor{
 
     createViewTabs = () => {
 
-        let parentNode = this.element.node.querySelector(`[id="${this.props.id}ViewTabs"]`)
+        let parentNode = this.container.querySelector(`[id="${this.props.id}ViewTabs"]`)
 
         // Add Tab Div
         let tabs = document.createElement('div')
@@ -405,19 +399,23 @@ export class Editor{
         // if (graph.info.nodes.length > 0){
 
             // Create Graph Tab and Save Functionaity
-            this.files[graph.name] = {name: graph.name, type: 'graph', nodes: [], graph}
-            this.files[graph.name].elements = {
+            this.files[graph.uuid] = {name: graph.name, type: 'graph', nodes: [], graph}
+            this.files[graph.uuid].elements = {
                 code: graph.ui.code,
                 graph: graph.ui.graph
             }
 
-            this.createFileElement(this.files[graph.name])
+            let graphs = graph.info.graphs.length // initial nodes
+            let nodes = graph.info.nodes.length // initial nodes
+            let parentnodes = graph.parent?.info?.nodes?.length // initial nodes
+
+            this.createFileElement(this.files[graph.uuid], {graph: nodes > 0 || (graphs === 0 && (parentnodes === 0 || parentnodes == undefined))})
             // this.files[graph.name].tab = this.addTab(this.files[graph.name])
 
-            let save = this.element.node.querySelector(`[id="${this.props.id}save"]`)
+            let save = this.container.querySelector(`[id="${this.props.id}save"]`)
             save.onclick = graph._saveGraph // actually saves app
 
-            return this.files[graph.parent.name]?.container
+            // return this.files[graph.uuid]?.container
         // } else return this.files[graph.parent.name]?.container // 
     }
 
@@ -451,9 +449,10 @@ export class Editor{
             let isGraph = !!o.graph
             if (isGraph){
                 let onClose = () => {
-                    tab.style.display = 'none'
-                    let editorTab = tab
-                    editorTab.click()
+                    if (tab.previousElementSibling){ // do not remove if last tab
+                        tab.style.display = 'none'
+                        tab.previousElementSibling.click()
+                    }
                 }
                 this.addCloseIcon(tab,onClose)
             } else {
@@ -492,22 +491,17 @@ export class Editor{
                 this.responsive()
             }
 
-            this.element.node.querySelector('.tab').insertAdjacentElement('beforeend', tab)
+            this.container.querySelector('.tab').insertAdjacentElement('beforeend', tab)
             this.responsive()
             o.files[type].tab  = tab
         }
 
         
         let currentTab = this.currentFile?.tab
-        this.clickTab(o.files[type].tab)
-        if (currentTab && !lock) this.clickTab(currentTab)
+        o.files[type].tab.click()
+        if (currentTab && !lock) currentTab.click()
 
         return o.files[type].tab 
-    }
-
-    clickTab = (tab) => {
-        if (tab.style.display === 'none') tab.style.display = ''
-        tab.click()
     }
 
     toggleContextMenuEvent = (el) => {
@@ -526,7 +520,7 @@ export class Editor{
     }
 
     createSettingsEditor(settings){
-            let settingsContainer = this.element.node.querySelector(`[id="${this.props.id}settings"]`)
+            let settingsContainer = this.container.querySelector(`[id="${this.props.id}settings"]`)
 
             settings = Object.assign({}, settings) // shallow copy
 
@@ -616,18 +610,20 @@ export class Editor{
 
 
     toggleDisplay(){
-        if (this.element){
+        // if (this.element){
 
-            if (this.element.node.style.opacity == 0){
-                this.element.node.style.opacity = 1
-                this.element.node.style.pointerEvents = 'auto'
+            if (this.container.style.opacity == 0){
+                this.parentNode.insertAdjacentElement('beforeend', this.container)
+                setTimeout(() => {
+                this.container.style.opacity = 1
+                this.container.style.pointerEvents = 'auto'
                 this.shown = true
 
                 // Move App Into Preview
                 this.appNode = this.app.ui.container
                 this.preview.appendChild(this.appNode)
                 this.defaultpreview.style.display = 'none'
-                setTimeout(() => {
+                // setTimeout(() => {
                     this.responsive()
                     this.app.graphs.forEach(g => {
                         g._resizeUI() 
@@ -635,22 +631,23 @@ export class Editor{
                     })
                 },50)
             } else {
-                this.element.node.style.opacity = 0
-                this.element.node.style.pointerEvents = 'none'
+                this.container.style.opacity = 0
+                this.container.style.pointerEvents = 'none'
                 this.shown = false
 
                 this.app.ui.parent.appendChild(this.appNode)
                 this.defaultpreview.style.display = 'block'
+                this.responsive()
+                this.app.graphs.forEach(g => {
+                    g._resizeUI() 
+                    // if (g === this.graph) this.graph.resizeAllEdges()
+                })
 
                 setTimeout(() => {
-                    this.responsive()
-                    this.app.graphs.forEach(g => {
-                        g._resizeUI() 
-                        if (g === this.graph) this.graph.resizeAllEdges()
-                    })
-                },50)
+                    if (this.container.parent == this.parentNode) this.container.remove()
+                },1000)
             }
-        }
+        // }
     }
 
     removeEdge(e, ignoreManager=false){
@@ -1014,7 +1011,7 @@ export class Editor{
 
                     if (oldValue != newValue) {
                         if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
-                        if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
+                        // if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
                     }
             })
         })
@@ -1075,6 +1072,7 @@ export class Editor{
                 code: activeNode.ui.code,
                 graph: activeNode.ui.graph
             }
+
             this.createFileElement(this.files[filename])
 
             // this.editor.insertAdjacentElement('beforeend', activeNode.ui.code)
@@ -1084,11 +1082,13 @@ export class Editor{
             this.addNodeOption({id:cls.id, label: cls.name, class:cls})
 
         } else {
-            this.clickTab(this.files[filename].tab)
+            let files = this.files[filename].files
+            let toClick = files.code?.tab ?? files.code?.toggle
+            toClick.click()
         }
     }
 
-    createFileElement = (fileDict) => {
+    createFileElement = (fileDict, initialize={}) => {
 
         fileDict.files = {}
         for (let type in fileDict.elements){
@@ -1105,15 +1105,18 @@ export class Editor{
             fileDict.files[type].container = fileDict.elements[type]
 
             fileDict.files[type].toggle.onclick = () => {
-                fileDict.files[type].tab = this.addTab(fileDict, type, (el) => {
-                    el.style.pointerEvents = 'all'
-                    el.style.opacity = '1'
-                }, true)
+                if (fileDict.files[type].tab == null){
+                    fileDict.files[type].tab = this.addTab(fileDict, type, (el) => {
+                        el.style.pointerEvents = 'all'
+                        el.style.opacity = '1'
+                    }, false)
+                }
+                fileDict.files[type].tab.click()
             }
 
             this.filesidebar[type].insertAdjacentElement('beforeend', fileDict.files[type].toggle)
             
-            fileDict.files[type].toggle.click()
+            if (initialize[type]) fileDict.files[type].toggle.click()
         }
         }
     }
@@ -1137,7 +1140,7 @@ export class Editor{
         this.selectorMenu = document.createElement('div')
         this.selectorMenu.classList.add(`brainsatplay-node-selector-menu`)
 
-        this.selectorToggle = this.element.node.querySelector(`[id="${this.props.id}add"]`)
+        this.selectorToggle = this.container.querySelector(`[id="${this.props.id}add"]`)
 
         let toggleVisibleSelector = (e) => {
             if(!e.target.closest('.brainsatplay-node-selector-menu') && !e.target.closest(`[id="${this.props.id}add"]`)) this.selectorToggle.click()
@@ -1280,7 +1283,7 @@ export class Editor{
                 change = 1
             }
 
-            let count = this.element.node.querySelector(`.${o.category}-count`)
+            let count = this.container.querySelector(`.${o.category}-count`)
             if (count) {
                 let numMatching = Number.parseFloat(count.innerHTML) + change
                 count.innerHTML = numMatching
@@ -1362,7 +1365,7 @@ export class Editor{
             
             element.onclick = () => {
                 onClick()
-                this.element.node.querySelector(`[id="${this.props.id}add"]`).click() // Close menu
+                this.container.querySelector(`[id="${this.props.id}add"]`).click() // Close menu
             }
 
             // element.insertAdjacentElement('beforeend',labelDiv)
@@ -1407,14 +1410,7 @@ export class Editor{
 
 
     responsive = () => {
-        let selector = this.element.node.querySelector(`[id="${this.props.id}nodeSelector"]`)
-
-        if (selector){
-            selector.style.height = `${selector.parentNode.offsetHeight}px`
-            selector.style.width = `${selector.parentNode.offsetWidth}px`
-        }
-
-        let tabContainer = this.element.node.querySelector(`[id="${this.props.id}ViewTabs"]`)
+        let tabContainer = this.container.querySelector(`[id="${this.props.id}ViewTabs"]`)
         if (tabContainer){
             let mainWidth =  this.container.offsetWidth - this.sidebar.offsetWidth - this.filesidebar.container.offsetWidth
             this.mainPage.style.width = `${mainWidth}px`
@@ -1424,6 +1420,14 @@ export class Editor{
             }
             else this.preview.parentNode.style.height = 'auto'
         }
+
+        let selector = this.container.querySelector(`[id="${this.props.id}nodeSelector"]`)
+
+        if (selector){
+            selector.style.height = `${selector.parentNode.offsetHeight}px`
+            selector.style.width = `${selector.parentNode.offsetWidth}px`
+        }
+
 
         if(this.currentFile){
 
@@ -1450,11 +1454,10 @@ export class Editor{
     }
 
     deinit(){
-        // console.log(this.element)
-        if (this.element){
-            this.element.node.style.opacity = '0'
-            // console.log(this.element.node)
-            setTimeout(() => {this.element.node.remove()}, 500)
+        if (this.container){
+            this.container.style.opacity = '0'
+            // console.log(this.container)
+            setTimeout(() => {this.container.remove()}, 500)
         }
         window.removeEventListener('resize', this.responsive)
     }

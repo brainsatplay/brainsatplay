@@ -58,6 +58,7 @@ export class App {
     // ------------------- START THE APPLICATION -------------------
 
     init = async () => {
+
         // Keep Style of Previous Top-Level Wrapper
         if (this.props.id == null) this.ui.container.style = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
 
@@ -80,10 +81,6 @@ export class App {
             this._deinit,
             this.responsive
         )
-
-
-        // console.log('initing editor', this)
-        // this.editor.init()
 
         // Register App in Session
         this.session.registerApp(this) // Rename
@@ -140,19 +137,21 @@ export class App {
             // Soft Deinit
             if (soft) {
                 this.session.removeApp(this.props.id)
-                if (this.intro.deleteNode instanceof Function) this.intro.deleteNode()
+                if (this.intro?.deleteNode instanceof Function) this.intro.deleteNode()
                 // this._removeAllFragments()
+                this.editor.init()
             }
 
             // Hard Deinit
             else {
+                this.editor.deinit()
+                document.removeEventListener('keyup', this.shortcutManager);
                 this.AppletHTML.deleteNode();
                 this.AppletHTML = null
             }
 
             this.graphs.forEach(g => g.deinit())
-            this.editor.deinit()
-            document.removeEventListener('keyup', this.shortcutManager);
+            this.graphs = new Map()
         }
     }
 
@@ -215,7 +214,6 @@ export class App {
 
 
     addGraph = (info) => {
-                
         let graph = new Graph(info, {app: this}); // top-level graph
         if(!this.graphs.get(graph.name)) this.graphs.set(graph.name, graph)
     }

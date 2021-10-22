@@ -296,10 +296,9 @@ export class Port {
             transform: translate(-50%, -50%)
         `
         
-        document.body.insertAdjacentElement('beforeend', this.ui.code)
-
         let settings = {}
         settings.onOpen = (res) => {
+            document.body.insertAdjacentElement('beforeend', this.ui.code)
             this.ui.code.style.pointerEvents = 'all'
             this.ui.code.style.opacity = '1'
         }
@@ -312,6 +311,7 @@ export class Port {
         settings.onClose = (res) => {
             this.ui.code.style.pointerEvents = 'none'
             this.ui.code.style.opacity = '0'
+            this.ui.code.remove()
         }
 
         if (['HTML', 'CSS', 'GLSL'].includes(this.output?.type)){

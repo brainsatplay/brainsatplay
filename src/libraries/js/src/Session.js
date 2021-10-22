@@ -1433,7 +1433,6 @@ else {
 				}
 			})
 
-			if (this.info.apps[appId].editor) this.info.apps[appId].editor.deinit()
 			delete this.info.apps[appId]
 		}
 	}
