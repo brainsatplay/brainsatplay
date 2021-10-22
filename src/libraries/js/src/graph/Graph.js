@@ -73,7 +73,8 @@ export class Graph {
         this.createUI()
         this.createCodeEditor()
 
-        if (this.app.editor) this.app.editor.addGraph(this) // place in editor as a tab
+        if (this.app.editor && !(this.parent instanceof Graph)) this.app.editor.addGraph(this) // place top-level graph as a tab
+
     }
 
 
@@ -88,7 +89,6 @@ export class Graph {
         }
 
         await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
-
     }
 
     deinit = () => {
@@ -184,10 +184,8 @@ export class Graph {
             this.nodes.forEach(n => {
                 // if ( n.fragment && n.fragment.onresize instanceof Function) funcs.push( n.fragment.onresize)
                 // else 
-                console.log(n)
                 if (n.responsive instanceof Function) funcs.push( n.responsive)
             })
-            console.log(funcs)
             // Repeat to Scale Everything Appropriately
             funcs.forEach(f => {setTimeout(() => {funcs.forEach(f => {f()})},1)})
             funcs.forEach(f => f()) // Catch outliers
@@ -227,6 +225,7 @@ export class Graph {
             o.instance = new Graph(o, this) // recursion begins
         }
 
+        if (this.app.editor) this.app.editor.addGraph(o.instance) // place in editor as a tab
         this.nodes.set(o.instance.uuid, o.instance)
 
         // this.analysis.add(...Array.from(nodeInfo.analysis))
@@ -567,7 +566,7 @@ export class Graph {
             let cls = this.info?.class
             if (cls){
                 let name = `${cls.name}`
-                let filename = `${name}.js`
+                // let filename = `${name}.js`
     
             let settings = {}
 
@@ -757,7 +756,6 @@ export class Graph {
                     let codetoggle = files.code?.tab ?? files.code?.toggle
 
                     if (codetoggle) codetoggle.click()
-                    // .createFile(node, undefined, node.parent)
                 }
             } else this.app.editor.edit.style.display = 'none'
         }

@@ -305,7 +305,6 @@ insert = () => {
       })
 
       if (this.source.port && this.target.port) resolve(true)
-      else resolve(false)
   })
 
 }

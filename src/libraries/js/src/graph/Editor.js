@@ -382,11 +382,9 @@ export class Editor{
 
     addGraph(graph){
 
-        // If there are nodes to visualize, do so
-        // if (graph.info.nodes.length > 0){
-
-            // Create Graph Tab and Save Functionaity
-            this.files[graph.uuid] = {name: graph.name, type: 'graph', nodes: [], graph}
+            // Create Graph File
+            let type = graph.constructor?.name
+            this.files[graph.uuid] = {name: graph.name, type, nodes: [], graph}
             this.files[graph.uuid].elements = {
                 code: graph.ui.code,
                 graph: graph.ui.graph
@@ -396,14 +394,11 @@ export class Editor{
             let nodes = graph.info.nodes.length // initial nodes
             let parentnodes = graph.parent?.info?.nodes?.length // initial nodes
 
-            this.createFileElement(this.files[graph.uuid], {graph: nodes > 0 || (graphs === 0 && (parentnodes === 0 || parentnodes == undefined))})
-            // this.files[graph.name].tab = this.addTab(this.files[graph.name])
-
+            
+            let showGraph = type === 'Graph' && (nodes > 0 || (graphs === 0 && (parentnodes === 0 || parentnodes == undefined)))
+            this.createFileElement(this.files[graph.uuid], {graph: showGraph})
             let save = this.container.querySelector(`[id="${this.props.id}save"]`)
             save.onclick = graph._saveGraph // actually saves app
-
-            // return this.files[graph.uuid]?.container
-        // } else return this.files[graph.parent.name]?.container // 
     }
 
     addCloseIcon(parent, callback){
@@ -1053,7 +1048,7 @@ export class Editor{
 
 
             this.files[filename].name = filename
-            this.files[filename].type = 'code'
+            this.files[filename].type = 'Plugin'
             // this.files[filename].container = activeNode.ui.code
             this.files[filename].elements = {
                 code: activeNode.ui.code,
@@ -1061,8 +1056,6 @@ export class Editor{
             }
 
             this.createFileElement(this.files[filename])
-
-            // this.editor.insertAdjacentElement('beforeend', activeNode.ui.code)
 
 
             // Add Option to Selector
@@ -1166,10 +1159,7 @@ export class Editor{
         // this.classRegistry['custom'] = {}
         let usedClasses = []
 
-        this.addNodeOption(undefined, () => {
-            this.createFile(this.library.plugins.Blank, this.search.value, this.graph)
-            this.selectorToggle.click()
-        })
+        this.addNodeOption(undefined)
 
 
         for (let className in this.classRegistry){
@@ -1249,7 +1239,9 @@ export class Editor{
                 else {
                     // Check Label
                     let labelMatch = (regex != null) ? regex.test(o.name) : false
-                    if (labelMatch || o.name == 'Add New Plugin') show = true
+
+                    console.log(o)
+                    if (labelMatch || o.lock == true) show = true
 
                     // Check Types
                     o.types.forEach(type => {
@@ -1293,7 +1285,7 @@ export class Editor{
         })
     }
 
-    addNodeOption(classInfo={id:'newplugin', name: 'Add New Plugin', class: this.library.plugins.Blank, category: null, types: []}, onClick){
+    addNodeOption(classInfo={name:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Blank, category: null, types: []}){
 
         if (!('types' in classInfo)) classInfo.types = []
 
@@ -1301,16 +1293,7 @@ export class Editor{
         let type = classInfo.category
         let id = classInfo.id // TODO Fix this
         let name = classInfo?.class?.name ?? classInfo.name
-
-        if (!(onClick instanceof Function)) onClick = async () => {
-            if (!('class' in classInfo)) {
-                let module = await dynamicImport(classInfo.folderUrl)
-                classInfo.class = module[classInfo.name]
-            }
-
-            await this.graph.addNode(classInfo)
-            this.responsive()
-        }
+        let label = classInfo.label
 
         
         let options = this.selectorMenu.querySelector(`.node-options`)
@@ -1347,10 +1330,28 @@ export class Editor{
             element = document.createElement('div')
             element.classList.add("brainsatplay-option-node")
             element.classList.add(`${id}`)
-            element.innerHTML = `<p>${name}</p>`
+            element.innerHTML = `<p>${label ?? name}</p>`
             
-            element.onclick = () => {
-                onClick()
+
+            if (classInfo.label === 'Add New Plugin') classInfo.lock = true
+            element.onclick = async () => {
+
+                if (classInfo.label === 'Add New Plugin') {
+                    Object.assign(classInfo, {
+                        class:this.library.plugins.Blank,
+                        name: this.search.value,
+                    })
+                }
+
+
+                if (!('class' in classInfo)) {
+                    let module = await dynamicImport(classInfo.folderUrl)
+                    classInfo.class = module[classInfo.name]
+                }
+    
+                await this.graph.addNode(classInfo)
+                this.responsive()
+                // onClick()
                 this.container.querySelector(`[id="${this.props.id}add"]`).click() // Close menu
             }
 
@@ -1370,7 +1371,7 @@ export class Editor{
                     // if (type instanceof Object) types.add(type.name)
                 })
 
-                this.searchOptions.push({name, element, types, category: type})
+                this.searchOptions.push({name, element, types, category: type, lock: classInfo.lock})
                 if (type == null) contentOfType.style.maxHeight = 'none'; // Resize options without a type (i.e. not hidden)
 
                 let count = options.querySelector(`.${type}-count`)
