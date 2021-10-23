@@ -239,9 +239,10 @@ app.init()`)
         let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
         info.graphs = Array.from(app.graphs).map(arr => Object.assign({}, arr[1]))
         info.graphs.forEach(g => {
-            if (g.edges) g.edges = Array.from(g.edges).map(arr => Object.assign({}, arr[1].info()))
-           if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].info()))
+            if (g.edges) g.edges = Array.from(g.edges).map(arr => Object.assign({}, arr[1].export()))
+           if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].export()))
         })
+
 
         // Default Settings
         info.connect = true
@@ -255,14 +256,13 @@ app.init()`)
         // Add imports
         let classNames = []
         let classes = []
+
         info.graphs.forEach(g => {
         g.nodes.forEach(n => {
-            let found = plugins.find(o => { 
-                if (o.id === n.class.id) return o 
-            })
+            let found = plugins.find(o => { if (o?.id === n?.class?.id) return o})
             // let saveable = this.checkIfSaveable(n.class)
 
-            // Not in plugins
+            // Custom Plugin (not included by name)
             if (!found && !classNames.includes(n.class.name)) {
                 imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
                 classNames.push(n.class.name)
@@ -272,7 +272,10 @@ app.init()`)
             // In Plugins
             else if (found) {
                 classNames.push(found.label)
-            } else if (classNames.includes(n.class.name)) {
+            } 
+            
+            // If Already included by Name
+            else if (classNames.includes(n.class.name)) {
                 classNames.push(n.class.name)
             }
         })
@@ -283,7 +286,7 @@ app.init()`)
         g.nodes.forEach((n, i) => {
 
             // FIX
-            for (let k in n.params){ 
+            for (let k in n?.params){ 
             //     // Delete non-editable elements
             //     if (n.instance.ports[k]?.edit === false) {
             //         delete n.params[k] 
@@ -358,7 +361,6 @@ app.init()`)
         //     let arrow = regex.test(value)
         //     n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
         // }
-
 
         return {
             name: app.info.name, filename: 'settings.js', data: `${imports}
@@ -579,7 +581,6 @@ app.init()`)
                                 if (n?.class && classMap[n.class]?.class) n.class = classMap[n.class]?.class
                             })
                         })
-
                         // settings = this.session.graph.parseParamsForSettings(settings)
 
                         resolve(settings)

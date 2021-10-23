@@ -116,12 +116,10 @@ export class Blink {
     init = async () => {
         this.props.looping = true
 
-        let graph = this.getGraph('blinkgraph')
-        console.log(graph)
-        this.props.dataquality = graph.getNode('dataquality')
-        this.props.canvas = graph.getNode('canvas')
-
+        this.props.dataquality = this.getNode('dataquality')
+        this.props.canvas = this.getNode('canvas')
         this.props.container.insertAdjacentElement('beforeend', this.props.canvas.props.container)
+
 
         this.props.canvas.update('draw', 
             {  

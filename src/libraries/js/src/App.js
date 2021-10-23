@@ -181,9 +181,28 @@ export class App {
         this.init()
     }
 
+    export = () => {
+
+        let graphs = []
+
+        this.graphs.forEach(g => {
+
+            let graph = {
+                nodes: Array.from(g.nodes).map(arr => arr[1].export()),
+                edges: Array.from(g.edges).map(arr => arr[1].export()),
+                graphs: Array.from(g.graphs).map(arr => arr[1].export()),
+                events: Array.from(g.events).map(arr => arr[1].export())
+            }
+
+            graphs.push(graph)
+        })
+
+        return graphs
+
+    }
+
     updateGraph(){
-        let copiedSettings = this._copySettingsFile({graphs: this.info.graphs})
-        this.info.graphs = copiedSettings.graphs // Replace settings
+        this.info.graphs = this.export() // copiedSettings.graphs // Replace settings
     }
 
     _copySettingsFile(info){
@@ -241,7 +260,6 @@ export class App {
     // Unstringify Functions
     parseSettings = (settings) => {
 
-        console.log(this, settings)
         settings.graphs.forEach(g => {
             if (g.nodes) g.nodes.forEach(n => {
                 for (let k in n.params){

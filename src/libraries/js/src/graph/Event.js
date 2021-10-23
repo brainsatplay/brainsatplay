@@ -102,4 +102,8 @@ export class Event {
 
         }
     }
+
+    export = () => {
+        return this
+    }
 }

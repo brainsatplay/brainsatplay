@@ -16,7 +16,7 @@ export class Graph {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(info, parent) {
+    constructor(info, parent, edit=true) {
 
         // Core Registry
         this.nodes = new Map()
@@ -73,7 +73,7 @@ export class Graph {
         this.createUI()
         this.createCodeEditor()
 
-        if (this.app.editor && !(this.parent instanceof Graph)) this.app.editor.addGraph(this) // place top-level graph as a tab
+        if (this.app.editor && !(this.parent instanceof Graph) && edit) this.app.editor.addGraph(this) // place top-level graph as a tab
 
     }
 
@@ -158,6 +158,8 @@ export class Graph {
     }
 
     _mergeInfo = (info={}) => {
+
+        info = Object.assign({}, info)
         if (!('nodes' in this.info)) this.info.graphs = []
         if (!('nodes' in this.info)) this.info.nodes = []
         if (!('edges' in this.info)) this.info.edges = []
@@ -193,68 +195,88 @@ export class Graph {
 
     // ------------------- NODES / PLUGINS / GRAPHS -------------------
 
+    _init = () => {
+
+    }
+
+    addGraph = async (g, edit=true) => {
+        g = new Graph(g, this, edit)
+        await g.init()
+        await Promise.all(Array.from(g.nodes).map(async arr => await this.addNode(arr[1])))
+        await Promise.all(Array.from(g.edges).map(async arr => await this.addEdge(arr[1])))
+        await Promise.all(Array.from(g.events).map(async arr => await this.addEvent(arr[1])))
+    }
+
     addNode = async (o) => { 
 
-        // Map Class Strings to Classes
-        if (typeof o.class === 'string') {
-            let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
-            o.class = module[o.class]
-        }
-        
-        // Create Node based on User-Defined Plugin Class
-        if (o.class?.constructor) {
-
-            // Try To Extend Class
-            o.className = o.class.name
-            let Plugin = this.extend(o.class, Graph)
-            o.instance = new Plugin(o, this)
-
-            // Create Ports with backwards compatibility (< 0.0.36)
-            let keys = Object.keys(o.instance.ports) 
-
-            await Promise.all(keys.map(async port => {
-                await o.instance.addPort(port, o.instance.ports[port])
-            }))
-
-            // Update Parameters on Port
-            o.instance.updateParams(o.params)
+        // If Already Instantiated
+        if (o instanceof Graph){
+            o = Object.assign(o.info, {instance: o})
+            this.nodes.set(o.instance.uuid, o.instance) // set immediately
         } 
-
-        // Wrap Node Inside a Graph
+        
+        // If Assembly Instructions
         else {
-            o.instance = new Graph(o, this) // recursion begins
-        }
 
-        if (this.app.editor) this.app.editor.addGraph(o.instance) // place in editor as a tab
-        this.nodes.set(o.instance.uuid, o.instance)
+            // Map Class Strings to Classes
+            if (typeof o.class === 'string') {
+                let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
+                o.class = module[o.class]
+            }
+            
+            // Create Node based on User-Defined Plugin Class
+            if (o.class?.constructor) {
 
-        // this.analysis.add(...Array.from(nodeInfo.analysis))
+                // Try To Extend Class
+                o.className = o.class.name
+                let Plugin = this.extend(o.class, Graph)
+                o.instance = new Plugin(o, this)
 
-        // Check if Controls
-        if (o.instance.className === 'Event'){
-            this.app.controls.push(o.instance)
-        }
+                // Create Ports with backwards compatibility (< 0.0.36)
+                let keys = Object.keys(o.instance.ports) 
 
-        o.instance.debug() // instantiate debug elements in appropriate containers
+                await Promise.all(keys.map(async port => {
+                    await o.instance.addPort(port, o.instance.ports[port])
+                }))
 
-        let graphDeps = o.instance.graphs // instantiate subgraphs
-        if (graphDeps) {
-            await Promise.all(graphDeps.map(async (g,i) => {
-                g = new Graph(g, o.instance)
-                await g.init()
-                o.instance.graphs[i] = g
+                // Update Parameters on Port
+                o.instance.updateParams(o.params)
+            } 
+
+            // Wrap Node Inside a Graph
+            else {
+                o.instance = new Graph(o, this) // recursion begins
+            }
+
+            this.nodes.set(o.instance.uuid, o.instance) // set immediately
+
+            if (this.app.editor) this.app.editor.addGraph(o.instance) // place in editor as a tab
+
+            // this.analysis.add(...Array.from(nodeInfo.analysis))
+
+            // Check if Controls
+            if (o.instance.className === 'Event') this.app.controls.push(o.instance)
+
+            o.instance.debug() // instantiate debug elements in appropriate containers
+
+
+            // Flatten Subgraphs into Nodes, Edges, and Events
+            await Promise.all(o.instance.graphs.map(async (g,i) => {
+                let activeGraph = await o.instance.addGraph(g, false)
+                o.instance.graphs[i] = activeGraph
             }))
+
+
+            // Initialize Node   
+            await o.instance.init()
+
+            // Configure
+            if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
         }
-
-        // Initialize Node   
-        await o.instance.init()
-
-        // Configure
-        if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
 
         // Add to Graph UI
         this.insertNode(o.instance)
-
+        
         return o
     }
 
@@ -267,12 +289,8 @@ export class Graph {
     updateParams = (params) => {
         for (let param in params) {
             let port = this.getPort(param)
-            if (port) {
-                port.set({value: params[param]})
-            }
-            else {
-                console.error(`A port for '${param}' does not exist on the ${this.name} node.`)
-            }
+            if (port) port.set({value: params[param]})
+            else console.error(`A port for '${param}' does not exist on the ${this.name} node.`)
         }
     }
 
@@ -334,6 +352,7 @@ export class Graph {
     }
 
     convertToStandardEdge = (source, target) => { //???
+
         let standardStruct = {source: {}, target: {}};
         let structure = {source,target};
         let nodes, ports;
@@ -345,7 +364,7 @@ export class Graph {
             } else {
                 // Object Specification
                 if (structure[type] instanceof Object) {
-                    nodes = this.get('nodes', structure[type].node)
+                    nodes = this.get('nodes', structure[type].node, this.info.nodes)
                     standardStruct[type].node = nodes[0]?.name ?? structure[type].node
                     standardStruct[type].port = structure[type].port ?? 'default'
                 } 
@@ -641,7 +660,7 @@ export class Graph {
         // this.files[graph.name].tab.classList.remove('edited')
         this.app.updateGraph()
         this.app.session.projects.save(this.app)
-        this.app.editor.lastSavedProject = this.app.info.name
+        this.app.editor.lastSavedProject = this.app.name
     }
 
     // Save Class Code
@@ -680,12 +699,12 @@ export class Graph {
         if (top || left){
             if (top) node.ui.element.style.top = top[1]
             if (left) node.ui.element.style.left = left[1]
-        } else if (this.nextNode) {
-            let rect = graphTab.container.getBoundingClientRect()
-            let position = this.mapPositionFromScale(this.nextNode.position, rect)
+        } else if (this.app?.editor?.nextNode) {
+            let rect = this.ui.graph.getBoundingClientRect()
+            let position = this._mapPositionFromScale(this.app.editor.nextNode.position, rect)
             node.ui.element.style.top = `${position.x}px`
             node.ui.element.style.left = `${position.y}px`
-            this.nextNode = null
+            this.app.editor.nextNode = null
         }
 
         node.style = node.ui.element.style.cssText // Set initial translation
@@ -694,8 +713,8 @@ export class Graph {
         // Reorganize Nodes in a Grid
         let i = 0;
         let length = this.nodes.size
-        this.nodes.forEach(n => {
 
+        this.nodes.forEach(n => {
             // Default Positioning
             let iterator = Math.ceil(Math.sqrt(length))
             let row = Math.floor(i % iterator)
@@ -713,6 +732,22 @@ export class Graph {
 
             i++
         })
+    }
+
+
+    _mapPositionFromScale = (position, rect) => {
+        let relYPx = (position.y - rect.top)
+        let relXPx = (position.x - rect.left)
+
+        let relYPctMapped = (relYPx / rect.height) * (1/this.ui.context.scale)
+        let relXPctMapped = (relXPx / rect.width) * (1/this.ui.context.scale)
+        position.x = relYPctMapped * rect.height
+        position.y = relXPctMapped * rect.width
+        for (let key in position){
+            if (isNaN(position[key])) position[key] = 0
+        }
+        
+        return position
     }
 
     addNodeEvents = (node) => {
@@ -778,8 +813,14 @@ export class Graph {
     }
 
     // ---------------- EXPORT HELPER ----------------
-    info = () => {
-        return this.info
+    export = () => {
+        return {
+            name: this.name,
+            class: this.class,
+            params: this.params,
+            graphs: this.graphs.map(g => g.export()),
+            style: this.style
+        }
       }
   
 }

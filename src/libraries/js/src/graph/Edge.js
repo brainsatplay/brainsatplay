@@ -76,11 +76,16 @@ export class Edge {
     }
 
     deinit = () => {
-        this.parent.app.session.removeStreaming(this.uuid, this.subscription , this.parent.app.state, 'trigger');
+
+        this.parent.app.state.unsubscribeTrigger(this.uuid, this.subscription); //unsub state
         if (this.source.node) this.source.node.edges.delete(this.uuid)
         if (this.target.node) this.target.node.edges.delete(this.uuid)
         if (this.source.port) this.source.port.edges.output.delete(this.uuid)
         if (this.target.port) this.target.port.edges.input.delete(this.uuid)
+
+        if (this.parent.edges.get(this.uuid)) this.parent.edges.delete(this.uuid)
+
+
         this.element.remove()
 
     }
@@ -453,11 +458,12 @@ const d = `M${p1.x},${p1.y} Q${c1.x},${c1.y} ${c3.x},${c3.y} T${p2.x},${p2.y}` +
     }
 
     // ---------------- EXPORT HELPER ----------------
-    info = () => {
-      return {
+    export = () => {
+      let edge = {
         source: {node: this.source.node.name, port: this.source.port.name},
         target: {node: this.target.node.name, port: this.target.port.name}
       }
+      return edge
     }
 
 }

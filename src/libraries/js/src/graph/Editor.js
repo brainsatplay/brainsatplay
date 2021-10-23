@@ -168,12 +168,12 @@ export class Editor{
         this.edit.style.display = 'none'
         this.delete.style.display = 'none'
 
-        this.download.classList.add('disabled')
+        // this.download.classList.add('disabled')
         this.download.onclick = () => {
             this.app.session.projects.download(this.app)
         }
 
-        this.reload.classList.add('disabled')
+        // this.reload.classList.add('disabled')
         this.reload.onclick = () => {
             this.app.reload()
         }
@@ -184,6 +184,15 @@ export class Editor{
 
         // Create Tab Container
         this.createViewTabs()
+
+        // Add Settings Editor
+        this.createSettingsEditor(this.app.info)
+
+        // Insert Node Selector with Right Click
+        this.toggleContextMenuEvent(this.editor)
+
+        // Search for Plugins
+        this.createPluginSearch(this.mainPage)
 
         this.init()
     }
@@ -200,15 +209,6 @@ export class Editor{
 
             // Setup Presentation Based On Settings
             if (this.settings.style) this.container.style = this.settings.style 
-
-            // Insert Node Selector with Right Click
-            this.toggleContextMenuEvent(this.editor)
-
-            // Add Settings Editor
-            this.createSettingsEditor(this.app.info)
-
-            // Search for Plugins
-            this.createPluginSearch(this.mainPage)
 
             if (this.settings.show) this.toggleDisplay()
         }
@@ -725,20 +725,6 @@ export class Editor{
     }
 
 
-    mapPositionFromScale = (position, rect) => {
-        let relYPx = (position.y - rect.top)
-        let relXPx = (position.x - rect.left)
-        let relYPctMapped = (relYPx / rect.height) * (1/this.context.scale)
-        let relXPctMapped = (relXPx / rect.width) * (1/this.context.scale)
-        position.x = relYPctMapped * rect.height
-        position.y = relXPctMapped * rect.width
-        for (let key in position){
-            if (isNaN(position[key])) position[key] = 0
-        }
-        
-        return position
-    }
-
     createInput(toParse, key, plugin){
 
         // Properly Nest Divs
@@ -878,7 +864,6 @@ export class Editor{
 
                 if (toParse[key].input?.multiple){
                     input.multiple = true // Only in new format
-                    text = text + 's'
                 }
                 input.style.display = 'none'
 
@@ -1240,7 +1225,6 @@ export class Editor{
                     // Check Label
                     let labelMatch = (regex != null) ? regex.test(o.name) : false
 
-                    console.log(o)
                     if (labelMatch || o.lock == true) show = true
 
                     // Check Types
