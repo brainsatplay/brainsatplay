@@ -12,7 +12,7 @@
     Probability Densities 
     <div id='b' style='width:100%;'></div>
     <hr>
-    Relative Error vs Information Entropy (Uncertainty) | Most occurring (maximum) entropy: <span id='ent'></span>
+    Relative Error vs Information Entropy (Uncertainty) | Most occurring (maximum) entropy: <span id='ent'></span> Area under hist curve: <span id='areaent'></span>
     <div id='c' style='width:100%;'></div>
     <script>
         let g = 9.81; //acceleration due to gravity
@@ -39,6 +39,15 @@
         function mean(arr) {
             var sum = arr.reduce((prev,curr)=> curr += prev);
             return sum / arr.length;
+        }
+
+        function sum(arr=[]){
+            if (arr.length > 0){
+                var sum = arr.reduce((prev,curr)=> curr += prev);
+            return sum;
+            } else {
+                return 0;
+            }
         }
         
         function variance(arr) { //Variance of 1D input arrays of length n
@@ -143,12 +152,15 @@
         let pEnt = [];
         let pDist = []; //probability density of forecast
         let aDist = []; //probability density of actual
+        let pEntHist = [[],[]];
+        let maxEnt = 0;
         let ct = 0;
 
 
         let fallHeight = 10; //meters
         let targetDistance = 15; //meters
         let ntrials = 1000;
+        let pEntHistBin = 0.001;
 
         while(ct < ntrials) {
 
@@ -167,10 +179,13 @@
         //console.log(pDist);
         aDist = normalDistribution(actualLandings);
         pEnt = informationEntropy(d);
-        let pEntHist = histogram(pEnt,0.001);
+        pEntHist = histogram(pEnt,pEntHistBin);
 
-        let maxEnt = pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
+        maxEnt = pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
+        maxEntArea = sum(pEntHist[1].map((v, i) => {return v*pEntHist[0][i]}));
+
         document.getElementById('ent').innerHTML = maxEnt;
+        document.getElementById('areaent').innerHTML = maxEntArea;
 
         console.log('drop heights',heights);
         console.log('predicted landings',predictedLandings);
