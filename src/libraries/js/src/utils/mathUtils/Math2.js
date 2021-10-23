@@ -447,6 +447,31 @@ export class Math2 {
 		return m;
 	}
 
+	static histogram(arr=[], binSize=1) { //return a histogram of the array
+		let copy = [...arr]; 
+		copy.sort(function(a, b){return a - b}); //ascending sort
+		let binStart = Math.min(...copy);
+
+		let j = binStart;
+		let binx = [];
+		let biny = [];
+		for(let i = 0; i < copy.length; i++) {
+			let binidx = binSize*j;
+			if(copy[i] > binStart+binidx) { 
+				j++; 
+				binidx+=binSize; 
+				let binmin = binStart+binidx;
+				let binmid = binmin + binidx*0.5;
+				binx.push(binmid);
+				biny.push(0);
+			}
+			biny[biny.length-1]++;
+		}
+
+		return [binx,biny];
+	}
+
+
 	//Get probability densities for the samples
 	static normalDistribution(samples=[], normalize=true) {
 		let mean = this.mean(samples);

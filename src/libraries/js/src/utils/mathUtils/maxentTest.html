@@ -12,7 +12,7 @@
     Probability Densities 
     <div id='b' style='width:100%;'></div>
     <hr>
-    Relative Error vs Information Entropy (Uncertainty) | Max: <span id='ent'></span>
+    Relative Error vs Information Entropy (Uncertainty) | Most occurring (maximum) entropy: <span id='ent'></span>
     <div id='c' style='width:100%;'></div>
     <script>
         let g = 9.81; //acceleration due to gravity
@@ -44,6 +44,30 @@
         function variance(arr) { //Variance of 1D input arrays of length n
             var m = mean(arr);
             return arr.reduce((a,b) => a + ((b - m)**2), 0)/arr.length;
+        }
+
+        function histogram(arr=[], binSize=1) { //return a histogram of the array
+            let copy = [...arr]; 
+            copy.sort(function(a, b){return a - b}); //ascending sort
+            let binStart = Math.min(...copy);
+
+            let j = binStart;
+            let binx = [];
+            let biny = [];
+            for(let i = 0; i < copy.length; i++) {
+                let binidx = binSize*j;
+                if(copy[i] > binStart+binidx) { 
+                    j++; 
+                    binidx+=binSize; 
+                    let binmin = binStart+binidx;
+                    let binmid = binmin + binidx*0.5;
+                    binx.push(binmid);
+                    biny.push(0);
+                }
+                biny[biny.length-1]++;
+            }
+
+            return [binx,biny];
         }
 
 
@@ -124,7 +148,7 @@
 
         let fallHeight = 10; //meters
         let targetDistance = 15; //meters
-        let ntrials = 100;
+        let ntrials = 1000;
 
         while(ct < ntrials) {
 
@@ -143,7 +167,9 @@
         //console.log(pDist);
         aDist = normalDistribution(actualLandings);
         pEnt = informationEntropy(d);
-        let maxEnt = Math.min(...pEnt);
+        let pEntHist = histogram(pEnt,0.001);
+
+        let maxEnt = pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
         document.getElementById('ent').innerHTML = maxEnt;
 
         console.log('drop heights',heights);
@@ -153,6 +179,7 @@
         console.log('actual distribution',aDist);
         console.log('relative error entropy',pEnt);
         console.log('max ent (negative)',maxEnt);
+        console.log(pEntHist,'entropy histogram');
 
         //Now find the Maximum Entropy Distribution
 
@@ -206,8 +233,8 @@
             ],
             [
                 {
-                    x: d,
-                    y: pEnt,
+                    x: pEntHist[0],
+                    y: pEntHist[1],
                     mode: 'markers',
                     type:'scatter',
                     marker: {
