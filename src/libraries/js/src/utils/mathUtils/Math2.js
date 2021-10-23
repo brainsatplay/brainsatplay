@@ -472,23 +472,23 @@ export class Math2 {
 	}
 
 
-	//Get probability densities for the samples
-	static normalDistribution(samples=[], normalize=true) {
-		let mean = this.mean(samples);
-		let variance = this.variance(samples);
+	//Get probability densities for the samples, set a cutoff to avoid obscenely small numbers
+	static normalDistribution(samples=[], normalize=true, cutoff = 0.0001) {
+		let m = this.mean(samples);
+		let vari = this.variance(samples);
 		let nSamples = samples.length;
 
 		let probabilities = [];
 
-		let denom = 1/(this.TWO_PI*variance);
-		let _variance = 1/variance;
+		let denom = 1/(this.TWO_PI*vari);
+		let _variance = 1/vari;
 		let sum = 0; //for normalization
 		for (let i = 0; i < nSamples; i++) {
-			let px = Math.exp(-0.5*Math.pow((samples[i]-mean)*_variance,2))*denom
+			let px = Math.exp(-0.5*Math.pow((samples[i]-m)*_variance,2))*denom
+			if(px < cutoff) px = 0;
 			probabilities.push(px);
 			sum += px;
 		}
-
 		if(normalize) {
 			let _sum = 1/sum;
 			probabilities = probabilities.map(x => x*_sum);
