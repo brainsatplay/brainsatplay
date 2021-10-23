@@ -61,6 +61,8 @@ export class App {
 
     init = async () => {
 
+        this.props.sessionId = null
+
         // Keep Style of Previous Top-Level Wrapper
         if (this.props.id == null) this.ui.container.style = `height:100%; width:100%; max-height: 100vh; max-width: 100vw; position: relative; display: flex; overflow: scroll;`
 

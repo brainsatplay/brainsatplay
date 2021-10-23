@@ -86,12 +86,23 @@ export class Port {
     checkForUpdates() {
 
     }
+    
 
     init = () => {}
 
     deinit = () => {
         // Remove UI
         for (let key in this.ui){ this.ui[key].remove() }
+    }
+
+    addEdge = (side, edge) => {
+        this.edges[side].set(edge.uuid,edge)
+        this.ui[side].children[0].classList.add('active') // Label Active Node
+    }
+
+    removeEdge = (side, id) => {
+        this.edges[side].delete(id)
+        if (this.edges[side].size === 0)  this.ui[side].children[0].classList.remove('active') // Label Active Node
     }
 
     // Only Set when Different

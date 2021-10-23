@@ -776,7 +776,12 @@ export class Session {
 
 		this.state.data[id + "_flag"] = true;
 		
+
+		console.log(this.state.data[sessionId], sessionId)
+
+		// Add New Data from Self into Game State
 		let sub = this.state.subscribe(id, (newData) => {
+
 			this.state.data[id + "_flag"] = true;
 			if(sessionId) {
 				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:{id:this.info.auth.id}};
@@ -785,7 +790,7 @@ export class Session {
 					if(o.id === this.info.auth.id) {
 						o[id] = newData; 
 						return true;
-					} else this.state.data[sessionId].userData.push({id:this.info.auth.id, [id]:newData});
+					} else if (Array.isArray(o)) o.push({id:this.info.auth.id, [id]:newData});
 				}
 			}
 		});
@@ -1376,9 +1381,9 @@ else {
 		return new App(settings, parentNode, session, config)
 	}
 
-
 	startApp(app,sessionId){
 		app.props.sessionId = sessionId
+
 		// Update Routing UI
 		this.updateApps(app)
 		return app
@@ -1466,16 +1471,17 @@ else {
 		`}
 
 			let setup = () => {
-				let loginPage = document.getElementById(`${this.id}login-page`)
+				let loginPage = parentNode.querySelector(`[id="${this.id}login-page"]`)
 				const loginButton = loginPage.querySelector(`[id='${this.id}login-button']`)
 				let form = loginPage.querySelector(`[id='${this.id}login-form']`)
 				const usernameInput = form.querySelector('input')
 
 				oninit()
 
+				let urlToConnect = loginPage.querySelector(`[id="${this.id}urlToConnect"]`)
 				// Update the Auth URL
 				let onClick = () => {
-					let urlInput = document.getElementById(`${this.id}urlToConnect`)
+					let urlInput = urlToConnect
 					let input = document.createElement('input')
 					input.id = `${this.id}urlToConnect`
 					input.type = 'text'
@@ -1506,7 +1512,7 @@ else {
 				}
 
 				let clickOutside = (evt) => {
-					let urlInput = document.getElementById(`${this.id}urlToConnect`)
+					let urlInput = urlToConnect
 					let targetElement = evt.target; // clicked element
 				
 					do {
@@ -1522,7 +1528,7 @@ else {
 					}
 				};
 
-				document.getElementById(`${this.id}urlToConnect`).onclick = onClick
+				urlToConnect.onclick = onClick
 
 				form.addEventListener("keyup", function (event) {
 					if (event.keyCode === 13) {
@@ -1539,7 +1545,7 @@ else {
 
 				loginButton.onclick = () => {
 					
-					let urlEl = document.getElementById(`${this.id}urlToConnect`)
+					let urlEl = urlToConnect
 					urlEl = inputToParagraph(urlEl)
 
 					try {
@@ -1746,67 +1752,94 @@ else {
 
 		let exitSession = applet.info.intro.exitSession
 		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
+		let selectMode = applet.info.intro.mode == null
+		let selectSession = applet.info.intro.session == null
 
 		let appletContainer = applet.ui?.container ?? applet.AppletHTML.node
 
-
-		let template = `
-		<div id="${applet.props.id}IntroFragment">
-			<div id='${applet.props.id}appHero' class="brainsatplay-default-container" style="z-index: 100;">
-				<div>
-					<h1>${applet.info.name}</h1>
-					<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
-					<div class="brainsatplay-intro-loadingbar" style="z-index: 100;"></div>
-				</div>
+		let IntroFragment = document.createElement('div')
+		// Title Screen
+		let titleScreen = document.createElement('div')
+		titleScreen.classList.add('brainsatplay-default-container')
+		titleScreen.style.zIndex = 100
+		titleScreen.innerHTML = `
+			<div>
+				<h1>${applet.info.name}</h1>
+				<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
+				<div class="brainsatplay-intro-loadingbar" style="z-index: 100;"></div>
 			</div>
+		`
 
-			<div id='${applet.props.id}mode-screen' class="brainsatplay-default-container" style="z-index: 99;">
-				<div>
-					<h2>Game Mode</h2>
-					<div style="display: flex; align-items: center;">
-							<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
-							<div id="${applet.props.id}multiplayer-button" class="brainsatplay-default-button">Multiplayer</div>
+		// Mode Screen
+		let modeScreen = document.createElement('div')
+		modeScreen.classList.add('brainsatplay-default-container')
+		modeScreen.style.zIndex = 99
+		modeScreen.innerHTML = `
+		<div>
+			<h2>Game Mode</h2>
+			<div style="display: flex; align-items: center;">
+					<div id="${applet.props.id}solo-button" class="brainsatplay-default-button">Solo</div>
+					<div id="${applet.props.id}multiplayer-button" class="brainsatplay-default-button">Multiplayer</div>
+			</div>
+		</div>
+		`
+
+		// Session Screen
+		let sessionScreen = document.createElement('div')
+		sessionScreen.classList.add('brainsatplay-default-container')
+		sessionScreen.style.zIndex = 98
+		sessionScreen.innerHTML = `
+		<div>
+			<div id='${applet.props.id}multiplayerDiv'">
+				<div style="
+				display: flex;
+				align-items: center;
+				column-gap: 15px;
+				grid-template-columns: repeat(2,1fr)">
+					<h2>Choose a Session</h2>
+					<div>
+						<button id='${applet.props.id}createSession' class="brainsatplay-default-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
 					</div>
 				</div>
 			</div>
+		</div>
+		`
 
-			<div id='${applet.props.id}sessionSelection' class="brainsatplay-default-container" style="z-index: 98;">
-				<div>
-					<div id='${applet.props.id}multiplayerDiv'">
-						<div style="
-						display: flex;
-						align-items: center;
-						column-gap: 15px;
-						grid-template-columns: repeat(2,1fr)">
-							<h2>Choose a Session</h2>
-							<div>
-								<button id='${applet.props.id}createSession' class="brainsatplay-default-button" style="flex-grow:0; padding: 10px; width: auto; min-height: auto; font-size: 70%;">Make New Session</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			`
+		if (showTitle) IntroFragment.insertAdjacentElement('beforeend', titleScreen)
+		if (selectSession) IntroFragment.insertAdjacentElement('beforeend', sessionScreen)
+		if (selectMode) IntroFragment.insertAdjacentElement('beforeend', modeScreen)
 
-		let setup = () => {
+
+		// Remove Intro if Required
+		const loadTime = 3000
+
+		if (showTitle){
+
+			const loadingBarElement = titleScreen.querySelector('.brainsatplay-intro-loadingbar')
+	
+			setTimeout(() => {
+				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
+				loadingBarElement.style.transform = `scaleX(1)`
+			}, 1000)
+			setTimeout(() => {
+				if (loadingBarElement) {
+					loadingBarElement.classList.add('ended')
+					loadingBarElement.style.transform = ''
+				}
+				titleScreen.style.opacity = 0;
+				titleScreen.style.pointerEvents = 'none'
+			}, loadTime)
+		}
 
 		// Setup HTML References
-		let modeScreen = appletContainer.querySelector(`[id="${applet.props.id}mode-screen"]`)
-		let sessionSelection = appletContainer.querySelector(`[id="${applet.props.id}sessionSelection"]`)
-
-
 		if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
 		if (exitSession == null) {
-			exitSession = document.createElement(`div`) // EDIT
+			exitSession = document.createElement(`div`)
 			exitSession.classList.add('brainsatplay-default-button')
 			exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
 			exitSession.innerHTML = 'Exit Session'
-			appletContainer.querySelector(`[id="${applet.props.id}IntroFragment"]`).insertAdjacentElement('afterend', exitSession)
 		}
-
-
-		const hero = appletContainer.querySelector(`[id="${applet.props.id}appHero"]`)
-		const loadingBarElement = document.querySelector('.brainsatplay-intro-loadingbar')
+		IntroFragment.insertAdjacentElement('beforeend', exitSession)
 
 		// Select Mode
 		let solo = modeScreen.querySelector(`[id="${applet.props.id}solo-button"]`)
@@ -1814,10 +1847,10 @@ else {
 		solo.onclick = () => {
 			modeScreen.style.opacity = 0
 			onsuccess()
-			let loginPage = document.getElementById(`${this.id}login-page`)
+			let loginPage = IntroFragment.querySelector(`[id="${this.id}login-page"]`)
 			if (loginPage != null) loginPage.remove()
 			modeScreen.style.pointerEvents = 'none'
-			sessionSelection.style.display = 'none'
+			sessionScreen.style.display = 'none'
 			exitSession.style.display = 'none'
 		}
 
@@ -1833,8 +1866,8 @@ else {
 		
 		// Create Session Browser
 		let baseBrowserId = `${applet.props.id}${applet.info.name}`
-		appletContainer.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
-		appletContainer.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
+		sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
+		sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
 		let waitForReturnedMsg = (msgs, callback = () => { }) => {
 			if (msgs.includes(this.state.data.commandResult.msg)) {
@@ -1845,17 +1878,18 @@ else {
 		}
 
 		let onjoined = (g) => {
-			sessionSelection.style.opacity = 0;
-			sessionSelection.style.pointerEvents = 'none'
+			sessionScreen.style.opacity = 0;
+			sessionScreen.style.pointerEvents = 'none'
+			console.log(g)
 			onsuccess(g)
 		}
 		let onleave = () => {
 			sessionSearch.click()
-			sessionSelection.style.opacity = '1';
-			sessionSelection.style.pointerEvents = 'auto'
+			sessionScreen.style.opacity = '1';
+			sessionScreen.style.pointerEvents = 'auto'
 		}
 
-		let sessionSearch = appletContainer.querySelector(`[id="${baseBrowserId}search"]`)
+		let sessionSearch = sessionScreen.querySelector(`[id="${baseBrowserId}search"]`)
 
 		
 		let connectToGame = (g, spectate) => {
@@ -1887,9 +1921,7 @@ else {
 
 		let autoId = false
 
-		if (applet.info.intro && applet.info.intro.session){
-			sessionSelection.style.opacity = '0'
-		}
+		if (applet.info.intro && applet.info.intro.session) sessionScreen.style.opacity = '0' // may not need anymore (if not inserted)
 
 		sessionSearch.onclick = () => {
 
@@ -1923,7 +1955,7 @@ else {
 						</div>`
 					});
 
-					document.getElementById(baseBrowserId + 'browser').innerHTML = gridhtml
+					sessionScreen.querySelector(`[id="${baseBrowserId}browser"]`).innerHTML = gridhtml
 
 
 				result.sessions.forEach((g) => {
@@ -1994,9 +2026,8 @@ else {
 		if (applet.info.intro.login === false || this.socket?.readyState == 1){
 			this.login(true, this.info.auth, onsocketopen)
 		} else {
-			this.promptLogin(document.getElementById(`${applet.props.id}IntroFragment`),() => {
-				let loginPage = document.getElementById(`${this.id}login-page`)
-				loginPage.style.zIndex = 98;
+			this.promptLogin(IntroFragment, () => {
+				IntroFragment.querySelector(`[id="${this.id}login-page"]`).style.zIndex = 98;
 			}, onsocketopen)
 		}
 	} else {
@@ -2005,14 +2036,13 @@ else {
 
 
 		exitSession.onclick = () => {
-			sessionSelection.style.opacity = 1;
-			sessionSelection.style.pointerEvents = 'auto'
+			sessionScreen.style.opacity = 1;
+			sessionScreen.style.pointerEvents = 'auto'
 		}
 
-		let createSession = appletContainer.querySelector(`[id="${applet.props.id}createSession"]`)
+		let createSession = sessionScreen.querySelector(`[id="${applet.props.id}createSession"]`)
 
 		createSession.onclick = () => {
-			console.log(applet)
 			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
 			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
 		}
@@ -2020,39 +2050,11 @@ else {
 		// createSession.style.display = 'none'
 		sessionSearch.style.display = 'none'
 
-		let loaded = 0
-		const loadInc = 5
-		const loadTime = 3000
-
-		if (showTitle){
-			setTimeout(() => {
-				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
-				loadingBarElement.style.transform = `scaleX(1)`
-			}, 1000)
-			setTimeout(() => {
-				if (loadingBarElement) {
-					loadingBarElement.classList.add('ended')
-					loadingBarElement.style.transform = ''
-				}
-				if (hero) {
-					hero.style.opacity = 0;
-					hero.style.pointerEvents = 'none'
-				}
-			}, loadTime)
-		} else {
-			const hero = document.getElementById(`${applet.props.id}appHero`)
-			if (hero) {
-				hero.style.opacity = 0;
-				hero.style.pointerEvents = 'none'
-			}
-		}
-		}
-
 		applet.intro = new DOMFragment(
-			template,
+			IntroFragment,
 			appletContainer,
 			undefined,
-			setup
+			undefined // setup
 		)
 		
 	}

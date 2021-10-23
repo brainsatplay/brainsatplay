@@ -243,6 +243,8 @@ app.init()`)
            if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].export()))
         })
 
+        console.log(info, app.info)
+
 
         // Default Settings
         info.connect = true

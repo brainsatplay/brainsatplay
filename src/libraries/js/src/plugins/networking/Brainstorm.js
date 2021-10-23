@@ -44,7 +44,8 @@ export class Brainstorm {
                             )
                         }
 
-                        // Subscribe in Session                        
+                        // Subscribe in Session      
+                        console.error(this.props.sessionId)                  
                         if (this.props.sessionId != null) {
 
                             if (!(port.label in this.props.states)) this.props.states[port.label] = {} // ensure state exists

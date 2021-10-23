@@ -53,8 +53,8 @@ export class Edge {
       // Register Edge in Ports
       this.source.node.edges.set(this.uuid, this)
       this.target.node.edges.set(this.uuid, this)
-      sP.edges.output.set(this.uuid,this)
-      tP.edges.input.set(this.uuid, this)
+      sP.addEdge('output', this)
+      tP.addEdge('input', this)
 
       // Activate Dyhamic Analyses
   
@@ -67,7 +67,7 @@ export class Edge {
 
       if (brainstormTarget) {
           this.parent.app.streams.push(this.source.port.label) // Keep track of streams
-          await this.update() // Pass to Brainstorm
+          // await this.update() // Pass to Brainstorm
       }
 
       if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (only if app is completely initialized)
@@ -80,8 +80,8 @@ export class Edge {
         this.parent.app.state.unsubscribeTrigger(this.uuid, this.subscription); //unsub state
         if (this.source.node) this.source.node.edges.delete(this.uuid)
         if (this.target.node) this.target.node.edges.delete(this.uuid)
-        if (this.source.port) this.source.port.edges.output.delete(this.uuid)
-        if (this.target.port) this.target.port.edges.input.delete(this.uuid)
+        if (this.source.port) this.source.port.removeEdge('output',this.uuid)
+        if (this.target.port) this.source.port.removeEdge('input',this.uuid)
 
         if (this.parent.edges.get(this.uuid)) this.parent.edges.delete(this.uuid)
 
@@ -130,7 +130,6 @@ export class Edge {
             let port = this[o.type].port
             if (port){
                 let portElement = port.ui[o.port]
-                portElement.children[0].classList.add('active') // Label Active Node
                 let portDim = portElement.getBoundingClientRect()
                 let svgPort = this.svgPoint(this.svg.element, portDim.left + portDim.width / 2, portDim.top + portDim.height / 2)
 

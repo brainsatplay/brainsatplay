@@ -57,7 +57,7 @@ export class Editor{
             this.container.classList.add('brainsatplay-default-container')
             this.container.classList.add('brainsatplay-node-editor')
             this.container.innerHTML = `
-                    <div id="${this.props.id}FileSidebar" class="brainsatplay-node-sidebar" style="min-width: 150px; width: 150px; height: 100%; background: black">
+                    <div id="${this.props.id}FileSidebar" class="brainsatplay-node-sidebar" style="min-width: 150px; width: 150px; height: 100%;">
                         <div class='header node-sidebar-section'>
                             <h3>Project Files</h3>
                         </div>
@@ -501,10 +501,10 @@ export class Editor{
         }, false);
     }
 
-    createSettingsEditor(settings){
+    createSettingsEditor(target){
             let settingsContainer = this.container.querySelector(`[id="${this.props.id}settings"]`)
 
-            settings = Object.assign({}, settings) // shallow copy
+            // settings = Object.assign({}, settings) // shallow copy
 
             let toParse ={}
 
@@ -555,9 +555,9 @@ export class Editor{
 
             let inputDict = {}
             Object.keys(dummySettings).forEach(key => {
-                if (settings[key] == null) settings[key] = dummySettings[key]
-                toParse[key] = {data: settings[key]}
-                toParse[key].input =  {type: typeof settings[key]}
+                if (target[key] == null) target[key] = dummySettings[key]
+                toParse[key] = {data: target[key], target}
+                toParse[key].input =  {type: typeof target[key]}
 
                 switch(key){
                     case 'image':
@@ -567,8 +567,8 @@ export class Editor{
                         toParse[key].input =  {type: 'HTML'}
                         break    
                     default:
-                        let type = typeof settings[key]
-                        if (type === 'object') if (Array.isArray(settings[key])) type = Array
+                        let type = typeof target[key]
+                        if (type === 'object') if (Array.isArray(target[key])) type = Array
                         toParse[key].input =  {type}
                 }
 
@@ -583,7 +583,7 @@ export class Editor{
                 }
             })
 
-            this.subscribeToChanges(inputDict,toParse, 'settings')
+            this.subscribeToChanges(inputDict, target, 'settings')
 
             delete this.state.data[`activeSettingsFile`]
 
@@ -934,7 +934,7 @@ export class Editor{
                 container.classList.add(`content-div`)                
 
                 input.oninput = (e) => {
-                    this.updatePortFromGUI(input, plugin, key, toParse)
+                    this.updateFromGUI(input, plugin, key, toParse)
                 }
                 return {container, input}
             } else return {}
@@ -953,6 +953,7 @@ export class Editor{
 
         keys.forEach(key => {
             this.state.addToState(`GUI${label}_${key}`, toParse[key], () => {
+
 
                 let oldValue
                 let newValue
@@ -977,7 +978,7 @@ export class Editor{
                     }
 
                     if (oldValue != newValue) {
-                        if (plugin) this.updatePortFromGUI(input, plugin, key, toParse)
+                        if (plugin) this.updateFromGUI(input, plugin, key, toParse)
                         // if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
                     }
             })
@@ -985,7 +986,7 @@ export class Editor{
     }
 
     // Change the INTERNAL Params (running through port and setting output manually)
-    updatePortFromGUI(input, plugin, key, toParse) {
+    updateFromGUI(input, plugin, key, toParse) {
 
         let value
         if (this.elementTypesToUpdate.includes(input.tagName)){
@@ -1008,7 +1009,9 @@ export class Editor{
             }
             else value = input.value
             
-            plugin.ports[key].set({value, forceUpdate: true})
+            if (plugin) plugin.ports[key].set({value, forceUpdate: true}) // port
+            else toParse[key].target[key] = value // settings or other objects
+
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
         }
     }
