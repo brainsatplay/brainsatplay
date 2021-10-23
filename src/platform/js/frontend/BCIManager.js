@@ -31,7 +31,7 @@ import { SettingsPage } from './SettingsPage'
 
 // Imagess
 import DeviceSelectorIcon from '../../assets/wave-square-solid.svg';
-import AppletMenuIcon from '../../assets/th-large-solid.svg';
+import AppletMenuIcon from '../../../libraries/js/src/ui/assets/th-large-solid.svg';
 import FileManagerIcon from '../../assets/folder-solid.svg';
 import GoogleIcon from '../../assets/google.png';
 import HelpIcon from '../../assets/question-solid.svg';

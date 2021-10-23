@@ -56,6 +56,8 @@ export class Editor{
             this.container.id = `${this.props.id}GraphEditorMask`
             this.container.classList.add('brainsatplay-default-container')
             this.container.classList.add('brainsatplay-node-editor')
+            this.container.style.background = 'black'
+            this.container.style.display ='none'
             this.container.innerHTML = `
                     <div id="${this.props.id}FileSidebar" class="brainsatplay-node-sidebar" style="min-width: 150px; width: 150px; height: 100%;">
                         <div class='header node-sidebar-section'>
@@ -210,7 +212,7 @@ export class Editor{
             // Setup Presentation Based On Settings
             if (this.settings.style) this.container.style = this.settings.style 
 
-            if (this.settings.show) this.toggleDisplay()
+            if (this.settings.show) this.toggleDisplay(true)
         }
 
     setToggle = (toggle = this.settings.toggle) => {
@@ -591,19 +593,19 @@ export class Editor{
         }
 
 
-    toggleDisplay(){
+    toggleDisplay(on){
         // if (this.element){
 
-            if (this.container.style.opacity == 0){
+            if (on === true || this.container.style.display == 'none'){
                 this.parentNode.insertAdjacentElement('beforeend', this.container)
                 setTimeout(() => {
-                this.container.style.opacity = 1
+                    this.container.style.display = ''
+                // this.container.style.opacity = 1
                 this.container.style.pointerEvents = 'auto'
                 this.shown = true
 
                 // Move App Into Preview
-                this.appNode = this.app.ui.container
-                this.preview.appendChild(this.appNode)
+                this.preview.appendChild(this.app.ui.container)
                 this.defaultpreview.style.display = 'none'
                 // setTimeout(() => {
                     this.responsive()
@@ -612,12 +614,13 @@ export class Editor{
                         if (g === this.graph) this.graph.resizeAllEdges()
                     })
                 },50)
-            } else {
-                this.container.style.opacity = 0
+            } else if (!on) {
+                this.container.style.display = 'none'
+                // this.container.style.opacity = 0
                 this.container.style.pointerEvents = 'none'
                 this.shown = false
 
-                this.app.ui.parent.appendChild(this.appNode)
+                this.app.ui.parent.appendChild(this.app.ui.container)
                 this.defaultpreview.style.display = 'block'
                 this.responsive()
                 this.app.graphs.forEach(g => {
@@ -625,9 +628,9 @@ export class Editor{
                     // if (g === this.graph) this.graph.resizeAllEdges()
                 })
 
-                setTimeout(() => {
-                    if (this.container.parent == this.parentNode) this.container.remove()
-                },1000)
+                // setTimeout(() => {
+                //     if (this.container.parent == this.parentNode) this.container.remove()
+                // },1000)
             }
         // }
     }

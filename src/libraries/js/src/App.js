@@ -6,6 +6,15 @@ import {Graph} from './graph/Graph'
 import './ui/styles/defaults.css'
 import { Editor } from './graph/Editor'
 
+// Utilities
+import { Dropdown } from "./ui/Dropdown";
+
+// Images
+import appletSVG from './ui/assets/th-large-solid.svg'
+// import dragSVG from '../../assets/arrows-alt-solid.svg'
+import nodeSVG from './ui/assets/network-wired-solid.svg'
+import expandSVG from './ui/assets/expand-arrows-alt-solid.svg'
+
 export class App {
     constructor(
         info={},
@@ -47,7 +56,10 @@ export class App {
         // Track Controls
         this.controls = []
 
-        // Set shortcuts
+        // Create Default Menu
+        this._createMenu()
+
+        // Set Shortcuts
         document.addEventListener('keyup', this.shortcutManager, false);
     }
 
@@ -201,6 +213,197 @@ export class App {
 
         return graphs
 
+    }
+
+    _createMenu = () => {
+
+                var container = document.createElement('div');
+                container.id = `${this.props.id}-brainsatplay-default-ui`
+                container.classList.add('brainsatplay-default-interaction-menu')
+                this.ui.container.insertAdjacentElement('beforeend', container);
+
+                let headers = [{label: 'Applet Menu', id:'options-menu'}]
+                let options = [
+                    {header: 'options-menu', content: '<div class="toggle">i</div><p>Info</p>', onclick: (el) => {
+                        if (infoMask.style.opacity != 0) {
+                            infoMask.style.opacity = 0
+                            infoMask.style.pointerEvents = 'none'
+                        } else {
+                            infoMask.style.opacity = 1
+                            infoMask.style.pointerEvents = 'auto'
+                            appletMask.style.opacity = 0;
+                            appletMask.style.pointerEvents = 'none';
+                        }
+                    }},
+                    {header: 'options-menu', content: `<div class="toggle"><img src="${nodeSVG}"></div><p>Edit</p>`, id:"brainsatplay-visual-editor", onload: (el)=> {    
+                        this.editor.setToggle(el)
+                    }, onclick: (el) => {
+                        // console.error('toggling')
+                    }},
+                    {header: 'options-menu', content: `<div class="toggle"><img src="${appletSVG}"></div><p>Browse Apps</p>`, id:"brainsatplay-browser", onclick: async (el) => {
+                            if (appletMask.style.opacity != 0) {
+                                appletMask.style.opacity = 0
+                                appletMask.style.pointerEvents = 'none'
+                            } else {
+                                appletMask.style.opacity = 1
+                                appletMask.style.pointerEvents = 'auto'
+                                infoMask.style.opacity = 0;
+                                infoMask.style.pointerEvents = 'none';
+                                // if (instance == null) {
+                                //     getAppletSettings(appletManifest['Applet Browser'].folderUrl).then((browser) => {
+                                       
+                                //         let config = {
+                                //             hide: [],
+                                //             applets: Object.keys(appletManifest).map(async (key) => {
+                                //                 return await getAppletSettings(appletManifest[key].folderUrl)
+                                //             }),
+                                //             presets: presetManifest,
+    
+                                //             // OLD
+                                //             appletIdx: appletIdx,
+                                //             showPresets: false,
+                                //             displayMode: 'tight'
+                                //         }
+    
+                                //         Promise.all(config.applets).then((resolved) => {
+                                //             config.applets=resolved
+                                //             let instance  = new App(browser, appletMask, this.session, [config])
+
+                                //           // FIX
+                                //             instance.init()
+                                            
+                                //             thisApplet.deinit = (() => {
+                                //                 var defaultDeinit = thisApplet.deinit;
+                                            
+                                //                 return function() {    
+                                //                     instance.deinit()
+                                //                     appletDiv.querySelector(`.option-brainsatplay-browser`).click()                              
+                                //                     let result = defaultDeinit.apply(this, arguments);                              
+                                //                     return result;
+                                //                 };
+                                //             })()
+                                //         })
+                                //     })
+                                // }
+                            }
+                    }},
+                    
+                    // {header: 'options-menu', content: `Drag`, onload: (el) => {
+                    //     let swapped = null
+                    //     el.classList.add("draggable")
+                    //     console.log(el)
+                    //     el.addEventListener('dragstart', () => {
+                    //         appletDiv.classList.add("dragging")
+                    //         console.log('dragging')
+                    //     })
+                    //     el.addEventListener('dragend', () => {
+                    //         appletDiv.classList.remove("dragging")
+                    //     })
+                
+                    //     appletDiv.addEventListener('dragover', (e) => {
+                    //         e.preventDefault()
+                    //         if (this.prevHovered != appletDiv){
+                    //             let dragging = document.querySelector('.dragging')
+                    //             if (dragging){
+                    //                 let draggingGA = dragging.style.gridArea
+                    //                 let hoveredGA = appletDiv.style.gridArea
+                    //                 appletDiv.style.gridArea = draggingGA
+                    //                 dragging.style.gridArea = hoveredGA
+                    //                 this.responsive()
+                    //                 this.prevHovered = appletDiv
+                    //                 if (appletDiv != dragging){
+                    //                     this.lastSwapped = appletDiv
+                    //                 }
+                    //             }
+                    //         }
+                    //         appletDiv.classList.add('hovered')
+                    //     })
+                
+                    //     appletDiv.addEventListener('dragleave', (e) => {
+                    //         e.preventDefault()
+                    //         appletDiv.classList.remove('hovered')
+                    //     })
+                
+                    //     appletDiv.addEventListener("drop", (event) => {
+                    //         event.preventDefault();
+                    //         if (this.lastSwapped){
+                    //         let dragging = document.querySelector('.dragging')
+                    //         let draggingApplet = this.applets.find(applet => applet.name == dragging.name) 
+                    //             let lastSwappedApplet = this.applets.find(applet => applet.name == this.lastSwapped.name)
+                    //             let _temp = draggingApplet.appletIdx;
+                    //             draggingApplet.appletIdx = lastSwappedApplet.appletIdx;
+                    //             lastSwappedApplet.appletIdx = _temp;
+                    //             this.showOptions()
+                    //         }
+
+                    //         for (let hovered of document.querySelectorAll('.hovered')){
+                    //             hovered.classList.remove('hovered')
+                    //         }
+                            
+                    //     }, false);
+                    // }},
+                    {header: 'options-menu', content: `<div class="toggle"><img src="${expandSVG}"></div><p>Toggle Fullscreen</p>`, onclick: (el) => {
+                        const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
+                        if (!fullscreenElement) {
+                            if (this.ui.container.requestFullscreen) {
+                                this.ui.container.requestFullscreen()
+                            } else if (this.ui.container.webkitRequestFullscreen) {
+                                this.ui.container.webkitRequestFullscreen()
+                            }
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen()
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen()
+                            }
+                        }
+                    }},
+                    {header: 'options-menu', content: `<div class="toggle">?</div><p>Show Tutorial</p>`, onload: (el) => {
+                        
+                        if (this.tutorialManager != null) {
+                            this.tutorialManager.clickToOpen(el)
+                        } else {
+                            el.remove()
+                        }
+        
+                    }},
+                ]
+
+                let dropdown = new Dropdown(container, headers, options, {hidden: true})
+
+                let htmlString = `
+        <div class="brainsatplay-default-applet-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%;">
+        </div>
+        <div class="brainsatplay-default-info-mask" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.75); opacity: 0; pointer-events: none; z-index: 999; transition: opacity 0.5s; padding: 5%; overflow: scroll;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr)">
+                <div>
+                <h1 style="margin-bottom: 0; padding-bottom: 0;">${this.info.name}</h1>
+                <p style="font-size: 69%;">${this.info.description}</p>
+                </div>
+                <div style="font-size: 80%;">
+                    <p>Devices: ${this.info.devices.join(', ')}</p>
+                    <p>Categories: ${this.info.categories.join(' + ')}</p>
+                </div>
+            </div>
+            <hr>
+            <h2>Instructions</h2>
+            <p>${this.info.instructions}</p>
+        </div>
+        `
+
+                this.ui.container.insertAdjacentHTML('beforeend', htmlString);
+                let defaultUI = this.ui.container.querySelector(`.brainsatplay-default-interaction-menu`)
+
+                // Flash UI
+                setTimeout(() => {
+                    defaultUI.style.opacity = 1.0
+                setTimeout(() => {
+                    defaultUI.style.opacity = ''
+                }, 3000) // Wait to Fade Out 
+            }, 1000)
+
+            let appletMask = this.ui.container.querySelector('.brainsatplay-default-applet-mask')
+            let infoMask = this.ui.container.querySelector('.brainsatplay-default-info-mask')
     }
 
     updateGraph(){
