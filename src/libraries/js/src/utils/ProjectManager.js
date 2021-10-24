@@ -328,7 +328,7 @@ app.init()`)
             }
         })
 
-        info = JSON.stringify(info, '\t')
+        info = JSON.stringify(info, null, 2);
 
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;

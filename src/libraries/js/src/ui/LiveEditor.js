@@ -265,11 +265,22 @@ export class LiveEditor {
         this.target = settings.target; //e.g. this.session.atlas
         if (this.props.language === 'javascript'){
 
-            // Handle Specific Functions (from target)
+            // Handle Specific Objects (from target)
             if (typeof this.target === 'object' && this.target != null && this.key != null){
-                this.head = this.getFunctionHead(this.target[this.key]);
-                this.body = this.target[this.key] // this.getFunctionBody(this.target[this.function]);
-                this.copy = this.target[this.key].toString();
+                console.log(this.target[this.key])
+
+                // Functions
+                if (this.target[this.key] instanceof Function){
+                    this.head = this.getFunctionHead(this.target[this.key]);
+                    this.body = this.target[this.key] // this.getFunctionBody(this.target[this.function]);
+                    this.copy = this.target[this.key].toString();
+                }
+                // Other Objects
+                else {
+                    this.head = 'Object'
+                    this.body = JSON.stringify(this.target[this.key], null, 2) // this.getFunctionBody(this.target[this.function]);
+                    this.copy = this.body
+                }
             } 
 
             // Handle Whole Classes

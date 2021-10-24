@@ -10,6 +10,7 @@ import {pluginManifest} from '../plugins/pluginManifest'
 
 // Node Interaction
 import * as dragUtils from '../ui/dragUtils'
+import { Port } from './Port'
 
 export class Editor{
     constructor(app, parent=document.body) {
@@ -108,7 +109,7 @@ export class Editor{
                                 <h3>Node Editor</h3>
                                 <button id="${this.props.id}add" class="brainsatplay-default-button addbutton">+</button>
                             </div>
-                            <div id="${this.props.id}params" class='node-sidebar-content'>
+                            <div id="${this.props.id}portEditor" class='node-sidebar-content'>
                             <p></p>
                             </div>
                         </div>
@@ -147,7 +148,7 @@ export class Editor{
                     this.reload = this.container.querySelector(`[id="${this.props.id}reload"]`)
                     this.exit = this.container.querySelector(`[id="${this.props.id}exit"]`)
                     this.defaultpreview = this.container.querySelector(`[id="${this.props.id}defaultpreview"]`)
-                    this.params = this.container.querySelector(`[id="${this.props.id}params"]`)
+                    this.portEditor = this.container.querySelector(`[id="${this.props.id}portEditor"]`)
                     this.edit = this.container.querySelector(`[id="${this.props.id}edit"]`)
                     this.delete = this.container.querySelector(`[id="${this.props.id}delete"]`)
                 // } // setup function, moved to init
@@ -577,7 +578,7 @@ export class Editor{
                 let includeButDontShow = ['display', 'version']
                  
                 if (!includeButDontShow.includes(key)){
-                    let {container, input} = this.createInput(toParse, key)
+                    let {container, input} = this.createObjectEditor(toParse, key)
                     if (container) {
                         settingsContainer.insertAdjacentElement('beforeend', container)
                         inputDict[key] = input
@@ -728,36 +729,49 @@ export class Editor{
     }
 
 
-    createInput(toParse, key, plugin){
+    createObjectEditor(toParse, key, plugin){
 
         // Properly Nest Divs
         let container = document.createElement('div')
-        container.insertAdjacentHTML('beforeend',`<div><p>${key}</p></div>`)
+        let innerContainer = document.createElement('div')
+        let label = document.createElement('p')
+        label.innerHTML = key
+
+        innerContainer.insertAdjacentElement('beforeend', label)
+        container.insertAdjacentElement('beforeend', innerContainer)
+
+        if (toParse[key] instanceof Port) {
+            label.style.cursor = 'pointer'
+            label.onclick = () => {
+                toParse[key].edit('self')
+            }
+        }
+
         let inputContainer = document.createElement('div')
         inputContainer.style.position = 'relative'
 
-        // Sort through Params
+        // Sort through Ports
         if (toParse[key].edit != false){
 
+            // Port Type
             let defaultType
             if (toParse[key].output?.type === null) defaultType = toParse[key].input?.type // Input if output is null
             else if (toParse[key].output?.type === undefined) defaultType = typeof toParse[key].data // Data type if output is undefined
             else defaultType = toParse[key].output?.type // Otherwise specified output type
 
             if (typeof defaultType !== 'string' && defaultType?.name) defaultType = defaultType.name
+            // Catch Functions
+            if (defaultType === 'function') defaultType = 'Function'
+
+            // Filter out elements
+            defaultType = (defaultType === "object" ? toParse[key].data instanceof HTMLElement : toParse[key].data && typeof toParse[key].data === "object" && toParse[key].data !== null && toParse[key].data.nodeType === 1 && typeof toParse[key].data.nodeName==="string") ? 'Element' : defaultType
+            
 
             let specifiedOptions = toParse[key].options
             let optionsType = typeof specifiedOptions
 
             let input
 
-            // Catch Functions
-            if (defaultType === 'function') defaultType = 'Function'
-
-
-            // Filter out elements
-            defaultType = (defaultType === "object" ? toParse[key].data instanceof HTMLElement : toParse[key].data && typeof toParse[key].data === "object" && toParse[key].data !== null && toParse[key].data.nodeType === 1 && typeof toParse[key].data.nodeName==="string") ? 'Element' : defaultType
-            
 
         // Cannot Handle Objects or Elements
         if (defaultType && defaultType != 'undefined' && defaultType != 'Element'){
@@ -861,7 +875,7 @@ export class Editor{
                 input.innerHTML = `Edit ${defaultType}`
 
                 input.onclick = () => {
-                    toParse[key].ui.editor.onOpen()
+                    toParse[key].edit()
                 }
             } else if (defaultType === 'file'){
                 
@@ -942,14 +956,14 @@ export class Editor{
                 container.classList.add(`content-div`)                
 
                 input.oninput = (e) => {
-                    this.updateFromGUI(input, plugin, key, toParse)
+                    this.updateFromGUI(input, key, toParse)
                 }
                 return {container, input}
             } else return {}
         } else return {}
     }
 
-    subscribeToChanges(inputDict, toParse, label='', plugin) {
+    subscribeToChanges(inputDict, toParse, label='') {
         // Listen for Non-GUI Changes to Params when Viewing
         Object.keys(this.state.data).forEach(k => {
             if (k.includes(`GUI${label}_`)){
@@ -986,7 +1000,7 @@ export class Editor{
                     }
 
                     if (oldValue != newValue) {
-                        if (plugin) this.updateFromGUI(input, plugin, key, toParse)
+                        this.updateFromGUI(input, key, toParse)
                         // if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
                     }
             })
@@ -994,7 +1008,7 @@ export class Editor{
     }
 
     // Change the INTERNAL Params (running through port and setting output manually)
-    updateFromGUI(input, plugin, key, toParse) {
+    updateFromGUI(input, key, toParse) {
 
         let value
         if (this.elementTypesToUpdate.includes(input.tagName)){
@@ -1017,7 +1031,7 @@ export class Editor{
             }
             else value = input.value
             
-            if (plugin) plugin.ports[key].set({value, forceUpdate: true}) // port
+            if (toParse[key] instanceof Port) toParse[key].set({value, forceUpdate: true}) // port
             else toParse[key].target[key] = value // settings or other objects
 
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()

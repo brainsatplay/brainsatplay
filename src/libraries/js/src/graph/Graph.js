@@ -764,21 +764,20 @@ export class Graph {
             if (clickedNode) clickedNode.classList.remove('clicked')
             nodeElement.classList.add('clicked')
 
-            // Plugin GUI
-            let selectedParams = this.app.editor.params
-            selectedParams.innerHTML = ''
-            let toParse = node.ports
+            // Port GUI
+            let portEditor = this.app.editor.portEditor
+            portEditor.innerHTML = ''
 
             let inputDict = {}
-            for (let key in toParse){
-                let {container, input} = this.app.editor.createInput(node.ports, key, node)
+            for (let key in node.ports){
+                let {container, input} = this.app.editor.createObjectEditor(node.ports, key)
                 if (container) {
                     inputDict[key] = input
-                    selectedParams.insertAdjacentElement('beforeend', container)
+                    portEditor.insertAdjacentElement('beforeend', container)
                 }
             }
 
-            this.app.editor.subscribeToChanges(inputDict,toParse, 'ports', node)
+            this.app.editor.subscribeToChanges(inputDict,node.ports, 'ports', node)
 
             // Edit and Delete Buttons
             this.app.editor.delete.style.display = ''

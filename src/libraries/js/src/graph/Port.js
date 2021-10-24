@@ -9,6 +9,7 @@ export class Port {
         // Default Port Metadata
         this.meta = {}
         this.info = info
+        console.log(info)
         Object.assign(this, info) // backwards compatibility (< 0.0.36)
 
         this.name = name
@@ -37,13 +38,20 @@ export class Port {
             input: {},
             output: {},
             latency: document.createElement('div'),
-            code: document.createElement('div'),
-            editor: null,
+            value: {
+                code: document.createElement('div'),
+                editor: null,
+            },
+            self: {
+                code: document.createElement('div'),
+                editor: null,
+            }
             // lastclicked: null
         }
 
         let defaultType = this.getType()
-        if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)) this.createEditor(this)
+        if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)) this.createValueEditor()
+        this.createSelfEditor()
 
         let portTypes = Object.keys(this.edges)
         portTypes.forEach(s => {
@@ -270,22 +278,23 @@ export class Port {
     }
 
     getType = () => {
+
         let defaultType
         if (this.output?.type === null) defaultType = this.input?.type // Input if output is null
         else if (this.output?.type === undefined) defaultType = typeof this.data // Data type if output is undefined
         else defaultType = this.output?.type // Otherwise specified output type
 
         if (typeof defaultType !== 'string' && defaultType?.name) defaultType = defaultType.name
-
-        // Filter out elements
+        if (defaultType === 'function') defaultType = 'Function'
         defaultType = (defaultType === "object" ? this.data instanceof HTMLElement : this.data && typeof this.data === "object" && this.data !== null && this.data.nodeType === 1 && typeof this.data.nodeName==="string") ? 'Element' : defaultType
+        
         return defaultType
     }
 
-    // Create Port Editor
-    createEditor = () => {
+    // Create Editor
+    createEditor = (name, target, key, type) => {
 
-        this.ui.code.style = `
+        this.ui[name].code.style = `
             width: 75vw;
             height: 75vh;
             position: absolute;
@@ -297,9 +306,9 @@ export class Port {
         
         let settings = {}
         settings.onOpen = (res) => {
-            document.body.insertAdjacentElement('beforeend', this.ui.code)
-            this.ui.code.style.pointerEvents = 'all'
-            this.ui.code.style.opacity = '1'
+            document.body.insertAdjacentElement('beforeend', this.ui[name].code)
+            this.ui[name].code.style.pointerEvents = 'all'
+            this.ui[name].code.style.opacity = '1'
         }
 
         settings.onSave = (res) => {
@@ -308,22 +317,38 @@ export class Port {
         }
 
         settings.onClose = (res) => {
-            this.ui.code.style.pointerEvents = 'none'
-            this.ui.code.style.opacity = '0'
-            this.ui.code.remove()
+            this.ui[name].code.style.pointerEvents = 'none'
+            this.ui[name].code.style.opacity = '0'
+            this.ui[name].code.remove()
         }
 
-        if (['HTML', 'CSS', 'GLSL'].includes(this.output?.type)){
-            settings.language = this.output.type.toLowerCase()
+        if (['HTML', 'CSS', 'GLSL'].includes(type)){
+            settings.language = type.toLowerCase()
         } else {
             settings.language = 'javascript'
         }
 
-        settings.target = this
-        settings.key = 'value'
+        settings.target = target
+        settings.key = key
 
-        this.ui.editor = new LiveEditor(settings, this.ui.code)
+        this.ui[name].editor = new LiveEditor(settings, this.ui[name].code)
         settings.onClose()
+    }
+
+    // Create Value Editor
+    createValueEditor = () => {
+        let editor = this.createEditor('value', this, 'value', this.output?.type)
+    }
+
+    // Create Self Editor
+    createSelfEditor = () => {
+        console.error('STILL NEED TO ACTUALLY ALLOW FOR REINITIALIZING PORT ON SAVE')
+        let editor = this.createEditor('self', this, 'info')
+    }
+
+
+    edit = (name='value') => {
+        this.ui[name].editor.onOpen()
     }
 
 }
