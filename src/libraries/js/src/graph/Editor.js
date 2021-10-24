@@ -586,8 +586,6 @@ export class Editor{
                 }
             })
 
-            this.subscribeToChanges(inputDict, target, 'settings')
-
             delete this.state.data[`activeSettingsFile`]
 
 
@@ -729,7 +727,7 @@ export class Editor{
     }
 
 
-    createObjectEditor(toParse, key, plugin){
+    createObjectEditor(toParse, key){
 
         // Properly Nest Divs
         let container = document.createElement('div')
@@ -751,7 +749,9 @@ export class Editor{
         inputContainer.style.position = 'relative'
 
         // Sort through Ports
-        if (toParse[key].edit != false){
+        if (toParse[key] == null) console.error(toParse, key, toParse[key])
+
+        if (!!toParse[key] && toParse[key].edit != false){
 
             // Port Type
             let defaultType
@@ -955,61 +955,9 @@ export class Editor{
                 container.insertAdjacentElement('beforeend',inputContainer)
                 container.classList.add(`content-div`)                
 
+                // Update Object Data from Gui
                 input.oninput = (e) => {
-                    this.updateFromGUI(input, key, toParse)
-                }
-                return {container, input}
-            } else return {}
-        } else return {}
-    }
-
-    subscribeToChanges(inputDict, toParse, label='') {
-        // Listen for Non-GUI Changes to Params when Viewing
-        Object.keys(this.state.data).forEach(k => {
-            if (k.includes(`GUI${label}_`)){
-                this.state.removeState(`GUI${label}_`)
-            }
-        })
-
-        let keys = Object.keys(toParse)
-
-        keys.forEach(key => {
-            this.state.addToState(`GUI${label}_${key}`, toParse[key], () => {
-
-
-                let oldValue
-                let newValue
                     
-                    let input = inputDict[key]
-
-                    // Filter for Displayable Inputs
-                    if (input && this.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
-                        if (input.type === 'checkbox') {
-                            oldValue = input.checked
-                            input.checked = toParse[key].data
-                            newValue = input.checked
-                        }
-                        else {
-                            oldValue = input.value
-                            if (toParse[key].data != null){ // FIX
-                                if (input.tagName === 'TEXTAREA') newValue = JSON.stringify(toParse[key].data, null, '\t')
-                                else newValue = toParse[key].data
-                                input.value = newValue
-                            }
-                        }
-                    }
-
-                    if (oldValue != newValue) {
-                        this.updateFromGUI(input, key, toParse)
-                        // if (this.files[plugin.parent.name].tab) this.files[plugin.parent.name].tab.classList.add('edited')
-                    }
-            })
-        })
-    }
-
-    // Change the INTERNAL Params (running through port and setting output manually)
-    updateFromGUI(input, key, toParse) {
-
         let value
         if (this.elementTypesToUpdate.includes(input.tagName)){
             if (input.tagName === 'TEXTAREA') {
@@ -1036,6 +984,10 @@ export class Editor{
 
             if (!['number','range', 'text', 'color'].includes(input.type) && input.tagName !== 'TEXTAREA') input.blur()
         }
+                }
+                return {container, input}
+            } else return {}
+        } else return {}
     }
 
     async createFile(nodeInfo, name, graph){

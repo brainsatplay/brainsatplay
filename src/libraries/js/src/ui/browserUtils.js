@@ -2,7 +2,6 @@ import placeholderImage from './assets/placeholder.png'
 
 export const createCards = (appletSettings=[], filter = (settings) => { return settings }, onclick=()=>{}) => {
         
-        console.log(appletSettings)
         let appletCards = []
         appletSettings = appletSettings.filter(filter)
 

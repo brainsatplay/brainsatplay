@@ -34,6 +34,10 @@ export class Port {
             self: {
                 code: document.createElement('div'),
                 editor: null,
+            },
+            gui: {
+                container: null,
+                input: null
             }
             // lastclicked: null
         }
@@ -102,6 +106,9 @@ export class Port {
         this.ui.label.setAttribute('name', this.name)
         this.ui.latency.setAttribute('name', this.name)
         this.ui.latency.classList.add('latency-display')
+
+
+        if (this.node.app.editor) this.ui.gui = this.node.app.editor.createObjectEditor(this.node.ports, this.name)
     }
 
     deinit = () => {
@@ -215,8 +222,13 @@ export class Port {
             this.data = port.data
             this.meta = port.meta
 
-            // Run Across Edges
-            this.edges.output.forEach(o => {o.update()})
+            let visible = document.body.contains(this.ui.gui.container) // in DOM
+            // && (this.ui.gui.container?.offsetParent != null) // not hidden
+
+            if (visible) this._updateGUI() // update gui readout
+
+            this.edges.output.forEach(o => {o.update()}) // Run Across Edges
+
         } else {
             // console.log('NO CHANGE')
         }
@@ -239,6 +251,31 @@ export class Port {
 
     getLatency = () => {
         return this.latency.reduce((a,b) => a + b) / this.latency.length
+    }
+
+    _updateGUI = () => {
+        // Update Editor                    
+        let oldValue
+        let newValue
+            
+        let input = this.ui.gui.input
+
+        // Filter for Displayable Inputs
+        if (input && this.node.app.editor.elementTypesToUpdate.includes(input.tagName) && input.type != 'file'){
+            if (input.type === 'checkbox') {
+                oldValue = input.checked
+                input.checked = this.value
+                newValue = input.checked
+            }
+            else {
+                oldValue = input.value
+                if (this.value != null){ // FIX
+                    if (input.tagName === 'TEXTAREA') newValue = JSON.stringify(this.value, null, '\t')
+                    else newValue = this.value
+                    input.value = newValue
+                }
+            }
+        }
     }
 
     // Animation Helper Functions

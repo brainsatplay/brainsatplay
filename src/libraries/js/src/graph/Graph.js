@@ -724,16 +724,12 @@ export class Graph {
             let portEditor = this.app.editor.portEditor
             portEditor.innerHTML = ''
 
-            let inputDict = {}
             for (let key in node.ports){
-                let {container, input} = this.app.editor.createObjectEditor(node.ports, key)
-                if (container) {
-                    inputDict[key] = input
-                    portEditor.insertAdjacentElement('beforeend', container)
-                }
-            }
 
-            this.app.editor.subscribeToChanges(inputDict,node.ports, 'ports', node)
+                // Skips ports created after initialization
+                if (!!node.ports[key].ui.gui.container) portEditor.insertAdjacentElement('beforeend', node.ports[key].ui.gui.container)
+            
+            }
 
             // Edit and Delete Buttons
             this.app.editor.delete.style.display = ''

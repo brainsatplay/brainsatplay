@@ -82,7 +82,7 @@ export class Edge {
         if (this.source.node) this.source.node.edges.delete(this.uuid)
         if (this.target.node) this.target.node.edges.delete(this.uuid)
         if (this.source.port) this.source.port.removeEdge('output',this.uuid)
-        if (this.target.port) this.source.port.removeEdge('input',this.uuid)
+        if (this.target.port) this.target.port.removeEdge('input',this.uuid)
 
         if (this.parent.edges.get(this.uuid)) this.parent.edges.delete(this.uuid)
 
@@ -95,7 +95,12 @@ export class Edge {
      update = async (port=this.source.port) => {
          if (port.value !== undefined){
             let returned = await this.target.port.set(port)
-            this.animate()
+
+            let visible = document.body.contains(this.node.curve) // in DOM
+            // && (this.node.curve?.offsetParent != null) // not hidden
+
+            if (visible) this.animate()
+
             return returned
          }
     }
@@ -162,7 +167,11 @@ export class Edge {
     
       let onMouseMove = (e) => {
 
-        this.resizeElement()
+        let visible = document.body.contains(this.svg.element) // in DOM
+        // && (this.svg.element?.offsetParent != null) // not hidden
+        
+        if (visible) this.resizeElement()
+
         let dims = this[otherType].port.ui[inorout].getBoundingClientRect()
         let svgO = this.svgPoint(this.svg.element, dims.left + dims.width/2, dims.top + dims.height/2)
         let svgP = this.svgPoint(this.svg.element, e.clientX, e.clientY)
