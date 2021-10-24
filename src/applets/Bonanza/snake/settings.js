@@ -1,7 +1,6 @@
 
 import featureImg from './feature.png'
 import {UI} from './UI.js'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Snake",

@@ -1,4 +1,3 @@
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import{Ramchurn} from './Ramchurn'
 
 

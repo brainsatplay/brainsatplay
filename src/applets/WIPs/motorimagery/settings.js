@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Motor Imagery",

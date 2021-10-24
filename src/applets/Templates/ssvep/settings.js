@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 
 export const settings = {

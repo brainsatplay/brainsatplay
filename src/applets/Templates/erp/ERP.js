@@ -1,3 +1,4 @@
+import { Math2 } from "../../../libraries/js/src/utils/mathUtils/Math2"
 
 export class ERP {
 
@@ -98,22 +99,28 @@ export class ERP {
                 // Grab Slice
                 let data = (ch.filtered.length > 0) ? ch.filtered.reverse() : ch.raw.reverse()
                 let arr = data.slice(uBi, lBi)
-                arr = arr.reverse()
-    
+                let timesArr = times.slice(uBi, lBi)
+                let candidates = Math2.p300([time],arr.reverse(),timesArr.reverse(), this.ports.atlas.data.eegshared.sps)
+                    
                 // Plot Graph
     
-    
+                console.log(candidates)
                 // Check for P300 (simulated for now)
-                let P300 = true * (Number.parseFloat(this.ports.gaze.data) === objectInd) * Math.floor(10*Math.random() > 0)
-                // this.props.lda.instance.update(this.ports.mode.data, {data: arr})
+                let P300 = (candidates.length != 0) 
+                            // * (Number.parseFloat(this.ports.gaze.data) === objectInd) 
+                            // * Math.floor(10*Math.random() > 0)
 
-
+                // this.props.lda.instance.update(this.ports.mode.data, {data: arr.reverse()})
     
                 votes.push(P300)
             })
+
+            // console.log(votes)
     
-            let P300 = votes.reduce((a,b) => a * b) === 1// all true
-    
+            // let P300 = votes.reduce((a,b) => a * b) === 1 // all true
+            let P300 = votes.reduce((a,b) => a + b) >= (votes.length/2) // half or more true
+            // console.log(P300)
+
             return P300
     
         }

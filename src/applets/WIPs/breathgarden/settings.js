@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import featureImg from './feature.png'
 import fragmentShader from './shaders/galaxy.glsl'
 import vertexShader from './shaders/vertex.glsl'

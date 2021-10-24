@@ -1,6 +1,5 @@
 
 import featureImg from './img/feature.png'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Blob} from './Blob'
 
 export const settings = {

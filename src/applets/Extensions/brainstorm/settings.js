@@ -1,6 +1,5 @@
 
 import {Manager} from './Manager.js'     
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
 	"name": "Brainstorm",

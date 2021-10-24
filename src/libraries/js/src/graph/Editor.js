@@ -103,7 +103,7 @@ export class Editor{
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
                                 <button id="${this.props.id}save" class="brainsatplay-default-button">Save Project</button>
                                 <button id="${this.props.id}publish" class="brainsatplay-default-button">Publish Project</button>
-                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Exit the Studio</button>
+                                <button id="${this.props.id}exit" class="brainsatplay-default-button">Close Editor</button>
                             </div>
                             <div class='node-sidebar-section'>
                                 <h3>Node Editor</h3>

@@ -1,5 +1,4 @@
 import {AppletBrowser} from '../../../libraries/js/src/ui/AppletBrowser'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Applet Browser",

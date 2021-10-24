@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 import vertex from './shaders/vertex.glsl'
 import fragment from './shaders/fragment.glsl'
