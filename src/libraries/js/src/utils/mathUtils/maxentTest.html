@@ -15,13 +15,15 @@
     </div>
     <hr>
     Prediction and Actual
-    <div id='a' style='width:100%;'></div>
+    <div id='pa' style='width:100%;'></div>
     <hr>
     Probability Densities 
-    <div id='b' style='width:100%;'></div>
+    <div id='pb' style='width:100%;'></div>
     <hr>
     Entropy of Relative Error Histogram | Most occurring (maximum) entropy: <span id='ent'></span> Area under hist curve: <span id='areaent'></span>
-    <div id='c' style='width:100%;'></div>
+    <div id='pc' style='width:100%;'></div>
+    Relative Error vs Sample probabilities
+    <div id='pd' style='width:100%;'></div>
     <script>
       
 
@@ -192,7 +194,7 @@
             }
             
             dabs = relError(actualLandings,predictedLandings);
-            //d = relError(actualLandings,predictedLandings,false);
+            d = relError(actualLandings,predictedLandings,false);
             pDist = normalDistribution(predictedLandings);
             aDist = normalDistribution(actualLandings);
             pEnt = informationEntropy(dabs);
@@ -277,6 +279,18 @@
                         name: "Entropy histogram",
                         //xbins: {  size: 0.01  } 
                     }
+                ], [
+                    {
+                        x: d.sort(function(a, b){return a - b}),
+                        y: pDist,
+                        mode: 'markers',
+                        type:'scatter',
+                        marker: {
+                            color: "rgba(255,100,255, 1)"
+                        },
+                        name: "relative error vs sample distribution",
+                        //xbins: {  size: 0.01  } 
+                    }
                 ]
             ];
 
@@ -286,9 +300,10 @@
             }
 
             //console.log(data[1])
-            Plotly.newPlot("a",data[0],undefined,config);
-            Plotly.newPlot("b",data[1],undefined,config);
-            Plotly.newPlot("c",data[2],undefined,config);
+            Plotly.newPlot("pa",data[0],undefined,config);
+            Plotly.newPlot("pb",data[1],undefined,config);
+            Plotly.newPlot("pc",data[2],undefined,config);
+            Plotly.newPlot("pd",data[3],undefined,config);
 
         }
 
