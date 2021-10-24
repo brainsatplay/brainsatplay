@@ -147,7 +147,7 @@ export class cytonPlugin {
                     makeNotchFilter(100,this.info.sps,2)
                     );
                 this.filters[this.filters.length-1].useBp1 = true;
-                this.filters[this.filters.length-1].useScaling = false;
+                this.filters[this.filters.length-1].useScaling = true;
             });
         }
 
