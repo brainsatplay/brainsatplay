@@ -189,7 +189,7 @@
 
                 heights.push(launcherHeight);
                 predictedLandings.push(launchDistance);
-                actualLandings.push(launchDistance+(Math.random()-.6)*launcherError); //10% error with slightly negative bias (because a real ramp would not be frictionless + human error)
+                actualLandings.push(launchDistance+(Math.random()-.5)*launcherError); //10% error with slightly negative bias (because a real ramp would not be frictionless + human error)
                 ct++;
             }
             
