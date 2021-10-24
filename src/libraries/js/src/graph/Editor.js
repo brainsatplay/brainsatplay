@@ -748,10 +748,7 @@ export class Editor{
         let inputContainer = document.createElement('div')
         inputContainer.style.position = 'relative'
 
-        // Sort through Ports
-        if (toParse[key] == null) console.error(toParse, key, toParse[key])
-
-        if (!!toParse[key] && toParse[key].edit != false){
+        if (!!toParse[key] && toParse[key].edit != false){ // only parse ports that exist on initialization
 
             // Port Type
             let defaultType
