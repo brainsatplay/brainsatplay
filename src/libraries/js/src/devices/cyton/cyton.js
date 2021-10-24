@@ -43,6 +43,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.maxBufferedSamples = this.sps*60*1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 		
 		this.mode = mode;
+		this.odd = false; //
 
 		this.data = { //Data object to keep our head from exploding. Get current data with e.g. this.data.A0[this.data.count-1]
 			count: 0,
@@ -168,7 +169,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 						if(this.mode === 'daisy') {
 							if(line[2] % 2 !== 0) {
 								channel = "A"+(i-3)/3;
-							} else { channel = "A"+(8+(i-3)/3); }
+								this.odd = false;
+							} else { channel = "A"+(8+(i-3)/3); this.odd = true; }
 						}
 						else {
 							channel = "A"+(i-3)/3;
@@ -229,7 +231,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		let newLines = this.decode(this.buffer);
 		//console.log(newLines, this.data);
 		//console.log(this.data)
-		if(newLines !== false && newLines !== 0 && !isNaN(newLines) ) this.onDecodedCallback(newLines);
+		if(newLines !== false && newLines !== 0 && !isNaN(newLines) && ((this.mode === 'daisy' && this.odd === false) || this.mode !== 'daisy') ) this.onDecodedCallback(newLines);
 	}
 
 	async sendMsg(msg) {
