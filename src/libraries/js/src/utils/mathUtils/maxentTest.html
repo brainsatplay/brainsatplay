@@ -192,12 +192,12 @@
             }
             
             dabs = relError(actualLandings,predictedLandings);
-            d = relError(actualLandings,predictedLandings,false);
+            //d = relError(actualLandings,predictedLandings,false);
             pDist = normalDistribution(predictedLandings);
             aDist = normalDistribution(actualLandings);
             pEnt = informationEntropy(dabs);
             pEntHist = histogram(pEnt,undefined,pEntHistBin);
-            let dDist = normalDistribution(d,false,0);
+            //let dDist = normalDistribution(d,false,0);
 
             // console.log('drop heights',heights);
             // console.log('predicted landings',predictedLandings);
