@@ -210,8 +210,8 @@
 
 
             //Now find the Maximum Entropy Distribution
-            maxEnt = pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
-            maxEntArea = sum(pEntHist[1].map((v, i) => {return v*pEntHist[0][i]}));
+            maxEnt = -pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
+            maxEntArea = -sum(pEntHist[1].map((v, i) => {return v*pEntHist[0][i]}));
 
             document.getElementById('ent').innerHTML = maxEnt.toFixed(5);
             document.getElementById('areaent').innerHTML = maxEntArea.toFixed(5);
