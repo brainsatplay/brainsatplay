@@ -148,14 +148,16 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					var line = buffer.slice(indices[k-1],indices[k]+1); //Slice out this line to be decoded
 					
 					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
-
+					let odd = line[2] % 2 !== 0;
 					//line found, decode.
-					if(this.data.count < this.maxBufferedSamples && ((this.mode === 'daisy' && line[2] % 2 !== 0) || this.mode !== 'daisy')){
+					if(this.data.count < this.maxBufferedSamples && ((this.mode === 'daisy' && odd) || this.mode !== 'daisy')){
 						this.data.count++;
 					}
 
-					if(this.data.count-1 === 0) {this.data.ms[this.data.count-1] = Date.now(); this.data.startms = this.data.ms[0];}
-					else {
+					if(this.data.count-1 === 0) {
+						this.data.ms[this.data.count-1] = Date.now(); this.data.startms = this.data.ms[0];
+					}
+					else if(odd) {
 						this.data.ms[this.data.count-1]=this.data.ms[this.data.count-2]+this.updateMs;
 						
 						if(this.data.count >= this.maxBufferedSamples) {
@@ -167,7 +169,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					for(var i = 3; i < 27; i+=3) {
 						let channel;
 						if(this.mode === 'daisy') {
-							if(line[2] % 2 !== 0) {
+							if(odd) {
 								channel = "A"+(i-3)/3;
 								this.odd = false;
 							} else { channel = "A"+(8+(i-3)/3); this.odd = true; }
@@ -183,10 +185,11 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 							//console.log(this.data[channel][this.data.count-1],indices[k], channel)
 					}
 
-					this.data["Ax"][this.data.count-1]=this.bytesToInt16(line[27],line[28]);
-					this.data["Ay"][this.data.count-1]=this.bytesToInt16(line[29],line[30]);
-					this.data["Az"][this.data.count-1]=this.bytesToInt16(line[31],line[32]);
-
+					if(!odd) {
+						this.data["Ax"][this.data.count-1]=this.bytesToInt16(line[27],line[28]);
+						this.data["Ay"][this.data.count-1]=this.bytesToInt16(line[29],line[30]);
+						this.data["Az"][this.data.count-1]=this.bytesToInt16(line[31],line[32]);
+					}
 					
 					if(this.data.count >= this.maxBufferedSamples) { 
 						this.data["Ax"].splice(0,5120);
