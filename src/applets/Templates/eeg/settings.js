@@ -1,9 +1,8 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 
 export const settings = {
-    name: "EEG Template",
+    name: "EEG",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Get started working with real-time EEG data!",
@@ -22,8 +21,8 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {}},
+        {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name: 'manager', class: Manager, params: {}},
       ],
 
       edges: [

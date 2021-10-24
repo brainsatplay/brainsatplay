@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
 
-export class Number extends Plugin {
+
+export class Number {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.ports = {
@@ -24,7 +24,7 @@ export class Number extends Plugin {
     }
 
     init = () => {
-        // this.session.graph.runSafe(this, 'default',{data: this.ports.default.data, forceUpdate: true})
+        // this.update( 'default',{data: this.ports.default.data, forceUpdate: true})
     }
 
     deinit = () => {}

@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
 
-export class Arithmetic extends Plugin {
+
+export class Arithmetic {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.props = {
@@ -27,16 +27,14 @@ export class Arithmetic extends Plugin {
                 output: {type: undefined},
                 onUpdate: (user) => { 
                     console.log(user, this.ports.modifier.data)           
-                    let inputCopy = this.session.graph.deeperCopy(user)
-                    console.log(inputCopy)           
 
-                    let wasArray = Array.isArray(inputCopy.data)
-                    if (!wasArray) inputCopy.data = [inputCopy.data]
-                    inputCopy.data = inputCopy.data.map(v => v += this._parseProperFormat(this.ports.modifier.data))
-                    if (!wasArray) inputCopy.data = inputCopy.data[0]
+                    let wasArray = Array.isArray(user.data)
+                    if (!wasArray) user.data = [user.data]
+                    user.data = user.data.map(v => v += this._parseProperFormat(this.ports.modifier.data))
+                    if (!wasArray) user.data = user.data[0]
 
-                    console.log(inputCopy)
-                    return inputCopy
+                    console.log(user)
+                    return user
                 }            
             },
             subtract: {
@@ -44,14 +42,13 @@ export class Arithmetic extends Plugin {
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    let inputCopy = this.session.graph.deeperCopy(user)
             
-                        let wasArray = Array.isArray(inputCopy.data)
-                        if (!wasArray) inputCopy.data = [inputCopy.data]
-                        inputCopy.data = inputCopy.data.map(v => v -= this._parseProperFormat(this.ports.modifier.data))
-                        if (!wasArray) inputCopy.data = inputCopy.data[0]
+                        let wasArray = Array.isArray(user.data)
+                        if (!wasArray) user.data = [user.data]
+                        user.data = user.data.map(v => v -= this._parseProperFormat(this.ports.modifier.data))
+                        if (!wasArray) user.data = user.data[0]
             
-                    return inputCopy
+                    return user
                 }
             },
             multiply: {
@@ -59,12 +56,11 @@ export class Arithmetic extends Plugin {
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    let inputCopy = this.session.graph.deeperCopy(user)
-                    let wasArray = Array.isArray(inputCopy.data)
-                    if (!wasArray) inputCopy.data = [inputCopy.data]
-                    inputCopy.data = inputCopy.data.map(v => v *= this._parseProperFormat(this.ports.modifier.data))
-                    if (!wasArray) inputCopy.data = inputCopy.data[0]
-                    return inputCopy
+                    let wasArray = Array.isArray(user.data)
+                    if (!wasArray) user.data = [user.data]
+                    user.data = user.data.map(v => v *= this._parseProperFormat(this.ports.modifier.data))
+                    if (!wasArray) user.data = user.data[0]
+                    return user
                 }
             },
             divide: {
@@ -72,12 +68,11 @@ export class Arithmetic extends Plugin {
                 input: {type: undefined},
                 output: {type: undefined},
                 onUpdate: (user) => {
-                    let inputCopy = this.session.graph.deeperCopy(user)
-                        let wasArray = Array.isArray(inputCopy.data)
-                        if (!wasArray) inputCopy.data = [inputCopy.data]
-                        inputCopy.data = inputCopy.data.map(v => v /= this._parseProperFormat(this.ports.modifier.data))
-                        if (!wasArray) inputCopy.data = inputCopy.data[0]
-                    return inputCopy
+                        let wasArray = Array.isArray(user.data)
+                        if (!wasArray) user.data = [user.data]
+                        user.data = user.data.map(v => v /= this._parseProperFormat(this.ports.modifier.data))
+                        if (!wasArray) user.data = user.data[0]
+                    return user
                 }
             },
             mean: {
@@ -85,9 +80,8 @@ export class Arithmetic extends Plugin {
                 input: {type: Array},
                 output: {type: 'number'},
                 onUpdate: (user) => {
-                    let inputCopy = this.session.graph.deeperCopy(user)
-                    inputCopy.data = inputCopy.data.reduce((a,b) => a + b)/ inputCopy.data.length
-                    return inputCopy
+                    user.data = user.data.reduce((a,b) => a + b)/ user.data.length
+                    return user
                 }
             },
             sum: {
@@ -95,9 +89,8 @@ export class Arithmetic extends Plugin {
                 input: {type: Array},
                 output: {type: 'number'},
                 onUpdate: (user) => {
-                    let inputCopy = this.session.graph.deeperCopy(user)
-                    inputCopy.data = inputCopy.data.reduce((a,b) => a + b)
-                    return inputCopy
+                    user.data = user.data.reduce((a,b) => a + b)
+                    return user
                 }
             }
         }

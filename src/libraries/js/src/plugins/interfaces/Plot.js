@@ -1,5 +1,5 @@
 // import '../../../libraries/js/src/ui/plotly.min.js'
-import {Plugin} from '../Plugin'
+
 
 
 // import 'https://cdn.plot.ly/plotly-2.0.0.min.js'
@@ -27,17 +27,17 @@ Date.prototype.customFormat = function(formatString){
     return formatString.replace("#hhhh#",hhhh).replace("#hhh#",hhh).replace("#hh#",hh).replace("#h#",h).replace("#mm#",mm).replace("#m#",m).replace("#SS#",SS).replace("#S#",S).replace("#ss#",ss).replace("#s#",s).replace("#ampm#",ampm).replace("#AMPM#",AMPM);
   };
 
-class Plot extends Plugin {
+class Plot {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
-    constructor(label, session, params={}) {
-        super(label, session)
+    constructor(info, graph, params={}) {
+        
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         this.dependencies = ['https://cdn.plot.ly/plotly-2.0.0.min.js']
 
@@ -123,7 +123,7 @@ class Plot extends Plugin {
             let animate = () => {
                 if (this.ports.mode.data != prevState){
                     Plotly.purge(this.props.container)
-                    this.session.graph.runSafe(this,'default',this.props.userData)
+                    this.update('default',this.props.userData)
                     prevState = this.ports.mode.data
                 }
                 setTimeout(animate, 1000/2)
@@ -140,7 +140,7 @@ class Plot extends Plugin {
     show = (user) => {
         let show = user.data
         if (show) this.props.container.style.display = 'flex'
-        return {data: true, meta: {label: `${this.label}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}
+        return {data: true, meta: {label: `${this.name}_show`, params: {mode: 'Manual', trialProgression: null, trialTypes: ['Blink Left', 'Blink Right', 'Blink Both']}}}
     }
 
     default = (user) => {

@@ -1,14 +1,10 @@
-import {Plugin} from '../Plugin'
-
-export class EEG extends Plugin {
+export class EEG {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
-        
+    constructor(info, graph, params={}) {
+
+        this.session = graph.app.session
 
         this.props = {
             deviceSubscriptions: [],
@@ -67,13 +63,13 @@ export class EEG extends Plugin {
 
     init = () => {
         this.props.toUnsubscribe = this.session.subscribeToDevices('eeg', (data) => {
-            this.session.graph.triggerAllActivePorts(this)
+            this.updateAll()
         })
     }
 
     deinit = () => {
         for (let key in this.props.toUnsubscribe){
-            this.session.graph.runSafe(this,'status', {forceRun: true})
+            this.update('status', {})
             this.session.state[this.props.toUnsubscribe[key].method](key,this.props.toUnsubscribe[key].idx)
         }
     }

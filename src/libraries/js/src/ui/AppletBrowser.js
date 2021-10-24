@@ -8,10 +8,8 @@ export class AppletBrowser {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        this.label = label
-        this.session = session
-
+    constructor(info, graph) {
+        
         this.props = { //Changes to this can be used to auto-update the HTML and track important UI values 
             id: String(Math.floor(Math.random() * 1000000)), //Keep random ID,
             trainingModules: {},
@@ -65,7 +63,7 @@ export class AppletBrowser {
         this._createBrowser()
     }
 
-    _createBrowser = () => {
+    _createBrowser(){
                 // if (this.settings.length > 0) { this.configure(this.settings); } //you can give the app initialization settings if you want via an array.
 
                 if (this.showPresets) {this._createFeature()}
@@ -74,10 +72,15 @@ export class AppletBrowser {
         
                 // Create App Library Section (dependent on platform)
                 let onclickInternal = (element, settings) => {
-                    let selector = document.getElementById(`applet${0}`) // this.appletToReplace
-                    selector.value = settings.name
-                    window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
-                    selector.onchange()
+
+                    if (settings.link){
+                        window.open(settings.link, "_blank");
+                    } else {
+                        let selector = document.getElementById(`applet${0}`) // this.appletToReplace
+                        selector.value = settings.name
+                        window.history.pushState({ additionalInformation: 'Updated URL from Applet Browser (applet)' }, '', `${window.location.origin}/#${settings.name}`)
+                        selector.onchange()
+                    }
                 }
                 
                 this._createSection('App Library', this.props.applets, onclickInternal)
@@ -160,8 +163,8 @@ export class AppletBrowser {
 
         // Training Selection
         trainingModes.forEach((mode, i) => {
-            settings.graph.nodes.push({ id: mode, class: Train, params: { mode , applets: this.props.applets} })
-            settings.graph.nodes.push({ id: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
+            settings.graph.nodes.push({ name: mode, class: Train, params: { mode , applets: this.props.applets} })
+            settings.graph.nodes.push({ name: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
             settings.graph.edges.push({ source: `${mode}:element`, target: `${mode}ui:content` })
         })
 

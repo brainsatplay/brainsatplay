@@ -1,9 +1,8 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 
 export const settings = {
-    name: "SSVEP Template",
+    name: "SSVEP",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Select flashing objects with your brain.",
@@ -22,10 +21,10 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {}},
+        {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name: 'manager', class: Manager, params: {}},
          // UI
-         {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+         {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="content"></div>`,
           style: `
           .brainsatplay-ui-container {

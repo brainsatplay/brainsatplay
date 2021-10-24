@@ -1,14 +1,14 @@
 import * as THREE from 'three'
-import {Plugin} from '../Plugin'
 
-export class Group extends Plugin {
+
+export class Group {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
 
         this.props = {
             group: new THREE.Group()

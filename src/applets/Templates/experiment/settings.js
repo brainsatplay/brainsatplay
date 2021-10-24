@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 import {Results} from './Results'
 import audioCue from './audioCue.mp3'
@@ -8,7 +7,7 @@ let button = document.createElement('button')
 button.innerHTML = 'Connect EEG'
 
 export const settings = {
-    name: "Experiment Template",
+    name: "Experiment",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Compare alpha power when eyes closed vs. eyes open.",
@@ -42,10 +41,10 @@ export const settings = {
     graph:
     {
       nodes: [
-        {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {id: 'manager', class: Manager, params: {button}},
+        {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+        {name: 'manager', class: Manager, params: {button}},
         {
-          id: 'scheduler', 
+          name: 'scheduler', 
           class: brainsatplay.plugins.utilities.Scheduler, 
           params:{
             trialTypes: ['Eyes Open', 'Eyes Closed'],
@@ -56,13 +55,13 @@ export const settings = {
             start: false
           }},
 
-        {id: 'audioCue', class: brainsatplay.plugins.audio.Audio, params: {file: audioCue}},
-        {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
-        // {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        // {id: 'results', class: Results},
+        {name: 'audioCue', class: brainsatplay.plugins.audio.Audio, params: {file: audioCue}},
+        {name: 'data', class: brainsatplay.plugins.utilities.DataManager},
+        // {name: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        // {name: 'results', class: Results},
 
         // UI
-        {id:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
           html: `<div id="experiment"></div>`,
           style: `
           .brainsatplay-ui-container {
@@ -87,7 +86,7 @@ export const settings = {
         }
       },
 
-      {id: 'debug', class: brainsatplay.plugins.debug.Debug},
+      {name: 'debug', class: brainsatplay.plugins.debug.Debug},
       ],
 
       edges: [

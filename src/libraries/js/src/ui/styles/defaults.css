@@ -501,7 +501,7 @@ select {
 /* Node Editor */
 .brainsatplay-default-container.brainsatplay-node-editor{
     z-index: 999;
-    opacity: 0; 
+    /* opacity: 0;  */
     transition: opacity 1s;
     pointer-events: none;
     background: rgba(0,0,0,.5);
@@ -799,7 +799,7 @@ select {
     padding: 0px 15px 10px 15px;
     user-select: none;
     font-size: 60%;
-    height: var(--editor-tab-height);
+    /* height: var(--editor-tab-height); */
     border-bottom: 1px solid rgb(50,50,50);
 
     display: grid;

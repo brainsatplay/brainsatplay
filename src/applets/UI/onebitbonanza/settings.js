@@ -1,6 +1,5 @@
 
 import {UI} from './UI.js'
-// import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import feature from './feature.jpg'
 
 export const settings = {
@@ -20,7 +19,7 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'ui', class: UI, params: {}}
+        {name: 'ui', class: UI, params: {}}
       ],
       edges: [
         // {

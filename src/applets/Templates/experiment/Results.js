@@ -2,11 +2,11 @@ class Results{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
+    constructor(info, graph, params={}) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
         
 
         // UI Identifier
@@ -144,7 +144,7 @@ class Results{
 
         if (user.data === true){
             this._updateTargetPosition()
-            this.session.atlas.graph.runSafe(this,'performance',user)
+            this.update('performance',user)
         }
 
         return user

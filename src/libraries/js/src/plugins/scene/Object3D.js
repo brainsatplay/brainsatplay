@@ -1,16 +1,13 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-import {Plugin} from '../Plugin'
 
-export class Object3D extends Plugin {
+export class Object3D {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
-
+    constructor(info, graph, params={}) {
+        // 
+        
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             geometry: null,
@@ -57,6 +54,8 @@ export class Object3D extends Plugin {
                         this.props.mesh.geometry.dispose()
                         this.props.mesh.geometry = this.props.geometry
                     }
+                    this.update('add',{ forceUpdate: true})
+
                 }
             },
             scale: {
@@ -109,8 +108,11 @@ export class Object3D extends Plugin {
         }
 
         this._setObject()
+    }
 
-        this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
+    init = () => {
+
+        this.update('add',{ forceUpdate: true})
         this.props.prevType = this.ports.type.data
 
         // Subscribe to Changes in Parameters
@@ -118,13 +120,10 @@ export class Object3D extends Plugin {
             this._updateProps()
             // Replace Mesh if Necessary
             if (this.props.prevType != this.ports.type.data) {
-                this.session.graph.runSafe(this,'add',{forceRun: true, forceUpdate: true})
+                this.update('add',{ forceUpdate: true})
                 this.props.prevType = this.ports.type.data
             }
         })
-    }
-
-    init = () => {
 
         this.props.looping = true
 
@@ -167,7 +166,7 @@ export class Object3D extends Plugin {
         this.props.mesh.rotateX(this.ports.rotatex.data)
         this.props.mesh.rotateY(this.ports.rotatey.data)
         this.props.mesh.rotateZ(this.ports.rotatez.data)
-        this.props.mesh.name = `${this.label}`
+        this.props.mesh.name = `${this.name}`
     }
 
     // Macros

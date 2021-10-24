@@ -43,7 +43,7 @@ export class EventRouter{
             let prop = this.device.atlas.data.eegshared.eegChannelTags[0].tag
             let coord = this.device.atlas.getDeviceDataByTag('eeg', prop);
             this.props.deviceSub = atlasTag + "_" + prop
-            this.state.addToState(this.props.deviceSub, coord, () => {
+            this.state.addToState(this.props.deviceSub, coord, async () => {
                 
                 // Only Calculate if Required
                     let blinkBoth = Object.keys(this.routes.registry['blink_both'][1]).length !== 0
@@ -54,7 +54,7 @@ export class EventRouter{
 
                     // Blink Detection
                     if (blinkBoth || blinkLeft || blinkRight){
-                        let blinks = this.device.atlas.getBlink({debug: true})
+                        let blinks = await this.device.atlas.getBlink({debug: true})
                         if (blinks){
                             if (blinkBoth) this.device.states['blink_both'].data = blinks.reduce((a,b) => a * b, true)
                             if (blinks[0] != null && blinkLeft) this.device.states['blink_left'].data = blinks[0]
@@ -62,8 +62,8 @@ export class EventRouter{
                         }
                     } else {
                         // Turn Debug Off
-                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'blink')
-		                this.device.atlas.graph.updateParams(node, {debug: false})
+                        let node = this.device.atlas.graph.getNode('blink')
+                        if (node) node.updateParams({debug: false})
                     }
 
                     // Focus Detection
@@ -72,8 +72,8 @@ export class EventRouter{
                         this.device.states['focus'].data = this.device.atlas.getFocus({debug: true})
                     } else {
                         this.device.atlas.settings.analysisDetails.system['eegcoherence'] = false
-                        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, 'focus')
-		                this.device.atlas.graph.updateParams(node, {debug: false})
+                        let node = this.device.atlas.graph.getNode('focus')
+                        if (node) node.updateParams({debug: false})
                     }
             });
         }
@@ -121,19 +121,15 @@ export class EventRouter{
 
     // Route Events to Atlas
     update(o,targets=[]) {
+
         let newState = o.data
         // Bit-Ify Continuous Inputs
         // TO DO: Modify based on expected inputs (binary or continuous)
         newState = newState > 0.5
         targets.forEach(t => {
             if (t){
-                if (t.constructor == Object && 'manager' in t){
-                    Object.assign(t.target.state[t.target.port], {data: newState, meta: {label: t.label}})
-                    let updateObj = {}
-                    updateObj[t.label] = {}
-                    updateObj[t.label].trigger = true
-                    updateObj[t.label].value = t.target.state[t.target.port]
-                    t.manager.setState(updateObj);
+                if ('ports' in t){
+                    t.ports.default.set({data: newState, meta: {label: t.label}})
                 }
             }
         })
@@ -151,17 +147,17 @@ export class EventRouter{
         eventsToBind = eventsToBind.filter(id => !(id.split('_')[1] == 0 && Object.keys(this.routes.registry).find(str => str.split('_')[0] === id.split('_')[0]) != null))
 
         // Preselect Events based on Keys
-        let mappedRoutes = this.routes.reserve.pool.map(r => {
-            let k1 = r.label
-            let desired = k1.split('_')
+        let mappedRoutes = this.routes.reserve.pool.map(node => {
+
+            let desired = node.name.split('_')
             desired = desired.map(s => new RegExp(`${s}`,'i'))
             
             // Match Keys (first is first)
             let pair
             desired.find((regex,i) => {
                 let toRemove
-                pair = eventsToBind.find((k2,j) => {
-                    let current = k2.split('_')[i]
+                pair = eventsToBind.find((k1,j) => {
+                    let current = k1.split('_')[i]
                     if (regex.test(current)){
                         toRemove = j
                         return true
@@ -175,20 +171,19 @@ export class EventRouter{
                 }
             })
 
-            return {route: r, event: pair}
+            return {node, event: pair}
         })
 
 
-        mappedRoutes.forEach(newRoute => {
+        mappedRoutes.forEach(route => {
 
             let id
             // Grab Preselected Route if Necessary
-            if (newRoute.event != null){
-                id = newRoute.event
+            if (route.event != null){
+                id = route.event
             } else if (eventsToBind.length > 0){
                 id = eventsToBind.shift()
             }
-            newRoute = newRoute.route
 
             // Select Route if Possible
             if (id){
@@ -196,16 +191,16 @@ export class EventRouter{
                 let routes = this.routes.registry[id]
                 // Replace If Not Already Assigned
                 if (routes[1]==null || !("manager" in routes[1])){
-                    routes[1] = newRoute//newRoute.manager.data[newRoute.label]
+                    routes[1] = route.node //newRoute.manager.data[newRoute.label]
                 } else {
-                    newRoute.label = routes[1].label
+                    // newRoute.label = routes[1].label
                 }
 
                 let routeSelector = document.getElementById(`${this.id}brainsatplay-router-selector-${id}`)
                 if (routeSelector != null) {
                     var opts = routeSelector.options;
                     for (var opt, j = 0; opt = opts[j]; j++) {
-                        if (opt.value == newRoute.label) {
+                        if (opt.value == route.node.name) {
                             routeSelector.selectedIndex = j;
                         break;
                         }
@@ -233,23 +228,23 @@ export class EventRouter{
     }
 
     updateRouteReserve = (id, controls=false) => {
-        if (controls == false){
-            // this.routes.reserve.apps[id].count--
-            // if (this.routes.reserve.apps[id].count === 0) {
-                this.removeMatchingRoutes(this.routes.reserve.apps[id].sources)
-                delete this.routes.reserve.apps[id]
-            // }
+        if (controls === false){
+            this.removeMatchingRoutes(this.routes.reserve.apps[id]?.sources)
+            delete this.routes.reserve.apps[id]
         } else {
             if (!(id in this.routes.reserve.apps)) this.routes.reserve.apps[id] = {
                 // count: 0, 
                 sources: new Set()}
+                
             let oldSources = this.routes.reserve.apps[id].sources
             this.routes.reserve.apps[id].sources = new Set()
-            controls.options.forEach(c => {
-                c.manager = controls.manager
+
+            controls.forEach(c => {
+                // c.manager = controls.manager
                 this.routes.reserve.apps[id].sources.add(c)
                 oldSources.delete(c)
             })
+
             this.removeMatchingRoutes(oldSources)
 
             // this.routes.reserve.apps[id].count++
@@ -305,40 +300,17 @@ export class EventRouter{
                 `;
             }
 
-            let setup = () => {
-
-                this._placeNodeElement('blink', parentNode)
-                this._placeNodeElement('focus', parentNode)
-
-            }
-
             this.ui.push(new DOMFragment(
                 template,
                 parentNode,
                 undefined,
-                setup
+                () => {}
             ))
         }
     }
 
-    _placeNodeElement = (name, parentNode=document.body) => {
-        let container = parentNode.querySelector('.brainsatplay-debugger')
-        let node = this.device.atlas.graph.getNode(this.device.atlas.props.id, name)
-
-        if (node){
-
-            if (parentNode === document.body) {
-                node.ports.element.data.style.position = 'absolute'
-                node.ports.element.data.style.top = 0
-                node.ports.element.data.style.right = 0
-            }
-            this.device.atlas.graph.updateParams(node, {debug: true})
-            if (container) container.insertAdjacentElement('beforeend', node.ports.element.data)
-        }
-
-    }
-
     addApp(id,controls){
+        console.log('adding',id, controls)
         this.updateRouteReserve(id,controls)
     }
 
@@ -361,14 +333,12 @@ export class EventRouter{
             <option value="none">None</option>
             `)
 
-            this.routes.reserve.pool.forEach(dict => {
-                infoMap[dict.label] = dict
+            this.routes.reserve.pool.forEach(node => {
+                infoMap[node.name] = node
 
-                let splitId = dict.label.split('_')
-                splitId = splitId.map(s => s[0].toUpperCase() + s.slice(1))
-
-                let upper = splitId.join(' ')
-                selector.insertAdjacentHTML('beforeend',`<option value="${dict.label}">${upper}</option>`)           
+                let split = node.name.split('_')
+                let uppercase = split.map(s => {return s[0].toUpperCase() + s.slice(1)}).join(' ')
+                selector.insertAdjacentHTML('beforeend',`<option value="${node.name}">${uppercase}</option>`)           
             })
 
             Object.keys(this.state.data).forEach(id => {

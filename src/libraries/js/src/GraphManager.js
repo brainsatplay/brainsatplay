@@ -1,6 +1,5 @@
 // Managers
 import { StateManager } from './ui/StateManager'
-import {GraphEditor} from './editor/GraphEditor'
 import {dynamicImport} from './utils/general/importUtils'
 import {pluginManifest} from './plugins/pluginManifest'
 import {Brainstorm} from './plugins/networking/Brainstorm'
@@ -75,11 +74,11 @@ export class GraphManager{
     }
 
 
-    async instantiateNode(nodeInfo,session=this.session){
+    async instantiateNode(nodeInfo,app){
 
         // return new Promise(resolve => {
 
-        let node = new nodeInfo.class(nodeInfo.id, session)
+        let node = new nodeInfo.class(nodeInfo, {app})
         let controlsToBind = []
         let toAnalyze = new Set()
 
@@ -146,7 +145,7 @@ export class GraphManager{
 
         let toRemove = null
         let nodeInfo = applet.nodes.find((n,i) => {
-            if (n.id == label){
+            if (n.name == label){
                 toRemove = i
                 return true
             }
@@ -184,20 +183,19 @@ export class GraphManager{
 
     createUniqueId(app, base){
         app.nodes.forEach(n => {
-            if (n.id === base) {
+            if (n.name === base) {
                 base = `${base}_${this._getRandomId()}`
             }
         })
                 
         return base
-
     }
 
     async addNode(nodeInfo, app, runEditor=false){
 
         let appId;
 
-        if (app == null){
+        if (app == null) {
             appId = Object.keys(this.applets)
             app = this.applets[appId]
         } else {
@@ -213,16 +211,19 @@ export class GraphManager{
 
 
         let found = this.applets[appId].nodes.find(n => {
-            if (n.id == nodeInfo.id){
+            if (n.name == nodeInfo.name){
                 return true
             }
         })
-        if (found) nodeInfo.id = nodeInfo.id + this._getRandomId()
+        if (found) nodeInfo.name = nodeInfo.name + this._getRandomId()
 
         this.applets[appId].nodes.push(nodeInfo);
         
+
+        let instance = this.applets[appId].instance ?? this
+
         // Create Node
-        nodeInfo = await this.instantiateNode(nodeInfo,this.session)
+        nodeInfo = await this.instantiateNode(nodeInfo, instance)
 
         // Initialize the Node
         nodeInfo.instance.stateUpdates = {}
@@ -233,11 +234,11 @@ export class GraphManager{
         let node = nodeInfo.instance
                 
         // Add Node to Registry
-        if (this.registry.local[node.label] == null) this.registry.local[node.label] = {label: node.label, count: 0, registry: {}}
+        if (this.registry.local[node.name] == null) this.registry.local[node.name] = {name: node.name, count: 0, registry: {}}
         for (let port in node.ports){
             this.addPortToRegistry(node,port)
         }
-        this.registry.local[node.label].count++
+        this.registry.local[node.name].count++
 
         if (nodeInfo.controls.length > 0) this.applets[appId].controls.options.add(...nodeInfo.controls);
 
@@ -291,7 +292,7 @@ export class GraphManager{
         for (let param in params) {
             if (param in node.ports) node.ports[param].data = params[param]
             else {
-                console.error(`A port for '${param}' does not exist on the ${node.label} node.`)
+                console.error(`A port for '${param}' does not exist on the ${node.name} node.`)
             }
         }
     }
@@ -330,7 +331,7 @@ export class GraphManager{
     }
 
     getLabel(node,port){
-        return (port != 'default') ? `${node.label}_${port}` : node.label
+        return (port != 'default') ? `${node.name}_${port}` : node.name
     }
 
     // Input Must Be An Array
@@ -469,7 +470,7 @@ export class GraphManager{
 
     triggerAllActivePorts(node){
         for (let port in node.ports) this.runSafe(node,port, {
-            forceRun: true, 
+            , 
             // forceUpdate: true
         })
     }
@@ -497,7 +498,7 @@ export class GraphManager{
         if (settings.analysis) analysis.default.push(...settings.analysis)
             
 
-        this.applets[id] = {nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
+        this.applets[id] = {instance: app, nodes, edges, name,streams, outputs,subscriptions, controls, analysis}
 
         // Create Nodes
         let setupCallbacks = []
@@ -538,9 +539,9 @@ export class GraphManager{
     }
 
     addPortToRegistry = (node,port) => {
-        this.registry.local[node.label].registry[port] = {}
-        this.registry.local[node.label].registry[port].state = node.ports[port]
-        // this.registry.local[node.label].registry[port].callbacks = []
+        this.registry.local[node.name].registry[port] = {}
+        this.registry.local[node.name].registry[port].state = node.ports[port]
+        // this.registry.local[node.name].registry[port].callbacks = []
     }
 
     instantiateNodePort = (node, port) => {
@@ -612,7 +613,7 @@ export class GraphManager{
     }
 
     updatePorts = (node) => {
-        for (let port in this.registry.local[node.label].registry){
+        for (let port in this.registry.local[node.name].registry){
             if (!(port in node.ports)){
                 console.log('need to remove a port')
             }
@@ -623,7 +624,7 @@ export class GraphManager{
 
         // Remove Record of Port
         delete node.ports[port]
-        delete this.registry.local[node.label].registry[port]
+        delete this.registry.local[node.name].registry[port]
 
         // Remove Port on Visual Editor
         let applet = this.applets[node.app?.props?.id]
@@ -704,14 +705,14 @@ export class GraphManager{
             let sourcePort = newEdge.source.port
 
             let sourceInfo = applet.nodes.find(n => {
-                if (n.id == sourceName) return true
+                if (n.name == sourceName) return true
             })
             let source = sourceInfo.instance
             let targetName = newEdge.target.node
             let targetPort = newEdge.target.port
             if (targetPort == null) targetPort = 'default'
             let targetInfo = applet.nodes.find(n => {
-                if (n.id == targetName) return true
+                if (n.name == targetName) return true
             })
             let target = targetInfo.instance
             let label = this.getLabel(source,sourcePort)
@@ -744,8 +745,8 @@ export class GraphManager{
                         let targetLatency = this.info.latencies[target.uuid][targetPort]
 
                         if (this.applets[appId].editor) this.applets[appId].editor.animate(
-                            {label:source.label, port: sourcePort},
-                            {label:target.label, port: targetPort}, 
+                            {name:source.name, port: sourcePort},
+                            {name:target.name, port: targetPort}, 
                             [
                                 {node: source, port: sourcePort, latency: sourceLatency?.average},
                                 {node: target, port: targetPort, latency: targetLatency?.average},
@@ -853,26 +854,26 @@ export class GraphManager{
            
             for (let port in n.instance.ports){
 
-                if ((label === null || n.instance.label === label) && this.registry.local[n.instance.label] != null){
-                    this.registry.local[n.instance.label].count--
+                if ((label === null || n.instance.name === label) && this.registry.local[n.instance.name] != null){
+                    this.registry.local[n.instance.name].count--
 
                 if (n.instance.ports[port].active != null && (n.instance.ports[port].input.active > 0 || n.instance.ports[port].output.active > 0)){
 
                     // Catch Edge Removal Case
-                    if (this.registry.local[n.instance.label].count == 0) {
-                        delete this.registry.local[n.instance.label]
-                        this.session.removeStreaming(n.instance.label);
-                        this.session.removeStreaming(n.instance.label, null, this.state, 'trigger');
+                    if (this.registry.local[n.instance.name].count == 0) {
+                        delete this.registry.local[n.instance.name]
+                        this.session.removeStreaming(n.instance.name);
+                        this.session.removeStreaming(n.instance.name, null, this.state, 'trigger');
                         this.session.removeStreaming(applet.sessionId);
-                        this.removeNode(appId,n.instance.label, false)
+                        this.removeNode(appId,n.instance.name, false)
                     } 
                     else {
-                        this.removeMatchingEdges(appId,n.instance.label)
+                        this.removeMatchingEdges(appId,n.instance.name)
                     }
                 } else {
                     // Check Node with No Edges Removal Case
-                    if (this.registry.local[n.instance.label].count == 0) delete this.registry.local[n.instance.label]
-                    this.removeNode(appId,n.instance.label)
+                    if (this.registry.local[n.instance.name].count == 0) delete this.registry.local[n.instance.name]
+                    this.removeNode(appId,n.instance.name)
                 }
             }
         }
@@ -901,7 +902,7 @@ export class GraphManager{
             let node = appInfo.nodes.find(n => {
                 // TODO: Replace eventually, though this isn't actually known to a user...
                 // if (n.uuid === uuid) return true
-                if (n.id == name){
+                if (n.name == name){
                     return true
                 }
             })
@@ -912,7 +913,7 @@ export class GraphManager{
     getNodes = (nodeType, nodes) => {
         if(nodes) {
         return nodes.filter(n => {
-            if (n.label === nodeType) return true
+            if (n.name === nodeType) return true
             else if (n.class.name === nodeType) return true
             
             // else if (port == null) return true
@@ -925,7 +926,7 @@ export class GraphManager{
     getNodeByType = (nodeType,app) => {
         if (app) {
             let filtered = app.graph.nodes.filter(n => {
-                if (n.label === nodeType) return true
+                if (n.name === nodeType) return true
                 else if (n.class.name === nodeType) return true
                 else if (n.uuid === nodeType) return true
                 // else if (port == null) return true
@@ -940,7 +941,7 @@ export class GraphManager{
         Object.keys(standardStruct).forEach(type => {
             if (structure[type] instanceof Object) {
                 nodes = this.getNodes(structure[type].node,nodes)
-                standardStruct[type].node = nodes[0]?.label ?? structure[type].node
+                standardStruct[type].node = nodes[0]?.name ?? structure[type].node
                 standardStruct[type].port = structure[type].port ?? 'default'
             } else if (typeof structure[type] === 'string') {
                 let structSplit = structure[type].split(':')
@@ -959,7 +960,7 @@ export class GraphManager{
 
     getEdges = (target='', app) => {
         return app.nodes.find((n)=>{
-            if(n.class.name === target || n.uuid === target || n.label === target) return true;
+            if(n.class.name === target || n.uuid === target || n.name === target) return true;
         });
     }
 
@@ -1000,14 +1001,14 @@ export class GraphManager{
         let sourceName = structure.source.node
         let sourcePort = structure.source.port
         let sourceInfo = applet.nodes.find(n => {
-            if (n.id == sourceName) return true
+            if (n.name == sourceName) return true
         })
         let source = sourceInfo.instance
         let targetName = structure.target.node
         let targetPort = structure.target.port
 
         let targetInfo = applet.nodes.find(n => {
-            if (n.id == targetName) return true
+            if (n.name == targetName) return true
         })
         let target = targetInfo.instance
         let tP = target.ports[targetPort]
@@ -1036,9 +1037,9 @@ export class GraphManager{
     }
 
     // Create a Node Editor
-    edit(applet, parentNode = document.body, onsuccess = () => {}){
+    edit(applet, parentNode = document.body){
         if (this.applets[applet.props.id]){
-            this.applets[applet.props.id].editor = new GraphEditor(this, applet, parentNode, onsuccess)
+            this.applets[applet.props.id].editor = new Editor(applet, parentNode)
             return this.applets[applet.props.id].editor
         }
     }

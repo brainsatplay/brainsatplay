@@ -1,17 +1,17 @@
 import bci from 'bcijs/browser.js'
 import {Math2} from '../../utils/mathUtils/Math2';
-import {Plugin} from '../Plugin'
 
 
-export class LDA extends Plugin {
+
+export class LDA {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
 
         this.ports = {
             threshold: {data: 0.1, min: 0, max: 1, step: 0.01},
@@ -54,7 +54,7 @@ export class LDA extends Plugin {
                 
                         // Learn an LDA classifier
                         this.props.models.lda = this.props.bci.ldaLearn(featuresData1Training, featuresData2Training);
-                        this.session.graph.runSafe(this,'test', {data: [partitions1[1], partitions2[1]]})
+                        this.update('test', {data: [partitions1[1], partitions2[1]]})
                     return user
                 }
             },

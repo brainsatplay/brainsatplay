@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
 
-export class MapArray extends Plugin{
+
+export class MapArray {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.ports = {

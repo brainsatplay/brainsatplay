@@ -1,6 +1,5 @@
 
 import featureImg from './img/feature.png'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Blob} from './Blob'
 
 export const settings = {
@@ -15,10 +14,10 @@ export const settings = {
     // Based on Neurofeedback Template
     graph: {
         nodes: [
-            {id: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-            {id: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
-            {id: 'blob', class: Blob, params: {}},
-            {id: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+            {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
+            {name: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
+            {name: 'blob', class: Blob, params: {}},
+            {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
                 html: `
                     <div id="content"></div>
                     <div id="selector"></div>

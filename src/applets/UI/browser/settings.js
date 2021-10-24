@@ -1,5 +1,4 @@
 import {AppletBrowser} from '../../../libraries/js/src/ui/AppletBrowser'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Applet Browser",
@@ -15,8 +14,8 @@ export const settings = {
 
     graph: {
       nodes: [
-        {id: 'browser', class: AppletBrowser},
-        {id: 'ui', class: brainsatplay.plugins.interfaces.UI}
+        {name: 'browser', class: AppletBrowser},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.UI}
       ],
       edges: [
         {

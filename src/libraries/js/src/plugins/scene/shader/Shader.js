@@ -1,14 +1,12 @@
 import fragmentShader from './fragment.glsl'
-import {Plugin} from '../../Plugin'
-
-export class Shader extends Plugin {
+export class Shader {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.props = {
@@ -19,14 +17,14 @@ export class Shader extends Plugin {
         this.ports = {
             default: {
                 data: fragmentShader, 
-                meta: {label: this.label, uniforms: this.props.uniforms},
+                meta: {label: this.name, uniforms: this.props.uniforms},
                 input: {type: 'GLSL'},
                 output: {type: 'GLSL'},
                 onUpdate: (user) => {
                     if (typeof user.data === 'string'){
                         this.ports.default.data = user.data
                         this._setDynamicPorts(this.ports.default.data)
-                        return {data: this.ports.default.data, meta: {label: this.label, uniforms: this.props.uniforms}}
+                        return {data: this.ports.default.data, meta: {label: this.name, uniforms: this.props.uniforms}}
                     }
                 }
             },
@@ -36,7 +34,7 @@ export class Shader extends Plugin {
 
     init = () => {
         if (this.ports.uniforms.data && typeof this.ports.uniforms.data === 'object') Object.assign(this.props.uniforms, this.ports.uniforms.data)
-        this.session.graph.runSafe(this,'default',{data:this.ports.default.data, forceUpdate: true})
+        this.update('default',{data:this.ports.default.data, forceUpdate: true})
     }
 
     deinit = () => {}

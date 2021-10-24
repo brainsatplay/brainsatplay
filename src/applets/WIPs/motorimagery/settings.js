@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Motor Imagery",
@@ -15,10 +14,10 @@ export const settings = {
     // App Logic
     graph:
       {
-      id: 'benchmark',
+      name: 'benchmark',
       nodes: [
-        {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
-        {id: 'motorimagery', class: brainsatplay.plugins.machinelearning.LDA},
+        {name: 'data', class: brainsatplay.plugins.utilities.DataManager},
+        {name: 'motorimagery', class: brainsatplay.plugins.machinelearning.LDA},
       ],
       edges: [
 

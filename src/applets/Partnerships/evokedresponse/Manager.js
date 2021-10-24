@@ -1,12 +1,11 @@
-import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
 
-export class Manager extends Plugin {
+export class Manager {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
+    constructor(info, graph) {
 
-        super(label, session)
+        
 
         // UI Identifier
         this.props = {
@@ -97,6 +96,8 @@ export class Manager extends Plugin {
                 input: {type: 'boolean'},
                 output: {type: null},
                 onUpdate: (user) => {
+
+                    console.log('thiS IS READY', user)
                     if (user.data === true) {
                         this.props.img.style.opacity = '80%'
                         this.props.msg.style.display = 'none'

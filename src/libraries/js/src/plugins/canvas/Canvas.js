@@ -1,14 +1,14 @@
 
-import {Plugin} from '../Plugin'
 
-export class Canvas extends Plugin {
+
+export class Canvas {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),

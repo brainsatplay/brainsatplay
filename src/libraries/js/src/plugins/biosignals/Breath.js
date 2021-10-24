@@ -1,15 +1,15 @@
 import {BreathCapture} from '../../utils/signal_processing/BreathCapture'
 import {StateManager} from '../../ui/StateManager'
-import {Plugin} from '../Plugin'
 
-export class Breath extends Plugin {
+
+export class Breath {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.ports = {
@@ -42,7 +42,7 @@ export class Breath extends Plugin {
             }
 
             this.props.capture.state.subscribe(port, (data) => {
-                this.session.graph.runSafe(this, port, {data: true})
+                this.update( port, {data: true})
             })
         }
     }
