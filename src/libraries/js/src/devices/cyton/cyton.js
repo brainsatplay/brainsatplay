@@ -37,8 +37,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.gain = 24;
 
 		this.vscale = (this.vref/this.gain)*this.stepSize; //volts per step.
-		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
-		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
+		this.uVperStep = 100000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
+		this.scalar = 1/(100000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
 
 		this.maxBufferedSamples = this.sps*60*1; //max samples in buffer this.sps*60*nMinutes = max minutes of data
 		
@@ -82,8 +82,8 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 		this.gain = gain;
 
 		this.vscale = (this.vref/this.gain)*this.stepSize; //volts per step.
-		this.uVperStep = 1000000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
-		this.scalar = 1/(1000000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
+		this.uVperStep = 100000 * ((this.vref/this.gain)*this.stepSize); //uV per step.
+		this.scalar = 1/(100000 / ((this.vref/this.gain)*this.stepSize)); //steps per uV.
     }
 
 	getLatestData(channel="A0",count=1) { //Return slice of specified size of the latest data from the specified channel
