@@ -22,7 +22,7 @@
     <hr>
     Entropy of Relative Error Histogram | Most occurring (maximum) entropy: <span id='ent'></span> Area under hist curve: <span id='areaent'></span>
     <div id='pc' style='width:100%;'></div>
-    Relative Error vs Sample probabilities
+    Relative Error vs Sample probabilities | Max prob: <span id='prob'></span> Error at max prob: <span id='er'></span>
     <div id='pd' style='width:100%;'></div>
     <script>
       
@@ -215,6 +215,9 @@
 
             document.getElementById('ent').innerHTML = maxEnt.toFixed(5);
             document.getElementById('areaent').innerHTML = maxEntArea.toFixed(5);
+            
+            document.getElementById('prob').innerHTML = Math.max(...pDist).toFixed(5);
+            document.getElementById('er').innerHTML = d[pDist.indexOf(Math.max(...pDist))].toFixed(5);
             // console.log('max ent (negative)',maxEnt);
             // console.log(pEntHist,'entropy histogram');
 
