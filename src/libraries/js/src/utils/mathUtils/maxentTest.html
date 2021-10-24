@@ -20,7 +20,7 @@
     Probability Densities 
     <div id='b' style='width:100%;'></div>
     <hr>
-    Relative Error vs Information Entropy (Uncertainty) | Most occurring (maximum) entropy: <span id='ent'></span> Area under hist curve: <span id='areaent'></span>
+    Entropy of Relative Error Histogram | Most occurring (maximum) entropy: <span id='ent'></span> Area under hist curve: <span id='areaent'></span>
     <div id='c' style='width:100%;'></div>
     <script>
       
@@ -195,12 +195,12 @@
             pEnt = informationEntropy(d);
             pEntHist = histogram(pEnt,undefined,pEntHistBin);
 
-            console.log('drop heights',heights);
-            console.log('predicted landings',predictedLandings);
-            console.log('real landings',actualLandings);
-            console.log('predicted distribution',pDist);
-            console.log('actual distribution',aDist);
-            console.log('relative error entropy',pEnt);
+            // console.log('drop heights',heights);
+            // console.log('predicted landings',predictedLandings);
+            // console.log('real landings',actualLandings);
+            // console.log('predicted distribution',pDist);
+            // console.log('actual distribution',aDist);
+            // console.log('relative error entropy',pEnt);
 
 
             //Now find the Maximum Entropy Distribution
@@ -209,8 +209,8 @@
 
             document.getElementById('ent').innerHTML = maxEnt.toFixed(5);
             document.getElementById('areaent').innerHTML = maxEntArea.toFixed(5);
-            console.log('max ent (negative)',maxEnt);
-            console.log(pEntHist,'entropy histogram');
+            // console.log('max ent (negative)',maxEnt);
+            // console.log(pEntHist,'entropy histogram');
 
 
             let data = [
@@ -248,18 +248,18 @@
                         },
                         name: "Prediction Probability Density (Forced Gaussian)",
                         //xbins: {  size: 0.01  } 
-                    },
-                    {
-                        x: actualLandings,
-                        y: aDist,
-                        mode: 'markers',
-                        type:'scatter',
-                        marker: {
-                            color: "rgba(100,100,255, 1)"
-                        },
-                        name: "Actual Probability Density (Forced Gaussian)",
-                        //xbins: {  size: 0.01  } 
-                    }
+                    }//,
+                    // {
+                    //     x: actualLandings,
+                    //     y: aDist,
+                    //     mode: 'markers',
+                    //     type:'scatter',
+                    //     marker: {
+                    //         color: "rgba(100,100,255, 1)"
+                    //     },
+                    //     name: "Actual Probability Density (Forced Gaussian)",
+                    //     //xbins: {  size: 0.01  } 
+                    // }
                 ],
                 [
                     {
@@ -281,18 +281,25 @@
                 responsive: true, 
             }
 
-            console.log(data[1])
+            //console.log(data[1])
             Plotly.newPlot("a",data[0],undefined,config);
             Plotly.newPlot("b",data[1],undefined,config);
             Plotly.newPlot("c",data[2],undefined,config);
 
         }
 
-        document.getElementById('submit').onClick = () => {
+        document.getElementById('submit').onclick = () => {
             calculateTrials();
         }
 
         calculateTrials();
+
+        let animate = () => {
+            calculateTrials()
+            setTimeout(()=>{requestAnimationFrame(animate)},1000);
+        }
+
+        animate();
 
 
     </script>
