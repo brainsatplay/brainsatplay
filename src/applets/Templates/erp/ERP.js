@@ -56,7 +56,7 @@ export class ERP {
 
             gaze: {
                 data: 1,
-                options: [0,1,2,3],
+                options: [0,1,2,3,4,5,6,7,8,9],
                 input: {type: 'number'},
                 output: {type: null}
             },
