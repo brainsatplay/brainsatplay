@@ -1,12 +1,12 @@
-import {Plugin} from '../Plugin'
-export class Websocket extends Plugin {
+
+export class Websocket {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.props = {
@@ -23,7 +23,7 @@ export class Websocket extends Plugin {
                     let valid = this.validURL(user.data)
                     if (valid){
                         this.ports.url.data = user.data
-                        this.session.graph.runSafe(this,'connected', {data: true, forceUpdate: true})
+                        this.update('connected', {data: true, forceUpdate: true})
                     }
                 }
             }, 
@@ -69,7 +69,7 @@ export class Websocket extends Plugin {
     }
 
     init = () => {
-        this.session.graph.runSafe(this, 'connected', {data: true, forceUpdate: true})
+        this.update( 'connected', {data: true, forceUpdate: true})
     }
 
     deinit = () => {
@@ -103,7 +103,7 @@ export class Websocket extends Plugin {
 
         socket.onmessage = (msg) => {
             console.log('Message recieved', msg.data)
-            this.session.graph.runSafe(this,'message', {data: msg.data, forceUpdate: true})
+            this.update('message', {data: msg.data, forceUpdate: true})
         }
 
         socket.onclose = (msg) => {

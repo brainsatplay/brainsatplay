@@ -1,23 +1,21 @@
-import {Plugin} from './Plugin'
-
 /* 
 
     This is an example plugin for the Brains@Play software library. 
 
 */
 
-export class Blank extends Plugin {
+export class Blank {
 
     static id = String(Math.floor(Math.random()*1000000)) // ensures that duplicates of the same class are linked
     
-    constructor(label, session) {
-        super(label, session)
+    constructor(info, graph) {
+        
 
         // LABEL (required)
-        this.label = label // name of the plugin
+         // name of the plugin
 
         // SESSION (required)
-        this.session = session // session that the plugin is used in 
+         // session that the plugin is used in 
 
         // ADded AFTER CONSTRUCTION
         // this.app: The application that this plugin is running in

@@ -2,17 +2,12 @@ import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
 import vertexShader from './shader/vertex.glsl'
 import blankFragment from './shader/blankFragment.glsl'
-import {Plugin} from '../Plugin'
 
-export class Material extends Plugin {
+export class Material  {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
-        
+    constructor(info, graph, params={}) {
 
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
@@ -77,7 +72,7 @@ export class Material extends Plugin {
                 output: {type: null},
                 onUpdate: (user) => {
                     this.props.lastMaterialType = user.data
-                    return user.data
+                    return user
                 }
             },
             fragmentShader: {
@@ -114,10 +109,10 @@ export class Material extends Plugin {
         // Subscribe to Changes in Parameters
         this.props.state.addToState('params', this.ports, () => {
                 this.props.lastRendered = Date.now()
-                this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+                this.update('default',{forceUpdate: true})
         })
 
-        this.session.graph.runSafe(this,'type',{data: this.ports.type.data}) // FIX: Shouldn't be necessary
+        this.update('type',this.ports.type) // FIX: Shouldn't be necessary
         
         this._passShaderMaterial()
     }
@@ -164,7 +159,7 @@ export class Material extends Plugin {
     _passShaderMaterial = () => {
         if (this.ports.vertexShader.data && this.ports.fragmentShader.data) {
             this.ports.type.data = 'ShaderMaterial'
-            this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
+            this.update('default',{forceUpdate: true})
         }
         else this.ports.type.data = this.props.lastMaterialType || 'MeshBasicMaterial'
     }

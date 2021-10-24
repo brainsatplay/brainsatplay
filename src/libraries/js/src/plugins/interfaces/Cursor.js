@@ -1,15 +1,15 @@
 import {transformCSSForBCICursor} from '../../ui/cssForBCI'
-import {Plugin} from '../Plugin'
 
 
-export class Cursor extends Plugin {
+
+export class Cursor {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
 
         this.props = {
             cursorSize: {

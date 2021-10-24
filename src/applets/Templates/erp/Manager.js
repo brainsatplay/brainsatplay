@@ -1,13 +1,11 @@
 
 
-import {Plugin} from '../../../libraries/js/src/plugins/Plugin'
-
-export class Manager extends Plugin{
+export class Manager {
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
-        super(label, session)
+    constructor(info, graph) {
+        
 
         // this.analysis = ['eegfft']
 
@@ -32,7 +30,7 @@ export class Manager extends Plugin{
         this.props.container.insertAdjacentElement('beforeend',this.props.grid)
 
 
-        this.props.n = 4
+        this.props.n = 9
         this.props.objects = []; 
         this.props.freqRange = [4,16]
 
@@ -69,12 +67,12 @@ export class Manager extends Plugin{
             },
 
             redundancy: {
-                data: 2,
+                data: 1,
             },
 
 
             rate: {
-                data: 1,
+                data: 1.5,
                 min: 0,
                 max: 2,
                 step: 0.01,
@@ -102,21 +100,17 @@ export class Manager extends Plugin{
                             if (o.activations >= this.ports.redundancy.data) {
                                 o.element.style.background = 'red'
                                 o.activations = 0 // reset activations
+                                // o.element.style.opacity = 1.0
                             }
                             else {
                                 o.element.style.background = 'white'
                             }
                         }
             
-                        // Incorrect Activation
-                        else if (P300 && objectInd !== i){
-                            o.activations = 0 // reset activations
-                            o.element.style.background = 'white'
-                        }
-            
-                        // No Activation
+                        // Incorrect or No Activation
                         else {
                             o.element.style.background = 'white'
+                            // o.element.style.opacity = 0.7
                         }
                     })
                 }
@@ -219,11 +213,13 @@ export class Manager extends Plugin{
             this.props.selected = i
             
             // Flash
+            let selected
             this.props.objects.forEach((o,i) => {
                 o.element.style.visibility = 'visible'
-                if (this.ports.mode.data === 'object' && i === this.props.selected) o.element.style.visibility = 'hidden'
-                if (this.ports.mode.data === 'row/col' && o[variable] === this.props.selected) o.element.style.visibility = 'hidden'
+                if (this.ports.mode.data === 'object' && i === this.props.selected) selected = o.element
+                else if (this.ports.mode.data === 'row/col' && o[variable] === this.props.selected) selected = o.element
             })
+            selected.style.visibility = 'hidden'
 
             // Check for P300
             let flashTime = Date.now()
@@ -233,7 +229,11 @@ export class Manager extends Plugin{
 
 
             // Wait until Next Flash
-            setTimeout(this._animate, 1000/this.ports.rate.data)
+            let blankTime = 500/this.ports.rate.data
+            setTimeout(() => {
+                selected.style.visibility = 'visible'
+                setTimeout(this._animate, blankTime)
+            }, blankTime)
         }
     }
 }

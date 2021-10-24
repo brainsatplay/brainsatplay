@@ -4,7 +4,7 @@ import placeholderImg from './assets/features/placeholder.png'
 import eegNFImage from '../applets/General/blob/img/feature.png'
 import HEGImage from './assets/features/hegbiofeedback.png'
 import hegsens from '../applets/General/sensorium/feature.png'
-import studio from '../applets/WIPs/studio/feature.png'
+import studio from '../applets/Templates/blank/feature.png'
 import OBB from '../applets/UI/onebitbonanza/feature.jpg'
 import breathgarden from '../applets/WIPs/breathgarden/feature.png'
 
@@ -61,7 +61,7 @@ export let presetManifest = [
         value: 'Studio',
         name: "Brains@Play Studio",
         applets: [
-            'Brains@Play Studio',
+            'Blank Project',
         ],
         description: "Create your own application with Brains@Play.",
         type: "All",

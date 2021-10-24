@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as brainsatplayLocal from '../../brainsatplay'
 
-let latest = '0.0.35'
+let latest = '0.0.36'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './general/blobUtils'
@@ -236,9 +236,13 @@ app.init()`)
 
     appToFile(app) {
 
-        let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
-        info.graph = Object.assign({}, info.graph)
-        info.graph.nodes = info.graph.nodes.map(n => Object.assign({}, n))
+        let info = JSON.parse(JSON.stringifyWithCircularRefs(app.info))
+        // let info = Object.assign({}, app.info)
+        info.graphs = Array.from(app.graphs).map(arr => Object.assign({}, arr[1]))
+        info.graphs.forEach(g => {
+            if (g.edges) g.edges = Array.from(g.edges).map(arr => Object.assign({}, arr[1].export()))
+           if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].export()))
+        })
 
         // Default Settings
         info.connect = true
@@ -252,67 +256,44 @@ app.init()`)
         // Add imports
         let classNames = []
         let classes = []
-        app.info.graph.nodes.forEach(n => {
-            let found = plugins.find(o => { 
-                if (o.id === n.class.id) return o 
-            })
+
+        info.graphs.forEach(g => {
+        g.nodes.forEach(n => {
+            let found = plugins.find(o => { if (o?.id === n?.class?.id) return o})
             // let saveable = this.checkIfSaveable(n.class)
-            if (!found && !classNames.includes(n.class.name)) {
-                imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
-                classNames.push(n.class.name)
+
+            // Custom Plugin (not included by name)
+            let name = n.class.name
+            if (!found && !classNames.includes(name)) {
+                imports += `import {${name}} from "./${name}.js"\n`
+                classNames.push(name)
                 classes.push(n.class)
-            } else if (found) {
-                classNames.push(found.label)
-            } else if (classNames.includes(n.class.name)) {
-                classNames.push(n.class.name)
-            }
+            } 
+            else if (found) classNames.push(found.label) // In Plugins
+            else if (classNames.includes(name)) classNames.push(name) // If Already included by Name
         })
+    })
 
 
-        console.log(info)
+        info.graphs.forEach(g => {
+        g.nodes.forEach((n, i) => {
 
-        info.graph.nodes.forEach((n, i) => {
-
-            // FIX
-            for (let k in n.params){ 
-            //     // Delete non-editable elements
-            //     if (n.instance.ports[k]?.edit === false) {
-            //         delete n.params[k] 
-            //     }
-
-                // convert functions
+            for (let k in n?.params){ 
                 if (n.params[k] instanceof Function) n.params[k] = n.params[k].toString()
-                
-                // Delete if non-stringifiable object
-                // if (typeof n.params[k] === 'object' ){
-                //     console.log(n.params[k])
-                //     let result = JSON.parse(JSON.stringify(n.params[k]))
-                //     console.log(result)
-                //     if (typeof result !== 'object' || Object.keys(result).length == 0){ // Removes Elements
-                //         delete n.params[k]
-                //     } else {
-                //         n.params[k] = result
-                //     }
-                // }
             } 
 
-            delete n['configure']
-            delete n['ports']
-            delete n['instance']
-            delete n['ui']
-            delete n['fragment']
-            delete n['controls']
-            delete n['analysis']
             n.class = `${classNames[i]}`
+        })})
+
+        info.graphs.forEach(g => {
+            for (let key in g) {
+                if (key != 'nodes' && key != 'edges') {
+                    delete g[key]
+                }
+            }
         })
 
-        for (let key in info.graph) {
-            if (key != 'nodes' && key != 'edges') {
-                delete info.graph[key]
-            }
-        }
-
-        info = JSON.stringify(info, '\t')
+        info = JSON.stringify(info, null, 2);
 
         // Replace Stringified Class Names with Actual References (provided by imports)
         var re = /"class":\s*"([^\/"]+)"/g;
@@ -347,7 +328,6 @@ app.init()`)
         //     let arrow = regex.test(value)
         //     n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
         // }
-
 
         return {
             name: app.info.name, filename: 'settings.js', data: `${imports}
@@ -456,11 +436,12 @@ app.init()`)
 
     // Only save if a class instance can be created from the constructor string
     checkIfSaveable(node){
+
         let editable = false
         try {
-            let constructor = node.prototype.constructor.toString()
+            let constructor = node.info.class.prototype.constructor.toString() // save original class
             let cls = eval(`(${constructor})`)
-            let instance = new cls() // This triggers the catch
+            let instance = new cls(node.info, node.parent) // This triggers the catch
             editable = true
         }
         catch (e) {console.log('Cannot Save Node', e)}
@@ -556,16 +537,18 @@ app.init()`)
 
                     let settings
                     try {
+
                         let moduleText = "data:text/javascript;base64," + btoa(info.settings);
                         let module = await import(moduleText);
                         settings = module.settings
 
                         // Replace Random IDs with Classes
-                        settings.graph.nodes.forEach(n => {
-                            n.class = classMap[n.class].class
+                        settings.graphs.forEach(g => {
+                            g.nodes.forEach(n => {
+                                if (n?.class && classMap[n.class]?.class) n.class = classMap[n.class]?.class
+                            })
                         })
-
-                        settings = this.session.graph.parseParamsForSettings(settings)
+                        // settings = this.session.graph.parseParamsForSettings(settings)
 
                         resolve(settings)
                     } catch (e) {

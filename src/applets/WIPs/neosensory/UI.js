@@ -2,11 +2,11 @@ class UI{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
+    constructor(info, graph, params={}) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         // UI Identifier
         this.props = {
@@ -67,7 +67,7 @@ class UI{
     }
 
     _activateButtonPort = () => {
-            this.session.graph.runSafe(this,'button', {data: true, meta:{label: `${this.label}_triggered`, user: `${this.session.info.auth.id}`}})
+            this.update('button', {data: true, meta:{label: `${this.name}_triggered`, user: `${this.session.info.auth.id}`}})
     }
 
     deinit = () => {}

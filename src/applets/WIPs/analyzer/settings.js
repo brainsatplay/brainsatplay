@@ -1,5 +1,4 @@
 
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Analyzer",
@@ -15,10 +14,10 @@ export const settings = {
     // App Logic
     graph:
       {
-      id: 'benchmark',
+      name: 'benchmark',
       nodes: [
-        {id: 'plot', class: brainsatplay.plugins.interfaces.Plot},
-        {id: 'data', class: brainsatplay.plugins.utilities.DataManager},
+        {name: 'plot', class: brainsatplay.plugins.interfaces.Plot},
+        {name: 'data', class: brainsatplay.plugins.utilities.DataManager},
       ],
       edges: [
         {

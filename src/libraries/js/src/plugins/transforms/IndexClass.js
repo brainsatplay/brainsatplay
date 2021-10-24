@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
-export class Index extends Plugin {
+
+export class Index {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
+    constructor(info, graph, params={}) {
         
-        this.label = label
-        this.session = session
+        
+        
+        
         
 
         this.ports = {

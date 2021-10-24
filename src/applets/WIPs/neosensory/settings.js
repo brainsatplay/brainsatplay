@@ -1,6 +1,5 @@
 
 import {UI} from './UI.js'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Neosensory Playground",
@@ -20,12 +19,12 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'ui', class: UI, params: {}},
-        {id: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
-        {id: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
-        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
-        {id: 'ui', class: UI, params: {}},
-        {id: 'document', class: brainsatplay.plugins.interfaces.UI},   
+        {name: 'ui', class: UI, params: {}},
+        {name: 'buzz', class: brainsatplay.plugins.haptics.Buzz},
+        {name: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
+        {name: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {name: 'ui', class: UI, params: {}},
+        {name: 'document', class: brainsatplay.plugins.interfaces.UI},   
       ],
       edges: [
 

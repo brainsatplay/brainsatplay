@@ -67,7 +67,7 @@ export class SpectrogramApplet {
         //HTML UI logic setup. e.g. buttons, animations, xhr, etc.
         let setupHTML = (props=this.props) => {
             this.session.registerApp(this)
-            this.session.startApp(this.props.id)
+            this.session.startApp(this)
 
             let a = this.session.atlas;
             addChannelOptions(props.id+'channel',a.data.eegshared.eegChannelTags);

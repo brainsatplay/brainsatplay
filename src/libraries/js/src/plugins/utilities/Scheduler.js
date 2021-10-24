@@ -1,24 +1,24 @@
-import {Plugin} from '../Plugin'
 
-export class Scheduler extends Plugin{
+
+export class Scheduler {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
 
         this.ports = {
             default: {
                 data: -1,
-                meta: {label: this.label},
+                meta: {label: this.name},
                 input: {type:null},
                 output: {type: 'string'},
                 onUpdate: (user) => { 
                     if (this.props.currentTrial >= 0){
                         user.data = this.props.currentTrial
-                        user.meta.label = this.label
+                        user.meta.name = this.name
                         user.meta.state = this.props.state;
                             if (user.meta.state != 'ITI'){
                                 user.meta.stateTimeElapsed = Date.now() - this.props.taskData[this.props.currentTrial].tStart
@@ -37,7 +37,7 @@ export class Scheduler extends Plugin{
                 output: {type: 'string'},
                 onUpdate: (user) => { 
                     user.data = this.props.state;
-                    user.meta.label = this.label
+                    user.meta.name = this.name
                     return user
                 }
             }, 
@@ -155,8 +155,8 @@ export class Scheduler extends Plugin{
                 // Stop on Last Trial
                 if (this.props.currentTrial >= this.ports.trialCount.data){ // Stop Loop
                     this.props.state = ''
-                    this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
-                    this.session.atlas.graph.runSafe(this,'done',{forceRun: true, forceUpdate: true})
+                    this.update('state',{forceUpdate: true})
+                    this.update('done',{forceUpdate: true})
                 }
             } 
 
@@ -164,13 +164,13 @@ export class Scheduler extends Plugin{
             else if (trialTimeElapsed > (this.ports.duration.data)*1000 && this.props.currentTrial < this.ports.trialCount.data - 1 && this.props.iti === false){
                 this.props.state = 'ITI'
                 this.props.iti = true
-                this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
+                this.update('state',{forceUpdate: true})
             }
         } else {
             this._startNewTrial()
         }
 
-        this.session.atlas.graph.runSafe(this,'default', {forceRun: true, forceUpdate: true})
+        this.update('default', {forceUpdate: true})
         if (this.props.active && loop && this.props.currentTrial != this.ports.trialCount.data) setTimeout(this._taskUpdate, 1000/60) // 60 Loops/Second
     }
 
@@ -179,6 +179,6 @@ export class Scheduler extends Plugin{
         this.props.taskData.push({tStart: Date.now()}) // Add New Trial Array
         this.props.iti = false
         this.props.state = this.ports.progression.data[this.props.currentTrial]
-        this.session.atlas.graph.runSafe(this,'state',{forceRun: true, forceUpdate: true})
+        this.update('state',{forceUpdate: true})
     }
 }

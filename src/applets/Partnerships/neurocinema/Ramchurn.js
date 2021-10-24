@@ -18,9 +18,9 @@ export class Ramchurn{
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
         
 
         this.props = {
@@ -75,7 +75,7 @@ export class Ramchurn{
         this.props.input.multiple = true
 
         this.props.input.oninput = () => {
-            this.session.graph.runSafe(this,'load', {data: this.props.input.files})
+            this.update('load', {data: this.props.input.files})
         }
 
         this.props.buttons = []
@@ -162,7 +162,7 @@ export class Ramchurn{
 
                     this.props.assets.audio = this.shuffle(this.props.assets.audio) // Shuffle videos
                     this.props.assets.video = this.shuffle(this.props.assets.video) // Shuffle videos
-                    this.session.graph.runSafe(this, 'setAudio', {data: this.props.assets.audio}) // Preload audio in mixer
+                    this.update( 'setAudio', {data: this.props.assets.audio}) // Preload audio in mixer
                 }
             },
 
@@ -263,8 +263,8 @@ export class Ramchurn{
         this.props.scenes[i].lastCut = null
         this.props.scenes[i].cutSlow = null
 
-        this.session.graph.runSafe(this, 'controlVideo', {data: this.props.scenes[i].combination, meta: {replace: true}})
-        this.session.graph.runSafe(this, 'controlAudio', {data: this.props.scenes[i].combination})
+        this.update( 'controlVideo', {data: this.props.scenes[i].combination, meta: {replace: true}})
+        this.update( 'controlAudio', {data: this.props.scenes[i].combination})
     }
 
     endScene = (scene) => {

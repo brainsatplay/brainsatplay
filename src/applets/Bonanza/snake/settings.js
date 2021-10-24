@@ -1,7 +1,6 @@
 
 import featureImg from './feature.png'
 import {UI} from './UI.js'
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
     name: "Snake",
@@ -20,12 +19,12 @@ export const settings = {
     graph:
       {
       nodes: [
-        {id: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
-        {id: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
-        {id: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
-        {id: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
-        {id: 'ui', class: UI, params: {}},
-        {id: 'document', class: brainsatplay.plugins.interfaces.UI},      
+        {name: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
+        {name: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
+        {name: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
+        {name: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
+        {name: 'ui', class: UI, params: {}},
+        {name: 'document', class: brainsatplay.plugins.interfaces.UI},      
       ],
       edges: [
         {

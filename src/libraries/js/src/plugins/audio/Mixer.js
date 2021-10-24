@@ -1,15 +1,15 @@
 import {Audio} from './Audio'
-import {Plugin} from '../Plugin'
 
 
-export class Mixer extends Plugin {
+
+export class Mixer {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.props = {audio: []}
@@ -31,9 +31,9 @@ export class Mixer extends Plugin {
                         let audioPromises = []
                         let resolved = 0
                         this.ports.files.data.forEach(async (f, i) => {
-                            let audio = this.session.graph.instantiateNode({id: `audio${i}`, class: Audio})
-                            audio.instance.init()
-                            let promise = audio.instance.ports.file.onUpdate({data: f})
+                            let audio = this.addNode({name: `audio${i}`, class: Audio})
+                            console.log(audio) // TODO: Fix
+                            let promise = audio.ports.file.onUpdate({data: f})
                             audioPromises.push(promise)
                             Promise.all([promise]).then(() => {
                                 resolved++
@@ -50,21 +50,6 @@ export class Mixer extends Plugin {
                             }, 5000)
                         })
                     }
-
-                    // this.ports.files.data.forEach((f,i) => {
-                    //     this.session.graph.addPort(this,`track${i}`, {
-                    //         input: {type: 'number'},
-                    //         output: {type: null},
-                    //         data: this.props.maxVol,
-                    //         min: 0,
-                    //         max: this.props.maxVol,
-                    //         step: 0.01,
-                    //         onUpdate: (user) => {
-                    //             let volume = user.data*this.props.maxVol
-                    //             window.audio.gainNode.gain.setValueAtTime(volume, window.audio.ctx.currentTime);
-                    //         }
-                    //     })
-                    // })
                 })
                 }
             },

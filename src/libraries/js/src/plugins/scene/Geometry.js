@@ -1,16 +1,12 @@
 import * as THREE from 'three'
 import { StateManager } from '../../ui/StateManager'
-import {Plugin} from '../Plugin'
 
-export class Geometry extends Plugin {
+export class Geometry {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
-
+    constructor(info, graph, params={}) {
+        
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),
             geometry: null,
@@ -22,6 +18,7 @@ export class Geometry extends Plugin {
 
         this.ports = {
             default: {
+                edit: false,
                 data: this.props.geometry,
                 input: {type: null},
                 output: {type: Object, name: 'Geometry'},
@@ -44,17 +41,9 @@ export class Geometry extends Plugin {
                             this.props.geometry = new THREE.BoxGeometry(this.ports.radius.data,this.ports.radius.data,this.ports.radius.data);
                             break
                         case 'BufferGeometry':
-                            this.props.geometry = new THREE.BufferGeometry();
-                            let position = this.ports.buffer.data;
-                            if (this.ports.buffer.data == null) {
-                                position = new Float32Array(this.ports.count.data*3)
-                                position.forEach((e,i) => {position[i] = Math.random()})
+                            if (!(this.props.geometry instanceof THREE.BufferGeometry)){
+                                console.error('BUFFER GEOMETRIES MUST BE MADE OUTSIDE')
                             }
-                            
-                            const mass = new Float32Array(this.ports.count.data)
-                            mass.forEach((e,i) => {mass[i] = Math.random()})
-                            this.props.geometry.setAttribute('position', new THREE.BufferAttribute(position ,3))
-                            this.props.geometry.setAttribute('mass', new THREE.BufferAttribute(mass ,1))
                             break
                     }
             
@@ -75,12 +64,12 @@ export class Geometry extends Plugin {
             count: {data: 100, min: 0, max: 10000, step:1.0},
 
             // Set Vertices Directly
-            buffer: {
+            attributes: {
                 input: {type: undefined},
-                output: {type: Array},
+                output: {type: Object},
                 onUpdate: (user) => {
-                    this.props.originalModel = [...user.data]
-                    this._generateNewMesh(user)
+                    this._regenerate(user)
+                    return user
                 }
             }, 
 
@@ -93,7 +82,7 @@ export class Geometry extends Plugin {
                 input: {type: 'number'},
                 output: {type: null},
                 onUpdate: (user) => {
-                    let data = []
+                    let buffer = []
                     let model = this.props.originalModel || this.ports.model.data
                     let n = (model.length / 3)
                     let desiredCount = user.data * n
@@ -101,34 +90,36 @@ export class Geometry extends Plugin {
 
                     // Downsample
                     for (let i = 0; i < n - 1; i+=Math.floor((model.length/3)/desiredCount)) {
-                        data.push(...model.slice(i*3,(i*3)+3))
+                        buffer.push(...model.slice(i*3,(i*3)+3))
                         used.push(i)
                     }
 
                     // Account for Remainder
-                    let remainder = desiredCount - (data.length/3)
+                    let remainder = desiredCount - (buffer.length/3)
                     for (let i =0; i < Math.abs(remainder); i++) {
-                        if (remainder > 0) data.push(...model.slice((used[i]+1)*3, ((used[i]+1)*3)+3)) // Add skipped
-                        else if (remainder < 0) for (let i = 0; i < 3; i++) data.pop() // Remove extra
+                        if (remainder > 0) buffer.push(...model.slice((used[i]+1)*3, ((used[i]+1)*3)+3)) // Add skipped
+                        else if (remainder < 0) for (let i = 0; i < 3; i++) buffer.pop() // Remove extra
                     }
 
-                    this._generateNewMesh({data})
+                    let attributes = this.ports.attributes.value
+                    if (attributes) {
+                        attributes['position'].buffer = buffer
+                       this.update('attributes', attributes)
+                    }
                 }
             }, 
 
         }
-
-        // Subscribe to Changes in Parameters
-        this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
-
-        this.props.state.addToState('params', this.ports, () => {
-            this.props.lastRendered = Date.now()
-            this.session.graph.runSafe(this,'default',{forceRun: true, forceUpdate: true})
-        })
     }
 
     init = () => {
+        // Subscribe to Changes in Parameters
+        this.update('default',{forceUpdate: true})
 
+        this.props.state.addToState('params', this.ports, () => {
+            this.props.lastRendered = Date.now()
+            this.update('default',{forceUpdate: true})
+        })
     }
 
     deinit = () => {
@@ -136,4 +127,14 @@ export class Geometry extends Plugin {
             this.props.geometry.dispose()
         }
     }
+    
+    _regenerate = (user) => {
+        this.props.geometry = new THREE.BufferGeometry()
+        for (let attribute in user.value){
+            let info = user.value[attribute]
+            this.props.geometry.setAttribute(attribute, new THREE.Float32BufferAttribute( info.buffer, info.size ) );
+            if (attribute === 'position') this.props.originalModel = [...info.buffer]
+        }
+    }
+
 }

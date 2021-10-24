@@ -1,15 +1,15 @@
 import {eegBarChart} from '../../utils/graphics/eegvisuals'
-import {Plugin} from '../Plugin'
 
 
-export class BarChart extends Plugin {
+
+export class BarChart {
 
     static id = String(Math.floor(Math.random()*1000000))
     
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.props = {

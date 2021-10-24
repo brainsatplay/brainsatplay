@@ -1,6 +1,5 @@
 
 import {Manager} from './Manager.js'     
-import * as brainsatplay from '../../../libraries/js/brainsatplay'
 
 export const settings = {
 	"name": "Brainstorm",
@@ -26,8 +25,8 @@ export const settings = {
 	},
 	"graph": {
 		"nodes": [
-			{id:'manager', class: Manager},
-			{id:'brainstormInterface', class: brainsatplay.plugins.interfaces.UI}
+			{name:'manager', class: Manager},
+			{name:'brainstormInterface', class: brainsatplay.plugins.interfaces.UI}
 		],
 		"edges": [{
 			source: 'manager:element',

@@ -2,11 +2,11 @@ class UI {
 
     static id = String(Math.floor(Math.random() * 1000000))
 
-    constructor(label, session) {
+    constructor(info, graph) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         // UI Identifier
         this.props = {
@@ -46,7 +46,7 @@ class UI {
             
                     // Update Paddle Position
                     this._movePaddle(paddle,mean*this.ports.paddlespeed.data)
-                    this.session.graph.runSafe(this,'error', {forceRun: true, forceUpdate: true})
+                    this.update('error', {forceUpdate: true})
             
                     // Replace User Data with Mean
                     user.data = mean

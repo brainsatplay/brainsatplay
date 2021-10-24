@@ -1,6 +1,6 @@
 
 import * as brainsatplay from '../libraries/js/brainsatplay'
-// import * as brainsatplay from 'brainsatplay'
+window.brainsatplay = brainsatplay // set B@P window variable (like standalone HTML)
 
 import {BCIAppManager} from './js/frontend/BCIManager'
 

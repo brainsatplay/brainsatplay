@@ -1,13 +1,13 @@
-import {Plugin} from '../Plugin'
 
-export class Move extends Plugin{
+
+export class Move {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        
+        
+        
 
         this.ports = {
             up: {
@@ -91,10 +91,10 @@ export class Move extends Plugin{
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                if (this.props.right) this.session.atlas.graph.runSafe(this,'right',{data: true})
-                if (this.props.left) this.session.atlas.graph.runSafe(this,'left',{data: true})
-                if (this.props.up) this.session.atlas.graph.runSafe(this,'up',{data: true})
-                if (this.props.down) this.session.atlas.graph.runSafe(this,'down',{data: true})
+                if (this.props.right) this.update('right',{data: true})
+                if (this.props.left) this.update('left',{data: true})
+                if (this.props.up) this.update('up',{data: true})
+                if (this.props.down) this.update('down',{data: true})
                 setTimeout(() => {animate()}, 1000/60)
             }
         }
@@ -122,8 +122,8 @@ export class Move extends Plugin{
         // let desiredY = this.props.y + dy
         // this.props.x = desiredX
         // this.props.y = desiredY
-        this.session.graph.runSafe(this,'dx',{data: dx, forceUpdate: true})
-        this.session.graph.runSafe(this,'dy',{data: dy, forceUpdate: true})
+        this.update('dx',{data: dx, forceUpdate: true})
+        this.update('dy',{data: dy, forceUpdate: true})
     }
 
     responsive = () => {

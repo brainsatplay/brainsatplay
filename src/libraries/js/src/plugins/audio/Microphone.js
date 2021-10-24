@@ -1,17 +1,17 @@
 import {SoundJS} from '../../utils/general/Sound'
 import {Math2} from '../../utils/mathUtils/Math2'
-import {Plugin} from '../Plugin'
 
 
 
-export class Microphone extends Plugin {
+
+export class Microphone {
     
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session, params={}) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph, params={}) {
+        
+        
+        
         
 
         this.ports = {
@@ -66,7 +66,7 @@ export class Microphone extends Plugin {
         this.props.looping = true
         let animate = () => {
             if (this.props.looping){
-                this.session.graph.runSafe(this,'fft',{data: true})
+                this.update('fft',{data: true})
                 setTimeout(() => {animate()}, 1000/60)
             }
         }

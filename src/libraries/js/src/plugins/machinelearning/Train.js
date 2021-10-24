@@ -2,18 +2,18 @@ import {Blink} from '../models/Blink'
 import {LDA} from './LDA'
 import {createCards} from '../../ui/browserUtils';
 import * as brainsatplay from '../../../brainsatplay'
-import {Plugin} from '../Plugin'
 
 
-export class Train extends Plugin {
+
+export class Train {
 
     static id = String(Math.floor(Math.random()*1000000))
     static hidden = true
     
-    constructor(label, session) {
-        super(label, session)
-        this.label = label
-        this.session = session
+    constructor(info, graph) {
+        
+        
+        
         
         this.props = {
             id: String(Math.floor(Math.random() * 1000000)),            
@@ -65,13 +65,13 @@ export class Train extends Plugin {
         this.props.start.classList.toggle('disabled')
 
         // Create Training Overlay
-        let trainingInfo = {id: this.props.id, class: null}
+        let trainingInfo = {name: this.props.id, class: null}
         if (this.ports.mode.data === 'Motor Imagery'){
             trainingInfo.class = LDA
         } else {
             trainingInfo.class = Blink
         }
-        trainingInfo = this.session.graph.instantiateNode(trainingInfo,this.session)
+        trainingInfo = this.addNode(trainingInfo)
 
         this.props.trainingOverlay = this._createTrainingIntro(trainingInfo)
 
@@ -80,7 +80,7 @@ export class Train extends Plugin {
             this.props.trainingOverlay.classList.toggle('shown')
         }
 
-        // this.session.graph.runSafe(this,'ui',{forceRun: true, forceUpdate: true})
+        // this.update('ui',{, forceUpdate: true})
     }
 
     deinit = () => {
@@ -180,7 +180,7 @@ export class Train extends Plugin {
         continueToggle.innerHTML = 'Start Training'
         continueToggle.onclick = () => {
             // FIX: Integrate selectedModel
-            this.props.trainingGame = this.session.initApp(selectedSettings, this.props.gameOverlay,this.session)
+            this.props.trainingGame = this.session.createApp(selectedSettings, this.props.gameOverlay,this.session)
             this.props.trainingGame.init()
             this.props.gameOverlay.classList.toggle('shown')
 

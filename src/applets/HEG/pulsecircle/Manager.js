@@ -6,11 +6,11 @@ class Manager{
 
     static id = String(Math.floor(Math.random()*1000000))
 
-    constructor(label, session) {
+    constructor(info, graph) {
 
         // Generic Plugin Attributes
-        this.label = label
-        this.session = session
+        
+        
 
         // UI Identifier
         this.props = {
@@ -42,10 +42,10 @@ class Manager{
                                 let beat = (this.props.prevDiff != diff && diff == -1)
 
                                 if (beat) {
-                                    this.session.graph.runSafe(this, 'beat', {data: true})
+                                    this.update( 'beat', {data: true})
                                     this.props.prevBeats.push({t: Date.now()})
                                 } else {
-                                    this.session.graph.runSafe(this, 'beat', {data: false})
+                                    this.update( 'beat', {data: false})
                                 }
 
                                 this.props.prevDiff = diff
