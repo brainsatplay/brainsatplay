@@ -48,7 +48,8 @@ export class Edge {
 
       // Activate Functionality
       this.parent.app.state.data[this.uuid] = this.value
-      this.subscription = this.parent.app.state.subscribeTrigger(this.uuid, this.onchange)
+
+      // this.subscription = this.parent.app.state.subscribeTrigger(this.uuid, this.onchange)
 
       // Register Edge in Ports
       this.source.node.edges.set(this.uuid, this)
@@ -77,7 +78,7 @@ export class Edge {
 
     deinit = () => {
 
-        this.parent.app.state.unsubscribeTrigger(this.uuid, this.subscription); //unsub state
+        // this.parent.app.state.unsubscribeTrigger(this.uuid, this.subscription); //unsub state
         if (this.source.node) this.source.node.edges.delete(this.uuid)
         if (this.target.node) this.target.node.edges.delete(this.uuid)
         if (this.source.port) this.source.port.removeEdge('output',this.uuid)

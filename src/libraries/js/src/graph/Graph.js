@@ -81,14 +81,10 @@ export class Graph {
     init = async (o) => {
 
         this._mergeInfo(o)
-        console.log('ADDING GRAPHS')
         await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
-       
-        console.log('ADDING NODES')
         await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
         
         for (const e of this.info.edges) {
-            console.log('ADDING eDGe', e)
             await this.addEdge(e) // provided edges (read in series)
         }
 
@@ -104,7 +100,6 @@ export class Graph {
 
         this.ui.graph.removeEventListener('wheel', this._scale)
         this.ui.graph.removeEventListener('mousemove', this._pan)
-        window.removeEventListener('keydown', this._save)
 
         this.ui.element.remove()
         this.ui.graph.remove()
@@ -175,6 +170,8 @@ export class Graph {
         if ('nodes' in info) this.info.nodes.push(...info.nodes)
         if ('graphs' in info) this.info.graphs.push(...info.graphs)
 
+        Object.assign(this.ports, info.ports)
+
         delete info.nodes
         delete info.edges
         delete info.events
@@ -233,15 +230,16 @@ export class Graph {
             if (o.class?.constructor) {
 
                 // Try To Extend Class
+                let ports = o.ports
                 o.className = o.class.name
                 let Plugin = this.extend(o.class, Graph)
                 o.instance = new Plugin(o, this)
 
                 // Create Ports with backwards compatibility (< 0.0.36)
                 let keys = Object.keys(o.instance.ports) 
-
                 await Promise.all(keys.map(async port => {
-                    await o.instance.addPort(port, o.instance.ports[port])
+                    if (ports)  await o.instance.addPort(port, ports[port]) // overwrite from settings
+                    else await o.instance.addPort(port, o.instance.ports[port]) 
                 }))
 
                 // Update Parameters on Port
@@ -309,7 +307,6 @@ export class Graph {
                 const _super = (...args) => {
                     let parent = new ParentClass(...args)
                     let child = new ChildClass(...args)
-
                     let mergeMethods = ['init', 'deinit', 'responsive', 'configure']
                     mergeMethods.forEach(f => {
                         // Merge Init
@@ -603,41 +600,14 @@ export class Graph {
             }
 
             settings.onSave = (cls) => {
+
                 let instance = new cls({id:cls.name, class: cls}, this.parent)
-                // let instance = instanceInfo
-                // tab.classList.remove('edited')
 
                     Object.getOwnPropertyNames( instance ).forEach(k => {
-                        if (instance[k] instanceof Function || k === 'params'){ // Replace functions and params
-                            this[k] = instance[k]
-                        }
+                        if (instance[k] instanceof Function || k === 'params') this[k] = instance[k]
 
                         if (k === 'ports'){
-                            for (let port in instance.ports){
-                                if (this.ports[port] == null) this.ports[port] = instance.ports[port]
-                                else {
-                                    let keys = [
-                                        'default', 
-                                        'options', 
-                                        'meta', 
-                                        'input', 
-                                        'output', 
-                                        'onUpdate'
-                                    ]
-
-                                    let typeKeys = [
-                                        'input', 
-                                        'output',
-                                    ]
-                                    
-                                    keys.forEach(str => {
-                                        if (!typeKeys.includes(str)) this.ports[port][str] = instance.ports[port][str]
-                                        else if (this.ports[port][str] != null) {
-                                            this.ports[port][str]['type'] = instance.ports[port][str]['type']
-                                        }
-                                    })
-                                }
-                            }
+                            for (let port in instance.ports) this.ports[port].init(instance.ports[port])
                         }
                     })
 
@@ -656,29 +626,15 @@ export class Graph {
 
             this.ui.codeEditor = new LiveEditor(settings, this.ui.code)
 
-            window.addEventListener('keydown', this._save)
         } else delete this.ui.code // no code for graphs
     }
 
-    // Save Whole Application
-    _saveGraph = (e) => {
-        // this.files[graph.name].tab.classList.remove('edited')
-        this.app.updateGraph()
-        this.app.session.projects.save(this.app)
-        this.app.editor.lastSavedProject = this.app.name
+    save = () => {
+        if (this.ui.codeEditor) this.ui.codeEditor.save()
+        this.nodes.forEach(n => {
+            n.save()
+        })
     }
-
-    // Save Class Code
-    _save = (e) => {
-        if (this.ui.code.offsetParent != null){
-            if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
-                e.preventDefault();
-                this.ui.codeEditor.save()
-                this._saveGraph(e)
-            }
-        }
-    }
-
 
     insertNode = (node) => {
         this.ui.graph.insertAdjacentElement('beforeend', node.ui.element)
@@ -818,12 +774,22 @@ export class Graph {
 
     // ---------------- EXPORT HELPER ----------------
     export = () => {
+
+        let graphs = this.graphs.filter(g => !!g).map(g => {
+                if (g.export instanceof Function) return g.export()
+                else return g
+        })
+
+        let ports = {}
+        for (let port in this.ports) ports[port] = this.ports[port].export()
+
         return {
             name: this.name,
             class: this.class,
             params: this.params,
-            graphs: this.graphs.map(g => g.export()),
-            style: this.style
+            graphs,
+            ports,
+            style: this.style,
         }
       }
   

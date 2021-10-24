@@ -60,12 +60,21 @@ export class App {
         this._createMenu()
 
         // Set Shortcuts
-        document.addEventListener('keyup', this.shortcutManager, false);
+        document.addEventListener('keydown', this.shortcutManager, false);
     }
 
     shortcutManager = (e) => {
-        if (e.ctrlKey && e.key === 'e') {
-            if (this.editor) this.editor.toggleDisplay()
+
+        if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)) {
+            if (e.key === 'e' && this.editor) { // Toggle Editor
+                e.preventDefault();
+                this.editor.toggleDisplay()
+            }
+            else if (e.key === 's') { // Save Application
+                e.preventDefault();
+                this.graphs.forEach(g => g.save())
+                this.save()
+            }
         }
     }
 
@@ -85,10 +94,7 @@ export class App {
         // Add Functionality to Applet
         this.info.graphs.forEach(g => this.addGraph(g)) // initialize all graphs
         
-        console.log('starting' ,this.graphs)
         await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // initialize all graphs
-
-        console.log('initing done')
 
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
@@ -106,11 +112,8 @@ export class App {
         this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
-        console.log('creationg')
         this.session.createIntro(this, async (sessionInfo) => {
 
-
-            console.log('rEADY')
             // this.tutorialManager.init();
 
             this.props.ready = true
@@ -170,7 +173,7 @@ export class App {
             // Hard Deinit
             else {
                 this.editor.deinit()
-                document.removeEventListener('keyup', this.shortcutManager);
+                document.removeEventListener('keydown', this.shortcutManager);
                 this.AppletHTML.deleteNode();
                 this.AppletHTML = null
             }
@@ -414,7 +417,7 @@ export class App {
     }
 
     updateGraph(){
-        this.info.graphs = this.export() // copiedSettings.graphs // Replace settings
+        this.info.graphs = this.export() // Replace settings
     }
 
     _copySettingsFile(info){
@@ -459,9 +462,7 @@ export class App {
     }
 
     startGraph = async (g) => {
-        console.log('initing')
         await g.init()
-        console.log('returning')
     }
 
     removeGraph = (name='') => {
@@ -486,5 +487,12 @@ export class App {
             })
         })
         return settings
+    }
+
+    // Save
+    save = (e) => {
+        this.updateGraph()
+        this.session.projects.save(this)
+        this.editor.lastSavedProject = this.name
     }
 }

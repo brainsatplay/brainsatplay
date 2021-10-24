@@ -2,31 +2,20 @@
 import {LiveEditor} from '../ui/LiveEditor'
 
 export class Port {
-    constructor (node, name, info,
-        //  onchange = (newValue) => {}
-         ) {
+    constructor (node, name, info) {
         
         // Default Port Metadata
         this.meta = {}
         this.info = info
-        console.log(info)
-        Object.assign(this, info) // backwards compatibility (< 0.0.36)
-
         this.name = name
         this.uuid = String(Math.floor(Math.random()*1000000))
 
         this.node = node;
 
-        this.onchange = info.onchange ?? info.onUpdate // backwards compatibility (< 0.0.36)
         this.edges = {
             input: new Map(),
             output: new Map()
-        };        
-        
-        this.value = info.data // backwards compatibility (< 0.0.36)
-
-        // Autoset Output Type
-        if (this.output?.type === 'auto') this.output = this._getTypeDict(this.value)
+        };      
 
         // METADATA
         this.latency = Array.from({length: 20}, e => 0)
@@ -53,20 +42,10 @@ export class Port {
         if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)) this.createValueEditor()
         this.createSelfEditor()
 
-        let portTypes = Object.keys(this.edges)
-        portTypes.forEach(s => {
-            let nodeType
-            let portInfo = this[s]
-            nodeType = portInfo?.type
-            if (nodeType instanceof Object) nodeType = portInfo.name ?? nodeType?.name
+        Object.keys(this.edges).forEach(s => {
             this.ui[s] = document.createElement('div')
             this.ui[s].classList.add(`node-port-wrapper`)
             let el = document.createElement('div')
-            el.classList.add(`node-port`)
-            el.classList.add(`port-${this.name}`)
-            el.classList.add(`type-${nodeType}`)
-            el.setAttribute('data-node', this.node.uuid)
-            el.setAttribute('data-port', this.name)
 
             // Listen for clicks to draw SVG edge
             el.onpointerdown = (e) => {
@@ -77,12 +56,6 @@ export class Port {
             this.ui[s].insertAdjacentElement('beforeend', el)
         })
 
-        this.ui.label.innerHTML = `<span>${this.name}</span>`
-        this.ui.label.classList.add('node-label')
-        this.ui.label.setAttribute('name', this.name)
-
-        this.ui.latency.setAttribute('name', this.name)
-        this.ui.latency.classList.add('latency-display')
         this.ui.label.insertAdjacentElement('beforeend', this.ui.latency)
     }
 
@@ -96,11 +69,46 @@ export class Port {
     }
     
 
-    init = () => {}
+    init = (info = this.info) => {
+
+        this.info = info
+        Object.assign(this, info) // backwards compatibility (< 0.0.36)
+
+        this.onchange = info.onchange ?? info.onUpdate ?? this.onchange // backwards compatibility (< 0.0.36)
+        this.value = info.data // backwards compatibility (< 0.0.36)
+        
+        // Autoset Output Type
+        if (this.output?.type === 'auto') this.output = this._getTypeDict(this.value)
+
+        Object.keys(this.edges).forEach(s => {
+            let nodeType
+            let portInfo = this[s]
+            nodeType = portInfo?.type
+            if (nodeType instanceof Object) nodeType = portInfo.name ?? nodeType?.name
+            let el = this.ui[s].children[0]
+            let isActive = el.classList.contains('active')
+            el.className = "";
+            el.classList.add(`node-port`)
+            el.classList.add(`port-${this.name}`)
+            el.classList.add(`type-${nodeType}`)
+            if (isActive) el.classList.add(`active`)
+
+            el.setAttribute('data-node', this.node.uuid)
+            el.setAttribute('data-port', this.name)
+        })
+
+        this.ui.label.innerHTML = `<span>${this.name}</span>`
+        this.ui.label.classList.add('node-label')
+        this.ui.label.setAttribute('name', this.name)
+        this.ui.latency.setAttribute('name', this.name)
+        this.ui.latency.classList.add('latency-display')
+    }
 
     deinit = () => {
+
         // Remove UI
         for (let key in this.ui){ this.ui[key].remove() }
+
     }
 
     addEdge = (side, edge) => {
@@ -125,7 +133,6 @@ export class Port {
         // Add User Data
         if (!('id' in portCopy)) portCopy.id = this.node.session?.info?.auth?.id
         if (!('username' in portCopy)) portCopy.username = this.node.session?.info?.auth?.username
-
         return await this._onchange(portCopy);
     }
 
@@ -312,8 +319,7 @@ export class Port {
         }
 
         settings.onSave = (res) => {
-            res.forceUpdate = true
-            this.set(res)
+            this.init()
         }
 
         settings.onClose = (res) => {
@@ -322,12 +328,9 @@ export class Port {
             this.ui[name].code.remove()
         }
 
-        if (['HTML', 'CSS', 'GLSL'].includes(type)){
-            settings.language = type.toLowerCase()
-        } else {
-            settings.language = 'javascript'
-        }
-
+        if (['HTML', 'CSS', 'GLSL'].includes(type)) settings.language = type.toLowerCase() 
+        else settings.language = 'javascript'
+        
         settings.target = target
         settings.key = key
 
@@ -342,13 +345,16 @@ export class Port {
 
     // Create Self Editor
     createSelfEditor = () => {
-        console.error('STILL NEED TO ACTUALLY ALLOW FOR REINITIALIZING PORT ON SAVE')
         let editor = this.createEditor('self', this, 'info')
     }
 
 
     edit = (name='value') => {
         this.ui[name].editor.onOpen()
+    }
+
+    export = () => {
+        return this.info
     }
 
 }

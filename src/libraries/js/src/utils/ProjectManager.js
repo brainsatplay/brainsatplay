@@ -236,15 +236,13 @@ app.init()`)
 
     appToFile(app) {
 
-        let info = Object.assign({}, app.info) //JSON.parse(JSON.stringifyWithCircularRefs(app.info))
+        let info = JSON.parse(JSON.stringifyWithCircularRefs(app.info))
+        // let info = Object.assign({}, app.info)
         info.graphs = Array.from(app.graphs).map(arr => Object.assign({}, arr[1]))
         info.graphs.forEach(g => {
             if (g.edges) g.edges = Array.from(g.edges).map(arr => Object.assign({}, arr[1].export()))
            if (g.nodes) g.nodes = Array.from(g.nodes).map(arr => Object.assign({}, arr[1].export()))
         })
-
-        console.log(info, app.info)
-
 
         // Default Settings
         info.connect = true
@@ -265,21 +263,14 @@ app.init()`)
             // let saveable = this.checkIfSaveable(n.class)
 
             // Custom Plugin (not included by name)
-            if (!found && !classNames.includes(n.class.name)) {
-                imports += `import {${n.class.name}} from "./${n.class.name}.js"\n`
-                classNames.push(n.class.name)
+            let name = n.class.name
+            if (!found && !classNames.includes(name)) {
+                imports += `import {${name}} from "./${name}.js"\n`
+                classNames.push(name)
                 classes.push(n.class)
             } 
-            
-            // In Plugins
-            else if (found) {
-                classNames.push(found.label)
-            } 
-            
-            // If Already included by Name
-            else if (classNames.includes(n.class.name)) {
-                classNames.push(n.class.name)
-            }
+            else if (found) classNames.push(found.label) // In Plugins
+            else if (classNames.includes(name)) classNames.push(name) // If Already included by Name
         })
     })
 
@@ -287,36 +278,10 @@ app.init()`)
         info.graphs.forEach(g => {
         g.nodes.forEach((n, i) => {
 
-            // FIX
             for (let k in n?.params){ 
-            //     // Delete non-editable elements
-            //     if (n.instance.ports[k]?.edit === false) {
-            //         delete n.params[k] 
-            //     }
-
-                // convert functions
                 if (n.params[k] instanceof Function) n.params[k] = n.params[k].toString()
-                
-                // Delete if non-stringifiable object
-                // if (typeof n.params[k] === 'object' ){
-                //     console.log(n.params[k])
-                //     let result = JSON.parse(JSON.stringify(n.params[k]))
-                //     console.log(result)
-                //     if (typeof result !== 'object' || Object.keys(result).length == 0){ // Removes Elements
-                //         delete n.params[k]
-                //     } else {
-                //         n.params[k] = result
-                //     }
-                // }
             } 
 
-            delete n['configure']
-            delete n['ports']
-            delete n['instance']
-            delete n['ui']
-            delete n['fragment']
-            delete n['controls']
-            delete n['analysis']
             n.class = `${classNames[i]}`
         })})
 

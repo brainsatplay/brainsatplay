@@ -401,7 +401,7 @@ export class Editor{
             let showGraph = type === 'Graph' && (nodes > 0 || (graphs === 0 && (parentnodes === 0 || parentnodes == undefined)))
             this.createFileElement(this.files[graph.uuid], {graph: showGraph})
             let save = this.container.querySelector(`[id="${this.props.id}save"]`)
-            save.onclick = graph._saveGraph // actually saves app
+            save.onclick = this.app.save
     }
 
     addCloseIcon(parent, callback){

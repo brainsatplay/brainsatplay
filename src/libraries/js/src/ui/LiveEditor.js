@@ -156,52 +156,7 @@ export class LiveEditor {
                 this.toggle.style.display = 'none'
             }
 
-            this.submit.onclick = () => {
-
-                if (this.props.language === 'javascript'){
-                    let newFunc = undefined;
-                    try{ 
-                        newFunc = eval(
-                            // this.head+
-                            this.input.value.replace(/window/g,'err').replace(/gapi/g,'err')
-                            // +'}'
-                            );
-                    } 
-                    catch (er) {
-                        // console.log(er)
-                    }
-
-                    if(newFunc){
-                        this.target[this.key] = newFunc;
-                        this.onSave(this.target)
-
-                    } else if (this.key == null && this.target instanceof Object){
-                        try {
-                            newFunc = eval(`(${this.input.value})`)
-                        } catch (e) {
-                            console.log(e)
-                        }
-
-                        if (newFunc){
-                            this.target = newFunc
-                            this.head = this.target.name
-                            this.body = this.target.prototype.constructor
-                            this.onSave(this.target)
-                        }
-                    }
-                } 
-                
-                else if (['html', 'css'].includes(this.props.language)) {
-                    this.target = this.input.value;
-                    this.onSave(this.target)
-                    // try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
-                }
-
-                else if (this.props.language === 'glsl'){
-                    this.target = this.input.value;
-                    this.onSave(this.target)
-                }
-            }
+            this.submit.onclick = this.save
 
             document.addEventListener("keydown", this.onKeyDown, false);
 
@@ -267,7 +222,6 @@ export class LiveEditor {
 
             // Handle Specific Objects (from target)
             if (typeof this.target === 'object' && this.target != null && this.key != null){
-                console.log(this.target[this.key])
 
                 // Functions
                 if (this.target[this.key] instanceof Function){
@@ -324,6 +278,40 @@ export class LiveEditor {
     onSave = () => {} // Can be set by user
     onOpen = () => {}
     onClose= () => {}
+
+    save = () => {
+            if (this.props.language === 'javascript'){
+
+                let newJs = undefined;
+                try {newJs = eval( this.input.value.replace(/window/g,'err').replace(/gapi/g,'err'))} // Function
+                catch (e) {try { newJs = JSON.parse(this.input.value)} catch (e) {}} // Object
+
+                if(newJs){
+                    this.target[this.key] = newJs;
+                    this.onSave(this.target)
+                } else if (this.key == null && this.target instanceof Object){
+                    try { newJs = eval(`(${this.input.value})`)} catch (e) {console.log(e)}
+
+                    if (newJs){
+                        this.target = newJs
+                        this.head = this.target.name
+                        this.body = this.target.prototype.constructor
+                        this.onSave(this.target)
+                    }
+                }
+            } 
+            
+            else if (['html', 'css'].includes(this.props.language)) {
+                this.target = this.input.value;
+                this.onSave(this.target)
+                // try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
+            }
+
+            else if (this.props.language === 'glsl'){
+                this.target = this.input.value;
+                this.onSave(this.target)
+            }
+    }
 
     //Get the text inside of a function (regular or arrow);
     getFunctionBody = (method) => {
