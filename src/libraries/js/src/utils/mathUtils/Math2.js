@@ -1122,34 +1122,52 @@ export class Math2 {
 	static p300(event_timestamps=[],raw_signal=[],signal_timestamps=[], sps=256) {
 		let smoothingstep = Math.floor(sps/10); //300ms width peak, 1/10th sec smoothing for filtering
 		let smoothed = this.sma(raw_signal,smoothingstep);
-		let peaks = this.peakDetect(smoothed,'peak',smoothingstep);
+		let peaks = this.peakDetect(smoothed,'peak',smoothingstep); //returns indices of peaks
+		let mean = this.mean(smoothed);
+		let std = this.std(smoothed,mean);
 
 		let p_idx = 0;
 		let candidates = [];
 		if(peaks.length > 0) {
-		event_timestamps.forEach((t,j) => {
-			while(signal_timestamps[peaks[p_idx]] < t + 200) { //roll over peaks that are behind of the latest event + 200ms
-				p_idx++;
-				if(!peaks[p_idx]) break;
-			}
-			
-			let tempi = 0;
-			let tempcandidates = [];
-			while(signal_timestamps[peaks[p_idx+tempi]] < t + 600 ) { //get peaks that are behind the latest event + (200ms-600ms)
-				tempcandidates.push(tempi);
-				tempi++;
-				if(!peaks[p_idx+tempi]) break;
-			}
-			if(tempcandidates.length > 1) { //if multiple peaks found choose the biggest one for the main p300 peak (not worrying about p1,p2,n1,n2 yet)
-				let peakvals = [];
-				tempcandidates.forEach((tc) => {
-					peakvals.push(smoothed[tc]);
+			event_timestamps.forEach((t,j) => {
+				while(signal_timestamps[peaks[p_idx]] < t + 200) { //roll over peaks that are behind of the latest event + 200ms
+					p_idx++;
+					if(!peaks[p_idx]) break;
+				}
+				
+				let tempi = 0;
+				let tempcandidates = [];
+				while(signal_timestamps[peaks[p_idx+tempi]] < t + 600 ) { //get peaks that are behind the latest event + (200ms-600ms)
+					tempcandidates.push(p_idx+tempi);
+					tempi++;
+					if(!peaks[p_idx+tempi]) break;
+				}
+				if(tempcandidates.length > 1) { //if multiple peaks found choose the biggest one for the main p300 peak (not worrying about p1,p2,n1,n2 yet)
+					let peakvals = [];
+					tempcandidates.forEach((tc) => {
+						peakvals.push(smoothed[peaks[tc]]);
+					});
+					let max = Math.max(...peakvals);
+					let maxi = tempcandidates[peakvals.indexOf(max)];
+
+					candidates.push({
+						event_timestamp:t, 
+						event_index:j, 
+						peak_timestamp:signal_timestamps[[peaks[maxi]]],
+						signal_index:[peaks[maxi]], 
+						signal_amplitude:raw_signal[[peaks[maxi]]], 
+						zscore:(smoothed[peaks[maxi]]-mean)/std //significance measure
+					});
+				} else if (tempcandidates.length === 1) candidates.push({
+					event_timestamp:t, 
+					event_index:j, 
+					peak_timestamp:signal_timestamps[peaks[tempcandidates[0]]],
+					signal_index:peaks[tempcandidates[0]],
+					signal_amplitude:raw_signal[[peaks[tempcandidates[0]]]],
+					zscore:(smoothed[peaks[tempcandidates[0]]]-mean)/std //significance measure
+
 				});
-				let max = Math.max(...peakvals);
-				let maxi = tempcandidates[peakvals.indexOf(max)];
-				candidates.push({event_timestamp:t, event_index:j, peak_timestamp:signal_timestamps[maxi],signal_index:maxi});
-			} else if (tempcandidates.length === 1) candidates.push({event_timestamp:t, event_index:j, peak_timestamp:signal_timestamps[tempcandidates[0]],signal_index:tempcandidates[0]});
-		});
+			});
 		} return candidates;
 	}
 

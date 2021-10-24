@@ -163,7 +163,7 @@
 
             let fallHeight = parseFloat(document.getElementById('h').value); //meters
             let launcherError = parseFloat(document.getElementById('e').value);
-            let ntrials = parseFloat(document.getElementById('n').value);
+            let ntrials = parseInt(document.getElementById('n').value);
             let pEntHistBin = parseFloat(document.getElementById('b').value);
             let h0 = parseFloat(document.getElementById('d').value); //initial launcher start
             let g = 9.81; //acceleration due to gravity
@@ -203,6 +203,7 @@
             //Now find the Maximum Entropy Distribution
             maxEnt = pEntHist[0][pEntHist[1].indexOf(Math.max(...pEntHist[1]))];
             maxEntArea = sum(pEntHist[1].map((v, i) => {return v*pEntHist[0][i]}));
+
             document.getElementById('ent').innerHTML = maxEnt.toFixed(5);
             document.getElementById('areaent').innerHTML = maxEntArea.toFixed(5);
             console.log('max ent (negative)',maxEnt);
