@@ -208,14 +208,15 @@ export class Math2 {
 	}
 
 	//find the relative error of predicted results
-	static relError(actual=[],forecast=[]) {
+	static relError(actual=[],forecast=[],abs=true) {
 		if(actual.length !== forecast.length) throw new Error('Input arrays of same length!');
 		let i = actual.length;
 		let d = []; //relative errors
 		for(let j = 0; j<i; j++) {
-			d.push(Math.abs((actual[j] - forecast[j])/actual[j]));
+			let dd = (actual[j] - forecast[j])/actual[j];
+			if(abs) dd = Math.abs(dd);
+			d.push(dd);
 		}
-
 		return d;
 	}
 

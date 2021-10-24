@@ -10,7 +10,7 @@
         Initial Height (m):<input id='d' type='number' value=5.62 id='height'>We will regress away from the initial height which should be the predicted height for the target distance (15m in this case)<br> 
         launcherError (1/%):<input  id='e' type='number' value=0.1 id='height'>With added error Math.random()*-0.6*launcherError to simulate a real ramp<br> 
         nTrials (integer):<input  id='n' type='number' value=1000 id='height'><br>
-        Entropy histogram number of bins:<input id='b' type='number' value=25 id='height'><br>
+        Entropy histogram number of bins:<input id='bc' type='number' value=25 id='height'><br>
         <button id='submit'>Calculate</button>
     </div>
     <hr>
@@ -26,12 +26,14 @@
       
 
         //find the relative error of predicted results
-        function relError(actual=[],forecast=[]) {
+        function relError(actual=[],forecast=[],abs=true) {
             if(actual.length !== forecast.length) throw new Error('Input arrays of same length!');
             let i = actual.length;
             let d = []; //relative errors
             for(let j = 0; j<i; j++) {
-                d.push(Math.abs((actual[j] - forecast[j])/actual[j]));
+                let dd = (actual[j] - forecast[j])/actual[j];
+                if(abs) dd = Math.abs(dd);
+                d.push(dd);
             }
 
             return d;
@@ -167,7 +169,7 @@
             let fallHeight = parseFloat(document.getElementById('h').value); //meters
             let launcherError = parseFloat(document.getElementById('e').value);
             let ntrials = parseInt(document.getElementById('n').value);
-            let pEntHistBin = parseInt(document.getElementById('b').value);
+            let pEntHistBin = parseInt(document.getElementById('bc').value);
             let h0 = parseFloat(document.getElementById('d').value); //initial launcher start
             let g = 9.81; //acceleration due to gravity
 
@@ -189,11 +191,13 @@
                 ct++;
             }
             
-            d = relError(actualLandings,predictedLandings);
+            dabs = relError(actualLandings,predictedLandings);
+            d = relError(actualLandings,predictedLandings,false);
             pDist = normalDistribution(predictedLandings);
             aDist = normalDistribution(actualLandings);
-            pEnt = informationEntropy(d);
+            pEnt = informationEntropy(dabs);
             pEntHist = histogram(pEnt,undefined,pEntHistBin);
+            let dDist = normalDistribution(d,false,0);
 
             // console.log('drop heights',heights);
             // console.log('predicted landings',predictedLandings);
@@ -248,18 +252,18 @@
                         },
                         name: "Prediction Probability Density (Forced Gaussian)",
                         //xbins: {  size: 0.01  } 
-                    }//,
-                    // {
-                    //     x: actualLandings,
-                    //     y: aDist,
-                    //     mode: 'markers',
-                    //     type:'scatter',
-                    //     marker: {
-                    //         color: "rgba(100,100,255, 1)"
-                    //     },
-                    //     name: "Actual Probability Density (Forced Gaussian)",
-                    //     //xbins: {  size: 0.01  } 
-                    // }
+                    },
+                    {
+                        x: actualLandings,
+                        y: aDist,
+                        mode: 'markers',
+                        type:'scatter',
+                        marker: {
+                            color: "rgba(100,100,255, 1)"
+                        },
+                        name: "Actual Probability Density (Forced Gaussian)",
+                        //xbins: {  size: 0.01  } 
+                    }
                 ],
                 [
                     {
