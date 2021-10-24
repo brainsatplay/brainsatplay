@@ -8,7 +8,7 @@ let button = document.createElement('button')
 button.innerHTML = 'Connect EEG'
 
 export const settings = {
-    name: "Experiment Template",
+    name: "Experiment",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Compare alpha power when eyes closed vs. eyes open.",

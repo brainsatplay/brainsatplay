@@ -751,8 +751,13 @@ export class Editor{
 
             let input
 
+            // Catch Functions
+            if (defaultType === 'function') defaultType = 'Function'
+
+
             // Filter out elements
             defaultType = (defaultType === "object" ? toParse[key].data instanceof HTMLElement : toParse[key].data && typeof toParse[key].data === "object" && toParse[key].data !== null && toParse[key].data.nodeType === 1 && typeof toParse[key].data.nodeName==="string") ? 'Element' : defaultType
+            
 
         // Cannot Handle Objects or Elements
         if (defaultType && defaultType != 'undefined' && defaultType != 'Element'){

@@ -81,13 +81,18 @@ export class Graph {
     init = async (o) => {
 
         this._mergeInfo(o)
+        console.log('ADDING GRAPHS')
         await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
+       
+        console.log('ADDING NODES')
         await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
         
         for (const e of this.info.edges) {
+            console.log('ADDING eDGe', e)
             await this.addEdge(e) // provided edges (read in series)
         }
 
+        
         await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
     }
 

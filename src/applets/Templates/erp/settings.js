@@ -4,7 +4,7 @@ import {Manager} from './Manager'
 import { ERP } from './ERP'
 
 export const settings = {
-    name: "ERP Template",
+    name: "P300",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Recognize event-related potentials on the browser",

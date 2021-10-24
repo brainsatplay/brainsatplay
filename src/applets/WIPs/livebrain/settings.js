@@ -1,7 +1,5 @@
 import * as THREE from 'three'
-
 import * as brainsatplay from '../../../libraries/js/brainsatplay'
-import {Manager} from './Manager'
 
 import vertex from './shaders/vertex.glsl'
 import fragment from './shaders/fragment.glsl'
@@ -20,7 +18,7 @@ export const settings = {
     categories: ["learn"],
     instructions:"Coming soon...",
     display: {
-      production: false,
+      production: true,
       development: true
     },
 
@@ -33,9 +31,6 @@ export const settings = {
     {
       nodes: [
         {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
-        {name: 'manager', class: Manager, params: {
-          // model: brainpoints, resolution: 0.5
-        }},
         {name: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {metric: 'Alpha Ratio', output: 'Channels'}},
 
         // Scene

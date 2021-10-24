@@ -67,7 +67,7 @@ export class Edge {
 
       if (brainstormTarget) {
           this.parent.app.streams.push(this.source.port.label) // Keep track of streams
-          // await this.update() // Pass to Brainstorm
+          await this.update() // Pass to Brainstorm
       }
 
       if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (only if app is completely initialized)

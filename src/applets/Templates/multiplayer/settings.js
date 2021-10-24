@@ -3,14 +3,14 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Parser} from './Parser'
 
 export const settings = {
-    name: "Neurofeedback Template",
+    name: "Multiplayer",
     devices: ["EEG"],
     author: "Garrett Flynn",
-    description: "Get started building a neurofeedback app!",
+    description: "Get started building a multiplayer neurofeedback app!",
     categories: ["learn"],
     instructions:"Coming soon...",
     display: {
-      production: false,
+      production: true,
       development: true
     },
 

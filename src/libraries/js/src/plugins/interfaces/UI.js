@@ -196,7 +196,7 @@ export class UI {
                     }
                 }
             }}, 
-            {key: 'deinit', input: {type: Function}, output: {type: null}, data: ()=>{}}, 
+            {key: 'deinit', input: {type: Function}, output: {type: undefined}, data: ()=>{}}, 
             {key: 'responsive',input: {type: Function}, output: {type: null}, data: ()=>{}}
         ]
 

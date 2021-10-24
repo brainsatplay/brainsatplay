@@ -3,7 +3,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 
 export const settings = {
-    name: "EEG Template",
+    name: "EEG",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Get started working with real-time EEG data!",

@@ -42,7 +42,7 @@ export class Unity{
                     console.log("OnUnityEvent with parameters call" + param)
                 },
                 input: {type: Function},
-                output: {type: 'string'}
+                output: {type: undefined}
             },
 
             // Declare commands that can be sent to Unity

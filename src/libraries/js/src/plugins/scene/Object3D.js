@@ -54,6 +54,8 @@ export class Object3D {
                         this.props.mesh.geometry.dispose()
                         this.props.mesh.geometry = this.props.geometry
                     }
+                    this.update('add',{ forceUpdate: true})
+
                 }
             },
             scale: {

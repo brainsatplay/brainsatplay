@@ -73,6 +73,7 @@ export class App {
 
     init = async () => {
 
+
         this.props.sessionId = null
 
         // Keep Style of Previous Top-Level Wrapper
@@ -84,7 +85,10 @@ export class App {
         // Add Functionality to Applet
         this.info.graphs.forEach(g => this.addGraph(g)) // initialize all graphs
         
+        console.log('starting' ,this.graphs)
         await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // initialize all graphs
+
+        console.log('initing done')
 
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
@@ -102,8 +106,11 @@ export class App {
         this.session.registerApp(this) // Rename
 
         // Create App Intro Sequence
+        console.log('creationg')
         this.session.createIntro(this, async (sessionInfo) => {
 
+
+            console.log('rEADY')
             // this.tutorialManager.init();
 
             this.props.ready = true
@@ -452,7 +459,9 @@ export class App {
     }
 
     startGraph = async (g) => {
+        console.log('initing')
         await g.init()
+        console.log('returning')
     }
 
     removeGraph = (name='') => {

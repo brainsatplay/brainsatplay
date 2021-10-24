@@ -3,7 +3,7 @@ import * as brainsatplay from '../../../libraries/js/brainsatplay'
 import {Manager} from './Manager'
 
 export const settings = {
-    name: "SSVEP Template",
+    name: "SSVEP",
     devices: ["EEG"],
     author: "Garrett Flynn",
     description: "Select flashing objects with your brain.",
