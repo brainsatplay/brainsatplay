@@ -149,7 +149,7 @@ export class cyton { //Contains structs and necessary functions/API calls to ana
 					// line[0] = stop byte, line[1] = start byte, line[2] = counter, line[3:99] = ADC data 32x3 bytes, line[100-104] = Accelerometer data 3x2 bytes
 
 					//line found, decode.
-					if(this.data.count < this.maxBufferedSamples){
+					if(this.data.count < this.maxBufferedSamples && line[2] % 2 === 0){
 						this.data.count++;
 					}
 
