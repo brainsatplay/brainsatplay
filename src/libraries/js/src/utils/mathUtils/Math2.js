@@ -447,11 +447,15 @@ export class Math2 {
 		return m;
 	}
 
-	static histogram(arr=[], binSize=1) { //return a histogram of the array
+	//return a histogram of the array, use nBins to override binSize
+	static histogram(arr=[], binSize=1, nBins=undefined) {  
 		let copy = [...arr]; 
 		copy.sort(function(a, b){return a - b}); //ascending sort
 		let binStart = Math.min(...copy);
-
+		if(typeof nBins === 'number') {
+			let binEnd = Math.max(...copy);
+			binSize = Math.abs((binEnd - binStart) / (nBins-1));
+		} 
 		let j = binStart;
 		let binx = [];
 		let biny = [];
