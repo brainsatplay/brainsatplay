@@ -121,10 +121,10 @@ export class App {
             // Multiplayer Configuration
             this.session.startApp(this, sessionInfo?.id ?? this.props.id)
 
-            // Activate All Edges
+            // Run Specified Edge Onstart Callbacks
             this.graphs.forEach(async g => {
                 for (const arr of Array.from(g.edges)) {
-                    await arr[1].update() // second time (first inside edge, this time for brainstorm)
+                    await Promise.all(arr[1].onstart.map(async (f) => {await f()}))
                 }
             })
         })    

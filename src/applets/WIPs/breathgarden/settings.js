@@ -60,6 +60,30 @@ let meshUniforms = {
 let invisisphereUniforms = {iTime: {value: 0}, uSpeedModifier: {value: 0}, uColorChange: {value: 0}}
 let particleUniforms = {iTime: {value: 0}, uVerdant: {value: 0}}
 
+
+
+// Attributes for River
+const riverposition = new Float32Array(quantityPoints*3)
+riverposition.forEach((e,i) => {riverposition[i] = Math.random()})
+const rivermass = new Float32Array((quantityPoints*3))
+rivermass.forEach((e,i) => {rivermass[i] = Math.random()})
+const riverattributes = {
+  position: {buffer: riverposition, size: 3},
+  mass: {buffer: rivermass, size: 1},
+}
+
+// Attributes for Particles
+const particleposition = new Float32Array((quantityPoints/10)*3)
+particleposition.forEach((e,i) => {particleposition[i] = Math.random()})
+const particlemass = new Float32Array((quantityPoints/10)*3)
+particlemass.forEach((e,i) => {particlemass[i] = Math.random()})
+
+const particleattributes = {
+    position: {buffer: particleposition, size: 3},
+    mass: {buffer: particlemass, size: 1},
+}
+
+
 /* 
  App Settings
 */
@@ -112,14 +136,14 @@ export const settings = {
         // River
         {name: 'riververtex', class: brainsatplay.plugins.scene.Shader, params: {default: invisisphereVertexShader, uniforms: invisisphereUniforms}},
         {name: 'riverfragment', class: brainsatplay.plugins.scene.Shader, params: {default: invisisphereFragmentShader, uniforms: invisisphereUniforms}},
-        {name: 'rivergeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', count: quantityPoints}},
+        {name: 'rivergeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', attributes: riverattributes}},
         {name: 'rivermat', class: brainsatplay.plugins.scene.Material, params:{type: 'ShaderMaterial',wireframe: false, transparent:true, depthWrite: false}},
         {name: 'river', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Points', x: riverOffset - riverWidth/2, y:-1, z:terrainFog,scalex:terrainFog*2, scalez: riverWidth, rotatey: Math.PI/2}},
 
         // Particles
         {name: 'particlesvertex', class: brainsatplay.plugins.scene.Shader, params: {default: particlesVertexShader, uniforms: particleUniforms}},
         {name: 'particlesfragment', class: brainsatplay.plugins.scene.Shader, params: {default: particlesFragmentShader, uniforms: particleUniforms}},
-        {name: 'particlesgeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', count: quantityPoints/10}},
+        {name: 'particlesgeo', class: brainsatplay.plugins.scene.Geometry, params:{type: 'BufferGeometry', attributes: particleattributes}},
         {name: 'particlesmat', class: brainsatplay.plugins.scene.Material, params:{type: 'ShaderMaterial',wireframe: false, transparent:true, depthWrite: false}},
         {name: 'particles', class: brainsatplay.plugins.scene.Object3D, params:{type: 'Points', x: -terrainLength/4, y:0, z:-terrainLength/4,scalex:terrainLength/2, scaley: 5, scalez: terrainLength/2}},
         {name: 'sine', class: brainsatplay.plugins.controls.Event},//, params: {center: 0.5, scale: 0.5, frequency: 0.1}},

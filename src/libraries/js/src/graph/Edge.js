@@ -29,6 +29,8 @@ export class Edge {
             if (this.parent.app.editor){
                 this._createUI()
             }
+
+            this.onstart = []
     }
 
 
@@ -71,7 +73,14 @@ export class Edge {
           await this.update() // Pass to Brainstorm
       }
 
-      if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (only if app is completely initialized)
+      // Setup Onstart Callbacks (send to Brainstorm OR Elements, Functions, or Objects)
+      let isElement = sP.value instanceof Element || sP.value instanceof HTMLDocument
+      let isFunction = sP.value instanceof Function
+      let isObject = sP.value instanceof Object
+
+      if (brainstormTarget || isElement || isFunction  || isObject) this.onstart.push(this.update) // Pass on applicadtion start
+
+      if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (when drawing edge)
 
       this.addReactivity() 
     }
@@ -303,7 +312,6 @@ insert = () => {
             this.mouseAsTarget(t,async (res) => {
               if (res === true) {
                 this.parent.ui.editing = false
-                await this._activate()
                 resolve(true) 
               }
               else resolve(res)

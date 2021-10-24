@@ -37,7 +37,7 @@ export const settings = {
         {name: 'fragment', class: brainsatplay.plugins.scene.Shader, params: {default: fragment, uniforms}},
         {name: 'geometry', class: brainsatplay.plugins.scene.Geometry, params:{
           type: 'BufferGeometry', 
-          buffer: brainpoints, 
+          attributes: {position: {buffer: brainpoints, size: 3}}, 
           // resolution: 0.5
         }},
         {name: 'material', class: brainsatplay.plugins.scene.Material, 
