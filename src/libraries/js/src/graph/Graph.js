@@ -46,10 +46,10 @@ export class Graph {
 
         // UI
         this.ui = {
-            element: document.createElement('div'),
-            code: document.createElement('div'),
-            codeEditor: null,
-            graph: document.createElement('div'),
+            element: this._createElement,
+            code: this._createCodeUI,
+            codeEditor: this._createCodeEditor,
+            graph: this._createGraphUI,
             context: {
                 scale: 1
             },
@@ -60,21 +60,7 @@ export class Graph {
             relYParent: null
         }
 
-        // Graph UI
-        this.ui.graph.id = `${this.props.id}NodeViewer`
-        this.ui.graph.classList.add('brainsatplay-node-viewer')
-        this.ui.graph.classList.add('grid')
-
-        this.ui.graph.addEventListener('mousedown', e => {this.ui.mouseDown = true} )
-        window.addEventListener('mouseup', e => { this.ui.mouseDown = false} )
-        this.ui.graph.addEventListener('wheel', this._scale)
-        this.ui.graph.addEventListener('mousemove', this._pan)
-
-        this.createUI()
-        this.createCodeEditor()
-
         if (this.app.editor && !(this.parent instanceof Graph) && edit) this.app.editor.addGraph(this) // place top-level graph as a tab
-
     }
 
 
@@ -98,18 +84,21 @@ export class Graph {
         this.edges.forEach(e => this.removeEdge(e))
         this.events.forEach(ev => this.removeEvent(ev))
 
-        this.ui.graph.removeEventListener('wheel', this._scale)
-        this.ui.graph.removeEventListener('mousemove', this._pan)
 
-        this.ui.element.remove()
-        this.ui.graph.remove()
+        if (!(this.ui.element instanceof Function)) this.ui.element.remove()
+        if (!(this.ui.graph instanceof Function)){
+            this.ui.graph.removeEventListener('wheel', this._scale)
+            this.ui.graph.removeEventListener('mousemove', this._pan)
+            window.removeEventListener('resize', this.resizeAllEdges)
+            this.ui.graph.remove()
+        }
 
         // Remove Editor Tab
         let files = this.app.editor.files[this.uuid].files
         for (let type in files) {
             for (let key in files[type]){
                 let el = files[type][key]
-                if (el) el.remove()
+                if (!(el instanceof Function)) el.remove()
             }
         }
 
@@ -277,8 +266,7 @@ export class Graph {
             if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
         }
 
-        // Add to Graph UI
-        this.insertNode(o.instance)
+        if (this.ui.graph && !(this.ui.graph instanceof Function)) this.insertNode(o.instance) // UI
         
         return o
     }
@@ -406,17 +394,7 @@ export class Graph {
         await port.init()
         this.ports[port.name] = port
 
-
-        // UI
-        if (this.ui.graph) {
-            let portTypes = Object.keys(port.edges)
-            portTypes.forEach(s => {
-                this.ui[`${s}Ports`].insertAdjacentElement('beforeend', port.ui[s])
-            })
-            this.ui.portLabels.insertAdjacentElement('beforeend', port.ui.label)
-
-            this.resizeElement()
-        }
+        if (this.ui.graph && !(this.ui.graph instanceof Function)) this._addPortElement(port) // UI
 
     }
 
@@ -426,7 +404,7 @@ export class Graph {
             p.deinit()
             delete this.ports[p.name]
         }
-        this.resizeElement()
+        if (!(this.ui.element instanceof Function)) this.resizeElement()
     }
 
 
@@ -514,7 +492,9 @@ export class Graph {
 
     // ----------------- UI Management -----------------
 
-    createUI = () => {
+    _createElement = () => {
+        this.ui.element = document.createElement('div') // replace function
+
         this.ui.element.classList.add("brainsatplay-default-node-div")
 
         let element = document.createElement(`div`)
@@ -551,9 +531,46 @@ export class Graph {
         element.insertAdjacentElement('beforeend', this.ui.portManager)
         this.ui.element.insertAdjacentElement('beforeend', element)
 
-        this.resizeElement()
+        // Create Existing Ports
+        for (let key in this.ports) this._addPortElement(this.ports[key])
 
         return this.ui.element
+    }
+
+    _createGraphUI = () => {
+
+        this.ui.graph = document.createElement('div') // replace function
+
+        // Graph UI
+        this.ui.graph.id = `${this.props.id}NodeViewer`
+        this.ui.graph.classList.add('brainsatplay-node-viewer')
+        this.ui.graph.classList.add('grid')
+
+        this.ui.graph.addEventListener('mousedown', e => {this.ui.mouseDown = true} )
+        window.addEventListener('mouseup', e => { this.ui.mouseDown = false} )
+        this.ui.graph.addEventListener('wheel', this._scale)
+        this.ui.graph.addEventListener('mousemove', this._pan)
+        window.addEventListener('resize', this.resizeAllEdges)
+
+
+        // Create Existing Nodes
+        this.nodes.forEach(this.insertNode)
+
+        return this.ui.graph
+    }
+
+    _addPortElement = (p) => {
+        Object.keys(p.edges).forEach(s => {
+            this.ui[`${s}Ports`].insertAdjacentElement('beforeend', p.ui[s])
+        })
+        this.ui.portLabels.insertAdjacentElement('beforeend', p.ui.label)
+        this.resizeElement()
+    }
+
+    resizeAllNodes = () => {
+        this.nodes.forEach(n => {
+            n.resizeElement()
+        })
     }
 
     resizeAllEdges = () => {
@@ -575,14 +592,22 @@ export class Graph {
             for (let container of portContainers) {
                 minHeight = Math.max(minHeight, container.clientHeight)
             }
-            minWidth = Math.max(minWidth, this.ui.portLabels.offsetWidth)
+            minWidth = Math.max(minWidth, this.ui.portLabels?.offsetWidth ?? 0)
         }
 
-        if (this.ui.portManager.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
-        if (this.ui.portManager.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
+        if (this.ui.portManager?.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
+        if (this.ui.portManager?.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
     }
 
-    createCodeEditor = () => {
+    _createCodeUI = () => {
+        if (this.ui.code instanceof Function) this.ui.code = document.createElement('div')
+        this.ui.code.id = this._random()
+        this.ui.code.className = 'brainsatplay-node-code'
+        this._createCodeEditor()
+        return this.ui.code
+    }
+
+    _createCodeEditor = () => {
 
             let cls = this.info?.class
             if (cls){
@@ -591,8 +616,6 @@ export class Graph {
     
             let settings = {}
 
-            this.ui.code.id = this._random()
-            this.ui.code.className = 'brainsatplay-node-code'
 
             settings.language = 'javascript'
             settings.onInput = () => {
@@ -622,11 +645,14 @@ export class Graph {
             settings.shortcuts = {
                 save: true
             }
+
             settings.showClose = false
 
             this.ui.codeEditor = new LiveEditor(settings, this.ui.code)
 
-        } else delete this.ui.code // no code for graphs
+            return this.ui.codeEditor
+        }
+        // otherwise no code for graphs
     }
 
     save = () => {
@@ -637,6 +663,8 @@ export class Graph {
     }
 
     insertNode = (node) => {
+        if (node.ui.element instanceof Function) node.ui.element = node.ui.element()
+
         this.ui.graph.insertAdjacentElement('beforeend', node.ui.element)
 
         let top
@@ -652,6 +680,7 @@ export class Graph {
             this.ui.editing = false
             node.style = node.ui.element.style.cssText
         })
+        
         this.addNodeEvents(node)
 
         // node.ui.element.querySelector('.brainsatplay-display-node').click()
@@ -672,10 +701,16 @@ export class Graph {
 
 
         // Reorganize Nodes in a Grid
+        this._nodesToGrid()
+    }
+
+    _nodesToGrid = () => {
+        
         let i = 0;
         let length = this.nodes.size
 
         this.nodes.forEach(n => {
+
             // Default Positioning
             let iterator = Math.ceil(Math.sqrt(length))
             let row = Math.floor(i % iterator)
@@ -686,9 +721,12 @@ export class Graph {
             let leftShift = 0.5 * availableSpace/(iterator+1)
             let downShift = 0.5 * availableSpace/(iterator+2)
             
-            if (!n.style || (!n.style.includes('top') && !n.style.includes('left'))) {
-                n.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
-                n.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+            // Auto-Grid
+            if (!n.style || (!n.style.includes('top') && !n.style.includes('left'))) { 
+                if (n.ui.element.style) {
+                    n.ui.element.style.top = `${padding + downShift + availableSpace*row/iterator}%`
+                    n.ui.element.style.left = `${padding + leftShift + availableSpace*col/iterator}%`
+                }
             }
 
             i++

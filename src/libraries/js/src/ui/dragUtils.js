@@ -30,7 +30,9 @@ export const dragElement = (container, dragItem, context, onMove, onDown,onUp) =
         xOffset = arr[0].split('px')[0]
         yOffset = arr[1].split('px')[0]
       }
-    } else dragItem.style.transform = `scale(${defaultScale})`;
+    } else {
+      dragItem.style.transform = `scale(${defaultScale})`;
+    }
 
     function dragStart(e) {
 

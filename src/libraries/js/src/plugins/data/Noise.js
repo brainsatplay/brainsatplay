@@ -17,8 +17,9 @@ export class Noise {
                 input: {type: null},
                 output: {type: 'number'},
                 onUpdate: () => {
-                    this.ports.delta.data = Number.parseFloat(this.ports.delta.data)
-                    if (!isNaN(this.ports.delta.data)) this.props.pointer += Number.parseFloat(this.ports.delta.data)
+                    let value = Number.parseFloat(this.ports.delta.data)
+                    this.update('delta', {value})
+                    if (!isNaN(this.ports.delta.data)) this.props.pointer += value
                     if (Date.now() - this.props.lastTime >= this.ports.interval.data){
                         if (this.ports.type.data === 'random') this.props.lastSample = 2*Math.random() - 1
                         if (this.ports.type.data === 'perlin') this.props.lastSample = this.props.noise.perlin2(this.props.pointer, 1)
@@ -33,34 +34,22 @@ export class Noise {
                 data: 'perlin',
                 options: ['random', 'perlin', 'simplex'],
                 input: {type: 'string'},
-                output: {type: null},
-                onUpdate: (user) => {
-                    this.ports.type.data = user.data
-                }
+                output: {type: null}
             },
             intensity: {
                 data: 1,
                 input: {type: 'number'},
-                output: {type: null},
-                onUpdate: (user) => {
-                    this.ports.intensity.data = user.data
-                }
+                output: {type: null}
             },
             interval: {
                 data: 1000/60,
                 input: {type: 'number'},
                 output: {type: null},
-                onUpdate: (user) => {
-                    this.ports.interval.data = user.data
-                }
             },
             delta: {
                 data: 0.01,
                 input: {type: 'number'},
-                output: {type: null},
-                onUpdate: (user) => {
-                    this.ports.delta.data = user.data
-                }
+                output: {type: null}
             }
         }
 

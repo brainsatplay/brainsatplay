@@ -77,8 +77,9 @@ export class Edge {
       let isElement = sP.value instanceof Element || sP.value instanceof HTMLDocument
       let isFunction = sP.value instanceof Function
       let isObject = sP.value instanceof Object
+      let isGLSL = sP.output.type === 'GLSL'
 
-      if (brainstormTarget || isElement || isFunction  || isObject) this.onstart.push(this.update) // Pass on applicadtion start
+      if (brainstormTarget || isElement || isFunction  || isObject || isGLSL) this.onstart.push(this.update) // Pass on applicadtion start
 
       if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (when drawing edge)
 

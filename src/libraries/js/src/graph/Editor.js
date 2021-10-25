@@ -41,6 +41,8 @@ export class Editor{
 
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
+            projectContainer: null,
+            projectDefaults: null
         }
 
         this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT', 'TEXTAREA']
@@ -96,8 +98,7 @@ export class Editor{
                             <div class='node-sidebar-section'>
                                 <h3>Project Info</h3>
                             </div>
-                            <div id="${this.props.id}settings" class='node-sidebar-content'>
-                            </div>
+                            <div id="${this.props.id}settings" class='node-sidebar-content'></div>
                             <div class='node-sidebar-content' style="display: flex; flex-wrap: wrap; padding: 10px;">
                                 <button id="${this.props.id}download" class="brainsatplay-default-button">Download Project</button>
                                 <button id="${this.props.id}reload" class="brainsatplay-default-button">Reload Project</button>
@@ -210,6 +211,8 @@ export class Editor{
 
             this.filesidebar.header.querySelector('h3').innerHTML = this.app.info.name
 
+            this.createSettingsEditor(this.app.info)
+
             // Setup Presentation Based On Settings
             if (this.settings.style) this.container.style = this.settings.style 
 
@@ -228,8 +231,11 @@ export class Editor{
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
 
+        console.log('INSERT FILES')
+
         let galleries = {}
         galleries['My Projects'] = []
+        galleries['Defaults'] = []
 
         // Get Project Settings Files
         let projectSet = await this.app.session.projects.list()
@@ -256,7 +262,7 @@ export class Editor{
                 let settings = await getAppletSettings(o.folderUrl)
                 if (settings.graph) {
                     if (o.folderUrl.includes('/Templates')) templateSet.push({destination: 'Templates', settings})
-                    else templateSet.push({destination: 'Examples', settings})
+                    else templateSet.push({destination: 'Library', settings})
                 }
             }
         } catch (e) {console.log('Applets not found', e)}
@@ -276,9 +282,9 @@ export class Editor{
             })
 
             // Add Load from File Button
-            galleries['My Projects'].unshift({name: 'Load from File'})
+            galleries['Defaults'].unshift({name: 'Load from File'})
 
-            let galleryKeys = ['My Projects', 'Templates', 'Examples'] // Specify ordering
+            let galleryKeys = ['Defaults', 'My Projects', 'Templates', 'Library'] // Specify ordering
 
             let lastClickedProjectCategory = ''
             galleryKeys.forEach(k => {
@@ -286,9 +292,8 @@ export class Editor{
                 let projectArr = galleries[k]
 
                 if (projectArr){
-
                     // Create Top Header
-                    if (k !== 'My Projects'){
+                    if (k !== 'Defaults'){
                         let div = document.createElement('div')
                         div.classList.add(`brainsatplay-option-type`) 
                         div.classList.add(`option-type-collapsible`)
@@ -303,10 +308,15 @@ export class Editor{
                     projects.classList.add("option-type-content")
                     this.props.projectContainer.insertAdjacentElement(`beforeend`, projects)
 
+                    if (k === 'Defaults') {
+                        this.props.projectDefaults = projects
+                        this._resizeDefaultProjects()
+                    }
+
                     projectArr.forEach(settings => {
 
                         // Set Experimental Version on Example Projects
-                        if (k != 'My Projects') settings.version = 'experimental'
+                        if (!['Defaults', 'My Projects'].includes(k)) settings.version = 'experimental'
 
                         let item = document.createElement('div')
                         item.innerHTML = settings.name
@@ -317,7 +327,7 @@ export class Editor{
                         item.onclick = async () => {
                             
                             // Rename Template Projects
-                            if (k !== 'My Projects'){
+                            if (k !== 'My Project'){
                                 settings = Object.assign({}, settings)
                                 if (settings.name === 'Blank Project') settings.name = 'My Project'
                             }
@@ -334,14 +344,9 @@ export class Editor{
                         lastClickedProjectCategory = k
 
                         }
-                        if (settings.name === 'Blank Project' || settings.name === 'Load from File'){
-                            // div.style.flex = '43%'
-                            projects.insertAdjacentElement('afterbegin',item)
-                        } else {projects.insertAdjacentElement('beforeend',item)}
-
+                        if (settings.name === 'Blank Project' || settings.name === 'Load from File') projects.insertAdjacentElement('afterbegin',item)
+                        else projects.insertAdjacentElement('beforeend',item)
                     })
-
-                    if (k === 'My Projects') projects.style.maxHeight = projects.scrollHeight + "px"; // Resize personal projects
                 }
             })
         })
@@ -426,22 +431,31 @@ export class Editor{
             tab.innerHTML = o.name
 
             // Format Containers
+            if (o.elements[type] instanceof Function) o.elements[type] = o.elements[type]() // construct if required
+
             o.elements[type].style.position = 'absolute'
             o.elements[type].style.top = '0'
             o.elements[type].style.left = '0'
             this.editor.insertAdjacentElement('beforeend', o.elements[type])
 
             let isGraph = !!o.graph
+
+            let defaultOnClose = () => {
+                o.files[type].tab.remove()
+                o.files[type].tab = null
+            }
+
             if (isGraph){
                 let onClose = () => {
                     if (tab.previousElementSibling){ // do not remove if last tab
                         tab.style.display = 'none'
                         tab.previousElementSibling.click()
                     }
+                    defaultOnClose()
                 }
                 this.addCloseIcon(tab,onClose)
             } else {
-                this.addCloseIcon(tab)
+                this.addCloseIcon(tab, defaultOnClose)
             }
 
             tab.onclick = () => {
@@ -506,6 +520,7 @@ export class Editor{
 
     createSettingsEditor(target){
             let settingsContainer = this.container.querySelector(`[id="${this.props.id}settings"]`)
+            settingsContainer.innerHTML = ''
 
             // settings = Object.assign({}, settings) // shallow copy
 
@@ -591,6 +606,10 @@ export class Editor{
 
         }
 
+        _resizeDefaultProjects = () => {
+            setTimeout(() => {if (this.props.projectDefaults) this.props.projectDefaults.style.maxHeight = `${this.props.projectDefaults.scrollHeight}px`}, 50)
+        }
+
 
     toggleDisplay(on){
         // if (this.element){
@@ -610,8 +629,13 @@ export class Editor{
                     this.responsive()
                     this.app.graphs.forEach(g => {
                         g._resizeUI() 
-                        if (g === this.graph) this.graph.resizeAllEdges()
+                        if (g === this.graph) {
+                            this.graph.resizeAllNodes()
+                            this.graph.resizeAllEdges()
+                            // this.graph._nodesToGrid()
+                        }
                     })
+                    this._resizeDefaultProjects()
                 },50)
             } else if (!on) {
                 this.container.style.display = 'none'
@@ -624,12 +648,7 @@ export class Editor{
                 this.responsive()
                 this.app.graphs.forEach(g => {
                     g._resizeUI() 
-                    // if (g === this.graph) this.graph.resizeAllEdges()
                 })
-
-                // setTimeout(() => {
-                //     if (this.container.parent == this.parentNode) this.container.remove()
-                // },1000)
             }
         // }
     }
@@ -740,6 +759,7 @@ export class Editor{
 
         if (toParse[key] instanceof Port) {
             label.style.cursor = 'pointer'
+
             label.onclick = () => {
                 toParse[key].edit('self')
             }

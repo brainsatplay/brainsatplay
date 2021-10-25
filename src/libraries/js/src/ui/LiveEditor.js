@@ -93,7 +93,8 @@ export class LiveEditor {
             this.close = this.container.querySelector(`[id="${this.props.id}close"]`)
             this.submit = this.container.querySelector(`[id="${this.props.id}submit"]`)
             this.editorContainer = this.container.querySelector(`[id="${this.props.id}editorContainer"]`)
-
+            this.scrollElement = this.container.querySelector(".brainsatplay-code-highlighting");
+            this.text = this.container.querySelector(`.brainsatplay-code-highlighting-content`);
 
             /* 
             
@@ -123,6 +124,7 @@ export class LiveEditor {
             }
 
             this.input.oninput = () => {
+                // console.error('input detected')
                 this._updateDisplay(this.input.value)
                 this._syncScroll(this.input)
                 this.onInput(this.input.value)
@@ -188,13 +190,6 @@ export class LiveEditor {
     }
 
     _setContent() {
-
-        let head = this.container.querySelector(`[id="${this.props.id}head"]`)
-        this.input = this.container.querySelector(`[id="${this.props.id}editor"]`)
-        let reset = this.container.querySelector(`[id="${this.props.id}reset"]`)
-
-        // if (this.head != null) head.innerHTML = this.head;
-
         if (this.body != null) {
             this.input.value = this.body
             this._triggerCodeChange()
@@ -247,13 +242,14 @@ export class LiveEditor {
                 console.warn('settings file is improperly configured...')
             }
         } else if (['html', 'css'].includes(this.props.language)) {
+
             if (this.target != null){
                 // if (typeof this.target === 'string'){
                 //     this.target = document.getElementById(this.target);
                 // }
                 this.head = this.props.language // this.target.id
                 this.body = this.target[this.key]//this.target.innerHTML
-                this.copy = this.target[this.key]//this.target.innerHTML
+                this.copy = this.body //this.target.innerHTML
             } else {
                 console.warn('settings file does not contain a target...')
             }
@@ -390,22 +386,21 @@ export class LiveEditor {
 
     // Live Editor UI Updates
     _updateDisplay = (text) => {
-        let result_element = this.parentNode.querySelector(`.brainsatplay-code-highlighting-content`);
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
-        result_element.innerHTML = replacedText;
-        Prism.highlightElement(result_element);
+        this.text.innerHTML = replacedText;
+        console.log(this.text)
+        Prism.highlightElement(this.text);
     }
 
     _syncScroll = (element) => {
         /* Scroll result to scroll coords of event - sync with textarea */
-        let result_element = this.parentNode.querySelector(".brainsatplay-code-highlighting");
         // Get and set x and y
-        result_element.scrollTop = element.scrollTop;
+        this.scrollElement.scrollTop = element.scrollTop;
 
         // If the scroll limit has been reached, flip the synchronization
-        if (result_element.scrollTop < element.scrollTop) element.scrollTop = result_element.scrollTop
+        if (this.scrollElement.scrollTop < element.scrollTop) element.scrollTop = this.scrollElement.scrollTop
 
-        result_element.scrollLeft = element.scrollLeft;
+        this.scrollElement.scrollLeft = element.scrollLeft;
       }
 
     _triggerCodeChange(){

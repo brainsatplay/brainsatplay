@@ -7,14 +7,12 @@ class Manager{
     constructor(info, graph) {
 
         // Generic Plugin Attributes
-        
-        
-
         this.analysis = ['eegfft']
 
         // UI Identifier
         this.props = {
-            id: String(Math.floor(Math.random() * 1000000)),            
+            id: String(Math.floor(Math.random() * 1000000)),  
+            SSVEPManager: null          
         }
         this.props.container = document.createElement('div')
         this.props.container.id = this.props.id
@@ -26,7 +24,6 @@ class Manager{
 
         this.props.n = 4
         this.props.objects = null; 
-        this.props.SSVEPManager = new SSVEP(this.session)
         this.props.freqRange = [4,16]
 
         // Port Definition
@@ -76,6 +73,8 @@ class Manager{
     }
 
     init = () => {
+
+        this.props.SSVEPManager = new SSVEP(this.session)
 
         this.props.SSVEPManager.init().then((response) => {
 

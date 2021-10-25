@@ -28,24 +28,23 @@ export class Port {
             output: {},
             latency: document.createElement('div'),
             value: {
-                code: document.createElement('div'),
-                editor: null,
+                code: null,
+                editor: () => {if (['Function', 'HTML', 'CSS', 'GLSL'].includes(this.getType())) this.createValueEditor()},
             },
             self: {
-                code: document.createElement('div'),
-                editor: null,
+                code: null,
+                editor: () => {this.createSelfEditor()}
             },
             gui: {
                 container: null,
                 input: null
             }
-            // lastclicked: null
         }
 
-        let defaultType = this.getType()
-        if (['Function', 'HTML', 'CSS', 'GLSL'].includes(defaultType)) this.createValueEditor()
-        this.createSelfEditor()
+        this._createElements() // NOT ON DEMAND
+    }
 
+    _createElements = () => {
         Object.keys(this.edges).forEach(s => {
             this.ui[s] = document.createElement('div')
             this.ui[s].classList.add(`node-port-wrapper`)
@@ -108,7 +107,9 @@ export class Port {
         this.ui.latency.classList.add('latency-display')
 
 
-        if (this.node.app.editor) this.ui.gui = this.node.app.editor.createObjectEditor(this.node.ports, this.name)
+        if (this.node.app.editor) {
+            this.ui.gui = this.node.app.editor.createObjectEditor({[this.name]:this}, this.name)
+        }
     }
 
     deinit = () => {
@@ -338,6 +339,8 @@ export class Port {
     // Create Editor
     createEditor = (name, target, key, type) => {
 
+        if (!this.ui[name].code) this.ui[name].code = document.createElement('div')
+
         this.ui[name].code.style = `
             width: 75vw;
             height: 75vh;
@@ -377,16 +380,18 @@ export class Port {
 
     // Create Value Editor
     createValueEditor = () => {
-        let editor = this.createEditor('value', this, 'value', this.output?.type)
+        this.createEditor('value', this, 'value', this.getType())
     }
 
     // Create Self Editor
     createSelfEditor = () => {
-        let editor = this.createEditor('self', this, 'info')
+        this.createEditor('self', this, 'info')
     }
 
 
     edit = (name='value') => {
+        console.log(this.ui[name].editor)
+        if (this.ui[name].editor instanceof Function) this.ui[name].editor() // instantiate editor
         this.ui[name].editor.onOpen()
     }
 
