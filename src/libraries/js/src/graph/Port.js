@@ -2,7 +2,7 @@
 import {LiveEditor} from '../ui/LiveEditor'
 
 export class Port {
-    constructor (node, name, info) {
+    constructor (node, name, info={}) {
         
         // Default Port Metadata
         this.meta = {}
@@ -115,8 +115,11 @@ export class Port {
     deinit = () => {
 
         // Remove UI
-        for (let key in this.ui){ this.ui[key].remove() }
+        for (let key in this.ui) if (this.ui[key].remove instanceof Function) this.ui[key].remove() 
 
+        // Remove Edges
+        this.edges.input.forEach(e => e.deinit())
+        this.edges.output.forEach(e => e.deinit())
     }
 
     addEdge = (side, edge) => {
@@ -359,7 +362,14 @@ export class Port {
         }
 
         settings.onSave = (res) => {
-            this.init()
+            if (name === 'self') this.init()
+            else if (name === 'value') {
+                console.log(res.value, this.info)
+                this.data = res.value
+                this.info.data = res.value // make persistent
+                console.log(res.value, this.info)
+                this.set(res)
+            }
         }
 
         settings.onClose = (res) => {
@@ -396,7 +406,11 @@ export class Port {
     }
 
     export = () => {
-        return this.info
+        let infoCopy = Object.assign({}, this.info)
+        infoCopy.data = infoCopy.value ?? infoCopy.data // backwards compatibility (< 0.0.36)
+        let isElement = infoCopy.data instanceof Element || infoCopy.data instanceof HTMLDocument
+        if (infoCopy.data == undefined)  delete infoCopy.data
+        return infoCopy
     }
 
 }

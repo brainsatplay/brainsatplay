@@ -21,7 +21,7 @@ export const settings = {
         {name: 'blink_left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
         {name: 'blink_right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
         {name: 'ui', class: UI, params: {}},
-        {name: 'document', class: brainsatplay.plugins.interfaces.UI},
+        {name: 'document', class: brainsatplay.plugins.interfaces.DOM},
 
       ],
       edges: [

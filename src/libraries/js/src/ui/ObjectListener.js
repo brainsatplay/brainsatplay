@@ -482,10 +482,8 @@ if(JSON.stringifyFast === undefined) {
 
         function updateParents(key, value) {
             var idx = parents.length - 1;
-            //console.log(idx, parents[idx])
             if(parents[idx]){
                 var prev = parents[idx];
-                //console.log(value); 
                 if (prev[key] === value || idx === 0) {
                     path.push(key);
                     parents.push(value.pushed);

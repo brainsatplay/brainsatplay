@@ -297,15 +297,11 @@ export class LiveEditor {
                 }
             } 
             
-            else if (['html', 'css'].includes(this.props.language)) {
-                this.target = this.input.value;
+            else if (['html', 'css', 'glsl'].includes(this.props.language)) {
+                if (this.key) this.target[this.key] = this.input.value;
+                else this.target = this.input.value;
                 this.onSave(this.target)
                 // try{ eval(document.getElementById(this.randomId+'htmlscripts').value.replace(/window/g,'err').replace(/gapi/g,'err')); } catch (er) {alert('Script error: ', er);}
-            }
-
-            else if (this.props.language === 'glsl'){
-                this.target = this.input.value;
-                this.onSave(this.target)
             }
     }
 
@@ -388,7 +384,6 @@ export class LiveEditor {
     _updateDisplay = (text) => {
         let replacedText = text.replace(new RegExp("\&", "g"), "&amp").replace(new RegExp("\<", "g"), "&lt;"); // Don't Actually Create New HTML
         this.text.innerHTML = replacedText;
-        console.log(this.text)
         Prism.highlightElement(this.text);
     }
 

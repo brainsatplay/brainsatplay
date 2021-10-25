@@ -26,7 +26,7 @@ export const settings = {
 
         {name: 'manager', class: Manager, params: {}},
 
-        {name: 'ui', class: brainsatplay.plugins.interfaces.UI},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.DOM},
       ],
 
       edges: [

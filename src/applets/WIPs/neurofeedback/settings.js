@@ -24,7 +24,7 @@ export const settings = {
         {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {name: 'heg', class: brainsatplay.plugins.biosignals.HEG},
         {name: 'manager', class: Manager, params: {}},
-        {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.DOM, params: {}},
 
       ],
 

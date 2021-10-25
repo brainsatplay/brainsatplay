@@ -77,9 +77,13 @@ export class Edge {
       let isElement = sP.value instanceof Element || sP.value instanceof HTMLDocument
       let isFunction = sP.value instanceof Function
       let isObject = sP.value instanceof Object
-      let isGLSL = sP.output.type === 'GLSL'
+      let isGLSL = sP.output?.type === 'GLSL'
+      let isHTML = sP.output?.type === 'HTML'
+      let isCSS = sP.output?.type === 'CSS'
 
-      if (brainstormTarget || isElement || isFunction  || isObject || isGLSL) this.onstart.push(this.update) // Pass on applicadtion start
+      if (brainstormTarget || isElement || isFunction  || isObject || isGLSL || isHTML || isCSS) {
+        this.onstart.push(this.update) // Pass on applicadtion start
+      }
 
       if (this.parent.app.props.ready) await this.update() // Indiscriminately activate edge with initial value (when drawing edge)
 
@@ -260,8 +264,7 @@ _createUI = () => {
 _activateUI = async () => {
     return new Promise(async (resolve, reject)=> {
 
-    let res = await this.insert(this.parentNode) // insert into UI
-        
+    let res = await this.insert(this.parentNode) // insert into UI        
     let match,compatible, sourceType, targetType;
 
     if (res){
@@ -282,16 +285,18 @@ _activateUI = async () => {
         compatible = checkCompatibility(sourceType, targetType)
     }
       
-    // match = this.parent.matchEdge(this)
-
-      if (res === true && match == null && compatible){
-              resolve(true)
-      } else {
-
+      if (res === true && match == null && compatible) resolve(true)
+      else {
           this.deinit()
-          if (res != true) resolve({msg: 'edge is incomplete', edge: this})
-          else if (compatible == false) reject(`Source (${sourceType}) and Target (${targetType}) ports are not of compatible types`)
-          else if (match == null) reject('edge already exists') // not currently checking
+
+          // Continue Execution
+          if (res != true) {
+            if (this.parent.app.props.ready) resolve({msg: 'edge is incomplete', edge: this})
+            else resolve({msg: `edge from ${this.source.node?.name} (${this.source.port?.name}) to ${this.target.node?.name} (${this.target.port?.name}) does not exist on initialization`, edge: this})
+          } 
+          
+          // Stop Execution
+          else if (match == null) reject(`edge from ${this.source.node?.name} (${this.source.port?.name}) to ${this.target.node?.name} (${this.target.port?.name}) already exists`) // not currently checking
           else reject(res)
 
       }
@@ -308,7 +313,6 @@ insert = () => {
 
       this.types.forEach(t => {
         if (this[t].port == null){
-
           if (this.parent.app.props.ready){
             this.mouseAsTarget(t,async (res) => {
               if (res === true) {
@@ -317,7 +321,7 @@ insert = () => {
               }
               else resolve(res)
             })
-          }
+          } else resolve(false)
         }
       })
       

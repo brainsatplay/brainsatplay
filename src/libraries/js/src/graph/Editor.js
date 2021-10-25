@@ -42,7 +42,8 @@ export class Editor{
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
             projectContainer: null,
-            projectDefaults: null
+            projectDefaults: null,
+            open: false
         }
 
         this.elementTypesToUpdate = ['INPUT', 'SELECT', 'OUTPUT', 'TEXTAREA']
@@ -174,7 +175,7 @@ export class Editor{
 
         // this.download.classList.add('disabled')
         this.download.onclick = () => {
-            this.app.session.projects.download(this.app)
+            this.app.session.projects.download(this.app, () => { })
         }
 
         // this.reload.classList.add('disabled')
@@ -230,8 +231,6 @@ export class Editor{
         this.props.projectContainer = this.container.querySelector(`[id="${this.props.id}projects"]`)
         this.props.projectContainer.style.padding = '0px'
         this.props.projectContainer.style.display = 'block'
-
-        console.log('INSERT FILES')
 
         let galleries = {}
         galleries['My Projects'] = []
@@ -393,10 +392,9 @@ export class Editor{
             // Create Graph File
             let type = graph.constructor?.name
             this.files[graph.uuid] = {name: graph.name, type, nodes: [], graph}
-            this.files[graph.uuid].elements = {
-                code: graph.ui.code,
-                graph: graph.ui.graph
-            }
+            this.files[graph.uuid].elements = {}
+            this.files[graph.uuid].elements.code = (graph.ui.code instanceof Function) ? graph.ui.code() : graph.ui.code 
+            this.files[graph.uuid].elements.graph = (graph.ui.graph instanceof Function) ? graph.ui.graph() : graph.ui.graph 
 
             let graphs = graph.info.graphs.length // initial nodes
             let nodes = graph.info.nodes.length // initial nodes
@@ -431,7 +429,7 @@ export class Editor{
             tab.innerHTML = o.name
 
             // Format Containers
-            if (o.elements[type] instanceof Function) o.elements[type] = o.elements[type]() // construct if required
+            // if (o.elements[type] instanceof Function) o.elements[type] = o.elements[type]() // construct if required
 
             o.elements[type].style.position = 'absolute'
             o.elements[type].style.top = '0'
@@ -637,6 +635,8 @@ export class Editor{
                     })
                     this._resizeDefaultProjects()
                 },50)
+
+                this.props.open = true
             } else if (!on) {
                 this.container.style.display = 'none'
                 // this.container.style.opacity = 0
@@ -649,6 +649,8 @@ export class Editor{
                 this.app.graphs.forEach(g => {
                     g._resizeUI() 
                 })
+
+                this.props.open = false
             }
         // }
     }
@@ -1133,7 +1135,18 @@ export class Editor{
         }
 
         this.library = await this.app.session.projects.getLibraryVersion(this.app.info.version)
-        this.classRegistry = Object.assign({}, pluginManifest)
+
+        // NO DYNAMIC IMPORTS
+        // this.classRegistry = Object.assign({}, pluginManifest)
+        for (let category in this.library.plugins){
+            for (let name in this.library.plugins[category]){
+                this.classRegistry[name] = {
+                    name,
+                    category, 
+                    class: this.library.plugins[category][name]
+                }
+            }
+        }
 
         // this.classRegistry['custom'] = {}
         let usedClasses = []
@@ -1141,9 +1154,7 @@ export class Editor{
         this.addNodeOption(undefined)
 
 
-        for (let className in this.classRegistry){
-            this.addNodeOption(this.classRegistry[className])
-        }
+        for (let className in this.classRegistry) this.addNodeOption(this.classRegistry[className])
 
         // TODO: Traverse all graphs
         // this.graphs.forEach(g => {        

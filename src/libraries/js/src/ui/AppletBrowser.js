@@ -1,5 +1,5 @@
 import { Train } from '../plugins/machinelearning/Train'
-import { UI } from '../plugins/interfaces/UI'
+import { DOM } from '../plugins/interfaces/DOM'
 import { App } from '../App'
 import {createCards} from './browserUtils'
 
@@ -164,7 +164,7 @@ export class AppletBrowser {
         // Training Selection
         trainingModes.forEach((mode, i) => {
             settings.graph.nodes.push({ name: mode, class: Train, params: { mode , applets: this.props.applets} })
-            settings.graph.nodes.push({ name: `${mode}ui`, class: UI, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
+            settings.graph.nodes.push({ name: `${mode}ui`, class: DOM, params: { style: `div {flex-grow: 1;}`, parentNode: trainingContainer } })
             settings.graph.edges.push({ source: `${mode}:element`, target: `${mode}ui:content` })
         })
 

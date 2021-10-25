@@ -1,7 +1,8 @@
 import {Port} from "./Port"
 import {Edge} from "./Edge"
 import {Event} from "./Event"
-import {pluginManifest} from '../plugins/pluginManifest'
+import * as brainsatplay from '../../brainsatplay.js'
+// import {pluginManifest} from '../plugins/pluginManifest'
 import {dynamicImport} from '../utils/general/importUtils'
 
 // Code Editor
@@ -27,6 +28,7 @@ export class Graph {
 
         // Original Application Settings
         this.info = {}
+        this.params = {}
         this._mergeInfo(info)
 
         // Reference to Higher Levels of the Application
@@ -67,15 +69,10 @@ export class Graph {
     init = async (o) => {
 
         this._mergeInfo(o)
-        await Promise.all(this.info.graphs.map(async g => {await this.addNode(g)})) // provided collection of nodes and edges
-        await Promise.all(this.info.nodes.map(async n => {await this.addNode(n)})) // provided nodes (read in parallel)
-        
-        for (const e of this.info.edges) {
-            await this.addEdge(e) // provided edges (read in series)
-        }
-
-        
-        await Promise.all(this.info.events.map(async ev => {await this.addEvent(ev)}))
+        await Promise.all(this.info.graphs.map(async g => await this.addNode(g)))
+        await Promise.all(this.info.nodes.map(async n => await this.addNode(n)))
+        for (const e of this.info.edges) await this.addEdge(e)
+        await Promise.all(this.info.events.map(async ev => await this.addEvent(ev))) 
     }
 
     deinit = () => {
@@ -98,7 +95,7 @@ export class Graph {
         for (let type in files) {
             for (let key in files[type]){
                 let el = files[type][key]
-                if (!(el instanceof Function)) el.remove()
+                if (!!el && !(el instanceof Function)) el.remove()
             }
         }
 
@@ -199,7 +196,7 @@ export class Graph {
     }
 
     addNode = async (o) => { 
-
+        
         // If Already Instantiated
         if (o instanceof Graph){
             o = Object.assign(o.info, {instance: o})
@@ -211,15 +208,16 @@ export class Graph {
 
             // Map Class Strings to Classes
             if (typeof o.class === 'string') {
-                let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
-                o.class = module[o.class]
+                // let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
+                // o.class = module[o.class]
+                o.class = (this.app.editor) ? this.app.editor.classRegistry[o.class].class : classRegistry[o.class].class
             }
             
             // Create Node based on User-Defined Plugin Class
             if (o.class?.constructor) {
 
                 // Try To Extend Class
-                let ports = o.ports
+                let ports = Object.assign({}, o.ports)
                 o.className = o.class.name
                 let Plugin = this.extend(o.class, Graph)
                 o.instance = new Plugin(o, this)
@@ -227,8 +225,13 @@ export class Graph {
                 // Create Ports with backwards compatibility (< 0.0.36)
                 let keys = Object.keys(o.instance.ports) 
                 await Promise.all(keys.map(async port => {
-                    if (ports)  await o.instance.addPort(port, ports[port]) // overwrite from settings
-                    else await o.instance.addPort(port, o.instance.ports[port]) 
+                    if (ports && ports[port])  {
+                        ports[port].onUpdate = o.instance.ports[port].onUpdate // TODO: this. has to refer to the right thing
+                        await o.instance.addPort(port, ports[port]) // overwrite from settings
+                    }
+                    else {
+                        await o.instance.addPort(port, o.instance.ports[port]) 
+                    }
                 }))
 
                 // Update Parameters on Port
@@ -333,7 +336,10 @@ export class Graph {
             let res = await edge.init()
 
             if (res === true) this.edges.set(edge.uuid, edge)
-            else edge.deinit()
+            else {
+                console.error(res.msg)
+                edge.deinit()
+            }
     }
 
     removeEdge = (e) => {
@@ -404,6 +410,7 @@ export class Graph {
             p.deinit()
             delete this.ports[p.name]
         }
+
         if (!(this.ui.element instanceof Function)) this.resizeElement()
     }
 
@@ -560,11 +567,13 @@ export class Graph {
     }
 
     _addPortElement = (p) => {
-        Object.keys(p.edges).forEach(s => {
-            this.ui[`${s}Ports`].insertAdjacentElement('beforeend', p.ui[s])
-        })
-        this.ui.portLabels.insertAdjacentElement('beforeend', p.ui.label)
-        this.resizeElement()
+        if (this.ui.portLabels){
+            Object.keys(p.edges).forEach(s => {
+                this.ui[`${s}Ports`].insertAdjacentElement('beforeend', p.ui[s])
+            })
+            this.ui.portLabels.insertAdjacentElement('beforeend', p.ui.label)
+            this.resizeElement()
+        }
     }
 
     resizeAllNodes = () => {
@@ -588,23 +597,22 @@ export class Graph {
 
         if (this.ui.element.parentNode){ // only if there is something containing this element
             let portContainers = this.ui.element.getElementsByClassName(`node-port-container`)
-
-            for (let container of portContainers) {
-                minHeight = Math.max(minHeight, container.clientHeight)
-            }
+            for (let container of portContainers) minHeight = Math.max(minHeight, container.clientHeight)
             minWidth = Math.max(minWidth, this.ui.portLabels?.offsetWidth ?? 0)
         }
 
-        if (this.ui.portManager?.offsetWidth < minWidth) this.ui.portManager.style.width = `${minWidth}px`
-        if (this.ui.portManager?.offsetHeight < minHeight) this.ui.portManager.style.height = `${minHeight}px`
+        if (this.ui.portManager?.offsetWidth) this.ui.portManager.style.width = `${minWidth}px`
+        if (this.ui.portManager?.offsetHeight) this.ui.portManager.style.height = `${minHeight}px`
     }
 
     _createCodeUI = () => {
-        if (this.ui.code instanceof Function) this.ui.code = document.createElement('div')
-        this.ui.code.id = this._random()
-        this.ui.code.className = 'brainsatplay-node-code'
-        this._createCodeEditor()
-        return this.ui.code
+        if (this.info?.class){
+            if (this.ui.code instanceof Function) this.ui.code = document.createElement('div')
+            this.ui.code.id = this._random()
+            this.ui.code.className = 'brainsatplay-node-code'
+            this._createCodeEditor()
+            return this.ui.code
+        }  // otherwise no code for graphs
     }
 
     _createCodeEditor = () => {
@@ -652,11 +660,10 @@ export class Graph {
 
             return this.ui.codeEditor
         }
-        // otherwise no code for graphs
     }
 
     save = () => {
-        if (this.ui.codeEditor) this.ui.codeEditor.save()
+        if (this.ui.codeEditor.save instanceof Function) this.ui.codeEditor.save()
         this.nodes.forEach(n => {
             n.save()
         })
@@ -815,16 +822,23 @@ export class Graph {
         })
 
         let ports = {}
-        for (let port in this.ports) ports[port] = this.ports[port].export()
+        // if (
+        //     this.className != 'DOM' 
+        //     // && this.className != 'UI'
+        // ){
+            for (let key in this.ports) {
+                let port = this.ports[key].export()
+                if (port) ports[key] = port
+            }
+        // }
 
-        return {
-            name: this.name,
-            class: this.class,
-            params: this.params,
-            graphs,
-            ports,
-            style: this.style,
-        }
+        let settings = {name: this.name, class: this.class}
+        if (this.params) settings.params = this.params
+        if (graphs.length != 0) settings.graphs = graphs
+        if (this.style) settings.style = this.style
+        if (Object.keys(ports).length > 0) settings.ports = ports 
+
+        return settings
       }
   
 }

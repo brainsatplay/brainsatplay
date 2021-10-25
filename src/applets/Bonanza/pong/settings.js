@@ -25,7 +25,7 @@ export const settings = {
         {name: 'down', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowDown'}},
         {name: 'move', class: brainsatplay.plugins.utilities.Move},
         {name: 'ui', class: UI, params: {}},
-        {name: 'document', class: brainsatplay.plugins.interfaces.UI},
+        {name: 'document', class: brainsatplay.plugins.interfaces.DOM},
 
         {name: 'performance', class: brainsatplay.plugins.machinelearning.Performance, params: {method: 'accuracy'}},
         {name: 'debug', class: brainsatplay.plugins.debug.Debug},

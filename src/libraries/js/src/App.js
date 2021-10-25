@@ -39,7 +39,8 @@ export class App {
             id: null, // Keep random ID
             sessionId: null, // Track Brainstorm sessions,
             ready: false,
-            edgeCallbacks: []
+            edgeCallbacks: [],
+            elements: []
         };
 
         this.editor = new Editor(this, parent)
@@ -71,9 +72,12 @@ export class App {
                 this.editor.toggleDisplay()
             }
             else if (e.key === 's') { // Save Application
-                e.preventDefault();
-                this.graphs.forEach(g => g.save())
-                this.save()
+                
+                if (this.editor.props.open){
+                    e.preventDefault();
+                    this.graphs.forEach(g => g.save())
+                    this.save()
+                }
             }
         }
     }
@@ -94,7 +98,7 @@ export class App {
         // Add Functionality to Applet
         this.info.graphs.forEach(g => this.addGraph(g)) // initialize all graphs
         
-        await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // initialize all graphs
+        await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // parallel
 
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
@@ -155,12 +159,13 @@ export class App {
     // Populate the UI with a Device Manager
     _createDeviceManager = ({parentNode, toggle, filter, autosimulate, onconnect, ondisconnect}) => {
         if (typeof toggle === 'string') toggle = document.querySelector(`[id="${toggle}"]`)
-        this.session.connectDevice(parentNode, toggle, filter, autosimulate, onconnect, ondisconnect)
+        let elements = this.session.connectDevice(parentNode, toggle, filter, autosimulate, onconnect, ondisconnect)
+        this.props.elements.push(...elements)
     }
 
     // ------------------- STOP THE APPLICATION -------------------
 
-    deinit = (soft=false) => {            
+    deinit = async (soft=false) => {            
         if (this.AppletHTML) {
             // Soft Deinit
             if (soft) {
@@ -177,6 +182,9 @@ export class App {
                 this.AppletHTML.deleteNode();
                 this.AppletHTML = null
             }
+            this.props.elements.forEach(el => {
+                if (el) el.remove()
+            })
 
             this.graphs.forEach(g => g.deinit())
             this.graphs = new Map()
@@ -195,14 +203,12 @@ export class App {
         this.init()
     }
 
-    reload = () => {
+    reload = async () => {
 
-        // Soft Deinitialization
-        this.updateGraph()
-        this.deinit(true)
-
-        // Reinitialize App
-        this.init()
+        this.info.graphs = this.export() // Replace settings
+        console.log('MOVING PAST THE GRAPH')
+        await this.deinit(true) // soft
+        await this.init()
     }
 
     export = () => {
@@ -415,11 +421,7 @@ export class App {
             let appletMask = this.ui.container.querySelector('.brainsatplay-default-applet-mask')
             let infoMask = this.ui.container.querySelector('.brainsatplay-default-info-mask')
     }
-
-    updateGraph(){
-        this.info.graphs = this.export() // Replace settings
-    }
-
+    
     _copySettingsFile(info){
         let infoCopy = Object.assign({}, info)
 
@@ -491,8 +493,27 @@ export class App {
 
     // Save
     save = (e) => {
-        this.updateGraph()
-        this.session.projects.save(this)
+        this.info.graphs = this.export() // Replace settings
+        this.session.projects.save(this, () => {
+
+            // If Error, Disable Download
+            this.editor.download.classList.add('disabled')
+
+        })
         this.editor.lastSavedProject = this.name
+    }
+
+    // UI Helper
+    createFragment = (HTMLtemplate, parentNode, props, setupHTML, onchange, rerender="NEVER", deinit, responsive) => {
+        return new DOMFragment( // Fast HTML rendering container object
+            HTMLtemplate,   //Define the html template string or function with properties
+            parentNode,    //Define where to append to (use the parentNode)
+            props,         //Reference to the HTML render properties (optional)
+            setupHTML,          //The setup functions for buttons and other onclick/onchange/etc functions which won't work inline in the template string
+            onchange,          //Can have an onchange function fire when properties change
+            rerender,             //Changes to props or the template string will automatically rerender the html template if "NEVER" is changed to "FRAMERATE" or another value, otherwise the UI manager handles resizing and reinits when new apps are added/destroyed
+            deinit, // deinit
+            responsive // responsive (CHECK IF CORRECT)
+        )
     }
 }

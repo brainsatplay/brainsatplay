@@ -119,24 +119,33 @@ app.init()`)
         this.addDefaultFiles()
     }
 
-    generateZip(app, callback) {
+    async generateZip(app, onsuccess=()=>{}, onerror=()=>{}) {
         
         this.initializeZip()
+
+        // Convert App to File
         let o = this.appToFile(app)
-        o.classes.forEach(c => {
-            this.addClass(c)
-        })
+        let classInfo = o.classes.map(this.classToFile)
+
+        // Check Ability to Load
+        let settings = await this.load([o, ...classInfo])
+        console.log(settings)
+        let library = await this.getLibraryVersion(settings.version)
+        let instance = (library.Application instanceof Function) ? new library.Application(settings) : new library.App(settings)
+        await instance.init().then(() => {
+        
+        // Add Classes to Project
+        classInfo.forEach(this.addClass)
 
         // Combine Custom Plugins into the Compact File
         let combined = ``;
         o.classes.forEach(c => combined += c.prototype.constructor.toString()) // Combine Custom Plugins into the Compact File
         o.classes.forEach(c => {
-            console.log('saving', c, c.name)
             this.session.storage.set('plugins',c.name, c)
         }) // save separately
         combined += o.combined;
 
-        this.folders.app.file(o.filename, o.data)
+        this.folders.app.file(o.filename, o.content)
         this.helper.file("compact.html", `
             <!DOCTYPE html> 
             <html lang="en"> 
@@ -170,17 +179,25 @@ app.init()`)
             </html>`)
         this.helper.generateAsync({ type: "blob" })
             .then(function (content) {
-                callback(content)
+                onsuccess(content)
             });
+        }).catch((e) => {
+            onerror(); 
+            let msg = `Project cannot be saved: ${e}`
+            console.error(msg)
+            alert(msg)
+        }).finally(() => {
+            instance.deinit()
+        })
     }
 
     classToFile(cls) {
-        return { filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}` }
+        console.log('CLASS', cls)
+        return { filename: `${cls.name}.js`, content: cls.toString() + `\nexport {${cls.name}}` }
     }
 
-    addClass(cls) {
-        let info = this.classToFile(cls)
-        return this.folders.app.file(info.filename, info.data)
+    addClass = (info) => {
+        return this.folders.app.file(info.filename, info.content)
     }
 
     loadFromFile() {
@@ -236,7 +253,7 @@ app.init()`)
 
     appToFile(app) {
 
-        let info = JSON.parse(JSON.stringifyWithCircularRefs(app.info))
+        let info = JSON.parse(JSON.stringify(app.info))
         // let info = Object.assign({}, app.info)
         info.graphs = Array.from(app.graphs).map(arr => Object.assign({}, arr[1]))
         info.graphs.forEach(g => {
@@ -277,7 +294,6 @@ app.init()`)
 
         info.graphs.forEach(g => {
         g.nodes.forEach((n, i) => {
-
             for (let k in n?.params){ 
                 if (n.params[k] instanceof Function) n.params[k] = n.params[k].toString()
             } 
@@ -305,45 +321,22 @@ app.init()`)
                 info = info.replaceAll(m[0], '"class":' + m[1])
             }
         } while (m);
-        // console.log(info)
-
-        // // Replace Stringified Functions with Actual
-        // re = /"(([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) => \{([^}]+)\})"/ //[^\}].*}
-        // do {
-        //     m = re.exec(info);
-        //     if (m) {
-        //         console.log(m)
-        //         // console.log(`'${m[0]}'`, eval('('+m[1]+')'))
-        //         info = info.replaceAll(`${m[0]}`, m[1])
-        //     }
-        // } while (m);
-
-        // console.log(info)
-
-
-        // for (let k in n.params){
-        //     let value = n.params[k]
-        //     let regex = new RegExp('([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>')
-        //     let func = value.substring(0,8) == 'function'
-        //     let arrow = regex.test(value)
-        //     n.params[k] = ( func || arrow) ? eval('('+value+')') : value;
-        // }
 
         return {
-            name: app.info.name, filename: 'settings.js', data: `${imports}
+            name: app.info.name, filename: 'settings.js', content: `${imports}
         
         export const settings = ${info};`, combined: `const settings = ${this._prettyPrint(info)};\n`, classes
         }
     }
 
     classToFile(cls) {
-        return { filename: `${cls.name}.js`, data: cls.toString() + `\nexport {${cls.name}}`, combined: cls.toString() + `\n` }
+        return { filename: `${cls.name}.js`, content: cls.toString() + `\nexport {${cls.name}}`, combined: cls.toString() + `\n` }
     }
 
-    download(app, filename = app.info.name ?? 'brainsatplay') {
-        this.generateZip(app, (zip) => {
+    async download(app, filename = app.info.name ?? 'brainsatplay', onerror) {
+        await this.generateZip(app, (zip) => {
             fileSaver.saveAs(zip, `${filename}.zip`);
-        })
+        }, onerror)
     }
 
     async publish(app) {
@@ -366,19 +359,19 @@ app.init()`)
         });
     }
 
-    async appToDataURL(app){
-        return new Promise(resolve => {
-            this.generateZip(app, (blob) => {
+    async appToDataURL(app, onerror){
+        return new Promise(async resolve => {
+            await this.generateZip(app, (blob) => {
                 blobUtils.blobToDataURL(blob, async (dataurl) => {
                     resolve(dataurl)
                 })
-            })
+            }, onerror)
         })
     }
 
 
-    async save(app) {
-        let dataurl = await this.appToDataURL(app)
+    async save(app, onerror) {
+        let dataurl = await this.appToDataURL(app, onerror)
         await this.session.dataManager.saveFile(dataurl, `/projects/${app.info.name}`)  
         console.log('App Saved!')
       
@@ -483,7 +476,8 @@ app.init()`)
 
                     let classes = {}
                     info.classes.forEach(c => {
-                        c = eval(`(${c.split('export')[0]})`)
+                        let toEval = c.split('export')[0]
+                        c = eval(`(${toEval})`)
                         classes[c.name] = c
                     })
 

@@ -64,7 +64,7 @@ export const settings = {
 
 
         // UI
-        {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {}},
+        {name: 'ui', class: brainsatplay.plugins.interfaces.DOM, params: {}},
       ],
 
       edges: [

@@ -40,7 +40,7 @@ export const settings = {
         {name:'mixer', class: brainsatplay.plugins.audio.Mixer},
 
         // UI
-        {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name:'ui', class: brainsatplay.plugins.interfaces.DOM, params: {
           html: `<div id="vidContainer" class="video-container"></div><div id="filmSelection"></div>`,
           style: `
           .brainsatplay-ui-container {
@@ -154,7 +154,7 @@ export const settings = {
     //       cut: true,
     //       ramchurn: true
     //     }},
-    //     {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+    //     {name:'ui', class: brainsatplay.plugins.interfaces.DOM, params: {
     //       html: `<div id="vidContainer" class="video-container"></div>`,
     //       style: `
     //       .brainsatplay-ui-container {

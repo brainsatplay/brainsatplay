@@ -37,8 +37,8 @@ Frontend Execution
 import 'regenerator-runtime/runtime' //fixes async calls in this bundler
 
 
- // Default CSS Stylesheet
- import './ui/styles/defaults.css'
+// Default CSS Stylesheet
+import './ui/styles/defaults.css'
 
 // UI
 import { DOMFragment } from './ui/DOMFragment';
@@ -96,7 +96,7 @@ export class Session {
 		password = '',
 		urlToConnect = 'https://brainsatplay.azurewebsites.net',//'https://server.brainsatplay.com'
 		initFS = false
-		) {
+	) {
 		this.deviceStreams = [];
 		this.state = new StateManager({
 			commandResult: {},
@@ -129,8 +129,8 @@ export class Session {
 
 		DataMgr = this.dataManager;
 
-		if(initFS) this.initFS();
-		
+		if (initFS) this.initFS();
+
 		this.projects = new ProjectManager(this)
 	}
 
@@ -217,9 +217,9 @@ export class Session {
 		newStream.onconnect = () => {
 			this.deviceStreams.push(newStream);
 			if (this.deviceStreams.length === 1) this.atlas = this.deviceStreams[0].device.atlas; //change over from dummy atlas
-			
+
 			this.info.nDevices++;
-			if (streamParams[0]) this.beginStream(streamParams); 
+			if (streamParams[0]) this.beginStream(streamParams);
 			newStream.info.stateId = stateId
 			this.state.addToState(stateId, newStream.info); //Device info accessible from state
 
@@ -254,13 +254,13 @@ export class Session {
 		// Initialize Route Management Interface
 		let contentChild = document.getElementById(`brainsatplay-device-${device.split('_')[0]}`)
 
-		if (Object.keys(newStream.info.events.routes).length > 0){
+		if (Object.keys(newStream.info.events.routes).length > 0) {
 			newStream.configureRoutes(contentChild)
 
-			for (let id in this.info.apps){
+			for (let id in this.info.apps) {
 				newStream.info.events.addApp(id, this.info.apps[id].controls)
 			}
-			
+
 			newStream.info.events.updateRouteDisplay()
 		}
 
@@ -310,18 +310,18 @@ export class Session {
 		let isOpera = typeof window.opr !== "undefined";
 		let isIEedge = winNav.userAgent.indexOf("Edge") > -1;
 		let isIOSChrome = winNav.userAgent.match("CriOS");
-	
+
 		if (isIOSChrome) {
 			return true
-		} else if(
-		isChromium !== null &&
-		typeof isChromium !== "undefined" &&
-		vendorName === "Google Inc." &&
-		isOpera === false &&
-		isIEedge === false
+		} else if (
+			isChromium !== null &&
+			typeof isChromium !== "undefined" &&
+			vendorName === "Google Inc." &&
+			isOpera === false &&
+			isIEedge === false
 		) {
 			return true
-		} else { 
+		} else {
 			return false
 		}
 	}
@@ -335,37 +335,38 @@ export class Session {
 	 * @param {callback} ondisconnect Callback function on device disconnection. 
 	 */
 
-	connectDevice(parentNode = document.body, toggleButton=null, deviceFilter = null, autosimulate = false, onconnect = () => { }, ondisconnect = () => { }) {
-		
+	connectDevice(parentNode = document.body, toggleButton = null, deviceFilter = null, autosimulate = false, onconnect = () => { }, ondisconnect = () => { }) {
+
 		if (typeof toggleButton === 'string') toggleButton = document.getElementById(toggleButton)
 
 		// Apply User Filter
 		let newDeviceList = (deviceFilter != null) ? deviceList.filter(d => deviceFilter.includes(d.name)) : deviceList
 
 		// Apply Browser Filter
-		if (!this.checkIfChrome())  newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
-		
+		if (!this.checkIfChrome()) newDeviceList = newDeviceList.filter(d => d.chromeOnly != true)
 
-			let template = () => {return `
-			<div id="${this.id}DeviceSelection"  class="brainsatplay-default-menu" style="z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;">
+		let container = document.createElement('div')
+
+		// Add UI and/or autoselect a device
+		if (document.getElementById(`${this.id}DeviceSelection`) == null) {
+			container.id = `${this.id}DeviceSelection`
+			container.classList.add('brainsatplay-default-menu')
+			container.style = 'z-index: 999; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 1s;'
+			container.innerHTML = `
 				<div style="width: 100%; height: 100%; background: black; opacity: 0.8; position: absolute; top: 0; left: 0;"></div>
 				<div class="main" style="padding: 50px; width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
 					<div class="brainsatplay-header-grid"><h1>Device Manager</h1><button id="${this.id}deviceSelectionClose" class='brainsatplay-default-button'>Close</button></div>
 					<hr>
 					<div class="brainsatplay-device-gallery" style="overflow-y: scroll;"></div>
 				</div>
-			</div>
-			`}
+			`
 
-			let setup = () => {
-
-			let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-			let deviceGallery = deviceSelection.querySelector(`.brainsatplay-device-gallery`)
-			let closeButton = document.getElementById(`${this.id}deviceSelectionClose`)
+			let deviceGallery = container.querySelector(`.brainsatplay-device-gallery`)
+			let closeButton = container.querySelector(`[id="${this.id}deviceSelectionClose"]`)
 
 			const resizeDisplay = () => {
-				let main = deviceSelection.querySelector(`.main`)
-				deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px','')) - (deviceGallery.offsetTop)}px`
+				let main = container.querySelector(`.main`)
+				deviceGallery.style.height = `${window.innerHeight - parseInt(main.style.padding.replace('px', '')) - (deviceGallery.offsetTop)}px`
 				// deviceGallery.style.height = `${window.innerHeight - 2 * main.style.padding - (deviceGallery.offsetTop)}px`
 			}
 			resizeDisplay()
@@ -373,23 +374,23 @@ export class Session {
 			window.addEventListener('resize', resizeDisplay)
 
 			closeButton.onclick = () => {
-				deviceSelection.style.opacity = '0'
-				deviceSelection.style.pointerEvents = 'none'
+				container.style.opacity = '0'
+				container.style.pointerEvents = 'none'
 			}
-			
-			newDeviceList.sort(function(a, b) {
+
+			newDeviceList.sort(function (a, b) {
 				let translate = (d) => {
-					if (d.company == 'Brains@Play'){
+					if (d.company == 'Brains@Play') {
 						return 0 // B@P
-					} else if (d.company == 'HEGAlpha'){
+					} else if (d.company == 'HEGAlpha') {
 						return 1 // HEG
-					} else if (d.company == 'Neuroidss'){
+					} else if (d.company == 'Neuroidss') {
 						return 2 // FreEEG
-					} else if (d.company == 'OpenBCI'){
+					} else if (d.company == 'OpenBCI') {
 						return 3 // OpenBCI
-					} else if (d.company == 'Neosensory'){
+					} else if (d.company == 'Neosensory') {
 						return 4 // Neosensory
-					} else if (d.company == 'InteraXon'){
+					} else if (d.company == 'InteraXon') {
 						return 5 // InteraXon
 					} else {
 						return 6 // other
@@ -399,7 +400,7 @@ export class Session {
 				let pos2 = translate(b)
 				return pos1 - pos2;
 			});
-			
+
 			newDeviceList.forEach((d, i) => {
 				if (d.variants == null) d.variants = ['']
 
@@ -409,9 +410,9 @@ export class Session {
 				if (!insertionDiv) {
 					insertionDiv = document.createElement('div')
 					insertionDiv.classList.add(`brainsatplay-companyCard`)
-					insertionDiv.setAttribute("name",cleanCompanyString)
+					insertionDiv.setAttribute("name", cleanCompanyString)
 					insertionDiv.insertAdjacentHTML('beforeend', `<h3>${d.company}</h3><div class="devices"></div>`)
-					deviceGallery.insertAdjacentElement('beforeend', insertionDiv)	
+					deviceGallery.insertAdjacentElement('beforeend', insertionDiv)
 				}
 
 				let deviceDiv = document.createElement('div')
@@ -421,11 +422,11 @@ export class Session {
 				let header = document.createElement('h4')
 				header.id = `brainsatplay-header-${d.id}`
 				header.innerHTML = d.name
-				deviceDiv.insertAdjacentElement('beforeend', header)	
+				deviceDiv.insertAdjacentElement('beforeend', header)
 
 				deviceDiv.insertAdjacentHTML('beforeend', `<div class="variants"></div>`)
 
-				let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ','')
+				let cleanDeviceString = d.name.replace(/[|&;$%@"<>()+,]/g, "").replace(' ', '')
 
 				let deviceIndicator = document.createElement('div')
 				deviceIndicator.classList.add('indicator')
@@ -442,8 +443,8 @@ export class Session {
 					// Add label to button
 					div.innerHTML = `<p>${variantLabel}</p>`
 
-					let setIndicator = (on=true) => {
-						if (on){
+					let setIndicator = (on = true) => {
+						if (on) {
 							deviceIndicator.classList.add('on')
 						} else {
 							deviceIndicator.classList.remove('on')
@@ -452,84 +453,85 @@ export class Session {
 
 					let updatedOnConnect = (device) => {
 						if (onconnect instanceof Function) onconnect(device)
-						for (let app in this.info.apps){
+						for (let app in this.info.apps) {
 							let connectFunc = this.info.apps[app]?.connect?.onconnect
 							if (connectFunc instanceof Function) connectFunc(device)
 						}
 						div.querySelector('p').innerHTML = "Disconnect"
 						setIndicator(true)
-						div.onclick = () => {this.disconnect()}
+						div.onclick = () => { this.disconnect() }
 					}
 
 					let updatedOnDisconnect = (device) => {
 						if (ondisconnect instanceof Function) ondisconnect(device)
-						for (let app in this.info.apps){
+						for (let app in this.info.apps) {
 							let connectFunc = this.info.apps[app]?.connect?.ondisconnect
 							if (connectFunc instanceof Function) connectFunc(device)
 						}
 						setIndicator(false)
 						div.querySelector('p').innerHTML = variantLabel
-						div.onclick =  () => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+						div.onclick = () => { this.connect(variantTag, d.analysis, updatedOnConnect, updatedOnDisconnect) }
 					}
 
-					div.onclick = (e) => {this.connect(variantTag,d.analysis,updatedOnConnect,updatedOnDisconnect)}
+					div.onclick = (e) => { this.connect(variantTag, d.analysis, updatedOnConnect, updatedOnDisconnect) }
 
-					deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)	
+					deviceDiv.querySelector('.variants').insertAdjacentElement('beforeend', div)
 				})
-				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)	
+				insertionDiv.querySelector('.devices').insertAdjacentElement('beforeend', deviceDiv)
 			});
 
-			if (toggleButton == null){
-				let toggleButton = document.createElement('div')
+			if (toggleButton == null) {
+				toggleButton = document.createElement('div')
 				toggleButton.id = 'deviceManagerOpen'
 				toggleButton.classList.add('brainsatplay-default-button')
 				toggleButton.style = `
-					position: absolute; 
-					bottom: 25px; 
-					left: 25px;
-					z-index: 100;
-				`
+						position: absolute; 
+						bottom: 25px; 
+						left: 25px;
+						z-index: 100;
+					`
 				toggleButton.innerHTML = 'Open Device Manager'
-				document.body.insertAdjacentElement('afterbegin',toggleButton)
+				document.body.insertAdjacentElement('afterbegin', toggleButton)
 				toggleButton.onclick = () => {
 					this.openDeviceSelectionMenu(deviceFilter)
 				}
-			}  else {
+			} else {
 				toggleButton.onclick = () => {
 					this.openDeviceSelectionMenu(deviceFilter)
 				}
 			}
 
 			// Autoselect the Correct Device (if declared)
-			if (autosimulate === true){
+			if (autosimulate === true) {
 				this.autosimulateDevice(autosimulate)
 			}
-		}
-		
-		// Add UI and/or autoselect a device
-		if (document.getElementById(`${this.id}DeviceSelection`) == null){
+
 			let ui = new DOMFragment(
-				template,
+				container,
 				parentNode,
 				undefined,
-				setup
+				undefined
 			)
+
 		} else {
+
 			if (toggleButton) {
 				toggleButton.onclick = () => {
 					this.openDeviceSelectionMenu(deviceFilter)
 				}
 			}
-			
-			if (autosimulate === true){
+
+			if (autosimulate === true) {
 				this.autosimulateDevice(autosimulate)
-			} 
+			}
 		}
+
+		return (toggleButton?.id === 'deviceManagerOpen') ? [container, toggleButton] : [container]
 	}
 
 	openDeviceSelectionMenu = (filter) => {
 		let deviceSelection = document.getElementById(`${this.id}DeviceSelection`)
-		if (deviceSelection){
+		if (deviceSelection) {
 			deviceSelection.style.opacity = '1'
 			deviceSelection.style.pointerEvents = 'auto'
 
@@ -538,10 +540,10 @@ export class Session {
 			let companies = {}
 			deviceList.forEach(d => {
 				let deviceContainer = document.getElementById(`brainsatplay-device-${d.id}`)
-				if (deviceContainer){
+				if (deviceContainer) {
 					let cleanCompanyString = d.company.replace(/[|&;$%@"<>()+,]/g, "")
 					if (companies[cleanCompanyString] == null) companies[cleanCompanyString] = false
-					if (newDeviceList.includes(d)){
+					if (newDeviceList.includes(d)) {
 						deviceContainer.style.display = ''
 						companies[cleanCompanyString] = true
 					} else {
@@ -550,9 +552,9 @@ export class Session {
 				}
 			})
 
-			for (let c in companies){
+			for (let c in companies) {
 				let div = document.body.querySelector(`[name="${c}"]`)
-				if (div){
+				if (div) {
 					if (companies[c]) div.style.display = ''
 					else div.style.display = 'none'
 				}
@@ -596,23 +598,23 @@ export class Session {
 		return found;
 	}
 
-	stopAnalysis(arr=[]) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
+	stopAnalysis(arr = []) { //eegfft,eegcoherence,bcijs_bandpower,bcijs_pca,heg_pulse
 		if (!Array.isArray(arr) && !(arr instanceof Set)) arr = [arr]
 		this.deviceStreams.forEach(stream => {
 			let atlas = stream.device.atlas
-			if (arr.length > 0){
+			if (arr.length > 0) {
 				arr.forEach(name => {
 					if (name !== '' && typeof name === 'string') atlas.settings.analysisDetails.apps[name] = false
 				})
 			} else {
-				for (let k in this.atlas.settings.analysis){
+				for (let k in this.atlas.settings.analysis) {
 					atlas.settings.analysisDetails.apps[k] = false
 				}
 			}
 		})
 
-		if (this.deviceStreams.length == 0 ){
-			for (let k in this.atlas.settings.analysis){
+		if (this.deviceStreams.length == 0) {
+			for (let k in this.atlas.settings.analysis) {
 				this.atlas.settings.analysisDetails.apps[k] = false
 			}
 		}
@@ -629,7 +631,7 @@ export class Session {
 
 	}
 
-	
+
 
 	//get data for a particular device	
 	getDeviceData = (deviceType = 'eeg', tag = 'all', deviceIdx = 0) => { //get device data. Just leave deviceIdx blank unless you have multiple of the same device type connected
@@ -648,39 +650,39 @@ export class Session {
 
 		let subscribedTags = {}
 		let subscribedPointers = {}
-		
-        let added = (k) => {
-            checkIfDevice([k])
-        }
 
-        let removed = (k) => {
+		let added = (k) => {
+			checkIfDevice([k])
+		}
+
+		let removed = (k) => {
 			let tag = subscribedTags[k]
-            if (tag){
+			if (tag) {
 				this.state[subscribedPointers[tag].method](tag, subscribedPointers[tag].idx)
 				delete subscribedPointers[tag]
 				delete subscribedTags[k]
-            }
-        }
+			}
+		}
 
-        subscribedPointers['stateAdded'] = {}
+		subscribedPointers['stateAdded'] = {}
 		subscribedPointers['stateAdded'].idx = this.state.subscribeSequential('stateAdded', added)
-		subscribedPointers['stateAdded'].method = 'unsubscribeSequential' 
+		subscribedPointers['stateAdded'].method = 'unsubscribeSequential'
 
 		subscribedPointers['stateRemoved'] = {}
-        subscribedPointers['stateRemoved'].idx = this.state.subscribeSequential('stateRemoved', removed)
-		subscribedPointers['stateRemoved'].method = 'unsubscribeSequential' 
+		subscribedPointers['stateRemoved'].idx = this.state.subscribeSequential('stateRemoved', removed)
+		subscribedPointers['stateRemoved'].method = 'unsubscribeSequential'
 
 		let checkIfDevice = (arr) => {
 			arr.forEach(k => {
 				let pass = /^device[.+]*/.test(k)
-				if (pass){
-					if (this.state.data[k].deviceType === type || this.state.data[k].deviceName === type || type === undefined){
+				if (pass) {
+					if (this.state.data[k].deviceType === type || this.state.data[k].deviceName === type || type === undefined) {
 						this.atlas.data.eegshared.eegChannelTags.map(o => o.tag)
 						let firstTag = (type === 'eeg') ? this.state.data[k].eegChannelTags[0].tag : 0
 						subscribedTags[k] = `${type}_${firstTag}`
 
-						subscribedPointers[`${type}_${firstTag}`] = {method: 'unsubscribe'}
-						subscribedPointers[`${type}_${firstTag}`].idx = this.subscribe(type, firstTag, undefined, (data)=>{
+						subscribedPointers[`${type}_${firstTag}`] = { method: 'unsubscribe' }
+						subscribedPointers[`${type}_${firstTag}`].idx = this.subscribe(type, firstTag, undefined, (data) => {
 							callback(data)
 						})
 
@@ -703,7 +705,7 @@ export class Session {
 		let atlasDataProp = null;
 
 		let found = this.deviceStreams.find((o, i) => {
-			if(deviceTypeNameOrIdx === i) {
+			if (deviceTypeNameOrIdx === i) {
 				return true;
 			} else if (deviceTypeNameOrIdx === o.info.dseviceName) {
 				return true;
@@ -712,22 +714,22 @@ export class Session {
 			}
 		});
 
-		if(found) {
+		if (found) {
 			atlasDataProp = found.info.deviceType;
-			if (atlasTag === 'shared') { 
-				atlasTag = atlasDataProp+'shared';
+			if (atlasTag === 'shared') {
+				atlasTag = atlasDataProp + 'shared';
 			}
 			let coord = undefined;
-				if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = found.device.atlas.getDeviceDataByTag(atlasTag, null);
-				else if (atlasTag === null || atlasTag === 'all') { coord = found.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
-				else coord = found.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
-				if (coord !== undefined) {
-					if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
-						sub = stateManager.addToState(found.info.deviceType + '_' + atlasTag, coord, onData);
-					} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
-						sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
-					}
+			if (atlasTag === 'string' && atlasTag.indexOf('shared') > -1) coord = found.device.atlas.getDeviceDataByTag(atlasTag, null);
+			else if (atlasTag === null || atlasTag === 'all') { coord = found.device.atlas.data[atlasDataProp]; } //Subscribe to entire data object 
+			else coord = found.device.atlas.getDeviceDataByTag(atlasDataProp, atlasTag);
+			if (coord !== undefined) {
+				if (prop === null || Array.isArray(coord) || typeof coord[prop] !== 'object') {
+					sub = stateManager.addToState(found.info.deviceType + '_' + atlasTag, coord, onData);
+				} else if (typeof coord[prop] === 'object') {  //only works for objects which are stored by reference only (i.e. arrays or the means/slices/etc objects, so sub to the whole tag to follow the count)
+					sub = stateManager.addToState(atlasTag + "_" + prop, coord[prop], onData);
 				}
+			}
 		}
 
 		return sub;
@@ -768,29 +770,26 @@ export class Session {
 	}
 
 	//Input an object that will be updated with app data along with the device stream.
-	streamAppData(propname = 'data', props = {}, sessionId=undefined, onData = (newData) => { }) {
+	streamAppData(propname = 'data', props = {}, sessionId = undefined, onData = (newData) => { }) {
 
 		let id = `${propname}`//${Math.floor(Math.random()*100000000)}`;
 
 		this.state.addToState(id, props, onData);
 
 		this.state.data[id + "_flag"] = true;
-		
-
-		console.log(this.state.data[sessionId], sessionId)
 
 		// Add New Data from Self into Game State
 		let sub = this.state.subscribe(id, (newData) => {
 
 			this.state.data[id + "_flag"] = true;
-			if(sessionId) {
-				if(!this.state.data[sessionId]) this.state.data[sessionId] = {id:sessionId, userData:{id:this.info.auth.id}};
-				if (this.state.data[sessionId].userData){
+			if (sessionId) {
+				if (!this.state.data[sessionId]) this.state.data[sessionId] = { id: sessionId, userData: { id: this.info.auth.id } };
+				if (this.state.data[sessionId].userData) {
 					let o = this.state.data[sessionId].userData
-					if(o.id === this.info.auth.id) {
-						o[id] = newData; 
+					if (o.id === this.info.auth.id) {
+						o[id] = newData;
 						return true;
-					} else if (Array.isArray(o)) o.push({id:this.info.auth.id, [id]:newData});
+					} else if (Array.isArray(o)) o.push({ id: this.info.auth.id, [id]: newData });
 				}
 			}
 		});
@@ -811,26 +810,26 @@ export class Session {
 
 	//Remove arbitrary data streams made with streamAppData
 	removeStreaming(id, responseIdx, manager = this.state, type) {
-		if (responseIdx == null){
+		if (responseIdx == null) {
 			manager.removeState(id, type)
-			manager.removeState(id+"_flag", type)
+			manager.removeState(id + "_flag", type)
 			this.streamObj.removeStreamFunc(id); //remove streaming function by name
-			let idx = this.streamObj.info.appStreamParams.findIndex((v,i) => v.join('_') === id)
-			if (idx != null) this.streamObj.info.appStreamParams.splice(idx,1)
+			let idx = this.streamObj.info.appStreamParams.findIndex((v, i) => v.join('_') === id)
+			if (idx != null) this.streamObj.info.appStreamParams.splice(idx, 1)
 		} else {
-			if (type==='sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
-			else if (type==='trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
+			if (type === 'sequential') manager.unsubscribeSequential(id, responseIdx); //unsub state
+			else if (type === 'trigger') manager.unsubscribeTrigger(id, responseIdx); //unsub state
 			else manager.unsubscribe(id, responseIdx); //unsub state
 		}
-	} 
+	}
 
 	//Add functions for gathering data to send to the server
-	addStreamFunc(name, callback, manager=this.state) {
+	addStreamFunc(name, callback, manager = this.state) {
 
 		if (typeof name === 'string' && typeof callback === 'function') {
 
 			// Artificially add to state (for streaming functions)
-			let _callback = () => { 
+			let _callback = () => {
 				let data = callback()
 				if (data != undefined) manager.data[name] = data
 				return data
@@ -841,7 +840,7 @@ export class Session {
 
 			this.streamObj.addStreamFunc(name, _callback);
 
-			if (manager === this.state){
+			if (manager === this.state) {
 				this.addStreamParams([[name]]);
 			} else {
 				this.addStreamParams([[name, undefined, 'ignore']]);
@@ -890,65 +889,65 @@ export class Session {
 		return user
 	}
 
-	 getLocalIP = async () => {
+	getLocalIP = async () => {
 		return new Promise(resolve => {
 
-		var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;  
-if (RTCPeerConnection)(() => {  
-    var rtc = new RTCPeerConnection({  
-        iceServers: []  
-    });  
-    if (1 || window.mozRTCPeerConnection) {  
-        rtc.createDataChannel('', {  
-            reliable: false  
-        });  
-    };  
-    rtc.onicecandidate = (evt) => {  
-		if (evt.candidate) {
-			let res = grepSDP("a=" + evt.candidate.candidate);  
-			resolve(res)
-		}
-    };  
-    rtc.createOffer(function(offerDesc) {  
-        let res = grepSDP(offerDesc.sdp);  
-		rtc.setLocalDescription(offerDesc);  
-    }, function(e) {  
-        console.warn("offer failed", e);  
-    });  
-    var addrs = Object.create(null);  
-    addrs["0.0.0.0"] = false;  
-  
-    function updateDisplay(newAddr) {  
-        if (newAddr in addrs) return;  
-        else addrs[newAddr] = true;  
-        var displayAddrs = Object.keys(addrs).filter(function(k) {  
-            return addrs[k];  
-		});
-		return displayAddrs
-    }  
-  
-    function grepSDP(sdp) {  
-		var hosts = [];  
-		let urlArray
-        sdp.split('\r\n').forEach(function(line) {  
-            if (~line.indexOf("a=candidate")) {  
-                var parts = line.split(' '),  
-                    addr = parts[4],  
-                    type = parts[7];  
-                if (type === 'host') urlArray = updateDisplay(addr);  
-            } else if (~line.indexOf("c=")) {  
-                var parts = line.split(' '),  
-                    addr = parts[2];  
-					urlArray = updateDisplay(addr);  
-            }  
-		});  
-		
-		return urlArray
-    }  
-})();  
-else {  
-    console.log('not able to get your local IP address')
-}
+			var RTCPeerConnection = /*window.RTCPeerConnection ||*/ window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
+			if (RTCPeerConnection) (() => {
+				var rtc = new RTCPeerConnection({
+					iceServers: []
+				});
+				if (1 || window.mozRTCPeerConnection) {
+					rtc.createDataChannel('', {
+						reliable: false
+					});
+				};
+				rtc.onicecandidate = (evt) => {
+					if (evt.candidate) {
+						let res = grepSDP("a=" + evt.candidate.candidate);
+						resolve(res)
+					}
+				};
+				rtc.createOffer(function (offerDesc) {
+					let res = grepSDP(offerDesc.sdp);
+					rtc.setLocalDescription(offerDesc);
+				}, function (e) {
+					console.warn("offer failed", e);
+				});
+				var addrs = Object.create(null);
+				addrs["0.0.0.0"] = false;
+
+				function updateDisplay(newAddr) {
+					if (newAddr in addrs) return;
+					else addrs[newAddr] = true;
+					var displayAddrs = Object.keys(addrs).filter(function (k) {
+						return addrs[k];
+					});
+					return displayAddrs
+				}
+
+				function grepSDP(sdp) {
+					var hosts = [];
+					let urlArray
+					sdp.split('\r\n').forEach(function (line) {
+						if (~line.indexOf("a=candidate")) {
+							var parts = line.split(' '),
+								addr = parts[4],
+								type = parts[7];
+							if (type === 'host') urlArray = updateDisplay(addr);
+						} else if (~line.indexOf("c=")) {
+							var parts = line.split(' '),
+								addr = parts[2];
+							urlArray = updateDisplay(addr);
+						}
+					});
+
+					return urlArray
+				}
+			})();
+			else {
+				console.log('not able to get your local IP address')
+			}
 		})
 	}
 
@@ -1057,86 +1056,86 @@ else {
 				this.state.updateState("userData_" + parsed.id + "_" + prop, parsed.userData[prop])
 			}
 		} else {
-		if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
+			if (parsed.msg === 'sessionData' || parsed.msg === 'getSessionDataResult') {
 
-			let thisuser = this.state.data[parsed.id]?.userData?.find((o) => {if (o.id === this.info.auth.id) return true;});
-			let settings = this.state.data[parsed.id]?.settings;
-			this.state.data[parsed.id] = parsed;
-			if(thisuser) this.state.data[parsed.id].userData.push(thisuser);
-			if(settings) this.state.data[parsed.id].settings = settings;
+				let thisuser = this.state.data[parsed.id]?.userData?.find((o) => { if (o.id === this.info.auth.id) return true; });
+				let settings = this.state.data[parsed.id]?.settings;
+				this.state.data[parsed.id] = parsed;
+				if (thisuser) this.state.data[parsed.id].userData.push(thisuser);
+				if (settings) this.state.data[parsed.id].settings = settings;
 
-			parsed.userData.forEach((o, i) => {
-				let user = o.id
-				if (user != this.info.auth.id){
-					for (const prop in o) {
-						if (prop !== 'username' && prop !== 'id') this.state.updateState(`${parsed.id}_${user}_${prop}`,o[prop])
+				parsed.userData.forEach((o, i) => {
+					let user = o.id
+					if (user != this.info.auth.id) {
+						for (const prop in o) {
+							if (prop !== 'username' && prop !== 'id') this.state.updateState(`${parsed.id}_${user}_${prop}`, o[prop])
+						}
 					}
-				}
-			});
+				});
 
 
-			if (parsed.userLeft) {
-				for (const prop in this.state.data) {
-					if (prop.indexOf(parsed.userLeft) > -1) {
-						this.state.removeState(prop)
+				if (parsed.userLeft) {
+					for (const prop in this.state.data) {
+						if (prop.indexOf(parsed.userLeft) > -1) {
+							this.state.removeState(prop)
+						}
 					}
 				}
 			}
-		}
-		else if (parsed.msg === 'getUsersResult') {
-		}
-		else if (parsed.msg === 'getSessionInfoResult') {
-			this.state.data.sessionInfo = parsed.sessionInfo;
-			if(this.state.data[parsed.session] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
-		}
-		else if (parsed.msg === 'getSessionsResult') {
-		}
-		else if (parsed.msg === 'sessionCreated') {
-		}
-		else if (parsed.msg === 'subscribedToUser') {
-		}
-		else if (parsed.msg === 'userNotFound') {
-		}
-		else if (parsed.msg === 'userSubscriptionInfo') {
-		}
-		else if (parsed.msg === 'subscribedToSession') {
-		}
-		else if (parsed.msg === 'leftSession') {
-		}
-		else if (parsed.msg === 'sessionDeleted') {
-		}
-		else if (parsed.msg === 'unsubscribed') {
-		}
-		else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound') {
-		} else if (parsed.msg === 'resetUsername') {
-		} else if (parsed.msg === 'getUserDataResult') {
-		} 
+			else if (parsed.msg === 'getUsersResult') {
+			}
+			else if (parsed.msg === 'getSessionInfoResult') {
+				this.state.data.sessionInfo = parsed.sessionInfo;
+				if (this.state.data[parsed.session] && parsed.sessionInfo.settings) this.state.data[parsed.id].settings = parsed.sessionInfo.settings;
+			}
+			else if (parsed.msg === 'getSessionsResult') {
+			}
+			else if (parsed.msg === 'sessionCreated') {
+			}
+			else if (parsed.msg === 'subscribedToUser') {
+			}
+			else if (parsed.msg === 'userNotFound') {
+			}
+			else if (parsed.msg === 'userSubscriptionInfo') {
+			}
+			else if (parsed.msg === 'subscribedToSession') {
+			}
+			else if (parsed.msg === 'leftSession') {
+			}
+			else if (parsed.msg === 'sessionDeleted') {
+			}
+			else if (parsed.msg === 'unsubscribed') {
+			}
+			else if (parsed.msg === 'appNotFound' || parsed.msg === 'sessionNotFound') {
+			} else if (parsed.msg === 'resetUsername') {
+			} else if (parsed.msg === 'getUserDataResult') {
+			}
 
-		// Generic Brainstorm Messages
-		else if (parsed.msg === 'userAdded') {
-		}
-		else if (parsed.msg === 'userLeft') {
-		}
-
+			// Generic Brainstorm Messages
+			else if (parsed.msg === 'userAdded') {
+			}
+			else if (parsed.msg === 'userLeft') {
+			}
 
 
-		// OSC
-		else if (parsed.msg === 'oscError') {
-		} else if (parsed.msg === 'oscInfo') {
-		} else if (parsed.msg === 'oscData') {
-			console.log(parsed.oscData)
-			// for (const prop in parsed.userData) {
-			// 	this.state.data["userData_" + parsed.username + "_" + prop] = parsed.userData[prop];
-			// }
-		}
-		else {
-			console.log('no specific command',parsed);
-		}
 
-		let updateObj = {}
-		updateObj[`commandResult`] = parsed
-		this.state.setState(updateObj)
-	}
+			// OSC
+			else if (parsed.msg === 'oscError') {
+			} else if (parsed.msg === 'oscInfo') {
+			} else if (parsed.msg === 'oscData') {
+				console.log(parsed.oscData)
+				// for (const prop in parsed.userData) {
+				// 	this.state.data["userData_" + parsed.username + "_" + prop] = parsed.userData[prop];
+				// }
+			}
+			else {
+				console.log('no specific command', parsed);
+			}
+
+			let updateObj = {}
+			updateObj[`commandResult`] = parsed
+			this.state.setState(updateObj)
+		}
 
 	}
 
@@ -1256,8 +1255,8 @@ else {
 		}
 	}
 
-	startOSC(localAddress="127.0.0.1",localPort=57121, remoteAddress=null, remotePort=null, onsuccess = (newResult) => { }){
-		
+	startOSC(localAddress = "127.0.0.1", localPort = 57121, remoteAddress = null, remotePort = null, onsuccess = (newResult) => { }) {
+
 		// Read and Write to the Same Address if Unspecified
 		if (remoteAddress == null) remoteAddress = localAddress
 		if (remotePort == null) remotePort = localPort
@@ -1265,7 +1264,7 @@ else {
 		this.sendBrainstormCommand(['startOSC', localAddress, localPort, remoteAddress, remotePort]);
 		let sub = this.state.subscribe('commandResult', (newResult) => {
 			if (typeof newResult === 'object') {
-				if (newResult.msg === 'oscInfo') {	
+				if (newResult.msg === 'oscInfo') {
 					onsuccess(newResult.oscInfo);
 					this.state.unsubscribe('commandResult', sub);
 					return newResult.oscInfo
@@ -1344,16 +1343,16 @@ else {
 		}
 	}
 
-	setUserStreamSettings(id,settings) {
-		this.sendBrainstormCommand(['setUserStreamSettings',id,settings]);
+	setUserStreamSettings(id, settings) {
+		this.sendBrainstormCommand(['setUserStreamSettings', id, settings]);
 	}
 
-	setSessionSettings(id,settings) {
-		this.sendBrainstormCommand(['setSessionSettings',id,settings]);
+	setSessionSettings(id, settings) {
+		this.sendBrainstormCommand(['setSessionSettings', id, settings]);
 	}
 
-	setHostSessionSettings(id,settings) {
-		this.sendBrainstormCommand(['setHostSessionSettings',id,settings]);
+	setHostSessionSettings(id, settings) {
+		this.sendBrainstormCommand(['setHostSessionSettings', id, settings]);
 	}
 
 	unsubscribeFromSession(sessionid = '', onsuccess = (newResult) => { }) {
@@ -1377,11 +1376,11 @@ else {
 
 
 	// App Management
-	createApp(settings, parentNode=document.body, session=this, config=[]){
+	createApp(settings, parentNode = document.body, session = this, config = []) {
 		return new App(settings, parentNode, session, config)
 	}
 
-	startApp(app,sessionId){
+	startApp(app, sessionId) {
 		app.props.sessionId = sessionId
 
 		// Update Routing UI
@@ -1389,28 +1388,28 @@ else {
 		return app
 	}
 
-	updateApps(app){
+	updateApps(app) {
 		let analysisSet = new Set()
 
 		// Update Per-App Routes
-		for(let id in this.info.apps) {
-			if (this.info.apps[id]){
-				analysisSet.add(...[...this.info.apps[id].analysis?.default ?? [],...this.info.apps[id].analysis?.dynamic ?? []])
+		for (let id in this.info.apps) {
+			if (this.info.apps[id]) {
+				analysisSet.add(...[...this.info.apps[id].analysis?.default ?? [], ...this.info.apps[id].analysis?.dynamic ?? []])
 				if (app == null || app.props.id === id) this.updateApp(app)
 			}
 		}
 
 		this.startAnalysis(analysisSet)
-		for (let key in this.atlas.settings.analysis){
-			if (!analysisSet.has(key)){
+		for (let key in this.atlas.settings.analysis) {
+			if (!analysisSet.has(key)) {
 				this.atlas.settings.analysisDetails.apps[key] = false
 			}
 		}
 
 	}
 
-	updateApp(app){
-		if (app){
+	updateApp(app) {
+		if (app) {
 			this.deviceStreams.forEach(d => {
 				if (d.info.events) {
 					d.info.events.addApp(app.props.id, app.controls)
@@ -1420,16 +1419,16 @@ else {
 		}
 	}
 
-	async registerApp(app){
+	async registerApp(app) {
 		this.info.apps[app.props.id] = app
 		return this.info.apps[app.props.id]
 	}
 
-	removeApp(appId){
+	removeApp(appId) {
 		// let info = this.graph.remove(appId)
 		if (this.info.apps[appId]) {
 			this.updateApps()
-			
+
 			// Update Routing UI
 			this.deviceStreams.forEach(d => {
 				if (d.info.events) {
@@ -1443,7 +1442,7 @@ else {
 	}
 
 
-	promptLogin = async (parentNode = document.body, oninit=() => {}, onsuccess = () => { }) => {		
+	promptLogin = async (parentNode = document.body, oninit = () => { }, onsuccess = () => { }) => {
 		return new Promise((resolve, reject) => {
 			let template = () => {
 				return `
@@ -1493,11 +1492,11 @@ else {
 					input.style.border = 'none'
 					input.style.borderBottom = '1px solid white'
 					urlInput.parentNode.replaceChild(input, urlInput);
-					setTimeout(() => {document.addEventListener("click", clickOutside)}, 1000)
+					setTimeout(() => { document.addEventListener("click", clickOutside) }, 1000)
 				}
 
 				let inputToParagraph = (urlInput) => {
-					if (urlInput.tagName !== 'P'){
+					if (urlInput.tagName !== 'P') {
 						let paragraph = document.createElement('p')
 						paragraph.id = `${this.id}urlToConnect`
 						paragraph.style.fontSize = '80%'
@@ -1514,16 +1513,16 @@ else {
 				let clickOutside = (evt) => {
 					let urlInput = urlToConnect
 					let targetElement = evt.target; // clicked element
-				
+
 					do {
 						if (targetElement == urlInput) {
 							return;
 						}
 						targetElement = targetElement.parentNode;
 					} while (targetElement);
-				
+
 					// This is a click outside.
-					if (urlInput != null){
+					if (urlInput != null) {
 						inputToParagraph(urlInput)
 					}
 				};
@@ -1544,13 +1543,13 @@ else {
 				});
 
 				loginButton.onclick = () => {
-					
+
 					let urlEl = urlToConnect
 					urlEl = inputToParagraph(urlEl)
 
 					try {
 						let specifiedURL = new URL(urlEl.innerHTML)
-						if (specifiedURL){
+						if (specifiedURL) {
 							this.info.auth.url = specifiedURL
 							let formDict = {}
 							let formData = new FormData(form);
@@ -1564,7 +1563,7 @@ else {
 							this.login(true, this.info.auth, () => {
 								onsuccess()
 								resolve(true);
-								setTimeout(() => {ui.deleteNode()},1000)
+								setTimeout(() => { ui.deleteNode() }, 1000)
 							})
 						}
 					} catch (error) {
@@ -1596,7 +1595,7 @@ else {
 	createBrainstormBrowser = (parentNode = document.body, onsubscribe = () => { }) => {
 
 		let t = 1
-		
+
 		let template = () => {
 			return `
 			<div id="${this.id}-brainstormBrowser" style="z-index: 1000; background: black; width:100%; height: 100%; position: absolute; top: 0; left: 0; display:flex; align-items: center; justify-content: center; opacity: 0;">
@@ -1627,7 +1626,7 @@ else {
 			let closeUI = () => {
 				browser.style.opacity = '0'
 				window.removeEventListener('resize', resizeDisplay)
-				setTimeout(() => {ui.deleteNode()},t*1000)
+				setTimeout(() => { ui.deleteNode() }, t * 1000)
 			}
 
 
@@ -1661,7 +1660,7 @@ else {
 				users.forEach(o => {
 					let keys = Object.keys(o) //['sessions', 'username', 'origin', 'id']
 					let appMessage = ((o[keys[0]] == '') ? 'No App Specified' : `Currently in ${o[keys[0]]}`)
-					
+
 					let user = document.createElement('div')
 					user.setAttribute('data-id', keys[3])
 					user.id = `${this.id}-user-${o[keys[1]]}`
@@ -1671,7 +1670,7 @@ else {
 					<p style="font-size: 60%;">${o[keys[2]]}</p>
 					<p>${o[keys[1]]}</p>
 					<p style="font-size: 80%;">${appMessage}</p>`)
-					
+
 					if (o[keys[2]] != 'brainsatplay.js') {
 						user.onmouseover = () => {
 							user.style.background = 'rgb(35,35,35)';
@@ -1682,12 +1681,12 @@ else {
 							user.style.cursor = 'default';
 						}
 						user.onclick = (e) => {
-							if (mode == 'ws'){
+							if (mode == 'ws') {
 								this.subscribeToUser(o[keys[3]], [], (userData) => {
 									onsubscribe(userData)
 								})
-							} else if (mode == 'osc'){
-								this.sendBrainstormCommand(['sendOSC', {test: 'connected'}]);
+							} else if (mode == 'osc') {
+								this.sendBrainstormCommand(['sendOSC', { test: 'connected' }]);
 							}
 							closeUI()
 						}
@@ -1710,9 +1709,9 @@ else {
 			// Check OSC Port
 			oscButton.addEventListener('click', () => {
 
-				this.startOSC(undefined,undefined,undefined,undefined, (oscInfo) => {
+				this.startOSC(undefined, undefined, undefined, undefined, (oscInfo) => {
 					console.log(oscInfo)
-					updateUserDisplay('osc',oscInfo)
+					updateUserDisplay('osc', oscInfo)
 				})
 			})
 
@@ -1728,41 +1727,41 @@ else {
 	}
 
 
-	createIntro = (applet, onsuccess= () => {}) => {
+	createIntro = (applet, onsuccess = () => { }) => {
 		// Override App Settings with Configuration Settings
-		if (applet.info.intro == null){
+		if (applet.info.intro == null) {
 			onsuccess()
 		} else {
-		if (applet.info.intro.constructor != Object) applet.info.intro = {}
-		if (applet.info.intro != false) {
-			if (applet.info.intro.title == null) applet.info.intro.title = true
-		}
-
-		applet.settings.forEach((cmd,i) => {
-            if(typeof cmd === 'object') {
-				if (cmd.title != null) applet.info.intro.title = cmd.title
-				if (cmd.login != null) applet.info.intro.login = cmd.login
-				if (cmd.domain != null) applet.info.intro.domain = cmd.domain
-				if (cmd.mode != null) applet.info.intro.mode = cmd.mode
-				if (cmd.session != null) applet.info.intro.session = cmd.session
-				if (cmd.exitSession != null) applet.info.intro.exitSession = cmd.exitSession
-				if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
+			if (applet.info.intro.constructor != Object) applet.info.intro = {}
+			if (applet.info.intro != false) {
+				if (applet.info.intro.title == null) applet.info.intro.title = true
 			}
-		})
 
-		let exitSession = applet.info.intro.exitSession
-		let showTitle = (applet.info.intro) ? applet.info.intro.title : true
-		let selectMode = applet.info.intro.mode == null
-		let selectSession = applet.info.intro.session == null
+			applet.settings.forEach((cmd, i) => {
+				if (typeof cmd === 'object') {
+					if (cmd.title != null) applet.info.intro.title = cmd.title
+					if (cmd.login != null) applet.info.intro.login = cmd.login
+					if (cmd.domain != null) applet.info.intro.domain = cmd.domain
+					if (cmd.mode != null) applet.info.intro.mode = cmd.mode
+					if (cmd.session != null) applet.info.intro.session = cmd.session
+					if (cmd.exitSession != null) applet.info.intro.exitSession = cmd.exitSession
+					if (cmd.spectating != null) applet.info.intro.spectating = cmd.spectating
+				}
+			})
 
-		let appletContainer = applet.ui?.container ?? applet.AppletHTML.node
+			let exitSession = applet.info.intro.exitSession
+			let showTitle = (applet.info.intro) ? applet.info.intro.title : true
+			let selectMode = applet.info.intro.mode == null
+			let selectSession = applet.info.intro.session == null
 
-		let IntroFragment = document.createElement('div')
-		// Title Screen
-		let titleScreen = document.createElement('div')
-		titleScreen.classList.add('brainsatplay-default-container')
-		titleScreen.style.zIndex = 100
-		titleScreen.innerHTML = `
+			let appletContainer = applet.ui?.container ?? applet.AppletHTML.node
+
+			let IntroFragment = document.createElement('div')
+			// Title Screen
+			let titleScreen = document.createElement('div')
+			titleScreen.classList.add('brainsatplay-default-container')
+			titleScreen.style.zIndex = 100
+			titleScreen.innerHTML = `
 			<div>
 				<h1>${applet.info.name}</h1>
 				<p>${applet.subtitle ?? applet.info.intro.subtitle ?? ''}</p>
@@ -1770,11 +1769,11 @@ else {
 			</div>
 		`
 
-		// Mode Screen
-		let modeScreen = document.createElement('div')
-		modeScreen.classList.add('brainsatplay-default-container')
-		modeScreen.style.zIndex = 99
-		modeScreen.innerHTML = `
+			// Mode Screen
+			let modeScreen = document.createElement('div')
+			modeScreen.classList.add('brainsatplay-default-container')
+			modeScreen.style.zIndex = 99
+			modeScreen.innerHTML = `
 		<div>
 			<h2>Game Mode</h2>
 			<div style="display: flex; align-items: center;">
@@ -1784,11 +1783,11 @@ else {
 		</div>
 		`
 
-		// Session Screen
-		let sessionScreen = document.createElement('div')
-		sessionScreen.classList.add('brainsatplay-default-container')
-		sessionScreen.style.zIndex = 98
-		sessionScreen.innerHTML = `
+			// Session Screen
+			let sessionScreen = document.createElement('div')
+			sessionScreen.classList.add('brainsatplay-default-container')
+			sessionScreen.style.zIndex = 98
+			sessionScreen.innerHTML = `
 		<div>
 			<div id='${applet.props.id}multiplayerDiv'">
 				<div style="
@@ -1805,259 +1804,259 @@ else {
 		</div>
 		`
 
-		if (showTitle) IntroFragment.insertAdjacentElement('beforeend', titleScreen)
-		if (selectSession) IntroFragment.insertAdjacentElement('beforeend', sessionScreen)
-		if (selectMode) IntroFragment.insertAdjacentElement('beforeend', modeScreen)
+			if (showTitle) IntroFragment.insertAdjacentElement('beforeend', titleScreen)
+			if (selectSession) IntroFragment.insertAdjacentElement('beforeend', sessionScreen)
+			if (selectMode) IntroFragment.insertAdjacentElement('beforeend', modeScreen)
 
 
-		// Remove Intro if Required
-		const loadTime = 3000
+			// Remove Intro if Required
+			const loadTime = 3000
 
-		if (showTitle){
+			if (showTitle) {
 
-			const loadingBarElement = titleScreen.querySelector('.brainsatplay-intro-loadingbar')
-	
-			setTimeout(() => {
-				loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
-				loadingBarElement.style.transform = `scaleX(1)`
-			}, 1000)
-			setTimeout(() => {
-				if (loadingBarElement) {
-					loadingBarElement.classList.add('ended')
-					loadingBarElement.style.transform = ''
-				}
-				titleScreen.style.opacity = 0;
-				titleScreen.style.pointerEvents = 'none'
-			}, loadTime)
-		}
+				const loadingBarElement = titleScreen.querySelector('.brainsatplay-intro-loadingbar')
 
-		// Setup HTML References
-		if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
-		if (exitSession == null) {
-			exitSession = document.createElement(`div`)
-			exitSession.classList.add('brainsatplay-default-button')
-			exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
-			exitSession.innerHTML = 'Exit Session'
-		}
-		IntroFragment.insertAdjacentElement('beforeend', exitSession)
+				setTimeout(() => {
+					loadingBarElement.style.transition = `transform ${(loadTime - 1000) / 1000}s`;
+					loadingBarElement.style.transform = `scaleX(1)`
+				}, 1000)
+				setTimeout(() => {
+					if (loadingBarElement) {
+						loadingBarElement.classList.add('ended')
+						loadingBarElement.style.transform = ''
+					}
+					titleScreen.style.opacity = 0;
+					titleScreen.style.pointerEvents = 'none'
+				}, loadTime)
+			}
 
-		// Select Mode
-		let solo = modeScreen.querySelector(`[id="${applet.props.id}solo-button"]`)
-		let multiplayer = modeScreen.querySelector(`[id="${applet.props.id}multiplayer-button"]`)
-		solo.onclick = () => {
-			modeScreen.style.opacity = 0
-			onsuccess()
-			let loginPage = IntroFragment.querySelector(`[id="${this.id}login-page"]`)
-			if (loginPage != null) loginPage.remove()
-			modeScreen.style.pointerEvents = 'none'
-			sessionScreen.style.display = 'none'
-			exitSession.style.display = 'none'
-		}
+			// Setup HTML References
+			if (typeof exitSession === 'string') exitSession = document.getElementById(exitSession)
+			if (exitSession == null) {
+				exitSession = document.createElement(`div`)
+				exitSession.classList.add('brainsatplay-default-button')
+				exitSession.style = `position: absolute; bottom: 25px; right: 25px; z-index:95;`
+				exitSession.innerHTML = 'Exit Session'
+			}
+			IntroFragment.insertAdjacentElement('beforeend', exitSession)
 
-		if (window.navigator.onLine){
-			multiplayer.onclick = () => {
+			// Select Mode
+			let solo = modeScreen.querySelector(`[id="${applet.props.id}solo-button"]`)
+			let multiplayer = modeScreen.querySelector(`[id="${applet.props.id}multiplayer-button"]`)
+			solo.onclick = () => {
 				modeScreen.style.opacity = 0
+				onsuccess()
+				let loginPage = IntroFragment.querySelector(`[id="${this.id}login-page"]`)
+				if (loginPage != null) loginPage.remove()
 				modeScreen.style.pointerEvents = 'none'
+				sessionScreen.style.display = 'none'
+				exitSession.style.display = 'none'
 			}
-		} else {
-			multiplayer.style.opacity = 0.25
-			multiplayer.style.pointerEvents = 'none'
-		}
-		
-		// Create Session Browser
-		let baseBrowserId = `${applet.props.id}${applet.info.name}`
-		sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
-		sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
-		let waitForReturnedMsg = (msgs, callback = () => { }) => {
-			if (msgs.includes(this.state.data.commandResult.msg)) {
-				callback(this.state.data.commandResult.msg)
+			if (window.navigator.onLine) {
+				multiplayer.onclick = () => {
+					modeScreen.style.opacity = 0
+					modeScreen.style.pointerEvents = 'none'
+				}
 			} else {
-				setTimeout(() => waitForReturnedMsg(msgs, callback), 250)
+				multiplayer.style.opacity = 0.25
+				multiplayer.style.pointerEvents = 'none'
 			}
-		}
 
-		let onjoined = (g) => {
-			sessionScreen.style.opacity = 0;
-			sessionScreen.style.pointerEvents = 'none'
-			console.log(g)
-			onsuccess(g)
-		}
-		let onleave = () => {
-			sessionSearch.click()
-			sessionScreen.style.opacity = '1';
-			sessionScreen.style.pointerEvents = 'auto'
-		}
+			// Create Session Browser
+			let baseBrowserId = `${applet.props.id}${applet.info.name}`
+			sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<button id='${baseBrowserId}search' class="brainsatplay-default-button">Search</button>`)
+			sessionScreen.querySelector(`[id="${applet.props.id}multiplayerDiv"]`).insertAdjacentHTML('beforeend', `<div id='${baseBrowserId}browserContainer' style="box-sizing: border-box; padding: 10px 0px; overflow-y: hidden; height: 100%; width: 100%;"><div id='${baseBrowserId}browser' style='display: flex; align-items: center; width: 100%; font-size: 80%; overflow-x: scroll; box-sizing: border-box; padding: 25px 5%;'></div></div>`)
 
-		let sessionSearch = sessionScreen.querySelector(`[id="${baseBrowserId}search"]`)
-
-		
-		let connectToGame = (g, spectate) => {
-
-			this.subscribeToSession(g.id, spectate, (subresult) => {
-				onjoined(g);
-
-				let leaveSession = () => {
-					this.unsubscribeFromSession(g.id, () => {
-						onleave(g);
-					});
-				}
-
-				exitSession.addEventListener('click', leaveSession)
-			});
-		}
-
-
-		let autoJoinSession = (applet, autoId) => {
-			if (autoId != null){
-				let playing = applet.info.intro.spectating != true // Default to player
-				if (playing) connectToGame(autoId, false) 
-				else connectToGame(autoId, true)
-
-				// Clear Auto-Join Parameters
-				applet.info.intro.session = false
-			}
-		}
-
-		let autoId = false
-
-		if (applet.info.intro && applet.info.intro.session) sessionScreen.style.opacity = '0' // may not need anymore (if not inserted)
-
-		sessionSearch.onclick = () => {
-
-
-			this.getSessions(applet.info.name, (result) => {
-
-				let gridhtml = '';
-
-				if (applet.info.intro && applet.info.intro.session){
-					let sessionToJoin = applet.info.intro.session
-					if (sessionToJoin == true) autoId = result.sessions[0]
-					else if (sessionToJoin == null) autoId = result.sessions[0]
-					else autoId = result.sessions.find(g => g.id === sessionToJoin)
+			let waitForReturnedMsg = (msgs, callback = () => { }) => {
+				if (msgs.includes(this.state.data.commandResult.msg)) {
+					callback(this.state.data.commandResult.msg)
 				} else {
-					autoId = false
+					setTimeout(() => waitForReturnedMsg(msgs, callback), 250)
 				}
+			}
+
+			let onjoined = (g) => {
+				sessionScreen.style.opacity = 0;
+				sessionScreen.style.pointerEvents = 'none'
+				console.log(g)
+				onsuccess(g)
+			}
+			let onleave = () => {
+				sessionSearch.click()
+				sessionScreen.style.opacity = '1';
+				sessionScreen.style.pointerEvents = 'auto'
+			}
+
+			let sessionSearch = sessionScreen.querySelector(`[id="${baseBrowserId}search"]`)
 
 
-				if (!autoId || autoId == null){
-					
-					result.sessions.forEach((g, i) => {
-						let numUsers = Object.keys(g.users).length
-						let disabled = ''
+			let connectToGame = (g, spectate) => {
 
-						if (numUsers >= 10) disabled = 'disabled' // Limit connections to the same session server
-						gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + numUsers + `</p>
+				this.subscribeToSession(g.id, spectate, (subresult) => {
+					onjoined(g);
+
+					let leaveSession = () => {
+						this.unsubscribeFromSession(g.id, () => {
+							onleave(g);
+						});
+					}
+
+					exitSession.addEventListener('click', leaveSession)
+				});
+			}
+
+
+			let autoJoinSession = (applet, autoId) => {
+				if (autoId != null) {
+					let playing = applet.info.intro.spectating != true // Default to player
+					if (playing) connectToGame(autoId, false)
+					else connectToGame(autoId, true)
+
+					// Clear Auto-Join Parameters
+					applet.info.intro.session = false
+				}
+			}
+
+			let autoId = false
+
+			if (applet.info.intro && applet.info.intro.session) sessionScreen.style.opacity = '0' // may not need anymore (if not inserted)
+
+			sessionSearch.onclick = () => {
+
+
+				this.getSessions(applet.info.name, (result) => {
+
+					let gridhtml = '';
+
+					if (applet.info.intro && applet.info.intro.session) {
+						let sessionToJoin = applet.info.intro.session
+						if (sessionToJoin == true) autoId = result.sessions[0]
+						else if (sessionToJoin == null) autoId = result.sessions[0]
+						else autoId = result.sessions.find(g => g.id === sessionToJoin)
+					} else {
+						autoId = false
+					}
+
+
+					if (!autoId || autoId == null) {
+
+						result.sessions.forEach((g, i) => {
+							let numUsers = Object.keys(g.users).length
+							let disabled = ''
+
+							if (numUsers >= 10) disabled = 'disabled' // Limit connections to the same session server
+							gridhtml += `<div style="padding-right: 25px;"><h3 style="margin-bottom: 0px;">` + g.id + `</h3><p>Players: ` + numUsers + `</p>
 						<div style="display: flex; padding-top: 5px;">
 							<button id='` + g.id + `play' style="margin-left: 0px; width: auto" class="brainsatplay-default-button ${disabled}">Play</button>
 							<button id='` + g.id + `spectate' style="margin-left: 10px; width: auto" class="brainsatplay-default-button">Spectate</button>
 						</div>
 						</div>`
-					});
+						});
 
-					sessionScreen.querySelector(`[id="${baseBrowserId}browser"]`).innerHTML = gridhtml
+						sessionScreen.querySelector(`[id="${baseBrowserId}browser"]`).innerHTML = gridhtml
 
 
-				result.sessions.forEach((g) => {
-					let playButton = document.getElementById(`${g.id}play`)
-					let spectateButton = document.getElementById(`${g.id}spectate`)
-					playButton.addEventListener('click', () => { connectToGame(g, false) })
-					spectateButton.addEventListener('click', () => { connectToGame(g, true) })
+						result.sessions.forEach((g) => {
+							let playButton = document.getElementById(`${g.id}play`)
+							let spectateButton = document.getElementById(`${g.id}spectate`)
+							playButton.addEventListener('click', () => { connectToGame(g, false) })
+							spectateButton.addEventListener('click', () => { connectToGame(g, true) })
+						});
+					} else {
+						console.log('auto joining again')
+						autoJoinSession(applet, autoId)
+					}
 				});
-			} else {
-				console.log('auto joining again')
-				autoJoinSession(applet,autoId)
 			}
-			});
-		}
 
-		// Login Screen
-		if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo'){
-			let onsocketopen = () => {
-				if (this.socket.readyState === 1) {
-					sessionSearch.click()
-					let loginScreen = document.getElementById(`${this.id}login-page`)
+			// Login Screen
+			if (applet.info.intro?.mode != 'single' && applet.info.intro?.mode != 'solo') {
+				let onsocketopen = () => {
+					if (this.socket.readyState === 1) {
+						sessionSearch.click()
+						let loginScreen = document.getElementById(`${this.id}login-page`)
 
-					let sub1 = this.state.subscribe('commandResult', (newResult) => {
-						if (newResult.msg === 'appNotFound') {
-							createSession.click()
+						let sub1 = this.state.subscribe('commandResult', (newResult) => {
+							if (newResult.msg === 'appNotFound') {
+								createSession.click()
 
-							let sub2 = this.state.subscribe('commandResult', (newResult) => {
+								let sub2 = this.state.subscribe('commandResult', (newResult) => {
 
-								if (newResult.msg === 'sessionCreated') {
-									sessionSearch.click()
-									if (loginScreen){
-										loginScreen.style.opacity = 0;
-										loginScreen.style.pointerEvents = 'none'
+									if (newResult.msg === 'sessionCreated') {
+										sessionSearch.click()
+										if (loginScreen) {
+											loginScreen.style.opacity = 0;
+											loginScreen.style.pointerEvents = 'none'
+										}
+										this.state.unsubscribe('commandResult', sub2);
 									}
-									this.state.unsubscribe('commandResult', sub2);
+								})
+								this.state.unsubscribe('commandResult', sub1);
+
+							} else if ('getSessionsResult') {
+								this.state.unsubscribe('commandResult', sub1);
+								if (loginScreen) {
+									loginScreen.style.opacity = 0;
+									loginScreen.style.pointerEvents = 'none'
 								}
-							})
-							this.state.unsubscribe('commandResult', sub1);
-
-						} else if ('getSessionsResult') {
-							this.state.unsubscribe('commandResult', sub1);
-							if (loginScreen){
-								loginScreen.style.opacity = 0;
-								loginScreen.style.pointerEvents = 'none'
 							}
-						}
-					})
-				} else {
-					setTimeout(() => {onsocketopen()}, 500)
+						})
+					} else {
+						setTimeout(() => { onsocketopen() }, 500)
+					}
 				}
+
+				// Auto-set username with Google Login
+				if (this.info.googleAuth != null) {
+					this.info.googleAuth.refreshCustomData().then(data => {
+						this.info.auth.username = data.username
+					})
+				}
+
+				// Auto-Toggle Title and Mode Selection
+				if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') {
+					multiplayer.click()
+				}
+
+				// Prompt Login or Skip
+				if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
+
+				if (applet.info.intro.login === false || this.socket?.readyState == 1) {
+					this.login(true, this.info.auth, onsocketopen)
+				} else {
+					this.promptLogin(IntroFragment, () => {
+						IntroFragment.querySelector(`[id="${this.id}login-page"]`).style.zIndex = 98;
+					}, onsocketopen)
+				}
+			} else {
+				solo.click()
 			}
 
-			// Auto-set username with Google Login
-			if (this.info.googleAuth != null) {
-				this.info.googleAuth.refreshCustomData().then(data => {
-					this.info.auth.username = data.username
-				})
+
+			exitSession.onclick = () => {
+				sessionScreen.style.opacity = 1;
+				sessionScreen.style.pointerEvents = 'auto'
 			}
 
-		// Auto-Toggle Title and Mode Selection
-		if (applet.info.intro.mode === 'multi' || applet.info.intro.mode === 'multiplayer' || applet.info.intro.mode === 'remote') {
-			multiplayer.click()
+			let createSession = sessionScreen.querySelector(`[id="${applet.props.id}createSession"]`)
+
+			createSession.onclick = () => {
+				this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
+				waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
+			}
+
+			// createSession.style.display = 'none'
+			sessionSearch.style.display = 'none'
+
+			applet.intro = new DOMFragment(
+				IntroFragment,
+				appletContainer,
+				undefined,
+				undefined // setup
+			)
+
 		}
-
-		// Prompt Login or Skip
-		if (applet.info.intro.domain) this.info.auth.url = new URL(applet.info.intro.domain)
-
-		if (applet.info.intro.login === false || this.socket?.readyState == 1){
-			this.login(true, this.info.auth, onsocketopen)
-		} else {
-			this.promptLogin(IntroFragment, () => {
-				IntroFragment.querySelector(`[id="${this.id}login-page"]`).style.zIndex = 98;
-			}, onsocketopen)
-		}
-	} else {
-		solo.click()
-	}
-
-
-		exitSession.onclick = () => {
-			sessionScreen.style.opacity = 1;
-			sessionScreen.style.pointerEvents = 'auto'
-		}
-
-		let createSession = sessionScreen.querySelector(`[id="${applet.props.id}createSession"]`)
-
-		createSession.onclick = () => {
-			this.sendBrainstormCommand(['createSession', applet.info.name, applet.info.devices, Array.from(applet.streams)]);
-			waitForReturnedMsg(['sessionCreated'], () => { sessionSearch.click() })
-		}
-
-		// createSession.style.display = 'none'
-		sessionSearch.style.display = 'none'
-
-		applet.intro = new DOMFragment(
-			IntroFragment,
-			appletContainer,
-			undefined,
-			undefined // setup
-		)
-		
-	}
 	}
 
 	kickUserFromSession = (sessionid, userToKick, onsuccess = (newResult) => { }) => {
@@ -2210,29 +2209,29 @@ else {
 	}
 
 	// Session Data Utilities
-	getEEGDataByChannel(ch, data){
+	getEEGDataByChannel(ch, data) {
 		atlas.getEEGDataByChannel()
 	}
 
 
-	getHostData(appid){
+	getHostData(appid) {
 		let state = this.state.data[appid];
-		if (state.msg === 'sessionData' && state.id === appid){
-			if(state.hostData) return {data: state.hostData, id: state.host}
-			return {data: state.userData.find((o)=>{if(o.id === state.host) return true;}), id: state.host}
+		if (state.msg === 'sessionData' && state.id === appid) {
+			if (state.hostData) return { data: state.hostData, id: state.host }
+			return { data: state.userData.find((o) => { if (o.id === state.host) return true; }), id: state.host }
 		}
 	}
 
-	getBrainstormData(query, props=[], type = 'app', format = 'default') {
+	getBrainstormData(query, props = [], type = 'app', format = 'default') {
 
 
-		let sessionInd,idInd,propInd,structureFilter
+		let sessionInd, idInd, propInd, structureFilter
 
 		if (type === 'user') {
 			idInd = 1
 			propInd = 2
 			structureFilter = (input) => {
-				let val = input.split('_')[0] 
+				let val = input.split('_')[0]
 				return val === 'userData'
 			}
 		} else {
@@ -2260,11 +2259,11 @@ else {
 				// Props are Included
 				let test3 = false;
 				props.forEach(p => {
-					if (k.includes(p)){
+					if (k.includes(p)) {
 						test3 = true
 					}
 				})
-				
+
 				if (test1 && test2 && test3) return true
 			})
 
@@ -2278,10 +2277,10 @@ else {
 
 				let username = (sessionInd) ? this.state.data[`${strArr[0]}_${strArr[1]}`]?.users[id] : null
 
-				if (id != this.info.auth.id){ // Ignore yourself in state
+				if (id != this.info.auth.id) { // Ignore yourself in state
 					if (!usedNames.includes(id)) {
 						usedNames.push(id)
-						arr.push({ id , username})
+						arr.push({ id, username })
 					}
 
 					arr.find(o => {
@@ -2289,15 +2288,15 @@ else {
 						if (o.id === id) {
 
 							// Plugin Format
-							if (format === 'plugin'){
-								if (Array.isArray(this.state.data[str])){
+							if (format === 'plugin') {
+								if (Array.isArray(this.state.data[str])) {
 									o.data = this.state.data[str][0].data
 									o.meta = this.state.data[str][0].meta
 								} else {
-									let u = arr.splice(arr.length - 1,1)
+									let u = arr.splice(arr.length - 1, 1)
 								}
-							} 
-							
+							}
+
 							// Default Format
 							else {
 								o[prop] = this.state.data[str]
@@ -2308,20 +2307,20 @@ else {
 			})
 
 			let i = arr.length
-			arr.push({ id: this.info.auth.id})
+			arr.push({ id: this.info.auth.id })
 			props.forEach(prop => {
 
 				// Plugin Format
-				if (format === 'plugin'){
-					if (Array.isArray(this.state.data[prop])){
+				if (format === 'plugin') {
+					if (Array.isArray(this.state.data[prop])) {
 						arr[i].data = this.state.data[prop][0].data
 						arr[i].meta = this.state.data[prop][0].meta
 					} else {
-						let u = arr.splice(arr.length - 1,1)
+						let u = arr.splice(arr.length - 1, 1)
 						console.error('Misformatted data for user ' + u.id, 'me')
 					}
-				} 
-				
+				}
+
 				// Default Format
 				else {
 					arr[i][prop] = this.state.data[prop]
@@ -2336,8 +2335,8 @@ else {
 		return arr
 	}
 
-	initFS = (oninit=()=>{console.log("BrowserFS ready!");this.dataManager.setupAutosaving();},onerror=()=>{}) => {
-		this.session.dataManager.initFS(oninit,onerror);
+	initFS = (oninit = () => { console.log("BrowserFS ready!"); this.dataManager.setupAutosaving(); }, onerror = () => { }) => {
+		this.session.dataManager.initFS(oninit, onerror);
 	}
 
 }
@@ -2373,13 +2372,13 @@ class deviceStream {
 			useFilters: useFilters,
 			useAtlas: false,
 			simulating: false,
-			randomId: 'deviceStream_'+Math.floor(Math.random()*1000000000)
+			randomId: 'deviceStream_' + Math.floor(Math.random() * 1000000000)
 		};
 
 		this.device = null, //Device object, can be instance of our device plugin classes.
-		this.atlas = null,
-		this.deviceConfigs = deviceList,
-		this.pipeToAtlas = pipeToAtlas;
+			this.atlas = null,
+			this.deviceConfigs = deviceList,
+			this.pipeToAtlas = pipeToAtlas;
 		//this.init(device,useFilters,pipeToAtlas,analysis);
 	}
 
@@ -2418,10 +2417,10 @@ class deviceStream {
 		return true;
 	}
 
-	configureRoutes = (parentNode=document.body) => {
+	configureRoutes = (parentNode = document.body) => {
 		this.info.events.addControls(parentNode);
 		this.info.events.addDebugger(parentNode);
-    }
+	}
 
 	disconnect = () => {
 		this.info.events.deinit()
@@ -2526,83 +2525,83 @@ class streamSession {
 		}
 
 		let getEEGBandpowerMeans = (device, channel) => {
-				if (device?.info?.useAtlas === true) {
-					let coord = false;
+			if (device?.info?.useAtlas === true) {
+				let coord = false;
 
-					coord = device.atlas.getLatestFFTData(channel)[0];
+				coord = device.atlas.getLatestFFTData(channel)[0];
 
-					if (coord !== undefined) {
-						return { time: coord.time, bandpowers: coord.mean };
-					}
-					else {
-						return undefined;
-					}
+				if (coord !== undefined) {
+					return { time: coord.time, bandpowers: coord.mean };
+				}
+				else {
+					return undefined;
+				}
 			}
 		}
 
 		let getEEGCoherenceBandpowerMeans = (device, channel) => {
-				if (device?.info?.useAtlas === true) {
-					let coord = false;
+			if (device?.info?.useAtlas === true) {
+				let coord = false;
 
-					coord = device.atlas.getLatestCoherenceData(channel);
+				coord = device.atlas.getLatestCoherenceData(channel);
 
-					if (coord !== undefined) {
-						return { time: coord.time, bandpowers: coord.mean };
-					}
-					else {
-						return undefined;
-					}
+				if (coord !== undefined) {
+					return { time: coord.time, bandpowers: coord.mean };
 				}
+				else {
+					return undefined;
+				}
+			}
 		}
 
 		let getEEGBandpowerSlices = (device, channel) => {
-				if (device?.info?.useAtlas === true) {
-					let coord = false;
+			if (device?.info?.useAtlas === true) {
+				let coord = false;
 
-					coord = device.atlas.getLatestFFTData(channel)[0];
+				coord = device.atlas.getLatestFFTData(channel)[0];
 
-					if (coord !== undefined) {
-						return { time: coord.time, bandpowers: coord.slice };
-					}
-					else {
-						return undefined;
-					}
+				if (coord !== undefined) {
+					return { time: coord.time, bandpowers: coord.slice };
 				}
+				else {
+					return undefined;
+				}
+			}
 		}
 
 		let getEEGCoherenceBandpowerSlices = (device, channel) => {
-				if (device?.info?.useAtlas === true) {
-					let coord = false;
+			if (device?.info?.useAtlas === true) {
+				let coord = false;
 
-					coord = device.atlas.getLatestCoherenceData(channel)[0];
+				coord = device.atlas.getLatestCoherenceData(channel)[0];
 
-					if (coord !== undefined) {
-						return { time: coord.time, bandpowers: coord.slice };
-					}
-					else {
-						return undefined;
-					}
+				if (coord !== undefined) {
+					return { time: coord.time, bandpowers: coord.slice };
 				}
+				else {
+					return undefined;
+				}
+			}
 		}
 
 		let getCoherenceData = (device, tag, nArrays = 'all') => {
 			let get = nArrays;
-				if (device?.info?.useAtlas === true) {
-					let coord = device.atlas.getCoherenceByTag(tag);
-					if (coord !== undefined) {
-						if (get === 'all') {
-							if (coord.fftCount === 0) return undefined;
-							get = coord.fftCount - coord.lastRead;
-							coord.lastRead = coord.fftCount;
-							if (get === 0) return undefined;
-						}
-						let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
-						let ffts = coord.ffts.slice(coord.ffts.length - get, coord.ffts.length);
-						return { times: cohTimes, ffts: ffts };
+			if (device?.info?.useAtlas === true) {
+				let coord = device.atlas.getCoherenceByTag(tag);
+				if (coord !== undefined) {
+					if (get === 'all') {
+						if (coord.fftCount === 0) return undefined;
+						get = coord.fftCount - coord.lastRead;
+						coord.lastRead = coord.fftCount;
+						if (get === 0) return undefined;
 					}
-					else {
-						return undefined;
-					}
+					let cohTimes = coord.times.slice(coord.fftTimes.length - get, coord.fftTimes.length);
+					let ffts = coord.ffts.slice(coord.ffts.length - get, coord.ffts.length);
+					return { times: cohTimes, ffts: ffts };
+				}
+				else {
+					return undefined;
+				}
 			}
 		}
 
@@ -2650,10 +2649,10 @@ class streamSession {
 		this.streamTable.push({ prop: name, callback: callback });
 	}
 
-	removeStreamFunc(name='') {
-		this.streamTable.find((o,i) => {
-			if(o.prop === name){
-				return this.streamTable.splice(i,1);
+	removeStreamFunc(name = '') {
+		this.streamTable.find((o, i) => {
+			if (o.prop === name) {
+				return this.streamTable.splice(i, 1);
 			}
 		})
 	}
@@ -2671,21 +2670,21 @@ class streamSession {
 	getDataForSocket = (device = undefined, params = [['prop', 'tag', 'arg1']]) => {
 		let userData = {};
 		params.forEach((param, i) => {
-				this.streamTable.find((option, i) => {
-					if (param[0] === option.prop) {
-						let args;
-						if (device) args = [device, ...param.slice(1)];
-						else args = param.slice(1);
-						let result = (args.length !== 0) ? option.callback(...args) : option.callback()
-						if (result !== undefined) {
-							if (param[2] !== 'ignore'
-							){
-								userData[param.join('_')] = result;
-							}
+			this.streamTable.find((option, i) => {
+				if (param[0] === option.prop) {
+					let args;
+					if (device) args = [device, ...param.slice(1)];
+					else args = param.slice(1);
+					let result = (args.length !== 0) ? option.callback(...args) : option.callback()
+					if (result !== undefined) {
+						if (param[2] !== 'ignore'
+						) {
+							userData[param.join('_')] = result;
 						}
-						return true;
 					}
-				});
+					return true;
+				}
+			});
 		});
 
 		return userData;
@@ -2721,7 +2720,7 @@ class streamSession {
 			Object.assign(streamObj.userData, this.getDataForSocket(undefined, this.info.appStreamParams));
 			//if(params.length > 0) { this.sendDataToSocket(params); }
 
-			if (this.info.subscriptions.length > 0){ // Only stream if subscription is established
+			if (this.info.subscriptions.length > 0) { // Only stream if subscription is established
 				if (Object.keys(streamObj.userData).length > 0) {
 					this.socket.send(JSON.stringify(streamObj));
 				}
@@ -2731,7 +2730,7 @@ class streamSession {
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}
 		else {
-			this.getDataForSocket(undefined, this.info.appStreamParams) 
+			this.getDataForSocket(undefined, this.info.appStreamParams)
 			this.info.streamCt = 0;
 			setTimeout(() => { this.streamLoop(); }, this.info.streamLoopTiming);
 		}

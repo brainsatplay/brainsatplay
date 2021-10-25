@@ -24,7 +24,7 @@ export const settings = {
         {name: 'left', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowLeft'}},
         {name: 'right', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowRight'}},
         {name: 'ui', class: UI, params: {}},
-        {name: 'document', class: brainsatplay.plugins.interfaces.UI},      
+        {name: 'document', class: brainsatplay.plugins.interfaces.DOM},      
       ],
       edges: [
         {

@@ -61,7 +61,7 @@ export const settings = {
         // {name: 'results', class: Results},
 
         // UI
-        {name:'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name:'ui', class: brainsatplay.plugins.interfaces.DOM, params: {
           html: `<div id="experiment"></div>`,
           style: `
           .brainsatplay-ui-container {

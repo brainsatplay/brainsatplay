@@ -247,8 +247,11 @@ export class DOMFragment {
         }
         else if (typeof styles === 'function') {
             let styleResult = styles();
-            if (typeof styleResult === 'string') node.insertAdjacentHTML('afterbegin',styleResult);
-            else node.insertAdjacentElement('afterbegin',styleResult);
+
+            if (node){
+                if (typeof styleResult === 'string') node.insertAdjacentHTML('afterbegin',styleResult);
+                else node.insertAdjacentElement('afterbegin',styleResult);
+            }
         }
     }
 }

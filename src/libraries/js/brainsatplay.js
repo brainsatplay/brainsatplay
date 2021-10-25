@@ -22,3 +22,15 @@ export {App} from './src/App.js'
 // CommonJS Exports Not Working for Node.js Utilities
 // import * as brainstorm from './src/brainstorm/Brainstorm'
 // export {brainstorm}
+
+window.classRegistry = {}
+for (let category in plugins){
+	for (let name in plugins[category]){
+		classRegistry[name] = {
+			name,
+			category, 
+			class: plugins[category][name]
+		}
+	}
+}
+

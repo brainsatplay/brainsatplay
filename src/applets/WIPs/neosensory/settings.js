@@ -24,7 +24,7 @@ export const settings = {
         {name: 'spacebar', class: brainsatplay.plugins.controls.Event, params: {keycode: 'Space'}},
         {name: 'up', class: brainsatplay.plugins.controls.Event, params: {keycode: 'ArrowUp'}},
         {name: 'ui', class: UI, params: {}},
-        {name: 'document', class: brainsatplay.plugins.interfaces.UI},   
+        {name: 'document', class: brainsatplay.plugins.interfaces.DOM},   
       ],
       edges: [
 

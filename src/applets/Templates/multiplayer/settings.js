@@ -37,7 +37,7 @@ export const settings = {
 
         }},
         {name: 'parser', class: Parser, params: {}},
-        {name: 'ui', class: brainsatplay.plugins.interfaces.UI, params: {
+        {name: 'ui', class: brainsatplay.plugins.interfaces.DOM, params: {
           style: `
           .brainsatplay-ui-container {
             width: 100%;
