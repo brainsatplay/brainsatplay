@@ -25,8 +25,11 @@
  * 
  */
 
+import {StateManager} from '../ui/StateManager'
+
 export class Event {
     constructor() {
+
         if(window) {
             if(!window.workers) { 
                 window.workers = new WorkerManager();
@@ -41,25 +44,27 @@ export class Event {
             }
         } 
 
+        this.eventState = new StateManager({},undefined,false); //trigger only state (no overhead)
+
         this.events = new Map(); 
     }
 
     //subscribe a port to an event
     subEvent(eventName, port) {
         let event = this.events.get(eventName);
-        if(event) return graphState.subscribeTrigger(event.id,(val)=>{port.set(val);});
+        if(event) return this.eventState.subscribeTrigger(event.id,(val)=>{port.set(val);});
         else return undefined;
     }
 
     unsubEvent(eventName, sub) {
         let event = this.events.get(eventName);
-        if(event) graphState.unsubscribe(event.id,sub);
+        if(event) this.eventState.unsubscribe(event.id,sub);
     }
 
     //add an event when a port emits a value (sets state)
     eventEmitter(eventName, port) {
         let event = {name:eventName, id:randomId('event'), port:port, sub:undefined};
-        if(port) event.sub = graphState.subscribeTrigger(port.id,(val)=>{this.emit(eventName,val);});
+        if(port) event.sub = this.eventState.subscribeTrigger(port.id,(val)=>{this.emit(eventName,val);});
         this.events.set(eventName,event);
         
         return event;
@@ -68,8 +73,8 @@ export class Event {
     //remove an event
     removeEmitter(eventName) {
         let event = this.events.get(eventName);
-        graphState.unsubscribeAll(event.id);
-        if(event.sub) graphState.unsubscribe(event.port.id,event.sub);
+        this.eventState.unsubscribeAll(event.id);
+        if(event.sub) this.eventState.unsubscribe(event.port.id,event.sub);
         this.events.delete(eventName);
     }
 
@@ -87,7 +92,7 @@ export class Event {
         }
 
         let event = this.events.get(eventName);
-        graphState.setState({[event.id]:output}); //local event 
+        this.eventState.setState({[event.id]:output}); //local event 
       
     }
 
@@ -98,7 +103,7 @@ export class Event {
                 event = this.eventEmitter(msg.event);
             }
             
-            graphState.setState({[event.id]:msg.output});
+            this.eventState.setState({[event.id]:msg.output});
 
         }
     }
