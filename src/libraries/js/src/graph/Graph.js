@@ -211,7 +211,8 @@ export class Graph {
                 if (typeof o.class === 'string') {
                     // let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
                     // o.class = module[o.class]
-                    o.class = (this.app.editor) ? this.app.editor.classRegistry[o.class].class : classRegistry[o.class].class
+                    console.log(this.session.projects, this.session.projects.classRegistries.experimental)
+                    o.class = (this.app.editor) ? this.app.editor.classRegistry[o.class].class : this.session.projects.classRegistries.experimental[o.class].class
                 }
                 
                 // Create Node based on User-Defined Plugin Class

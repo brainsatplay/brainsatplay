@@ -1,6 +1,6 @@
 import JSZip from 'jszip'
 import fileSaver from 'file-saver';
-import * as brainsatplayLocal from '../../brainsatplay'
+import * as experimental from '../../brainsatplay'
 
 let latest = '0.0.36'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
@@ -25,13 +25,12 @@ export class ProjectManager {
         else this.version = 'experimental'
 
         // Load Latest B@P Library
-        this.libraries = {
-            experimental: brainsatplayLocal
-        }
+        this.libraries = {}
 
-        if (this.version != 'experimental'){
-            this.getLibraryVersion(latest)
-        }
+        // Organize as a Class Registry
+        this.classRegistries = {}
+
+        this.getLibraryVersion(this.version)
 
         // Set Server Connection Variables
         this.serverResolved = true
@@ -56,22 +55,45 @@ export class ProjectManager {
 
         if (version != 'experimental' && Number.parseInt(version.split('.')[2]) < 33) version = 'experimental' // FIX: Any lower versions are not supported
 
-        return new Promise(resolve => {
+        let library = await Promise.resolve(new Promise(resolve => {
             if (this.libraries[version] == null){
-                this.script.src = `https://cdn.jsdelivr.net/npm/brainsatplay@${version}`
-                this.script.async = true;
-                this.script.onload = () => {
-                    console.log('loading version')
-                    if (brainsatplay) {
-                        this.libraries[version] = brainsatplay
-                        resolve(this.libraries[version])
+                if (version === 'experimental') resolve(experimental)
+                else {
+                    this.script.src = `https://cdn.jsdelivr.net/npm/brainsatplay@${version}`
+                    this.script.async = true;
+                    this.script.onload = () => {
+                        console.log('loading version')
+                        if (brainsatplay) {
+                            this.libraries[version] = brainsatplay
+                            resolve(this.libraries[version])
+                        }
+                    }
+                    document.body.appendChild(this.script);
+                }
+            } else resolve(this.libraries[version])
+        }))
+
+        // Organize in a single object
+        if (this.classRegistries[version] == null){
+            this.classRegistries[version] = {}
+            for (let category in library.plugins){
+                for (let name in library.plugins[category]){
+                    // TODO: Should shift to ID at some point
+
+                    let cls = library.plugins[category][name]
+                    let clsStr = cls.toString().trim()
+                    if (clsStr.slice(0,5) === 'class'){
+                        this.classRegistries[version][name] = {
+                            name,
+                            category, 
+                            class: cls
+                        }
                     }
                 }
-                document.body.appendChild(this.script);
-            } else {
-                resolve(this.libraries[version])
             }
-        })
+        }
+
+        return library
     }
 
     getPlugins = (version) =>{

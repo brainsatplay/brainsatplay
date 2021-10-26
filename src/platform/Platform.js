@@ -1,18 +1,6 @@
 
 import * as brainsatplay from '../libraries/js/brainsatplay'
 window.brainsatplay = brainsatplay // set B@P window variable (like standalone HTML)
-
-window.classRegistry = {}
-for (let category in brainsatplay.plugins){
-	for (let name in brainsatplay.plugins[category]){
-		classRegistry[name] = {
-			name,
-			category, 
-			class: brainsatplay.plugins[category][name]
-		}
-	}
-}
-
 import {BCIAppManager} from './js/frontend/BCIManager'
 
 // Check if Mobile

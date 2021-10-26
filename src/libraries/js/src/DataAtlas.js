@@ -9,7 +9,7 @@ import { Graph } from "./graph/Graph"
 import { Blink } from "./plugins/models/Blink"
 import { Focus } from "./plugins/models/Focus"
 
-import {DOMFragment} from './ui/DOMFragment'
+import { ProjectManager } from "./utils/ProjectManager";
 
 //-------------------------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ export class DataAtlas {
 				{name: 'blink', class: Blink}, // Blink Detection
 				{name: 'focus', class: Focus}, // Focus Detection
 			],
-		}, {app:{session:{atlas: this}}}); // top-level graph
+		}, {app:{session:{atlas: this, projects: new ProjectManager()}}}); // top-level graph
 		await this.graph.init()
 
 	}

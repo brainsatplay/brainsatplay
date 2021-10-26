@@ -25,7 +25,6 @@ export class Editor{
             scale: 1
         }
         this.searchOptions = []
-        this.classRegistry = {}
         this.local = window.location.origin.includes('localhost')
 
         this.toggle = null
@@ -1132,20 +1131,8 @@ export class Editor{
 
         this.library = await this.app.session.projects.getLibraryVersion(this.app.info.version)
 
-        // NO DYNAMIC IMPORTS
-        // this.classRegistry = Object.assign({}, pluginManifest)
-        for (let category in this.library.plugins){
-            for (let name in this.library.plugins[category]){
-                this.classRegistry[name] = {
-                    name,
-                    category, 
-                    class: this.library.plugins[category][name]
-                }
-            }
-        }
-
-        // this.classRegistry['custom'] = {}
         let usedClasses = []
+        this.classRegistry = this.app.session.projects.classRegistries[this.app.info.version]
 
         this.addNodeOption(undefined)
 
@@ -1154,6 +1141,7 @@ export class Editor{
 
         // TODO: Traverse all graphs
         // this.graphs.forEach(g => {        
+        if (this.graph){
         this.graph.nodes.forEach(async n => {
             if (n.class != null){
             let clsInfo = this.classRegistry[n.class.name]
@@ -1181,6 +1169,7 @@ export class Editor{
             await checkWhere(n, clsInfo)
         }
         })
+    }
     // })
 
         this.selectorMenu.insertAdjacentElement('beforeend',nodeDiv)
@@ -1272,6 +1261,8 @@ export class Editor{
 
     addNodeOption(classInfo={name:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Blank, category: null, types: []}){
 
+        console.log(classInfo)
+        
         if (!('types' in classInfo)) classInfo.types = []
 
 
