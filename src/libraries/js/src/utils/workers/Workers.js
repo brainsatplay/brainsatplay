@@ -4,9 +4,8 @@ let defaultWorkerThreads = 0;
 import {CallbackManager} from './workerCallbacks' 
 
 // WEBPACK
-import worker from './eeg.worker.js'
-
-// import * as worker from './eeg.worker.js'
+// import worker from './eeg.worker.js'
+import * as worker from './eeg.worker.js'
 
 export class WorkerManager {
     constructor(workerURL= new URL('./eeg.worker.js', import.meta.url)){
