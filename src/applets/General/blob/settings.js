@@ -63,7 +63,7 @@ export const settings = {
             {
                 source: 'neurofeedback:element', //updates the target of the protocol selector on state change
                 target: 'ui:selector'
-              },
+            },
           ]
     }
 }

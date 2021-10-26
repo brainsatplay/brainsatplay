@@ -48,12 +48,11 @@ export class DOM {
         let ports = [
             {key: 'html', input: {type: 'HTML'}, output: {type: null}, data: `<div id='content'></div>`, onUpdate: (user) => {
                 
-
                 // Create New HTML
                 let newContainer = document.createElement('div')
                 newContainer.insertAdjacentHTML('beforeend', user.data)
 
-                // Check top-;evel children for active elements from other parts of the graph
+                // Check top-level children for active elements from other parts of the graph
                 for (let el of newContainer.children){
                     if (el.id) {
                         let match = this.props.container.querySelector(`[id="${el.id}"]`)
@@ -67,8 +66,8 @@ export class DOM {
                         }
                     }
 
-                // Swap New and Old
-                this.props.container.innerHTML = newContainer.innerHTML
+                // Swap New and Old (if different)
+                if (this.props.container.innerHTML != newContainer.innerHTML) this.props.container.innerHTML = newContainer.innerHTML
                 
                 // Create ID Ports
                 let currentIds = []
@@ -95,7 +94,7 @@ export class DOM {
                                 onUpdate: (user) => {
                                     let data = user.data
                                     if (data instanceof Function) data = data()
-    
+
                                     node.innerHTML = ''
                                     if (
                                         typeof data === "object" ? data instanceof HTMLElement : //DOM2
@@ -103,7 +102,9 @@ export class DOM {
                                     ) {
                                         node.insertAdjacentElement('beforeend', data)
                                         node.setAttribute('data-active', true)
-                                        if (!this.ports.style.data.includes(`#${node.id}`)) this.update( 'style', {data: this.ports.style.data + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`})
+
+                                        let newStr = this.ports.style.data.replace(new RegExp(`\n\n#${node.id} {[^}]+}`), ``)
+                                        this.update( 'style', {data: newStr + `\n\n#${node.id} {\n\twidth: 100%;\n\theight: 100%;\n}`})
 
                                         setTimeout(() => {
                                             if (data.onload instanceof Function) data.onload()

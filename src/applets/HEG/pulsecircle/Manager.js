@@ -150,7 +150,6 @@ class Manager{
         this.aspect = this.app.renderer.view.width/this.app.renderer.view.height
         this.shaderQuad.shader.uniforms.aspect = this.aspect
         this._generateShaderElements()
-        console.log(w,h)
     }
 
     _generateShaderElements() {

@@ -61,23 +61,25 @@ export class App {
         this._createMenu()
 
         // Set Shortcuts
-        document.addEventListener('keydown', this.shortcutManager, false);
+        document.addEventListener('keydown', this.shortcutManager);
     }
 
     shortcutManager = (e) => {
-
         if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)) {
             if (e.key === 'e' && this.editor) { // Toggle Editor
                 e.preventDefault();
                 this.editor.toggleDisplay()
             }
             else if (e.key === 's') { // Save Application
-                
-                if (this.editor.props.open){
+                if (this.editor.shown){
                     e.preventDefault();
                     this.graphs.forEach(g => g.save())
                     this.save()
                 }
+            }
+            else if (e.key === 'r') { // Reload Application
+                e.preventDefault();
+                this.reload()
             }
         }
     }
@@ -98,8 +100,6 @@ export class App {
         // Add Functionality to Applet
         this.info.graphs.forEach(g => this.addGraph(g)) // initialize all graphs
         
-        await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // parallel
-
         // Create Base UI
         this.AppletHTML = this.ui.manager = new DOMFragment( // Fast HTML rendering container object
             this.ui.container,       //Define the html template string or function with properties
@@ -111,6 +111,12 @@ export class App {
             this._deinit,
             this.responsive
         )
+
+        // Start Graph
+        await Promise.all(Array.from(this.graphs).map(async a => await this.startGraph(a[1]))) // parallel
+
+        // if (this.settings?.editor?.show != false) this.editor.toggleDisplay(true)
+
 
         // Register App in Session
         this.session.registerApp(this) // Rename
@@ -204,9 +210,8 @@ export class App {
     }
 
     reload = async () => {
-
+        this.editor.toggleDisplay(false)
         this.info.graphs = this.export() // Replace settings
-        console.log('MOVING PAST THE GRAPH')
         await this.deinit(true) // soft
         await this.init()
     }
@@ -492,14 +497,9 @@ export class App {
     }
 
     // Save
-    save = (e) => {
+    save = async (e) => {
         this.info.graphs = this.export() // Replace settings
-        this.session.projects.save(this, () => {
-
-            // If Error, Disable Download
-            this.editor.download.classList.add('disabled')
-
-        })
+        await this.session.projects.save(this, () => {this.editor.download.classList.remove('disabled')}, () => {this.editor.download.classList.add('disabled')})
         this.editor.lastSavedProject = this.name
     }
 

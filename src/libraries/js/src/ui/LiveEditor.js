@@ -132,9 +132,12 @@ export class LiveEditor {
 
             if (this.props.shortcuts == null || this.props.shortcuts.save != false){
                 this.onKeyDown = (e) => {
-                    if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
-                        e.preventDefault();
-                        this.save()
+
+                    if (this.container.offsetParent != null){
+                        if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+                            e.preventDefault();
+                            this.save()
+                        }
                     }
                 }
             }

@@ -178,7 +178,6 @@ export class Port {
 
         let res = (this.onchange instanceof Function) ? await this.onchange(port) : port // set in constructor
 
-
         let tock = performance.now()
         let latency = tock - tick
         this.latency.shift()
@@ -364,10 +363,8 @@ export class Port {
         settings.onSave = (res) => {
             if (name === 'self') this.init()
             else if (name === 'value') {
-                console.log(res.value, this.info)
-                this.data = res.value
                 this.info.data = res.value // make persistent
-                console.log(res.value, this.info)
+                res.forceUpdate = true
                 this.set(res)
             }
         }
@@ -400,7 +397,6 @@ export class Port {
 
 
     edit = (name='value') => {
-        console.log(this.ui[name].editor)
         if (this.ui[name].editor instanceof Function) this.ui[name].editor() // instantiate editor
         this.ui[name].editor.onOpen()
     }
@@ -409,7 +405,7 @@ export class Port {
         let infoCopy = Object.assign({}, this.info)
         infoCopy.data = infoCopy.value ?? infoCopy.data // backwards compatibility (< 0.0.36)
         let isElement = infoCopy.data instanceof Element || infoCopy.data instanceof HTMLDocument
-        if (infoCopy.data == undefined)  delete infoCopy.data
+        if (infoCopy.data == undefined || isElement)  delete infoCopy.data
         return infoCopy
     }
 

@@ -175,7 +175,7 @@ export class Editor{
 
         // this.download.classList.add('disabled')
         this.download.onclick = () => {
-            this.app.session.projects.download(this.app, () => { })
+            this.app.session.projects.download(this.app, () => { }, () => { })
         }
 
         // this.reload.classList.add('disabled')
@@ -612,7 +612,7 @@ export class Editor{
     toggleDisplay(on){
         // if (this.element){
 
-            if (on === true || this.container.style.display == 'none'){
+            if (on === true || (on != false && this.container.style.display == 'none')){
                 this.parentNode.insertAdjacentElement('beforeend', this.container)
                 setTimeout(() => {
                     this.container.style.display = ''
@@ -635,8 +635,6 @@ export class Editor{
                     })
                     this._resizeDefaultProjects()
                 },50)
-
-                this.props.open = true
             } else if (!on) {
                 this.container.style.display = 'none'
                 // this.container.style.opacity = 0
@@ -649,8 +647,6 @@ export class Editor{
                 this.app.graphs.forEach(g => {
                     g._resizeUI() 
                 })
-
-                this.props.open = false
             }
         // }
     }

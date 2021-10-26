@@ -129,9 +129,9 @@ app.init()`)
 
         // Check Ability to Load
         let settings = await this.load([o, ...classInfo])
-        console.log(settings)
         let library = await this.getLibraryVersion(settings.version)
         let instance = (library.Application instanceof Function) ? new library.Application(settings) : new library.App(settings)
+
         await instance.init().then(() => {
         
         // Add Classes to Project
@@ -184,16 +184,10 @@ app.init()`)
         }).catch((e) => {
             onerror(); 
             let msg = `Project cannot be saved: ${e}`
-            console.error(msg)
             alert(msg)
         }).finally(() => {
             instance.deinit()
         })
-    }
-
-    classToFile(cls) {
-        console.log('CLASS', cls)
-        return { filename: `${cls.name}.js`, content: cls.toString() + `\nexport {${cls.name}}` }
     }
 
     addClass = (info) => {
@@ -333,7 +327,7 @@ app.init()`)
         return { filename: `${cls.name}.js`, content: cls.toString() + `\nexport {${cls.name}}`, combined: cls.toString() + `\n` }
     }
 
-    async download(app, filename = app.info.name ?? 'brainsatplay', onerror) {
+    async download(app, filename = app.info.name ?? 'brainsatplay', onsuccess, onerror) {
         await this.generateZip(app, (zip) => {
             fileSaver.saveAs(zip, `${filename}.zip`);
         }, onerror)
@@ -359,9 +353,10 @@ app.init()`)
         });
     }
 
-    async appToDataURL(app, onerror){
+    async appToDataURL(app, onsuccess, onerror){
         return new Promise(async resolve => {
             await this.generateZip(app, (blob) => {
+                onsuccess()
                 blobUtils.blobToDataURL(blob, async (dataurl) => {
                     resolve(dataurl)
                 })
@@ -370,8 +365,8 @@ app.init()`)
     }
 
 
-    async save(app, onerror) {
-        let dataurl = await this.appToDataURL(app, onerror)
+    async save(app, onsuccess, onerror) {
+        let dataurl = await this.appToDataURL(app, onsuccess, onerror)
         await this.session.dataManager.saveFile(dataurl, `/projects/${app.info.name}`)  
         console.log('App Saved!')
       
@@ -437,7 +432,7 @@ app.init()`)
             let instance = new cls(node.info, node.parent) // This triggers the catch
             editable = true
         }
-        catch (e) {console.log('Cannot Save Node', e)}
+        catch (e) {}
 
         return editable
     }
@@ -477,7 +472,7 @@ app.init()`)
                     let classes = {}
                     info.classes.forEach(c => {
                         let toEval = c.split('export')[0]
-                        c = eval(`(${toEval})`)
+                        c = eval(`(${toEval})`) 
                         classes[c.name] = c
                     })
 

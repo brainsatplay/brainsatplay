@@ -3,7 +3,7 @@ import {Edge} from "./Edge"
 import {Event} from "./Event"
 import * as brainsatplay from '../../brainsatplay.js'
 // import {pluginManifest} from '../plugins/pluginManifest'
-import {dynamicImport} from '../utils/general/importUtils'
+// import {dynamicImport} from '../utils/general/importUtils'
 
 // Code Editor
 import {LiveEditor} from '../ui/LiveEditor'
@@ -196,82 +196,84 @@ export class Graph {
     }
 
     addNode = async (o) => { 
-        
-        // If Already Instantiated
-        if (o instanceof Graph){
-            o = Object.assign(o.info, {instance: o})
-            this.nodes.set(o.instance.uuid, o.instance) // set immediately
-        } 
-        
-        // If Assembly Instructions
-        else {
 
-            // Map Class Strings to Classes
-            if (typeof o.class === 'string') {
-                // let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
-                // o.class = module[o.class]
-                o.class = (this.app.editor) ? this.app.editor.classRegistry[o.class].class : classRegistry[o.class].class
-            }
+
+            // If Already Instantiated
+            if (o instanceof Graph){
+                o = Object.assign(o.info, {instance: o})
+                this.nodes.set(o.instance.uuid, o.instance) // set immediately
+            } 
             
-            // Create Node based on User-Defined Plugin Class
-            if (o.class?.constructor) {
+            // If Assembly Instructions
+            else {
 
-                // Try To Extend Class
-                let ports = Object.assign({}, o.ports)
-                o.className = o.class.name
-                let Plugin = this.extend(o.class, Graph)
-                o.instance = new Plugin(o, this)
+                // Map Class Strings to Classes
+                if (typeof o.class === 'string') {
+                    // let module = await dynamicImport(pluginManifest[o.class].folderUrl) // classname
+                    // o.class = module[o.class]
+                    o.class = (this.app.editor) ? this.app.editor.classRegistry[o.class].class : classRegistry[o.class].class
+                }
+                
+                // Create Node based on User-Defined Plugin Class
+                if (o.class?.constructor) {
 
-                // Create Ports with backwards compatibility (< 0.0.36)
-                let keys = Object.keys(o.instance.ports) 
-                await Promise.all(keys.map(async port => {
-                    if (ports && ports[port])  {
-                        ports[port].onUpdate = o.instance.ports[port].onUpdate // TODO: this. has to refer to the right thing
-                        await o.instance.addPort(port, ports[port]) // overwrite from settings
-                    }
-                    else {
-                        await o.instance.addPort(port, o.instance.ports[port]) 
-                    }
+                    // Try To Extend Class
+                    let ports = Object.assign({}, o.ports)
+                    o.className = o.class.name
+                    let Plugin = this.extend(o.class, Graph)
+                    o.instance = new Plugin(o, this)
+
+                    // Create Ports with backwards compatibility (< 0.0.36)
+                    let keys = Object.keys(o.instance.ports) 
+                    await Promise.all(keys.map(async port => {
+                        if (ports && ports[port])  {
+                            let newPort = Object.assign(ports[port], o.instance.ports[port])
+                            newPort.onUpdate = o.instance.ports[port].onUpdate // TODO: this. has to refer to the right thing (also on save)
+                            await o.instance.addPort(port, ports[port]) // overwrite from settings
+                        }
+                        else {
+                            await o.instance.addPort(port, o.instance.ports[port]) 
+                        }
+                    }))
+
+                    // Update Parameters on Port
+                    o.instance.updateParams(o.params)
+                } 
+
+                // Wrap Node Inside a Graph
+                else {
+                    o.instance = new Graph(o, this) // recursion begins
+                }
+
+                this.nodes.set(o.instance.uuid, o.instance) // set immediately
+
+                if (this.app.editor) this.app.editor.addGraph(o.instance) // place in editor as a tab
+
+                // this.analysis.add(...Array.from(nodeInfo.analysis))
+
+                // Check if Controls
+                if (o.instance.className === 'Event') this.app.controls.push(o.instance)
+
+                o.instance.debug() // instantiate debug elements in appropriate containers
+
+
+                // Flatten Subgraphs into Nodes, Edges, and Events
+                await Promise.all(o.instance.graphs.map(async (g,i) => {
+                    let activeGraph = await o.instance.addGraph(g, false)
+                    o.instance.graphs[i] = activeGraph
                 }))
 
-                // Update Parameters on Port
-                o.instance.updateParams(o.params)
-            } 
 
-            // Wrap Node Inside a Graph
-            else {
-                o.instance = new Graph(o, this) // recursion begins
+                // Initialize Node   
+                await o.instance.init()
+
+                // Configure
+                if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
             }
 
-            this.nodes.set(o.instance.uuid, o.instance) // set immediately
-
-            if (this.app.editor) this.app.editor.addGraph(o.instance) // place in editor as a tab
-
-            // this.analysis.add(...Array.from(nodeInfo.analysis))
-
-            // Check if Controls
-            if (o.instance.className === 'Event') this.app.controls.push(o.instance)
-
-            o.instance.debug() // instantiate debug elements in appropriate containers
-
-
-            // Flatten Subgraphs into Nodes, Edges, and Events
-            await Promise.all(o.instance.graphs.map(async (g,i) => {
-                let activeGraph = await o.instance.addGraph(g, false)
-                o.instance.graphs[i] = activeGraph
-            }))
-
-
-            // Initialize Node   
-            await o.instance.init()
-
-            // Configure
-            if (o.instance.configure instanceof Function ) o.instance.configure(this.app.settings)
-        }
-
-        if (this.ui.graph && !(this.ui.graph instanceof Function)) this.insertNode(o.instance) // UI
-        
-        return o
+            if (this.ui.graph && !(this.ui.graph instanceof Function)) this.insertNode(o.instance) // UI
+            
+            return o
     }
 
     removeNode = (o) => {
@@ -291,35 +293,40 @@ export class Graph {
     extend = (ChildClass, ParentClass, constructor = (_super, args) => {
         _super(...args);
      }) => {
-        if (ChildClass.prototype instanceof ParentClass) return ChildClass // already extended
-        else {             
+            if (ChildClass.prototype instanceof ParentClass) return ChildClass // already extended
+            else {             
 
-            function Plugin(...args){
-                const _super = (...args) => {
-                    let parent = new ParentClass(...args)
-                    let child = new ChildClass(...args)
-                    let mergeMethods = ['init', 'deinit', 'responsive', 'configure']
-                    mergeMethods.forEach(f => {
-                        // Merge Init
-                        let cM = child[f]
-                        let pM = parent[f]
-                        parent[f] = child[f] = (...args) => {
-                            if (cM instanceof Function) cM(...args)
-                            if (pM instanceof Function) pM(...args)
-                        }
-                    })
+                function Plugin(...args){
+                    const _super = (...args) => {
+                        let parent = new ParentClass(...args)
+                        let child = new ChildClass(...args)
+                        let mergeMethods = ['init', 'deinit', 'responsive', 'configure']
+                        mergeMethods.forEach(f => {
+                            // Merge Init
+                            let cM = child[f]
+                            let pM = parent[f]
+                            parent[f] = child[f] = (...args) => {
+                                try {
+                                    if (cM instanceof Function) cM(...args)
+                                    if (pM instanceof Function) pM(...args)
+                                } catch (e) { 
+                                    throw new Error(`${child.className} cannot be constructed`);
+                                }
+                            }
+                        })
 
-                    Object.assign(parent, child); // provide child references
-                    Object.assign(child, parent); // provide parent methods
-                    Object.assign(this, parent);
+                        Object.assign(parent, child); // provide child references
+                        Object.assign(child, parent); // provide parent methods
+                        Object.assign(this, parent);
+                    }
+
+                   constructor.call(this, _super, args);
                 }
-                constructor.call(this, _super, args);
-            }
 
-            Object.setPrototypeOf(Plugin, ParentClass);
-            Object.setPrototypeOf(Plugin.prototype, ParentClass.prototype);
-            return Plugin;
-        }
+                Object.setPrototypeOf(Plugin, ParentClass);
+                Object.setPrototypeOf(Plugin.prototype, ParentClass.prototype);
+                return Plugin;
+            }
      }
 
     // ------------------- EDGES -------------------
@@ -632,20 +639,33 @@ export class Graph {
 
             settings.onSave = (cls) => {
 
-                let instance = new cls({id:cls.name, class: cls}, this.parent)
+                let editable = this.session.projects.checkIfSaveable(cls) // TODO: Display somewhere on the code editor
+
+                // Test if Editable
+                if (editable){
+                    let instance = new cls({id:cls.name, class: cls}, this.parent)
+                    if (instance.init) instance.init()
+                    if (instance.responsive) instance.responsive()
+                    if (instance.configure) instance.configure()
+                    if (instance.deinit) instance.deinit()
 
                     Object.getOwnPropertyNames( instance ).forEach(k => {
                         if (instance[k] instanceof Function || k === 'params') this[k] = instance[k]
 
                         if (k === 'ports'){
-                            for (let port in instance.ports) this.ports[port].init(instance.ports[port])
+                            for (let port in instance.ports) {
+                                console.log(this.ports[port], instance.ports[port])
+                                delete instance.ports[port].onUpdate
+                                this.ports[port].init(instance.ports[port])
+                            }
                         }
                     })
 
                     // Set New Class
                     this.class = cls
-                cls.id =  this.ui.code.id // Assign a reliable id to the class
-                settings.target = cls // Update target replacing all matching nodes
+                    cls.id =  this.ui.code.id // Assign a reliable id to the class
+                    settings.target = cls // Update target replacing all matching nodes
+                } else { console.error(`Current ${this.className} not customizeable`) }
             }
 
             settings.target = cls

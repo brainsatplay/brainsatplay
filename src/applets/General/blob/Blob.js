@@ -14,10 +14,6 @@ class Blob{
 
     constructor(info, graph) {
 
-        // Generic Plugin Attributes
-        
-        
-
         // UI Identifier
         this.props = {
             id: String(Math.floor(Math.random()*1000000)),
@@ -259,8 +255,8 @@ class Blob{
     }
 
     deinit = () => {
-
         this.renderer.setAnimationLoop( null );
+        this.props.container.remove()
     }
 
     responsive = () => {
