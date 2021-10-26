@@ -165,13 +165,15 @@ export class DataAtlas {
 	
 	init = async () => {
 
+		let projects = new ProjectManager()
+		await projects.init()
 		// Add Default Analysis Options
 		this.graph = new Graph({
 			nodes: [
 				{name: 'blink', class: Blink}, // Blink Detection
 				{name: 'focus', class: Focus}, // Focus Detection
 			],
-		}, {app:{session:{atlas: this, projects: new ProjectManager()}}}); // top-level graph
+		}, {app:{session:{atlas: this, projects}}}); // top-level graph
 		await this.graph.init()
 
 	}

@@ -172,9 +172,8 @@ export class Editor{
         this.edit.style.display = 'none'
         this.delete.style.display = 'none'
 
-        // this.download.classList.add('disabled')
         this.download.onclick = () => {
-            this.app.session.projects.download(this.app, () => { }, () => { })
+            this.app.session.projects.download(this.app, undefined, () => {this.download.classList.remove('disabled')}, () => {this.download.classList.add('disabled')})
         }
 
         // this.reload.classList.add('disabled')
@@ -210,6 +209,8 @@ export class Editor{
             if (!document.getElementById(this.settings.parentId)) this.settings.parentId = this.app.ui.parent.id
 
             this.filesidebar.header.querySelector('h3').innerHTML = this.app.info.name
+
+            this.download.classList.add('disabled')
 
             this.createSettingsEditor(this.app.info)
 
@@ -253,7 +254,6 @@ export class Editor{
         // Get Template Files
         let templateSet = []
 
-        // if (this.local){
         try {
             for (let key in appletManifest){
                 let o = appletManifest[key]
@@ -263,8 +263,7 @@ export class Editor{
                     else templateSet.push({destination: 'Library', settings})
                 }
             }
-        } catch (e) {console.log('Applets not found', e)}
-        // }
+        } catch (e) {}
 
         Promise.allSettled([...projects,...templateSet]).then(set => {
 
@@ -1260,8 +1259,6 @@ export class Editor{
     }
 
     addNodeOption(classInfo={name:'newplugin', label: 'Add New Plugin', class: this.library.plugins.Blank, category: null, types: []}){
-
-        console.log(classInfo)
         
         if (!('types' in classInfo)) classInfo.types = []
 

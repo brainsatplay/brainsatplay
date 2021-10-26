@@ -1,6 +1,7 @@
 
 import * as brainsatplay from '../libraries/js/brainsatplay'
 window.brainsatplay = brainsatplay // set B@P window variable (like standalone HTML)
+window.brainsatplayPlatform = true
 import {BCIAppManager} from './js/frontend/BCIManager'
 
 // Check if Mobile

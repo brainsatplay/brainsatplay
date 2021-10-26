@@ -18,20 +18,20 @@ export const settings = {
     },
 
     // App Logic
-    graph:
-    {
+    graphs:
+    [{
       nodes: [
         {name: 'eeg', class: brainsatplay.plugins.biosignals.EEG},
         {name: 'neurofeedback', class: brainsatplay.plugins.algorithms.Neurofeedback, params: {}},
         {name: 'brainstorm', class: brainsatplay.plugins.networking.Brainstorm, params: {
 
           onUserConnected: (u) => {
-            let parser = settings.graph.nodes.find(n => n.name === 'parser')
+            let parser = settings.graphs[0].nodes.find(n => n.name === 'parser')
             parser.instance._userAdded(u)
           },
       
           onUserDisconnected: (u) => {
-            let parser = settings.graph.nodes.find(n => n.name === 'parser')
+            let parser = settings.graphs[0].nodes.find(n => n.name === 'parser')
             parser.instance._userRemoved(u)
           },
 
@@ -73,5 +73,5 @@ export const settings = {
           target: 'ui:content'
         },
       ]
-    },
+    }],
 }

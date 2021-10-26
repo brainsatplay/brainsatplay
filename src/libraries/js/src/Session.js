@@ -132,6 +132,7 @@ export class Session {
 		if (initFS) this.initFS();
 
 		this.projects = new ProjectManager(this)
+		this.projects.init()
 	}
 
 	/**
@@ -2385,6 +2386,7 @@ class deviceStream {
 	init = async (info = this.info, pipeToAtlas = this.pipeToAtlas) => {
 
 		return new Promise(async (resolve, reject) => {
+
 			async function findAsync(arr, asyncCallback) {
 				const promises = arr.map(asyncCallback);
 				const results = await Promise.all(promises);

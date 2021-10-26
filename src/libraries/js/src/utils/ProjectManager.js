@@ -2,7 +2,7 @@ import JSZip from 'jszip'
 import fileSaver from 'file-saver';
 import * as experimental from '../../brainsatplay'
 
-let latest = '0.0.36'
+let latest = '0.0.37'
 let cdnLink = `https://cdn.jsdelivr.net/npm/brainsatplay@${latest}`;
 
 import * as blobUtils from './general/blobUtils'
@@ -17,12 +17,9 @@ export class ProjectManager {
             app: null
         }
 
+        this.platform = window.brainsatplayPlatform
         this.latest = latest
         this.script = document.createElement("script");
-
-        this.local = window.location.origin.includes('localhost')
-        if (!this.local) this.version = this.latest
-        else this.version = 'experimental'
 
         // Load Latest B@P Library
         this.libraries = {}
@@ -30,11 +27,9 @@ export class ProjectManager {
         // Organize as a Class Registry
         this.classRegistries = {}
 
-        this.getLibraryVersion(this.version)
-
         // Set Server Connection Variables
         this.serverResolved = true
-        this.publishURL = (this.local) ? 'http://localhost/apps' : 'https://server.brainsatplay.com/apps'
+        this.publishURL = (this.local && this.platform) ? 'http://localhost/apps' : 'https://server.brainsatplay.com/apps'
 
         this.createDefaultHTML = (script) => {
             return `
@@ -51,22 +46,22 @@ export class ProjectManager {
         `}
     }
 
+    init = async () => {
+        this.version = this.latest
+        await this.getLibraryVersion('experimental')
+        if (!this.local && this.platform) await this.getLibraryVersion(this.version)
+    }
+
     getLibraryVersion = async (version='experimental') => {
 
-        if (version != 'experimental' && Number.parseInt(version.split('.')[2]) < 33) version = 'experimental' // FIX: Any lower versions are not supported
-
-        let library = await Promise.resolve(new Promise(resolve => {
+        this.libraries[version] = await Promise.resolve(new Promise(resolve => {
             if (this.libraries[version] == null){
                 if (version === 'experimental') resolve(experimental)
                 else {
                     this.script.src = `https://cdn.jsdelivr.net/npm/brainsatplay@${version}`
                     this.script.async = true;
                     this.script.onload = () => {
-                        console.log('loading version')
-                        if (brainsatplay) {
-                            this.libraries[version] = brainsatplay
-                            resolve(this.libraries[version])
-                        }
+                        if (window.brainsatplay) resolve(window.brainsatplay)
                     }
                     document.body.appendChild(this.script);
                 }
@@ -76,13 +71,15 @@ export class ProjectManager {
         // Organize in a single object
         if (this.classRegistries[version] == null){
             this.classRegistries[version] = {}
-            for (let category in library.plugins){
-                for (let name in library.plugins[category]){
+            for (let category in this.libraries[version].plugins){
+                for (let name in this.libraries[version].plugins[category]){
                     // TODO: Should shift to ID at some point
 
-                    let cls = library.plugins[category][name]
-                    let clsStr = cls.toString().trim()
-                    if (clsStr.slice(0,5) === 'class'){
+                    let cls = this.libraries[version].plugins[category][name]
+                    let clsStr = cls.toString().trim().slice(0,5) === 'class'
+                    let funcStr = cls.toString().trim().slice(0,8) === 'function' // compiled
+
+                    if (clsStr || funcStr){
                         this.classRegistries[version][name] = {
                             name,
                             category, 
@@ -92,8 +89,7 @@ export class ProjectManager {
                 }
             }
         }
-
-        return library
+        return this.libraries[version]
     }
 
     getPlugins = (version) =>{
@@ -352,7 +348,7 @@ app.init()`)
     async download(app, filename = app.info.name ?? 'brainsatplay', onsuccess, onerror) {
         await this.generateZip(app, (zip) => {
             fileSaver.saveAs(zip, `${filename}.zip`);
-        }, onerror)
+        }, onsuccess, onerror)
     }
 
     async publish(app) {
