@@ -20,9 +20,8 @@ brainsatplay.js is compatible with Chromium browsers.
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
 
-##  Featured Applications
-### [Brains@Play Platform](https://app.brainsatplay.com) 
-Our open-source content management system for brainsatplay.js applications.
+####  Brains@Play Platform
+Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content in the Brains@Play ecosystem.
 
 ## Documentation
 To check out live examples and documentation, visit [docs.brainsatplay.com](https://docs.brainsatplay.com/docs/intro).
@@ -36,11 +35,9 @@ The issue list of this repo is exclusively for bug reports and feature requests.
 Detailed changes for each release will be documented in the [release notes](https://github.com/brainsatplay/brainsatplay/releases).
 
 ## Contribution
-It's a free for all for now. More guidelines to come.
+It's a free for all for now. More guidelines to come. Thank you to all the people who already contributed to brainsatplay.js!
 
 If you have a brainsatplay-related project/component/tool, add it with a pull request to [this curated list](https://github.com/brainsatplay/awesome-brainsatplay!)
-
-Thank you to all the people who already contributed to brainsatplay.js!
 
 ## Project Roadmap
 > **Note:** To be translated into several Github Projects boards.
@@ -86,6 +83,3 @@ Implement robust [P300](https://www.frontiersin.org/articles/10.3389/fnins.2017.
 *???*
 
 > See our [Miro Board](https://miro.com/app/board/o9J_lPlYRl4=/) for high-level conceptual diagrams of the project.
-
-## Support
-If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
