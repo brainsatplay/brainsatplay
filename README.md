@@ -16,9 +16,12 @@ brainsatplay.js is compatible with Chromium browsers.
 | Project               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Handle streaming BLE / USB data                       |
+| [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers with GPUjs, Three, pipeline creation, and more.       |   
 
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
+[magicworker]: https://github.com/brainsatplay/magicworker
+[magicworker-status]: https://img.shields.io/npm/v/magicworker
 
 ####  Brains@Play Platform
 Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content in the Brains@Play ecosystem.
@@ -56,6 +59,7 @@ A sleek, modular home [neurofeedback dashboard](https://docs.google.com/document
     - Remove branding from published libraries
 - Robust Google integration
 - Chrome Extension to support integration of neurofeedback into web browsing
+- Redoing every visual to be studio-friendly and more performant with threaded canvases.
 
 ### Documentation
 *February - May 2022*
@@ -68,7 +72,7 @@ Create content around the development of applications using Brains@Play tools. C
 - Session
 - App
 - Editor
-- Wallet
+- Wallet(?)
 - DataAtlas
 - DataStreams (Devices)
 - Plugins
