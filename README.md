@@ -17,11 +17,21 @@ brainsatplay.js is compatible with Chromium browsers.
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Handle streaming BLE / USB data                       |
 | [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers plus GPUjs, single script CPU+GPU pipeline creation, Canvas and ThreeJS utilities, and more.       |   
+| [WebsocketLiveserver] | frontend: [![websocketliveserver-frontend-status]][websocketliveserver] backend: [![websocketliveserver-backend-status]][websocketliveserver] | Library for socket servers featuring user data & communication features, WebRTC and OSC streaming, game room creation, and more to come (WIP but working) |
+| [anotherstatemanager] | [![anotherstatemanager-status]][anotherstatemanager] | Multiple types of state management in one, written for high performance & laziness |
+| [objectlisteners] | [![objectlisteners-status]][objectlisteners] | Customizable event listener system for arbitrary objects.  |
 
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
 [magicworker]: https://github.com/brainsatplay/magicworker
 [magicworker-status]: https://img.shields.io/npm/v/magicworker
+[WebsocketLiveserver]: https://github.com/brainsatplay/websocketliveserver-frontend
+[websocketliveserver-frontend-status]: https://img.shields.io/npm/v/websocketliveserver-frontend
+[websocketliveserver-backend-status]: https://img.shields.io/npm/v/websocketliveserver-backend
+[anotherstatemanager]: https://github.com/brainsatplay/anotherstatemanager
+[anotherstatemanager-status]: https://img.shields.io/npm/v/anotherstatemanager
+[objectlisteners]: https://github.com/brainsatplay/objectlistener
+[objectlisteners-status]: https://img.shields.io/npm/v/objectlisteners
 
 ####  Brains@Play Platform
 Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content in the Brains@Play ecosystem.
