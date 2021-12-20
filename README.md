@@ -45,7 +45,7 @@ brainsatplay.js is compatible with Chromium browsers.
 Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content in the Brains@Play ecosystem.
 
 ## Documentation
-To check out live examples and documentation, visit [docs.brainsatplay.com](https://docs.brainsatplay.com/docs/intro).
+To check out live examples and documentation, visit [docs.brainsatplay.com](https://docs.brainsatplay.com/docs/intro) (needs updating).
 
 ## Support
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
