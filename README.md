@@ -23,6 +23,8 @@ brainsatplay.js is compatible with Chromium browsers.
 | [objectlisteners] | [![objectlisteners-status]][objectlisteners] | Customizable event listener system for arbitrary objects  |
 | [biquadjs] | [![biquadjs-status]][biquadjs] | A simple set of customizable biquad filters for digital signal processing |
 
+[More libraries](https://github.com/brainsatplay)
+
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
 [magicworker]: https://github.com/brainsatplay/magicworker
