@@ -16,7 +16,7 @@ brainsatplay.js is compatible with Chromium browsers.
 | Project               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Handle streaming BLE / USB data                       |
-| [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers with GPUjs, Three, single script CPU+GPU pipeline creation, and more.       |   
+| [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers plus GPUjs, single script CPU+GPU pipeline creation, Canvas and ThreeJS utilities (optional), and more.       |   
 
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
