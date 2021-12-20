@@ -76,6 +76,7 @@ Create content around the development of applications using Brains@Play tools. C
 - DataAtlas
 - DataStreams (Devices)
 - Plugins
+- Community Website
 
 
 ### BCI Features
