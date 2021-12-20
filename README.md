@@ -17,9 +17,11 @@ brainsatplay.js is compatible with Chromium browsers.
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Handle streaming BLE / USB data, modeled after the StreamsAPI, includes WebRTC                       |
 | [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers plus GPUjs, single script CPU+GPU pipeline creation, Canvas and ThreeJS utilities, and more.       |   
+| [gpujsutils]         | [![gpujsutils-status]][gpujsutils] | Utility wrapper for gpujs with a bunch of default functions (primarily GPU FFTs) and some automating for creating gpujs kernels (incl canvas output kernels) |   
 | [WebsocketLiveserver] | frontend: [![websocketliveserver-frontend-status]][websocketliveserver] backend: [![websocketliveserver-backend-status]][websocketliveserver] | Library for socket servers featuring user data & communication features, WebRTC and OSC streaming, game room creation, and more to come (WIP but working) |
 | [anotherstatemanager] | [![anotherstatemanager-status]][anotherstatemanager] | Multiple types of state management in one, written for high performance & laziness |
-| [objectlisteners] | [![objectlisteners-status]][objectlisteners] | Customizable event listener system for arbitrary objects.  |
+| [objectlisteners] | [![objectlisteners-status]][objectlisteners] | Customizable event listener system for arbitrary objects  |
+| [biquadjs] | [![biquadjs-status]][biquadjs] | A simple set of customizable biquad filters for digital signal processing |
 
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
@@ -32,6 +34,10 @@ brainsatplay.js is compatible with Chromium browsers.
 [anotherstatemanager-status]: https://img.shields.io/npm/v/anotherstatemanager
 [objectlisteners]: https://github.com/brainsatplay/objectlistener
 [objectlisteners-status]: https://img.shields.io/npm/v/objectlisteners
+[gpujsutils]: https://github.com/brainsatplay/gpujsutils
+[gpujsutils-status]: https://img.shields.io/npm/v/gpujsutils
+[biquadjs]: https://github.com/brainsatplay/biquadjs
+[biquadjs-status]: https://img.shields.io/npm/v/biquadjs
 
 ####  Brains@Play Platform
 Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content in the Brains@Play ecosystem.
