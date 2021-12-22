@@ -29,7 +29,7 @@ brainsatplay.js is compatible with Chromium browsers.
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
 [magicworker]: https://github.com/brainsatplay/magicworker
 [magicworker-status]: https://img.shields.io/npm/v/magicworker
-[WebsocketLiveserver]: https://github.com/brainsatplay/websocketliveserver-frontend
+[WebsocketLiveserver]: https://github.com/brainsatplay/websocketliveserver
 [websocketliveserver-frontend-status]: https://img.shields.io/npm/v/websocketliveserver-frontend
 [websocketliveserver-backend-status]: https://img.shields.io/npm/v/websocketliveserver-backend
 [anotherstatemanager]: https://github.com/brainsatplay/anotherstatemanager
