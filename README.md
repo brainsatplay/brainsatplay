@@ -20,10 +20,10 @@
 | Project               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Handle streaming BLE / USB data, modeled after the StreamsAPI, includes WebRTC                       |
-| [jsnwb]     | [![jsnwb-status]][jsnwb]                   | Read/write data from Neurodata without Borders files                       |
+| [WebNWB]     | [![webnwb-status]][webnwb]                   | Read/write data from Neurodata without Borders files                       |
 | [magicworker]         | [![magicworker-status]][magicworker] | Multithreading and workers plus GPUjs, single script CPU+GPU pipeline creation, Canvas and ThreeJS utilities, and more.       |   
 | [gpujsutils]         | [![gpujsutils-status]][gpujsutils] | Utility wrapper for gpujs with a bunch of default functions (primarily GPU FFTs) and some automating for creating gpujs kernels (incl canvas output kernels) |   
-| [WebsocketLiveserver] | Frontend [![websocketliveserver-frontend-status]][websocketliveserver] Backend [![websocketliveserver-backend-status]][websocketliveserver] | Library for socket servers featuring user data & communication features, WebRTC and OSC streaming, game room creation, and more to come (WIP but working) |
+| [liveserver] | Frontend [![liveserver-frontend-status]][liveserver] Backend [![liveserver-backend-status]][liveserver] | Library for socket servers featuring user data & communication features, WebRTC and OSC streaming, game room creation, and more to come (WIP but working) |
 | [anotherstatemanager] | [![anotherstatemanager-status]][anotherstatemanager] | Multiple types of state management in one, written for high performance & laziness |
 | [objectlisteners] | [![objectlisteners-status]][objectlisteners] | Customizable event listener system for arbitrary objects  |
 | [biquadjs] | [![biquadjs-status]][biquadjs] | A simple set of customizable biquad filters for digital signal processing |
@@ -32,13 +32,13 @@
 
 [datastreams-api]: https://github.com/brainsatplay/datastreams-api
 [datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
-[jsnwb]: https://github.com/brainsatplay/jsnwb
-[jsnwb-status]: https://img.shields.io/npm/v/jsnwb.svg
+[WebNWB]: https://github.com/brainsatplay/WebNWB
+[webnwb-status]: https://img.shields.io/npm/v/webnwb.svg
 [magicworker]: https://github.com/brainsatplay/magicworker
 [magicworker-status]: https://img.shields.io/npm/v/magicworker
-[WebsocketLiveserver]: https://github.com/brainsatplay/websocketliveserver
-[websocketliveserver-frontend-status]: https://img.shields.io/npm/v/websocketliveserver-frontend
-[websocketliveserver-backend-status]: https://img.shields.io/npm/v/websocketliveserver-backend
+[liveserver]: https://github.com/brainsatplay/liveserver
+[liveserver-frontend-status]: https://img.shields.io/npm/v/liveserver-frontend
+[liveserver-backend-status]: https://img.shields.io/npm/v/liveserver-backend
 [anotherstatemanager]: https://github.com/brainsatplay/anotherstatemanager
 [anotherstatemanager-status]: https://img.shields.io/npm/v/anotherstatemanager
 [objectlisteners]: https://github.com/brainsatplay/objectlistener
