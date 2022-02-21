@@ -1,5 +1,5 @@
 
-# brainsatplay.js
+# brainsatplay
 [![AGPLv3 License](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Version](https://img.shields.io/npm/v/brainsatplay.svg?sanitize=true)](https://www.npmjs.com/package/brainsatplay)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
