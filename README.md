@@ -4,20 +4,35 @@
 [![Version](https://img.shields.io/npm/v/brainsatplay.svg?sanitize=true)](https://www.npmjs.com/package/brainsatplay)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-**brainsatplay** is an open-source ecosystem for participating in neuroscience research on the browser.
+**brainsatplay** is a reliable high-performance computing toolkit for the Open Web.
 
-#### Priorities
-1. Reintegrate with new libraries
-2. Implement robust [P300](https://www.frontiersin.org/articles/10.3389/fnins.2017.00109/full), [SSVEP](https://ieeexplore.ieee.org/document/8553012), motor imagery, and general [artifact rejection](https://gitlab.ciirc.cvut.cz/open-source/rps) algorithms. 
+## Use-Case
+If your project is a **progressive web app** that **analyzes real-time data streams or large amounts of data** and **displays frontend code that changes intermittently in response to computational outputs**, consider using **brainsatplay** to manage your computational workflows.
 
-#### Browser Compatibility
-**brainsatplay** is most compatible with Chromium browsers.
+### Brains
+You have 32 channels of EEG data streaming over Web Serial and need to compute FFTs in real-time without impacting an animation that is changing to the beta band.
 
-####  Brains@Play Platform
-Visit the [Brains@Play Platform](https://app.brainsatplay.com) to access and create content for the Brains@Play ecosystem.
+> **Note:** Insert a benchmark of the BCI performance on the frontend and all your available networking schemes
+
+### General
+???
+
+## Features
+- Simple threading and offloading framework
+- Support for the Data Capture and Streams API
+- Hooks for frontend code to respond to data
+
+## Tech Stack
+### Core
+- Typescript
+- RxJS (?)
+- Deno
+
+### Examples
+- Svelte
 
 ## Documentation
-To check out live examples and documentation, visit [docs.brainsatplay.com](https://docs.brainsatplay.com/docs/intro) (needs updating).
+To check out live examples and documentation, visit [docs.brainsatplay.com](https://docs.brainsatplay.com/docs/intro).
 
 ## Support
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
@@ -30,4 +45,4 @@ Detailed changes for each release will be documented in the [release notes](http
 ## Contribution
 It's a free for all for now. More guidelines to come. Thank you to all the people who already contributed to **brainsatplay**!
 
-If you have a **brainsatplay**-related project/component/tool, add it with a pull request to [this curated list](https://github.com/brainsatplay/awesome-brainsatplay!)
+If you have a **brainsatplay**-related project, add it with a pull request to [this curated list](https://github.com/brainsatplay/awesome-brainsatplay!)
