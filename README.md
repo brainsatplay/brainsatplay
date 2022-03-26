@@ -1,9 +1,18 @@
 # brainsatplay
+**brainsatplay** is a browser-centered concurrency framework for high-performance computing and inter-process communication with real-time data streams.
 
-> **Note:** The `legacy` branch contains a record of the original brainsatplay library (<= v0.0.36).
+This repository is the core of the [Brains@Play project](https://github.com/brainsatplay/project) for developing **an ecosystem of AGPL software infrastructure for participating in biomedical research** on the Open Web
 
-## To Do
+> **Note:** The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
+
+## Documentation
+Coming soon at https://docs.brainsatplay.com
+
+## Roadmap
+- Add datastreams-api devices as another type of endpoint
+- Thread arbitrary analyses
 - Simplify the monorepo and its conventions. Then provide appropriate contributor documentation.
+- Integrate LSL (lsl-wasm)
 - 
 
 ## Concepts
@@ -24,14 +33,14 @@ npm install brainsatplay
 import * as brainsatplay from 'brainsatplay'
 ```
 
-##### CommonJS (Not Yet Supported)
+##### CommonJS
 ```javascript
 const brainsatplay = require('brainsatplay')
 ``` 
 
 #### Browser
 ```html
-<script src="https://cdn.jsdelivr.net/npm/brainsatplay"></script>
+<script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest"></script>
 ```
 
 ## Support
