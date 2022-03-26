@@ -1,1 +1,0 @@
-Audio graciously provided by Adam Hewett from Evoked Response (https://www.evokedresponse.com/index.html#)

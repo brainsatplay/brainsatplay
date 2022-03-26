@@ -10,5 +10,6 @@
   command = "npm run build"
 
 [context.main]
-  publish = "dist/"
+  base = "docs"
+  publish = "build/"
   command = "npm run build"

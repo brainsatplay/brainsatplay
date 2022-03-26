@@ -1,0 +1,162 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+ .terminal {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  background : black;
+  height: 150px;
+  width: 100vw;
+  color: white;
+  padding: 25px;
+  padding-top: 45px;
+  overflow: scroll;
+  z-index: 1000;
+ }
+
+ .terminal::before {
+   content: 'Output';
+   position: absolute;
+   padding: 5px 25px;
+   font-size: 80%;
+   /* transform: translateY(-100%); */
+   top: 0;
+   left: 0;
+   width: 100vw;
+   background: rgb(24, 24, 24);
+ }
+
+ .video {
+   width: 300px;
+   height: 150px;
+ }
+
+ .conference {
+    width: 300px;
+ }
+
+
+ .overlay {
+    background: black;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    padding: 25px;
+    transition: opacity 0.5s;
+  }
+
+  .flex {
+    display:flex;
+    padding: 10px 0px;
+  }
+
+  .flex > * {
+    margin: 0px;
+    margin-right: 25px
+  }
+
+  .flex > *:last-child {
+    margin-right: 0px
+  }
+
+  .gallery {
+    overflow-y: scroll;
+    display: flex;
+    flex-wrap:wrap;
+  }
+
+.on {}
+
+ .overlay.on {
+  opacity: 1;
+  pointer-events: all;
+ }
+
+ .nav {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   padding: 10px;
+ }
+
+ .nav button {
+   flex-grow: 1;
+   min-width: 100px;
+   margin: 4px 2px;
+   padding: 5px 15px;
+   border: 1px solid white;
+   border-radius: 10px;
+   cursor: pointer;
+ }
+
+ .container {
+  display: flex;
+  flex-wrap: wrap;
+  /* align-items: center; */
+  padding: 25px;
+  background: white;
+  /* position: relative; */
+  overflow: hidden;
+}
+
+/* .container .div{
+    flex: 50%;
+    max-width: 300px;
+    padding: 10px;
+    z-index: 1;
+    height: 100%;
+    max-height: calc(100vh - 175px);    
+    overflow-y: scroll;
+} */
+
+
+.container canvas {
+  background: black; flex-grow: 1; margin: 25px;
+}
+
+.deviceDiv {
+  padding: 15px 25px;
+  margin: 10px;
+  background: gray;
+  color: white;
+  border-radius: 10px;
+  border: 1px solid white;
+  flex: 200px;
+}
+
+.deviceDiv span{
+  font-weight: 700;
+}
+
+.deviceDiv > div{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0px;
+}
+
+/* .deviceDiv > div > * {
+  width: 100%;
+} */
+
+
+.deviceDiv > div > *:first-child{
+  width: 100px;
+  text-align: right;
+  padding-right: 15px;
+}
+
+.deviceDiv > div > *:last-child{
+  /* padding-left: 25px; */
+  width: 100%;
+}

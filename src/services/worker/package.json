@@ -1,0 +1,16 @@
+{
+  "name": "brainsatplay-workers",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "type":"module",
+  "repository": "https://github.com/brainsatplay/brainsatplay",
+  "author": "Joshua Brewster, Garrett Flynn",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "scripts": {
+    "package": "webpack --config browser.config.js --mode production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+  }
+}

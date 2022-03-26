@@ -4,30 +4,32 @@ import styles from './HomepageFeatures.module.css';
 
 const FeatureList = [
   {
-    title: 'Design your Mind',
-    Svg: require('../../static/img/thoughtprocess.svg').default,
+    title: 'Easy to Use',
+    Svg: require('../../static/img/undraw_docusaurus_mountain.svg').default,
     description: (
       <>
-        Brains@Play was created to support anyone in their development of brain-responsive applications.
+        Docusaurus was designed from the ground up to be easily installed and
+        used to get your website up and running quickly.
       </>
     ),
   },
   {
-    title: 'Connect to the Brainstorm',
-    Svg: require('../../static/img/connection.svg').default,
+    title: 'Focus on What Matters',
+    Svg: require('../../static/img/undraw_docusaurus_tree.svg').default,
     description: (
       <>
-        Brains@Play is the only neurotechnology framework to encourage and build community around social applications.
+        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
+        ahead and move your docs into the <code>docs</code> directory.
       </>
     ),
   },
   {
-    title: 'Play with Everyone',
-    Svg: require('../../static/img/accessibility.svg').default,
+    title: 'Powered by React',
+    Svg: require('../../static/img/undraw_docusaurus_react.svg').default,
     description: (
       <>
-        Brains@Play automates the accessibility of your app and supports 
-        increased agency of those with neurological deficits.
+        Extend or customize your website layout by reusing React. Docusaurus can
+        be extended while reusing the same header and footer.
       </>
     ),
   },

@@ -1,0 +1,31 @@
+{
+  "name": "brainsatplay-database",
+  "version": "0.0.38",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/services/database/index.d.ts",
+  "repository": "https://github.com/brainsatplay/brainsatplay",
+  "author": "Joshua Brewster, Garrett Flynn",
+  "license": "AGPL-3.0-or-later",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build":  "rollup -c && tsc",
+    "esbuild": "node bundler.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "brainsatplay-data": "^0.0.47",
+    "brainsatplay-storage": "^0.0.19",
+    "bson-objectid": "^2.0.2",
+    "esbuild": "^0.14.23",
+    "esbuild-plugin-d.ts": "^1.1.0"
+  },
+  "devDependencies": {
+    "rollup": "^2.68.0",
+    "esbuild": "^0.14.23",
+    "esbuild-plugin-d.ts": "^1.1.0",
+    "tslib":"^2.3.1"
+  }
+}

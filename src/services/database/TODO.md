@@ -1,0 +1,4 @@
+- notify all endpoints for users given notification structs
+- create a secondary secure login structure so that whoever submits their user object is more likely their user
+- end to end AES encryption, owners store API keys
+- make sure structs actually update in the correct order or just set a hard limit on the user's update rate, e.g. writing two comments at the same time can make it so one result overwrite the other and then only one reply id gets saved to mongodb, not a problem with local db because it's not async. It shouldn't even be a problem logically but it seems to be present, will matter more with threading for sure though.

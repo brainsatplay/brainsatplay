@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+      /* -- Basic Options -- */
+      "target": "es5", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */
+      "rootDir": "./", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+      "outDir": "dist/", /* Redirect output structure to the directory. */
+      "module": "es2020", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
+      "declaration": true, /* Generates corresponding '.d.ts' file. */
+      "lib": ["webworker", "es5", "dom", "scripthost"],
+      "importHelpers": true, /* Import emit helpers from 'tslib'. */
+    //   "noEmitHelpers": true,
+      "pretty": true, /* Stylize errors and messages using color and context (experimental). */
+      "jsx": "react", /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
+      "downlevelIteration": true,
+      "allowJs": true,
+      "experimentalDecorators": true,
+
+      /* -- For Parallel Typechecking -- */
+      "skipLibCheck": true,
+
+      /* -- Strict Type-Checking Options -- */
+      // "alwaysStrict": true, /* Parse in strict mode and emit "use strict" for each source file. */
+      // "noFallthroughCasesInSwitch": false, /* Report errors for fallthrough cases in switch statement. */
+      // "noImplicitAny": true, /* Raise error on expressions and declarations with an implied 'any' type. */
+      // "noImplicitReturns": true, /* Report error when not all code paths in function return a value. */
+      // "noImplicitThis": true, /* Raise error on 'this' expressions with an implied 'any' type. */
+      // "noUnusedLocals": true, /* Report errors on unused locals. */
+      // "noUnusedParameters": true, /* Report errors on unused parameters. */
+      // "strict": true, /* Enable all strict type-checking options. */
+      // "strictFunctionTypes": true, /* Enable strict checking of function types. */
+      // "strictNullChecks": true, /* Enable strict null checks. */
+      // "strictPropertyInitialization": true, /* Ensure non-undefined class properties are initialized in the constructor. */
+      "esModuleInterop": true,
+
+      /* -- Module Resolution Options -- */
+      "moduleResolution": "node",
+      "typeRoots": [
+          "./node_modules/@types",
+          "./**/@types"
+      ],
+      
+      "inlineSourceMap": true,
+      "baseUrl": "./",
+  },
+  "exclude": [
+      "**/node_modules/**",
+      "./docs",
+      "**/__test__/**",
+      "**/dist/**",
+  ],
+  "include": ["src"],
+}

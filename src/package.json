@@ -1,0 +1,11 @@
+{
+  "name": "@brainsatplay/monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "**"
+  ],
+  "engines": {
+    "node": ">=16"
+  }
+}
