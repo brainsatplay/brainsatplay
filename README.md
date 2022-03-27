@@ -53,7 +53,7 @@ const brainsatplay = require('brainsatplay')
 - Thread arbitrary analyses
 - Simplify the monorepo and its conventions. Then provide appropriate contributor documentation.
 - Integrate LSL (lsl-wasm)
-- Clarify the possibilities of liveserver as a remote procedure call (RPC) handler and an inter-process communication (IPC) framework.
+- Clarify the possibilities of brainsatplay as a remote procedure call (RPC) handler and an inter-process communication (IPC) framework.
 - WebTorrent integration for creating P2P file servers
 
 ## Support
