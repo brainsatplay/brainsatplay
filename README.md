@@ -48,13 +48,5 @@ const brainsatplay = require('brainsatplay')
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest"></script>
 ```
 
-## Roadmap
-- Add datastreams-api devices as another type of endpoint
-- Thread arbitrary analyses
-- Simplify the monorepo and its conventions. Then provide appropriate contributor documentation.
-- Integrate LSL (lsl-wasm)
-- Clarify the possibilities of brainsatplay as a remote procedure call (RPC) handler and an inter-process communication (IPC) framework.
-- WebTorrent integration for creating P2P file servers
-
 ## Support
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
