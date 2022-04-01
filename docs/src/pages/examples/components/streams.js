@@ -8,34 +8,39 @@ export default function StreamsExample({ server, endpoints, router, id }) {
   const video = useRef(null);
   const audio = useRef(null);
   const start = useRef(null);
+  const graph = useRef(null);
 
   // const audio = useRef(null);
 
 
   useEffect(async () => {
-    
-    let synthetic = await import('@brainsatplay/device/dist/module')
-    if (synthetic.default) synthetic = synthetic.default
-    const datastreams = await import('datastreams-api/dist/index.esm')
+    const ganglion = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/ganglion@0.0.2/dist/index.esm.js")).default
+    const muse = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/muse@0.0.1/dist/index.esm.js")).default
+    const device = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/device@0.0.2/dist/index.esm.js")).default
+    const hegduino = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/hegduino@0.0.4/dist/index.esm.js")).default
+    // let synthetic = await import('@brainsatplay/device/dist/module')
+    // if (synthetic.default) synthetic = synthetic.default
+    const datastreams = await import('https://cdn.jsdelivr.net/npm/datastreams-api@latest/dist/index.esm.js')
+    const dataDevices = new datastreams.DataDevices()
+    console.log(dataDevices, datastreams)
+    dataDevices.load(muse)
+    dataDevices.load(device)
+    dataDevices.load(ganglion)
+    dataDevices.load(hegduino)
 
 
     const pseudo = document.createElement('button')
     pseudo.click()
 
     // const synthetic = await import('@brainsatplay/device')
-    const components = await import('../../../../libraries/brainsatplay-components/dist/module')
+    const components = await import("https://cdn.jsdelivr.net/npm/brainsatplay-ui@0.0.7/dist/index.esm.js")  
+    // const components = await import('../../../../libraries/brainsatplay-components/dist/module')
     // import RouteDisplay from '../routeDisplay';
-    console.log(datastreams)
-    console.log(synthetic)
+    console.log(components)
 
-    // const muse = await import('../../../../libraries/muse/dist/module.js')
-
-    const volume = new components.Volume()
+    const volume = new components.streams.audio.Volume()
     audio.current.insertAdjacentElement('beforeend', volume)
-
-    const dataDevices = new datastreams.DataDevices()
-
-    dataDevices.getUserDevice({ audio: true }).then((device) => {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
 
       // TODO: Fix DataStreams-API for Audio
       const context = new AudioContext();
@@ -52,14 +57,14 @@ export default function StreamsExample({ server, endpoints, router, id }) {
       var gainNode = context.createGain(); // Create a gain node to change audio volume.
       // gainNode.gain.value = 1.0;  
 
-      const microphone = context.createMediaStreamSource(device.stream);
+      const microphone = context.createMediaStreamSource(stream);
       microphone.connect(filterNode);
       filterNode.connect(gainNode);
       // microphone.connect(gainNode);
       gainNode.connect(analyser);
       // analyser.connect(context.destination); // NOTE: Comment out to block microphone audio
 
-      device.stream.onended = () => {
+      stream.onended = () => {
         microphone.disconnect();
         gainNode.disconnect();
         filterNode.disconnect()
@@ -81,17 +86,86 @@ export default function StreamsExample({ server, endpoints, router, id }) {
       if (volumeCallback !== null && volumeInterval === null) volumeInterval = setInterval(volumeCallback, 100);
     })
 
-    dataDevices.getUserDevice({ video: true }).then((device) => {
-      video.current.srcObject = device.stream
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.current.srcObject = stream
       video.current.autoplay = true
     }).catch(console.error)
 
 
     // const devices = await dataDevices.getSupportedDevices()
 
+        // ------------- Setup Visualization (very rough) -------------
+        graph.current.style.padding = '25px'
+        const timeseries = new components.streams.data.TimeSeries()
+        graph.current.insertAdjacentElement('beforeend', timeseries)
+        
+        // ------------- Add Custom Route -------------
+        router.post({
+          route: 'unsafe/createRoute',
+          endpoint: endpoints[0]
+        }, {route: 'manipulateDataStream', post: (Router, args, origin) => {
+          return args[0].map(v => 1000*v)
+        }}).then(res => {
+          if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+          else output.current.innerHTML = res.error
+        }).catch(err => {
+          output.current.innerHTML = err.error
+        })
+
+        // ------------- Declare Global Variables -------------
+        let channels = 0
+        let trackMap = new Map()
+        let contentHintToIndex = {}
+        
+        // ------------- Declare Data Handler -------------
+        const ondata = (data, timestamps, contentHint) => {
+          console.log(`Data from Electrode ${contentHintToIndex[contentHint]} (${contentHint})`, data, timestamps)
+
+          // Use the Router
+          router.post({
+            route: 'manipulateDataStream',
+            endpoint: endpoints[0]
+          }, data, timestamps, contentHint).then(res => {
+            if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+            else output.current.innerHTML = res.error
+          }).catch(err => {
+            output.current.innerHTML = err.error
+          })
+      }
+  
+      // ------------- Declare Track Handler -------------
+      const handleTrack = (track) => { 
+  
+          // ------------- Map Track Information (e.g. 10-20 Coordinate) to Index -------------
+          if (!trackMap.has(track.contentHint)) {
+              const index = trackMap.size
+              contentHintToIndex[track.contentHint] = index
+              trackMap.set(index, track)
+          }
+          
+          // ------------- Grab Index -------------
+          const i = contentHintToIndex[track.contentHint]
+          channels = (i > channels) ? i : channels // Assign channels as max track number
+  
+          // ------------- Subscribe to New Data -------------
+          track.subscribe((data, timestamps) => {
+  
+              // Organize New Data
+              let arr = []
+              for (let j = 0 ; j <= channels; j++) (i === j) ? arr.push(data) : arr.push([])
+  
+              // Add Data to Timeseries Graph
+              timeseries.data = arr
+              timeseries.draw() // FORCE DRAW: Update happens too fast for UI
+  
+              // Run ondata Callback
+              ondata(data, timestamps, track.contentHint)
+          })
+      }
+      
     start.current.onclick = () => {
 
-      dataDevices.getUserDevice(synthetic).then((device) => {
+      dataDevices.getUserDevice({label: 'device'}).then((device) => {
 
         console.log(
           'Data',
@@ -99,6 +173,9 @@ export default function StreamsExample({ server, endpoints, router, id }) {
           device.stream,
           device.stream.getDataTracks()[0]
         )
+        const stream = device.stream
+        stream.tracks.forEach(handleTrack)
+        stream.onaddtrack = e => handleTrack(e.track)
 
       }).catch(console.error)
 
@@ -109,15 +186,20 @@ export default function StreamsExample({ server, endpoints, router, id }) {
 
   return (
     <header className={clsx('hero hero--primary')}>
-      <div className={'container'}>
+        <div>
+          <p>This example processes data from the <strong>datastreams-api</strong> unsafely on the server.</p>
+          <button ref={start}>Start</button>
+        </div>
         <div className={styles.conference}>
           <video ref={video} className={styles.video}></video>
           <div ref={audio}>
           </div>
-          <button ref={start}>Start</button>
         </div>
+
+        <div ref={graph}>
+        </div>
+
         <div className={styles.terminal}><span ref={output}></span></div>
-      </div>
     </header>
   );
 }

@@ -50,6 +50,12 @@ export class Router {
           return 'pong';
       }
   },
+  {   
+    route: 'echo',
+    post:(Router,args,origin) => {
+        return args;
+    }
+},
   { //return a list of services available on the server
     route: 'services/**', 
     get: {
