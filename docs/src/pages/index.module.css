@@ -5,7 +5,7 @@
 
  .heroBanner {
   padding: 4rem 0;
-  text-align: left;
+  text-align: center;
   position: relative;
   overflow: hidden;
   color: white;
@@ -24,5 +24,5 @@
 .buttons {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
 }
