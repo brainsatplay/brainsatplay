@@ -1,5 +1,5 @@
 # brainsatplay
-High-performance computing on real-time data streams
+High-Performance Computing on Real-Time Data
 
 This repository is the core of the [Brains@Play project](https://github.com/brainsatplay/project) for developing **an ecosystem of AGPL software infrastructure for participating in biomedical research** on the Open Web
 
