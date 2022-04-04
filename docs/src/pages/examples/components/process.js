@@ -18,6 +18,7 @@ export default function ProcessExample({server, endpoints, router}) {
     const parent = new graph.Process(null, null, true)
     const upstream = new graph.Process(null, null, true)
     const func = (self, input) => {
+      console.log('Increment Value', self.get('increment'), self.get('increment')?.value)
         return input + self.get('increment')?.value
     }
     const internal = new graph.Process(func, null, true)

@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'brainsatplay',
-  tagline: 'High-performance computing on real-time data streams.',
+  tagline: 'High-Performance Computing on Real-Time Data',
   url: 'https://brainsatplay.com',
   baseUrl: '/',
   onBrokenLinks: 'warn',

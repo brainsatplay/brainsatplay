@@ -8,12 +8,29 @@ export default class Process {
     targets: {[x:string]:Process} = {}; // External processs
     parent: Process | null;
     debug: boolean;
-    value: any;
 
+    // Latest Process Output
+    _value: any; 
+    set value(input) {
+        this._send(input)
+    }
+    get value() {
+        return this._value
+    }
+
+    // Process Operator
+    _operator: Function;
+    set operator(input) {
+        this._operator = input
+        if (!(this._operator instanceof Function)) this.value = this._operator
+    }
+    get operator () {
+        return this._operator
+    }
 
     constructor(operator?: Function | any, parent: Process = null, debug: boolean = false){
         
-        this.value = operator
+        this.operator = operator
         if (parent) parent.add(this)
 
         this.debug = debug
@@ -32,8 +49,6 @@ export default class Process {
     
     resize = ()  => { this.onresize() }
     
-    transform: Function = (self, input) => input
-
     // Basic Map Functions
     get = (id:string) => this.processes.get(id)
     set = ( id?: string, target?: any ) => {
@@ -98,32 +113,34 @@ export default class Process {
 
     // --------------------- Push Data In ---------------------
     run = async (input:any) => {
-        console.log('Running ' + this.id)
         return await this._onrun(input)
     }
 
     _onrun: (input:any) => void = async (input) => {
 
         // Step #1: Transform Inputs into Single Output
-        // if (this.debug) console.log(`Input (${this.id}) : ${input}`)
+        if (this.debug) console.log(`Input (${this.id}) : ${input}`)
         let output;
-        if (this.value instanceof Function) {
-            output = this.value(this.parent, input) // Parent contains all the information
-        } else {
-            // if (this.debug) console.log(`Previous Value (${this.id}) : ${this.value}`)
-            this.value = input // set value as input if appropriate
-            output = this.value
-            // if (this.debug) console.log(`New Value (${this.id}) : ${this.value}`)
-        }
-        // if (this.debug) console.log(`Output (${this.id}) : ${output}`)
+        output = (this._operator instanceof Function) ? await this._operator(this.parent, input) : this._operator = input
+        if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
-        // Step #2: Pass Output to Connected Processs
-        const keys = Object.keys(this.targets)
-        if (keys.length > 0) {
-            const promises = keys.map(id => this.targets[id].run(output))
-            return await Promise.all(promises)
-        } else return output
+        // Step #2: Try to Send Output to Connected Processsall(promises)
+        return await this._send(output)
     };
+
+    // Only send if different
+    _send = async (output:any) => {
+        if (this._value !== output) this._notify(output)
+        else return output
+    }
+
+    // Notify target Processes
+    _notify = async (output:any) => {
+        this._value = output // Set value to output
+        const keys = Object.keys(this.targets)
+        if (keys.length > 0) return await Promise.all(keys.map(id => this.targets[id].run(output)))
+        else return output
+    }
 
 
     // ------------- Helper Functions -------------
@@ -148,14 +165,11 @@ export default class Process {
             id: this.id, 
             targets: [], 
             processes: {}, 
-            value: this.value
+            operator: this._operator
         }
 
         this.processes.forEach((process,k) => o.processes[k] = process.export())
-        for (let k in this.targets) {
-            console.log('Export Target', k)
-            o.targets.push(k)
-        }
+        for (let k in this.targets) o.targets.push(k)
 
         return o
     }
@@ -193,6 +207,6 @@ export default class Process {
             })
         }
 
-        this.value = o.value
+        this.operator = o.operator
     }
 }
