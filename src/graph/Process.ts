@@ -1,4 +1,5 @@
 import { randomId } from "../common/id.utils";
+import { getParams } from '../common/parse.utils';
 
 export default class Process {
 
@@ -10,7 +11,7 @@ export default class Process {
     debug: boolean;
 
     // Latest Process Output
-    _value: any; 
+    private _value: any; 
     set value(input) {
         this._send(input)
     }
@@ -19,8 +20,16 @@ export default class Process {
     }
 
     // Process Operator
-    _operator: Function;
+    private _operator: Function;
     set operator(input) {
+        // Create Static Processes for Function Arguments (skipping (1) self and (2) input)
+        
+        this.processes = new Map()
+        const args = getParams(input)
+        args.slice(2).forEach(o => {
+            this.set(o.name, args[o.default])
+        }) // Set to default value
+
         this._operator = input
         if (!(this._operator instanceof Function)) this.value = this._operator
     }
@@ -51,10 +60,26 @@ export default class Process {
     
     // Basic Map Functions
     get = (id:string) => this.processes.get(id)
-    set = ( id?: string, target?: any ) => {
-        const process = (target instanceof Process ) ? target : new Process(target, this, this.debug)
-        this.processes.set(id, process)
-        process.parent = this // setting parent
+    set = ( id?: string, input?: any ) => {
+        let process = this.processes.get(id)
+
+        // Update Operator 
+        if (process) {
+            
+            // Swap Operators if Input = Process
+           if (input instanceof Process) {
+               process.operator = input.operator
+               input.id = process.id // swap ids
+           }
+           // Set as Operator
+           else process.operator = input
+        }
+        // Create Process
+        else {
+            process = (input instanceof Process ) ? input : new Process(input, this, this.debug)
+            this.processes.set(id, process)
+            process.parent = this // setting parent
+        }
         return process
     }
 
@@ -116,29 +141,37 @@ export default class Process {
         return await this._onrun(input)
     }
 
-    _onrun: (input:any) => void = async (input) => {
+    private _onrun: (input:any) => void = async (input) => {
 
         // Step #1: Transform Inputs into Single Output
         if (this.debug) console.log(`Input (${this.id}) : ${input}`)
         let output;
-        output = (this._operator instanceof Function) ? await this._operator(this.parent, input) : this._operator = input
+        const args = Array.from(this.processes).map(a => a[1].value)
+        output = (this.operator instanceof Function) ? await this.operator(this.parent, input, ...args) : this.operator = input
         if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
         // Step #2: Try to Send Output to Connected Processsall(promises)
         return await this._send(output)
     };
 
-    // Only send if different
-    _send = async (output:any) => {
-        if (this._value !== output) this._notify(output)
+    // Only Send if Different
+    private _send = async (output:any) => {
+        console.log('Trying to send', output, this._value)
+        if (this._value !== output) return await this._notify(output)
         else return output
     }
 
-    // Notify target Processes
-    _notify = async (output:any) => {
-        this._value = output // Set value to output
+    // Notify Target Processes (if not a NaN)
+    private _notify = async (output:any) => {
+        console.log('Trying to notify', output, this._value)
+
+        if (!isNaN(output)) this._value = output // Set value to output
         const keys = Object.keys(this.targets)
-        if (keys.length > 0) return await Promise.all(keys.map(id => this.targets[id].run(output)))
+        console.log('Targets', keys)
+        if (keys.length > 0) return await Promise.all(keys.map(id => {
+            console.log('Running', this.targets[id])
+            return this.targets[id].run(output)
+        }))
         else return output
     }
 
@@ -151,10 +184,11 @@ export default class Process {
         const list = document.createElement('ul')
         this.processes.forEach((process,k) => {
             const li = document.createElement('li')
-            li.innerHTML = `${k} - ${process.id}`
+            li.innerHTML = `${k} (${process.id}) - ${process.value}`
             process.list(li)
             list.insertAdjacentElement('beforeend', li)
         })
+
         el.insertAdjacentElement('beforeend', list)
 
     }
@@ -165,7 +199,7 @@ export default class Process {
             id: this.id, 
             targets: [], 
             processes: {}, 
-            operator: this._operator
+            operator: this.operator
         }
 
         this.processes.forEach((process,k) => o.processes[k] = process.export())
@@ -174,8 +208,8 @@ export default class Process {
         return o
     }
 
-    // Load a parsed JSON Process
-    load = (
+    // Import a parsed JSON Process
+    import = (
         o:any = {}, 
         registry =  {
             processes: {},
@@ -186,16 +220,17 @@ export default class Process {
         registry.processes[o.id] = this
         registry.targets[o.id] = []
 
+        // Derive Processes from Operator
+        this.operator = o.operator
+
         // Instantiate Internal Processes
         if (o?.processes){
             for (let k in o.processes) {
-                const p = new Process(null, this, this.debug)
-                p.load(o.processes[k], registry)
+                const p = new Process(o.processes[k]?.operator, this, this.debug)
+                p.import(o.processes[k], registry)
                 this.set(k, p)
             }
         }
-
-        registry.targets[o.id] = o.targets
 
         // Link to External Targets
         registry.targets[o.id] = o.targets
@@ -203,10 +238,54 @@ export default class Process {
         // Instantiate Links (if top)
         if (!this.parent) for (let id in registry.targets) {
             registry.targets[id].forEach(targetId => {
+                console.log('Process to subscribe', registry.processes[id])
+                console.log('Process to target', registry.processes[targetId])
                 registry.processes[id].subscribe(registry.processes[targetId])
             })
         }
-
-        this.operator = o.operator
     }
+
+        // Load module as Processes
+        load = (o: Object | string) => {
+
+            // Get URLs
+            if (typeof o === 'string') o = fetch(o)
+    
+    
+            if (typeof o === 'object'){
+    
+                let drill = (o:Object) => {
+                    for (let k in o) {
+                        const isClass = (v) => typeof v === 'function' && /^\s*class\s+/.test(v.toString());
+    
+                        // Load Class
+                        if (o[k] instanceof Function && isClass(o[k])){
+    
+                                try {
+                                    const inst = new o[k]()
+                                    console.warn('Loaded', inst)
+                                    const p = new Process(null, this, this.debug)
+                                    p.load(inst)
+                                    this.set(k, p)
+                                    // drill(inst)
+                                } catch (e) {
+                                    console.error( 'Cannot instantiate class ' + o[k].name , e)
+                                }
+    
+                                console.error( 'TODO: Get constructor arguments' )
+    
+                        } 
+                        
+                        // Load Standard Function
+                        else {
+                            console.log(o[k])
+                            const p = new Process(o[k], this, this.debug)
+                            this.set(k, p)
+                        }
+                    }
+                }
+    
+                drill(o)
+            }
+        }
 }

@@ -61,6 +61,19 @@ export function getParamNames(func: Function) {
 }
 
 
+// New Function to Include Default Values
+export function getParams(fn: Function) {
+  if (fn && fn instanceof Function && fn.toString()){
+    var result = getParamNames(fn)
+  return result.reduce(function (parameters, param) {          // Convert it into an object
+    const matchVals = param.match(/([_$a-zA-Z][^=]*)(?:=([^=]+))?/); // Split parameter name from value
+    parameters.push({name: matchVals[1].trim(), default: eval(matchVals[2])})// Eval each default value, to get strings, variable refs, etc.
+    return parameters;
+  }, []);
+  } else return []
+}
+
+
 export function parseFunctionFromText(method='') {
   //Get the text inside of a function (regular or arrow);
   let getFunctionBody = (methodString) => {
