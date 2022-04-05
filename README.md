@@ -45,6 +45,9 @@ random.run() // Initialize the random value
 add.run(2)
 ```
 
+To offload a `Process` to a Web Worker:
+*Coming soon*
+
 
 ### Router
 *coming soon...*
