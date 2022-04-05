@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
-import * as graph from './../../../../../src/graph';
+import * as brainsatplay from './../../../../../src/graph';
 
 export default function ProcessExample({server, endpoints, router}) {
   
@@ -18,7 +18,7 @@ export default function ProcessExample({server, endpoints, router}) {
       // console.log(datastreams)
     // import * as graph from "./dist/index.esm.js"
     // ---------------- Create Processs ----------------
-    const parent = new graph.Process(null, null, true)
+    const parent = new brainsatplay.Process(null, null, true)
 
     const func = (self, input, increment, multiplier) => {
         const output = multiplier * (input + increment)
@@ -26,10 +26,10 @@ export default function ProcessExample({server, endpoints, router}) {
         return output
     }
 
-    const upstream = new graph.Process(func, null, true)
+    const upstream = new brainsatplay.Process(func, null, true)
 
-    // const internal = new graph.Process(func, null, true)
-    const downstream = new graph.Process((self, input) => {
+    // const internal = new brainsatplay.Process(func, null, true)
+    const downstream = new brainsatplay.Process((self, input) => {
         const output = input + 1
         terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`)
         return output
@@ -58,13 +58,13 @@ export default function ProcessExample({server, endpoints, router}) {
     const exported = parent.export()
 
     // Load the Exported Process
-    const imported = new graph.Process(null, null, true)
+    const imported = new brainsatplay.Process(null, null, true)
     imported.import(exported)
     imported.list(copy.current)
     console.log(imported, exported)
 
     // Load a Module
-    // const loaded = new graph.Process(null, null, true)
+    // const loaded = new brainsatplay.Process(null, null, true)
     // loaded.load(datastreams)
     // console.log(loaded)
     // loaded.list(load.current)
@@ -95,21 +95,22 @@ export default function ProcessExample({server, endpoints, router}) {
         // })
       }
 
-      // button2.current.onclick = async () => {    
-      //   await processProcess.run(input) 
-      //     loaded.processes.get('upstream').processes.get('process').run(input)
-   
-      //   // router.get({
-      //   //   route: 'services',
-      //   //   endpoint: endpoints[1]
-      //   // }).then(res => {
-      //   //   if (!res?.error) output.current.innerHTML = JSON.stringify(res)
-      //   //   else output.current.innerHTML = res.error
-  
-      //   // }).catch(err => {
-      //   //   output.current.innerHTML = err.error
-      //   // })
-      // }
+
+      // Basic Example
+      const add = new brainsatplay.Process((self, input, increment) => input + increment)
+      add.set('increment', 1) // or add.set(0, 1)
+
+      const log = new brainsatplay.Process((self, input) => console.log(input))
+      add.subscribe(log) // This should output 3 to the console
+
+      const random = new brainsatplay.Process(() => Math.floor(100*Math.random()))
+      const inc2 = add.set('increment', random)
+      log.subscribe(inc2) // This will update the increment value after every run
+      random.run()
+      
+      button2.current.onclick = async () => {    
+        add.run(2)
+      }
       
     });
   
@@ -117,12 +118,14 @@ export default function ProcessExample({server, endpoints, router}) {
       <header className={clsx('hero hero--primary')}>
           <div>
             <button ref={button1} className="button button--secondary button--lg">Run</button>
-            {/* <button ref={button2} className="button button--secondary button--lg">Ping 2</button> */}
+            <button ref={button2} className="button button--secondary button--lg">Test</button>
           </div>
           <br/>
           <div ref={display}>
+            <h3>Original</h3>
           </div>
           <div ref={copy}>
+            <h3>Copy</h3>
           </div>
           <div ref={load}>
           </div>

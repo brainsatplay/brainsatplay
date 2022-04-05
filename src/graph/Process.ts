@@ -60,8 +60,10 @@ export default class Process {
     
     // Basic Map Functions
     get = (id:string) => this.processes.get(id)
-    set = ( id?: string, input?: any ) => {
-        let process = this.processes.get(id)
+    set = ( id?: string | number, input?: any ) => {
+        
+        if (typeof id === 'number') id = this.processes.keys[id]
+        let process = this.processes.get(id as string)
 
         // Update Operator 
         if (process && !(input instanceof Process)) {
@@ -69,8 +71,14 @@ export default class Process {
         }
         // Create Process
         else {
-            process = (input instanceof Process ) ? input : new Process(input, this, this.debug)
-            this.processes.set(id, process)
+            if (input instanceof Process ){
+                if (process) input.value = process.value // Transfer value
+                process = input
+            } else {
+                process = new Process(input, this, this.debug)
+            }
+
+            this.processes.set(id as string, process)
             process.parent = this // setting parent
         }
         return process

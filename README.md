@@ -18,11 +18,40 @@ This monorepo contains several NPM libraries for high-performance computing and 
 - **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
 
 ## Concepts
+### Processes
+A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.). 
+
+```javascript
+const add = new brainsatplay.Process((self, input, increment) => input + increment)
+add.set('increment', 1) // or add.set(0, 1)
+add.run(2)
+```
+
+You can subscribe `Processes` to each other and create Directed Acyclic Graphs (DAGs).
+
+```javascript
+const log = new brainsatplay.Process((self, input) => console.log(input))
+add.subscribe(log) // This should output 3 to the console
+add.run(2)
+```
+
+Additionally, `Processes` can be nested for more complicated behavior.
+```javascript
+const random = new brainsatplay.Process((self) => Math.floor(100*Math.random()))
+const increment = add.set('increment', random)
+log.subscribe(increment) // This will update the increment value after every run
+
+random.run() // Initialize the random value
+add.run(2)
+```
+
+
 ### Router
 *coming soon...*
 
 ### Endpoint
 *coming soon...*
+
 
 ## Documentation
 Coming soon at https://docs.brainsatplay.com
