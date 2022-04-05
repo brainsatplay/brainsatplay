@@ -13,7 +13,7 @@ export default class Process {
     // Latest Process Output
     private _value: any; 
     set value(input) {
-        this._send(input)
+        this._notify(input)
     }
     get value() {
         return this._value
@@ -64,15 +64,8 @@ export default class Process {
         let process = this.processes.get(id)
 
         // Update Operator 
-        if (process) {
-            
-            // Swap Operators if Input = Process
-           if (input instanceof Process) {
-               process.operator = input.operator
-               input.id = process.id // swap ids
-           }
-           // Set as Operator
-           else process.operator = input
+        if (process && !(input instanceof Process)) {
+           process.operator = input
         }
         // Create Process
         else {
@@ -146,30 +139,27 @@ export default class Process {
         // Step #1: Transform Inputs into Single Output
         if (this.debug) console.log(`Input (${this.id}) : ${input}`)
         let output;
-        const args = Array.from(this.processes).map(a => a[1].value)
-        output = (this.operator instanceof Function) ? await this.operator(this.parent, input, ...args) : this.operator = input
+        const args = Array.from(this.processes).map(a => {
+            return a[1].value
+        })
+        output = (this.operator instanceof Function) ? await this.operator(this.parent, input, ...args) : input
         if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
         // Step #2: Try to Send Output to Connected Processsall(promises)
-        return await this._send(output)
+        return await this._notify(output)
     };
 
-    // Only Send if Different
+    // DEPRECATED: Only Send if Different
     private _send = async (output:any) => {
-        console.log('Trying to send', output, this._value)
         if (this._value !== output) return await this._notify(output)
         else return output
     }
 
     // Notify Target Processes (if not a NaN)
     private _notify = async (output:any) => {
-        console.log('Trying to notify', output, this._value)
-
         if (!isNaN(output)) this._value = output // Set value to output
         const keys = Object.keys(this.targets)
-        console.log('Targets', keys)
         if (keys.length > 0) return await Promise.all(keys.map(id => {
-            console.log('Running', this.targets[id])
             return this.targets[id].run(output)
         }))
         else return output
@@ -238,8 +228,6 @@ export default class Process {
         // Instantiate Links (if top)
         if (!this.parent) for (let id in registry.targets) {
             registry.targets[id].forEach(targetId => {
-                console.log('Process to subscribe', registry.processes[id])
-                console.log('Process to target', registry.processes[targetId])
                 registry.processes[id].subscribe(registry.processes[targetId])
             })
         }
@@ -278,7 +266,6 @@ export default class Process {
                         
                         // Load Standard Function
                         else {
-                            console.log(o[k])
                             const p = new Process(o[k], this, this.debug)
                             this.set(k, p)
                         }
