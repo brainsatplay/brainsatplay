@@ -1,6 +1,17 @@
 import { randomId } from "../common/id.utils";
 import { getParams } from '../common/parse.utils';
 
+
+type ExportedProcess = {
+    id: string;
+    processes: {[x: string]: ExportedProcess},
+    targets: ExportedProcess[],
+    operator: Function
+}
+
+
+
+
 export default class Process {
 
     static _id = randomId()
@@ -193,7 +204,7 @@ export default class Process {
 
     // Export to a JSONifiable object
     export = () => {
-        const o = {
+        const o: ExportedProcess = {
             id: this.id, 
             targets: [], 
             processes: {}, 
@@ -208,36 +219,38 @@ export default class Process {
 
     // Import a parsed JSON Process
     import = (
-        o:any = {}, 
+        o:ExportedProcess, 
         registry =  {
             processes: {},
             targets: {}
         }
     ) => {
         
-        registry.processes[o.id] = this
-        registry.targets[o.id] = []
+        if (o){
+            registry.processes[o.id] = this
+            registry.targets[o.id] = []
 
-        // Derive Processes from Operator
-        this.operator = o.operator
+            // Derive Processes from Operator
+            this.operator = o.operator
 
-        // Instantiate Internal Processes
-        if (o?.processes){
-            for (let k in o.processes) {
-                const p = new Process(o.processes[k]?.operator, this, this.debug)
-                p.import(o.processes[k], registry)
-                this.set(k, p)
+            // Instantiate Internal Processes
+            if (o?.processes){
+                for (let k in o.processes) {
+                    const p = new Process(o.processes[k]?.operator, this, this.debug)
+                    p.import(o.processes[k], registry)
+                    this.set(k, p)
+                }
             }
-        }
 
-        // Link to External Targets
-        registry.targets[o.id] = o.targets
+            // Link to External Targets
+            registry.targets[o.id] = o.targets
 
-        // Instantiate Links (if top)
-        if (!this.parent) for (let id in registry.targets) {
-            registry.targets[id].forEach(targetId => {
-                registry.processes[id].subscribe(registry.processes[targetId])
-            })
+            // Instantiate Links (if top)
+            if (!this.parent) for (let id in registry.targets) {
+                registry.targets[id].forEach(targetId => {
+                    registry.processes[id].subscribe(registry.processes[targetId])
+                })
+            }
         }
     }
 
