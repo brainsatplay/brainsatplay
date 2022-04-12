@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
+import webgazer from '../../../../../src/webgazer/dist/index.esm'
 
 export default function StreamsExample({ server, endpoints, router, id }) {
 
@@ -18,6 +19,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
     const muse = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/muse@0.0.1/dist/index.esm.js")).default
     const device = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/device@0.0.2/dist/index.esm.js")).default
     const hegduino = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/hegduino@0.0.4/dist/index.esm.js")).default
+
     // let synthetic = await import('@brainsatplay/device/dist/module')
     // if (synthetic.default) synthetic = synthetic.default
     const datastreams = await import('https://cdn.jsdelivr.net/npm/datastreams-api@latest/dist/index.esm.js')
@@ -27,6 +29,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
     dataDevices.load(device)
     dataDevices.load(ganglion)
     dataDevices.load(hegduino)
+    dataDevices.load(webgazer)
 
 
     const pseudo = document.createElement('button')
@@ -162,39 +165,54 @@ export default function StreamsExample({ server, endpoints, router, id }) {
               ondata(data, timestamps, track.contentHint)
           })
       }
-      
-    start.current.onclick = () => {
 
-      dataDevices.getUserDevice({label: 'device'}).then((device) => {
+      const startAcquisition = async (label) => {
 
-        console.log(
-          'Data',
-          device,
-          device.stream,
-          device.stream.getDataTracks()[0]
-        )
-        const stream = device.stream
+        // ------------- Get Device Stream -------------
+
+        // Method #1: By Label
+        const dataDevice = await dataDevices.getUserDevice({
+          label, 
+          // bluetooth: true
+        })
+
+        // Method #2: By Class
+        // const dataDevice = await dataDevices.getUserDevice(ganglion)
+
+        // ------------- Grab DataStream from Device -------------
+        const stream = dataDevice.stream
+
+        // ------------- Handle All Tracks -------------
         stream.tracks.forEach(handleTrack)
         stream.onaddtrack = e => handleTrack(e.track)
-
-      }).catch(console.error)
-
     }
 
+      
+    // ------------- Set Button Functionality -------------
+    for (let button of start.current.querySelectorAll('button')) button.onclick = () => startAcquisition(button.id)
 
   }, []);
 
   return (
     <header className={clsx('hero hero--primary')}>
-        <div>
+
+        <div ref={start}>
           <p>This example processes data from the <strong>datastreams-api</strong> unsafely on the server.</p>
-          <button ref={start}>Start</button>
+          <div ref={start}>
+            <button id="device">Synthetic</button>
+            <button id="muse">Muse</button>
+            <button id="ganglion">Ganglion</button>
+            <button id="hegduino">HEGduino</button>
+            <button id="webgazer">Webgazer</button>
+          </div>
         </div>
+
         <div className={styles.conference}>
           <video ref={video} className={styles.video}></video>
           <div ref={audio}>
           </div>
         </div>
+        
 
         <div ref={graph}>
         </div>
