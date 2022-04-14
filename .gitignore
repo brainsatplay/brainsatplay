@@ -14,3 +14,10 @@ docs/docs/reference
 # Library Builds
 **/dist
 **/package-lock.json
+
+# Tests
+/coverage
+
+# Demos 
+pyodide.html
+

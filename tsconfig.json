@@ -45,7 +45,7 @@
   "exclude": [
       "**/node_modules/**",
       "./docs",
-      "**/__test__/**",
+      "**/tests/**",
       "**/dist/**",
   ],
   "include": ["src"],

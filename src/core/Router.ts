@@ -567,7 +567,7 @@ export class Router {
             else {
               dict = this.format(dict)
               // if (!dict.route) dict.route = route // Only send back a route when you want to trigger inside the Router
-              dict.callbackId = callbackId
+              if (callbackId) dict.callbackId = callbackId
 
               if (this.ROUTES[dict.route]) dict.block = true // Block infinite command chains... 
 
