@@ -1,9 +1,12 @@
 # brainsatplay
-High-Performance Computing on Real-Time Data
+`brainsatplay` enables on-browser **interactive reactive programming** for high-performance scientific computing applications that span multiple programming environments. 
 
-This repository is the core of the [Brains@Play project](https://github.com/brainsatplay/project) for developing **an ecosystem of AGPL software infrastructure for participating in biomedical research** on the Open Web
+We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
 
-> **Note:** The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
+### Features
+🧩 **Composable:** Assemble native and custom components to satisfy your specific requirements.
+
+⚡ **Fast:** Handle streaming data in real-time.
 
 ## Monorepo Contents
 This monorepo contains several NPM libraries for high-performance computing and inter-process communication.
@@ -16,6 +19,11 @@ This monorepo contains several NPM libraries for high-performance computing and 
 ### Microservices
 - **brainsatplay-database:** Store data + router extension for data management (implemented in [MyAlyce](https://github.com/MyAlyce/myalyce)).
 - **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
+
+## Supporting Repositories
+- [**brainsatplay-cli**](https://github.com/brainsatplay/brainsatplay-cli) makes it easy to configure a new project using the terminal.
+- [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
+- [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
 
 ## Concepts
 ### Processes
@@ -48,6 +56,11 @@ add.run(2)
 To offload a `Process` to a Web Worker:
 *Coming soon*
 
+#### Events
+Events are binary.
+
+#### Behaviors
+Behaviors are continuous.
 
 ### Router
 *coming soon...*
@@ -80,5 +93,17 @@ const brainsatplay = require('brainsatplay')
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest"></script>
 ```
 
+## Roadmap
+- [ ] Support Python
+- [ ] Support C/C++
+
+
 ## Support
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
+
+
+## Appendix
+### Branches
+#### legacy
+The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
+
