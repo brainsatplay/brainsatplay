@@ -104,6 +104,5 @@ If you have questions about developing with Brains@Play, feel free to start a co
 
 ## Appendix
 ### Branches
-#### legacy
 The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
 
