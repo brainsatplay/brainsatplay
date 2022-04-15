@@ -3,6 +3,11 @@
 
 We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
 
+### Supporting Projects
+- [**brainsatplay-cli**](https://github.com/brainsatplay/brainsatplay-cli) makes it easy to configure a new project using the terminal.
+- [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
+- [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
+
 ### Features
 🧩 **Composable:** Assemble native and custom components to satisfy your specific requirements.
 
@@ -20,22 +25,29 @@ This monorepo contains several NPM libraries for high-performance computing and 
 - **brainsatplay-database:** Store data + router extension for data management (implemented in [MyAlyce](https://github.com/MyAlyce/myalyce)).
 - **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
 
-## Supporting Repositories
-- [**brainsatplay-cli**](https://github.com/brainsatplay/brainsatplay-cli) makes it easy to configure a new project using the terminal.
-- [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
-- [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
-
 ## Concepts
 ### Processes
-A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.). 
+A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.).
 
+### Inputs, Modifiers, and Outputs
 ```javascript
-const add = new brainsatplay.Process((self, input, increment) => input + increment)
+const add = new brainsatplay.Process((
+    self,           // Reference to this process
+    input,          // Drives execution
+    increment       // Modifies input
+) => {
+    const output = input + increment
+    return output   // Passed to other Processes
+})
+
 add.set('increment', 1) // or add.set(0, 1)
 add.run(2)
 ```
 
-You can subscribe `Processes` to each other and create Directed Acyclic Graphs (DAGs).
+In this example, there are two inputs (`input` and `increment`) where `input` drives the execution of the process and `increment` modifies the final `output`. 
+
+### Assembling Processes
+Each `Process` can be subscribed to, enabling the formation of Directed Acyclic Graphs (DAGs).
 
 ```javascript
 const log = new brainsatplay.Process((self, input) => console.log(input))
@@ -43,31 +55,29 @@ add.subscribe(log) // This should output 3 to the console
 add.run(2)
 ```
 
-Additionally, `Processes` can be nested for more complicated behavior.
+This prints the outcome of `add.run(2)` to the Developer Console.
+
+### Nesting Processes
+Additionally, a `Process` can be set as a modifier of another to support  complicated behaviors.
 ```javascript
 const random = new brainsatplay.Process((self) => Math.floor(100*Math.random()))
 const increment = add.set('increment', random)
-log.subscribe(increment) // This will update the increment value after every run
-
-random.run() // Initialize the random value
+log.subscribe(increment)
+random.run()
 add.run(2)
 ```
 
+This will update the value for `increment` with a random number after every run.
+
+### Ensure Performance
 To offload a `Process` to a Web Worker:
 *Coming soon*
 
-#### Events
-Events are binary.
-
-#### Behaviors
-Behaviors are continuous.
-
 ### Router
-*coming soon...*
+A `Router` will host a `Process` and send outputs back to the requester.
 
 ### Endpoint
-*coming soon...*
-
+An `Endpoint` will forward data to a `Process`.
 
 ## Documentation
 Coming soon at https://docs.brainsatplay.com
@@ -94,6 +104,8 @@ const brainsatplay = require('brainsatplay')
 ```
 
 ## Roadmap
+- [ ] Support animation loops that generate data rather than pass it.
+- [ ] Assemble graphs in Node.js
 - [ ] Support Python
 - [ ] Support C/C++
 

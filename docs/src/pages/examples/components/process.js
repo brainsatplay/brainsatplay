@@ -107,7 +107,7 @@ export default function ProcessExample({server, endpoints, router}) {
       const inc2 = add.set('increment', random)
       log.subscribe(inc2) // This will update the increment value after every run
       random.run()
-      
+
       button2.current.onclick = async () => {    
         add.run(2)
       }

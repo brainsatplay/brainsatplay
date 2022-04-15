@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
-import webgazer from '../../../../../src/webgazer/dist/index.esm'
+// import webgazer from '../../../../../src/webgazer/dist/index.esm'
 
 export default function StreamsExample({ server, endpoints, router, id }) {
 
@@ -19,6 +19,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
     const muse = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/muse@0.0.1/dist/index.esm.js")).default
     const device = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/device@0.0.2/dist/index.esm.js")).default
     const hegduino = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/hegduino@0.0.4/dist/index.esm.js")).default
+    const webgazer = (await import("https://cdn.jsdelivr.net/npm/@brainsatplay/webgazer@0.0.0/dist/index.esm.js")).default
 
     // let synthetic = await import('@brainsatplay/device/dist/module')
     // if (synthetic.default) synthetic = synthetic.default

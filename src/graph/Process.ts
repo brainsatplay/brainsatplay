@@ -161,7 +161,7 @@ export default class Process {
         const args = Array.from(this.processes).map(a => {
             return a[1].value
         })
-        output = (this.operator instanceof Function) ? await this.operator(this.parent, input, ...args) : input
+        output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, input, ...args) : input
         if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
         // Step #2: Try to Send Output to Connected Processsall(promises)
