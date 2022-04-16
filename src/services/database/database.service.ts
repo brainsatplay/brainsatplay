@@ -155,10 +155,10 @@ class DatabaseService extends Service {
                 }, 
                 
                 // Generic Post Handler
-                post: async (self, args, origin): Promise<boolean | any[]> => {
+                post: async (self, router, args, origin): Promise<boolean | any[]> => {
                     
                     // Don't Allow Users to Request until Logged In
-                    const u = self.USERS[origin]
+                    const u = router.USERS[origin]
 
                     if (!u) return null
 

@@ -5,7 +5,7 @@ import { SubscriptionService } from '../../core/SubscriptionService'
 import { MessageObject, UserObject } from '../../common/general.types';
 import { safeStringify } from  '../../common/parse.utils';
 
-import {settings} from '../../server_settings'
+import {settings} from '../../settings'
 
 class WebsocketService extends SubscriptionService {
 
@@ -178,6 +178,9 @@ class WebsocketService extends SubscriptionService {
 
         let data;
         try {data = JSON.parse(res.data)} catch {data = res}
+
+
+        console.log('GOT MESSAGE', data)
 
         //this.streamUtils.processSocketMessage(res);
     

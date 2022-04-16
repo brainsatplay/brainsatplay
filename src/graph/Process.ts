@@ -5,11 +5,9 @@ import { getParams } from '../common/parse.utils';
 type ExportedProcess = {
     id: string;
     processes: {[x: string]: ExportedProcess},
-    targets: ExportedProcess[],
+    targets: string[],
     operator: Function
 }
-
-
 
 
 export default class Process {
@@ -36,10 +34,14 @@ export default class Process {
         // Create Static Processes for Function Arguments (skipping (1) self and (2) input)
         
         this.processes = new Map()
-        const args = getParams(input)
-        args.slice(2).forEach(o => {
-            this.set(o.name, args[o.default])
-        }) // Set to default value
+        const args = getParams(input) // Get Parameters
+
+        args.map(o => {
+            o.name = o.name.replace(/\d+$/, "") // Remove trailing numbers to support transformed code...
+            return o
+        }).slice(2).forEach(o => {
+            this.set(o.name, args[o.default]) // Set to default value
+        })
 
         this._operator = input
         if (!(this._operator instanceof Function)) this.value = this._operator
@@ -82,6 +84,7 @@ export default class Process {
         }
         // Create Process
         else {
+
             if (input instanceof Process ){
                 if (process) input.value = process.value // Transfer value
                 process = input
@@ -149,19 +152,19 @@ export default class Process {
 
 
     // --------------------- Push Data In ---------------------
-    run = async (input:any) => {
-        return await this._onrun(input)
+    run = async (...args) => {
+        return await this._onrun(...args)
     }
 
-    private _onrun: (input:any) => void = async (input) => {
+    private _onrun: (...arr:any[]) => void = async (...arr:any[]) => {
 
         // Step #1: Transform Inputs into Single Output
-        if (this.debug) console.log(`Input (${this.id}) : ${input}`)
+        if (this.debug) console.log(`Input (${this.id}) : ${arr[0]}`)
         let output;
-        const args = Array.from(this.processes).map(a => {
-            return a[1].value
+        const args = Array.from(this.processes).map((a, i) => {
+            return (arr[i+1] === undefined) ? a[1].value : arr[i+1] // Override manually if desired
         })
-        output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, input, ...args) : input
+        output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, arr[0], ...args) : arr[0]
         if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
         // Step #2: Try to Send Output to Connected Processsall(promises)

@@ -1,5 +1,5 @@
 import osc from "osc"
-import { DONOTSEND } from "../../core";
+import { DONOTSEND } from "../../core/index";
 import { SubscriptionService } from "../../core/SubscriptionService";
 
 // Garrett Flynn, AGPL v3.0
@@ -16,13 +16,13 @@ class OSCService extends SubscriptionService {
         this.routes = [
             { 
                 route:'startOSC',
-                post: async (self,args) => {
+                post: async (self, router, args) => {
                     return await this.addPort(args[0],args[1],args[2],args[3])
                 }
               },
               { 
                 route:'sendOSC',
-                post:(self,args,origin) => {
+                post:(self,router,args,origin) => {
                     // const u = self.USERS[origin]
                     // if (!u) return false
 
@@ -35,7 +35,7 @@ class OSCService extends SubscriptionService {
               },
               { 
                 route:'stopOSC',
-                post:(self,args,origin) => {
+                post:(self,router,args,origin) => {
                   if(this.remove(args[0], args[1])) return true;
                 }
               }

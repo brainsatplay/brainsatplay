@@ -13,7 +13,7 @@ import WebsocketClient from './../../../../src/services/websocket/websocket.fron
 import { Router } from './../../../../src/core/Router';
 import { randomId } from '../../../../src/common/id.utils';
 
-import {settings} from '../../../../src/server_settings.js'
+import {settings} from '../../../../src/settings.js'
 
 let router = new Router()
 
@@ -32,6 +32,7 @@ let services = [
 ]
 
 services.forEach(service => {
+  console.log('LOADING', service.name)
   router.load(service).then(() => {
     console.log(`${service.constructor.name} connected!`)
   })
@@ -45,15 +46,22 @@ const endpoint = router.connect({
   credentials: {id, _id: id}
 })
 endpoints.push(endpoint)
-endpoints.push(router.connect({
+const endpoint2 = router.connect({
   target: SERVER_URI_2,
   credentials: {id, _id: id}
-}))
+})
+
+endpoints.push(endpoint2)
 
 
 endpoint.send('http/add', {
   method: 'POST',
   message: ['/ssr/endpoint', '<p>Just some arbitrary HTML</p>']
+})
+
+endpoint.send('echo', {
+  method: 'POST',
+  message: ['test']
 })
 
 router.post('http/add', '/ssr/test', '<p>Just some arbitrary HTML</p>')

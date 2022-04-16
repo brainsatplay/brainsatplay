@@ -1,5 +1,5 @@
 import main from './main'
-import {settings} from 'src/server_settings.js'
+import {settings} from '../../src/settings'
 
 main(settings.port2, {
   websocket: true,

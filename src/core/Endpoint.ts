@@ -100,18 +100,6 @@ export class Endpoint {
     }
 
     check = async () => {
-        if (this.type === 'webrtc'){
-
-            // if (!this.link || this.link === this){
-            //     console.log('no link', this.link)
-            // }
-
-            if (this.clients['webrtc']){
-                await this._subscribe({ protocol: 'webrtc', force: true }).then(res => {
-                    this.status = true
-                }).catch(e => console.log(`Link doesn't have WebRTC enabled.`, e))
-            } else console.error('WebRTC client not added...')
-        }
 
         const connectWS = async () => {
             if (this.clients['websocket']){
@@ -123,28 +111,43 @@ export class Endpoint {
             } else console.error('Websocket client not added...')
         }
 
-        const connectHTTP = async () => await this.send('services')
+        const connectHTTP = async () => {
+            const res = await this.send('services')
+            if (!res) throw `No services returned from the endpoint.`
+            this.status = true
+            return res
+        }
         
 
         let res;
         console.log('endpoint type', this.type)
-        if (this.type === 'websocket'){       
-            console.log('connecting ws')
-            let res = await connectWS().then(res => {
-                this.status = true
-                return res
-            }).catch(async (e) => {
+        // ------------ Check Which Protocol to Connect Under ------------
+        
+        // ------------ Handle WebRTC ------------
+        if (this.type === 'webrtc'){
+            if (this.clients['webrtc']){
+                res = await this._subscribe({ protocol: 'webrtc', force: true }).then(res => {
+                    this.status = true
+                    return true
+                }).catch(e => console.log(`Link doesn't have WebRTC enabled.`, e))
+            } else console.error('WebRTC client not added...')
+        } 
+        
+        // ------------ Handle WebSocket ------------
+        else if (this.type === 'websocket'){       
+            let res = await connectWS().catch(async (e) => {
                 if (this.type === 'websocket'){
                     console.log('Falling back to http')
                     return await connectHTTP()
                 }
             });
             console.log('endpoint res', res);
-        } else {
-            res = await connectHTTP().then(res => {
-                this.status = true
-                return res
-            }).catch(async (e) => {
+        } 
+        
+        // ------------ Handle HTTP ------------
+        else {
+            console.log('connecting http')
+            res = await connectHTTP().catch(async (e) => {
                 console.log('Falling back to websockets')
                 return await connectWS()
             })
@@ -153,6 +156,8 @@ export class Endpoint {
           if (res) {
 
             console.log('Connection successful!')
+
+            if (!(this.type === 'webrtc')){
     
             const routes = res.message[0]
               let serviceNames = []
@@ -175,6 +180,7 @@ export class Endpoint {
               // General Subscription Check
               this.services.queue['undefined']?.forEach(f => f())
               this.services.queue['undefined'] = []
+            }
           } else console.log('Connection failed!')
 
           return res?.message
@@ -183,6 +189,8 @@ export class Endpoint {
     // Send Message to Endpoint (mirror linked Endpoint if necessary)
     send = async (route:RouteSpec, o: Partial<MessageObject> = {}, progressCallback:(ratio:number, total:number)=>void = () => {}) => {
 
+
+        console.log('SENDING', route)
 
             // Support String -> Object Specification
             if (typeof route === 'string')  o.route = route
@@ -317,12 +325,12 @@ export class Endpoint {
                         if (!this.connection){
                             const target = (this.type === 'http' || this.type === 'websocket') ? new URL(subscriptionEndpoint, this.target) : this.target
                             
-                            console.log(target, this.target, subscriptionEndpoint)
                             const id = await client.add(this.credentials, target.href) // Pass full target string
 
                             // Always Have the Router Listen
                             if (this.router){
                                 client.addResponse('router', (o) => {
+
                                     let data = o;
                                     if(typeof o === 'string') {
                                         try { let parsed = JSON.parse(o); data = parsed; } catch(e) {}
@@ -331,6 +339,7 @@ export class Endpoint {
                                     Object.values(this.responses).forEach(f => {
                                         f(data)
                                     })
+
                                     if (this.router) this.router.handleLocalRoute(data)
                                 })
                             }
@@ -346,7 +355,8 @@ export class Endpoint {
                         if (this.type === 'webrtc') {
                             opts.routes = [this.target] // Connect to Target Room / User only
                         }
-                        const res = await this.link.send(subscriptionEndpoint, Object.assign({
+
+                        await this.link.send(subscriptionEndpoint, Object.assign({
                             route: opts.route,
                             message: opts.message,
                             protocol: opts.protocol,

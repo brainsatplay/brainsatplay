@@ -4,7 +4,6 @@
 We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
 
 ### Supporting Projects
-- [**brainsatplay-cli**](https://github.com/brainsatplay/brainsatplay-cli) makes it easy to configure a new project using the terminal.
 - [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
 - [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
 
@@ -24,6 +23,11 @@ This monorepo contains several NPM libraries for high-performance computing and 
 ### Microservices
 - **brainsatplay-database:** Store data + router extension for data management (implemented in [MyAlyce](https://github.com/MyAlyce/myalyce)).
 - **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
+
+### CLI
+- **brainsatplay-cli:** Program a new project through the terminal.
+
+
 
 ## Concepts
 ### Processes
@@ -104,6 +108,8 @@ const brainsatplay = require('brainsatplay')
 ```
 
 ## Roadmap
+- [ ] Fix WebRTC
+- [ ] Make `id` always the third argument (and everything else passed args)
 - [ ] Support animation loops that generate data rather than pass it.
 - [ ] Assemble graphs in Node.js
 - [ ] Support Python

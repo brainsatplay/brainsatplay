@@ -1,6 +1,6 @@
 import StateManager from 'anotherstatemanager'
 import { SettingsObject, UserObject } from "../../common/general.types";
-import { DONOTSEND } from "../../core";
+import { DONOTSEND } from "../../core/index";
 import { Service } from "../../core/Service";
 import StreamService from '../stream/stream.service';
 
@@ -51,7 +51,7 @@ class SessionsService extends Service {
             // Frontend
             {
                 route: 'sessionData',
-                post: (self, args)=>{
+                post: (self, router, args)=>{
                     if(args[0]) {
                         this.state.setState(args[0],args[1]); // id, message
                     }
@@ -61,7 +61,7 @@ class SessionsService extends Service {
             // Backend
             {
                 route:'updateUserStreamData',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._updateUserStreamData(user,args[0]); // TODO: The second argument is probably wrong
@@ -69,7 +69,7 @@ class SessionsService extends Service {
             },
             {
                 route:'createSession',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._createSession(user,args[0],args[1]);
@@ -77,7 +77,7 @@ class SessionsService extends Service {
             },
             {
                 route:'subscribeToSession',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     if(self.USERS[args[0]])
@@ -88,7 +88,7 @@ class SessionsService extends Service {
             {
                 route:'unsubscribeFromSession',
                 aliases:['kickUser'],
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     if(!args[0]) return this._unsubscribeFromSession(user,user.id,args[1]);
@@ -97,13 +97,13 @@ class SessionsService extends Service {
             },
             {
                 route:'getSessionData',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     return this._getSessionData(args[0]);
                 }
             }, 
             {
                 route:'deleteSession',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._deleteSession(user,args[0]);
@@ -111,7 +111,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'makeHost',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._makeHost(user,args[0],args[1]);
@@ -119,7 +119,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'makeOwner',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._makeOwner(user,args[0],args[1]);
@@ -127,7 +127,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'makeAdmin',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._makeAdmin(user,args[0],args[1]);
@@ -135,7 +135,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'makeModerator',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._makeModerator(user,args[0],args[1]);
@@ -143,7 +143,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'removeAdmin',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._removeAdmin(user,args[0],args[1]);
@@ -151,7 +151,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'removeModerator',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._removeModerator(user,args[0],args[1]);
@@ -159,7 +159,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'banUser',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._banUser(user,args[0],args[1]);
@@ -167,7 +167,7 @@ class SessionsService extends Service {
             }, 
             {
                 route:'unbanUser',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     const user = self.USERS[origin]
                     if (!user) return false
                     return this._unbanUser(user,args[0],args[1]);
@@ -175,13 +175,13 @@ class SessionsService extends Service {
             }, 
             { //some manual overrides for the update loops
                 route:'updateSessionUsers',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     return this._updateSessionUsers(args[0]);
                 }
             }, 
             {
                 route:'updateUserStream',
-                post:(self,args,origin) => {
+                post:(self, router,args,origin) => {
                     return this._updateUserStream(args[0]);
                 }
             }

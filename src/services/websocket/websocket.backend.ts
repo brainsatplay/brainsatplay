@@ -67,9 +67,10 @@ class WebsocketService extends SubscriptionService {
               if(ws.readyState === 1) ws.send(JSON.stringify(data))
             }})]});
 
-            ws.on('message', (json="") => {
-              
+            ws.on('message', (json) => {
+
               let parsed = JSON.parse(json);
+
               if(Array.isArray(parsed)) { //push arrays of requests instead of single objects (more optimal potentially, though fat requests can lock up servers)
                   parsed.forEach((obj) => {
                     // if (!obj.id) obj.id = msg.id // DO NOT ALLOW FOR TRACKING
@@ -87,20 +88,14 @@ class WebsocketService extends SubscriptionService {
 
   process = async (ws, o) => {
 
-    this.defaultCallback(ws, o)
-    // Check to Add Subscribers (only ws)
-    let query = `${this.name}/subscribe`
-    if (o.route.slice(0,query.length) === query){
-        return await this.addSubscription(o, ws)
-    } 
+    let res = await this.defaultCallback(ws, o) // Get default answer (subscription)
     
-    // Otherwise Try Command Elsewhere
-    else {
-      let res = await this.notify(o);
-      if (typeof res === 'object') res.callbackId = o.callbackId
-      if (res instanceof Error) ws.send(JSON.stringify(res, Object.getOwnPropertyNames(res))) 
-      else if (res != null) ws.send(JSON.stringify(res)) // send back  
-    }
+    // Try Command Elsewhere (if no response)
+    if (!res) res = await this.notify(o);
+
+    if (typeof res === 'object') res.callbackId = o.callbackId
+    if (res instanceof Error) ws.send(JSON.stringify(res, Object.getOwnPropertyNames(res))) 
+    else if (res != null) ws.send(JSON.stringify(res)) // send back  
   }
 
   defaultCallback = async (ws, o) => {
@@ -122,6 +117,7 @@ class WebsocketService extends SubscriptionService {
 
       if (!u){
           u = {id, routes: {}, send: (o:any) => {
+            console.log('TRYING TO SEND', o.message, o.route)
             if(o.message && o.route) {
                 ws.send(JSON.stringify(o))
             }
@@ -140,6 +136,7 @@ class WebsocketService extends SubscriptionService {
             u.routes[route] = true
         })
 
+        return {}
     }
 }
 

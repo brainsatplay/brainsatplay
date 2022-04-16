@@ -14,28 +14,28 @@ class OSCService extends Service{
 	routes = [
 			{
 				route: 'oscData',
-				post: (self, args) => {
+				post: (self, router, args) => {
 					const message = args[0]
 					this.state.setState(message.address+'_'+message.port, message.oscData); //update state
 				}
 			},
 			{
 				route: 'oscInfo',
-				post: (self, args) => {
+				post: (self, router, args) => {
 					const message = args[0]
 					this.state.setState('oscInfo', message); //update state
 				}
 			},
 			{
 				route: 'oscClosed',
-				post: (self, args) => {
+				post: (self, router, args) => {
 					const message = args[0]
 					this.state.setState('oscClosed', message); //update state
 				}
 			},
 			{
 				route: 'oscError',
-				post: (self, args) => {
+				post: (self, router, args) => {
 					const message = args[0]
 					this.state.setState('oscError', message); //update state
 				}

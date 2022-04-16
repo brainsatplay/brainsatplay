@@ -84,10 +84,10 @@ export default function WebRTCExample({server, endpoints, router, id}) {
       }
 
       disconnect.current.onclick = () => {
-        peerReference.delete({
-          route: 'webrtc/user',
-          // endpoint: endpoints[1]
-        })
+        // peerReference.delete({
+        //   route: 'webrtc/user',
+        //   // endpoint: endpoints[1]
+        // })
       }
 
     });

@@ -23,14 +23,14 @@ class WorkerService extends Service {
     routes = [
       {
         route:'workerPost',
-        callback:(self,args,origin)=>{
+        callback:(self, router, args,origin)=>{
           console.log('worker message received!', args, origin);
           return;
         }
       },
       {
         route:'addworker',
-        callback:(self,args,origin)=>{
+        callback:(self,router, args,origin)=>{
           let id = this.addWorker(args[0],args[1]); //can specify a url and module type 
           if(this.workers.length > 0 ) {
             this.workers.forEach((w) => { //set up message channels for each thread to talk to each other
@@ -46,13 +46,13 @@ class WorkerService extends Service {
       },
       {
         route:'terminate',
-        callback:(self,args,origin)=>{
+        callback:(self,router, args,origin)=>{
           return this.terminate(args[0]); //specify worker id or terminate all workers
         }
       },
       {
         route:'addcallback',
-        callback:(self,args,origin)=>{
+        callback:(self,router, args,origin)=>{
             if(!args[0] && !args[1]) return;
             let func = parseFunctionFromText(args[1]);
             if(func) this.addCallback(args[0],func);
@@ -61,14 +61,14 @@ class WorkerService extends Service {
       },
       {
         route:'removecallback',
-        callback:(self,args,origin)=>{
+        callback:(self,router, args,origin)=>{
             if(args[0]) this.removeCallback(args[0]);
             return true;
         }
       },
       {
         route:'run',
-        callback:(self,args,origin)=>{
+        callback:(self,router, args,origin)=>{
             let c = this.responses.find((o) => {
                 if(o.name === args[0]) {
                     return true;

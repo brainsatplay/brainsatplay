@@ -5,27 +5,31 @@ let mongoose = require("mongoose")
 let bodyParser = require("body-parser")
 
 // Import the brainsatplay API
-import * as api from './backend/index'
+import * as api from '../../src/backend/index'
+import WebsocketService from '../../src/services/websocket/websocket.backend'
+import HTTPService from '../../src/services/http/http.backend'
 
-import { User } from '../examples/schemas/user.schema'
-import { Note } from '../examples/schemas/note.schema'
+import * as brainsatplay from '../../src/graph'
+
+import { User } from '../schemas/user.schema'
+import { Note } from '../schemas/note.schema'
 
 // Set Environment Variables
 import { resolve } from "path";
 import { config } from "dotenv";
-import {Router} from './core/Router'
+import {Router} from '../../src/core/Router'
 
-import OSCService from './services/osc/osc.backend'
-import WebRTCService from './services/webrtc/webrtc.backend'
+import OSCService from '../../src/services/osc/osc.backend'
+import WebRTCService from '../../src/services/webrtc/webrtc.backend'
 
-import SessionsService from './services/sessions/sessions.service'
-import DatabaseService from './services/database/database.service'
-import UnsafeService from './services/unsafe/unsafe.service'
+import SessionsService from '../../src/services/sessions/sessions.service'
+import DatabaseService from '../../src/services/database/database.service'
+import UnsafeService from '../../src/services/unsafe/unsafe.service'
 config({ path: resolve(__dirname, `../.env`) });
 config({ path: resolve(__dirname, `../.key`) });
 
-import {settings} from 'src/server_settings.js'
-import StructService from './services/database/structs.service'
+import {settings} from '../../src/settings'
+import StructService from '../../src/services/database/structs.service'
 
 const main = (port=settings.port, services:{[x:string] : boolean}={}) => {
 
@@ -41,8 +45,6 @@ app.use(cors()); // how to allow data to only intended website without cors
 let protocol = settings.protocol;
  port = port;
 const server = http.createServer(app);
-
-console.log('using port ', port);
 
 // Start Server
 server.listen(parseInt(port), () => {
@@ -65,14 +67,14 @@ mongoose
   });
 
   // ----------------- Initialize API ------------------
-  function init(db?:any) {
+  async function init(db?:any) {
 
     // Instantiate the Router class to handle services
     let controller = new Router({ debug: false });
 
     // Enable HTTP Messages
     if (services.http){
-      let http = new api.HTTPService(controller);
+      let http = new HTTPService(controller);
 
       app.get("**", http.controller);
       app.post("**", http.controller);
@@ -81,7 +83,7 @@ mongoose
 
     // Enable WebSocket Messages
     if (services.websocket){
-      let websocket = new api.WebsocketService(controller, server);
+      let websocket = new WebsocketService(controller, server);
       controller.load(websocket)
     }
 
@@ -138,6 +140,31 @@ mongoose
       let unsafe = new UnsafeService(controller)
       controller.load(unsafe)
     }
+
+
+
+    // ---------------------------- Create Graph ----------------------------
+    const add = new brainsatplay.Process((self, input, increment) => input + increment, null, false)
+    add.set('increment', 1) // or add.set(0, 1)
+    // add.subscribe((out, input) => {
+    //   console.log(input)
+    // }) // This should output 3 to the console
+
+
+    add.run(2)
+
+    const log = new brainsatplay.Process((self, input) => console.log('Graph Output', input), null, false)
+    add.subscribe(log) // This should output 3 to the console
+
+    const random = new brainsatplay.Process((self) => Math.floor(100*Math.random()), null, false)
+    const increment = add.set('increment', random)
+    log.subscribe(increment)
+
+    // Ensure Synchronous Run
+    await random.run()
+    await add.run(2)
+    await add.run(2)
+    await add.run(2)
   }
 }
 

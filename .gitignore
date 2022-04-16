@@ -21,3 +21,6 @@ docs/docs/reference
 # Demos 
 pyodide.html
 
+# CLI
+**/test/**
+

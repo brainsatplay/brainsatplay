@@ -57,7 +57,7 @@ class WebRTCService extends SubscriptionService {
         // },
         {
             route: 'room',
-            post: (self, args) => {
+            post: (self, router, args) => {
                 const o = args[0]
                 this.rooms.set(o.id, o)
                 this.dispatchEvent(new CustomEvent('room', {detail: {room: o, rooms: Array.from(this.rooms, ([_,value]) => value)}}))
@@ -70,7 +70,7 @@ class WebRTCService extends SubscriptionService {
         // Default WebRTC Commands
         {
             route: 'answer',
-            post: (self, args) => {
+            post: (self, router, args) => {
                 let peer = this.peers[args[0]]
                 if (peer) peer.connection.setRemoteDescription(args[1]);
 
@@ -78,7 +78,7 @@ class WebRTCService extends SubscriptionService {
         },
         {
             route: 'candidate',
-            post: (self, args, id) => {
+            post: (self, router, args, id) => {
                 let peer = this.peers[args[0]]
                 let candidate = new RTCIceCandidate(args[1])
                 if (peer)  peer.connection.addIceCandidate(candidate).catch(() => {}); // silent, first candidates usually aren't appropriate
@@ -86,7 +86,7 @@ class WebRTCService extends SubscriptionService {
         },
         {
             route: 'offer',
-            post: (self, args, id) => {
+            post: (self, router, args, id) => {
                 if (args) this.onoffer(args[1], args[0])
             }
         },
@@ -94,13 +94,13 @@ class WebRTCService extends SubscriptionService {
         // Extra Commands
         {
             route: 'disconnectPeer',
-            post: (self, args) => {
+            post: (self, router, args) => {
                 this.closeConnection(this.peers[args[0]])
             }
         },
         {
             route: 'connect',
-            post: async (self, args) => {
+            post: async (self, router, args) => {
                 const o = args[0]
                 this.createPeerConnection(o) // connect to peer
                 for (let arr of this.sources) {

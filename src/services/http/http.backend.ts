@@ -1,20 +1,9 @@
 import { Request, Response } from "express";
-import { ClientObject, MessageObject, RouteConfig } from "../../common/general.types";
+import { MessageObject } from "../../common/general.types";
 import { safeParse } from "../../common/parse.utils";
-import { Service } from "../../core/Service";
 import { randomId } from "../../common/id.utils";
 import EventsService from "./events.backend";
 import { SubscriptionService } from '../../core/SubscriptionService';
-
-// var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-// var ARGUMENT_NAMES = /([^\s,]+)/g;
-// function getParamNames(func: Function) {
-//   var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-//   var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-//   if(result === null)
-//      result = [];
-//   return result;
-// }
 
 class HTTPService extends SubscriptionService {
 
@@ -29,21 +18,20 @@ class HTTPService extends SubscriptionService {
     routes = [
         { //add a local function, can implement whole algorithm pipelines on-the-fly
           route: 'add',
-          post: async (self, args) => { //arg0 = name, arg1 = function string (arrow or normal)
+          post: async (self, router, args) => { //arg0 = name, arg1 = function string (arrow or normal)
 
             const get = {html: args[1] ?? `<p>Just a test lol</p>`}
             
-            self.addRoute({
+            router.addRoute({
               route: args[0],
               get,
               headers: {
                 'Content-Type': 'text/html',
               },
-              post: (self,args) => {
+              post: (self, router, args) => {
                   get.html = args[0]
                 return {message: [get.html]}
               }
-
             })
   
             return true;

@@ -96,7 +96,7 @@ export default function ProcessExample({server, endpoints, router}) {
       }
 
 
-      // Basic Example
+      // ---------------------------- Basic Example ----------------------------
       const add = new brainsatplay.Process((self, input, increment) => input + increment)
       add.set('increment', 1) // or add.set(0, 1)
 
