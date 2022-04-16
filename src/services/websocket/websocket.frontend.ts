@@ -180,8 +180,6 @@ class WebsocketService extends SubscriptionService {
         try {data = JSON.parse(res.data)} catch {data = res}
 
 
-        console.log('GOT MESSAGE', data)
-
         //this.streamUtils.processSocketMessage(res);
     
         let runResponses = () => {

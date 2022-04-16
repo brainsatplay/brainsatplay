@@ -108,8 +108,7 @@ const brainsatplay = require('brainsatplay')
 ```
 
 ## Roadmap
-- [ ] Fix WebRTC
-- [ ] Make `id` always the third argument (and everything else passed args)
+- [ ] Integrate Process while maintaining WebRTC
 - [ ] Support animation loops that generate data rather than pass it.
 - [ ] Assemble graphs in Node.js
 - [ ] Support Python

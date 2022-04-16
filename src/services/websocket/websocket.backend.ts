@@ -117,7 +117,6 @@ class WebsocketService extends SubscriptionService {
 
       if (!u){
           u = {id, routes: {}, send: (o:any) => {
-            console.log('TRYING TO SEND', o.message, o.route)
             if(o.message && o.route) {
                 ws.send(JSON.stringify(o))
             }

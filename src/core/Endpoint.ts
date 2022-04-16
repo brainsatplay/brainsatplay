@@ -189,9 +189,6 @@ export class Endpoint {
     // Send Message to Endpoint (mirror linked Endpoint if necessary)
     send = async (route:RouteSpec, o: Partial<MessageObject> = {}, progressCallback:(ratio:number, total:number)=>void = () => {}) => {
 
-
-        console.log('SENDING', route)
-
             // Support String -> Object Specification
             if (typeof route === 'string')  o.route = route
             else {
