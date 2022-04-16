@@ -31,6 +31,10 @@ export const DONOTSEND = 'DONOTSEND';
 export class Router {
   id: string = randomId()
 
+
+  // Method
+  method = 'process'
+
   // Backend
   USERS: {[x:string]: UserObject} = {} //live message passing functions and basic user info
   CONNECTIONS: Map<string,{}> = new Map(); //threads or other servers
@@ -297,7 +301,6 @@ export class Router {
       let endpoint = new Endpoint(config, this.SERVICES, this)
       // Register User and Get Available Functions
       this.ENDPOINTS[endpoint.id] = endpoint;
-      //console.log('CONNECTING')
       endpoint.check().then(res => {
           if (res) {
             if (onconnect) onconnect(endpoint);
@@ -384,7 +387,8 @@ export class Router {
     
                   // Expect Certain Callbacks from the Service
                   service.routes.forEach(o => {
-                      this.ROUTES[`${route}/${o.route}`] = o
+                      o.service = route // assign service name
+                      this.addRoute(o)
                   })
                   
                   resolve(service)
@@ -488,10 +492,14 @@ export class Router {
     if (!o.block) {
       let route = this.ROUTES[o?.route]
 
-      if (route?.post instanceof Function) {
-        // return route.post.run(this, o.message, o.id) // TODO: Enable non-post
-        return await route.post(null, this, o.id, ...(o.message ?? []));
-
+      if (this.method === 'process'){
+        if (route?.post instanceof Process) {
+          return route.post.run(this, o.id, ...(o.message ?? []));
+        }
+      } else {
+        if (route?.post instanceof Function) {
+             return await route.post(null, this, o.id, ...(o.message ?? []));
+        }
       }
     }
   }
@@ -745,8 +753,10 @@ export class Router {
             this.removeRoute(route); //removes existing callback if it is there
             if (route[0] === '/') route = route.slice(1)
 
-            // --------------- Process Support 
-            // if (o.post && !(o.post instanceof Process)) o.post = new Process(o.post) // Map to process
+            // --------------- Process Support ---------------
+            if (this.method === 'process'){
+              if (o.post && !(o.post instanceof Process)) o.post = new Process(o.post) // Map to process
+            }
 
             this.ROUTES[route] = Object.assign(o, {route})
             
@@ -800,7 +810,8 @@ export class Router {
 
             try {
               let res;
-              const postProcess = routeInfo?.post instanceof Function
+
+              const postProcess = (this.method === 'process') ? routeInfo?.post instanceof Process : routeInfo?.post instanceof Function
 
               // Delete Handler
                if (routeInfo?.delete && method.toUpperCase() === 'DELETE') {
@@ -820,8 +831,8 @@ export class Router {
               }
               // Post Handler
               else if (postProcess) {
-                res  = await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
-                // res  = await (routeInfo.post as Process).run(this, input, origin)
+                // res  = await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
+                res  = (this.method === 'process') ? await (routeInfo.post as Process).run(this, origin, ...(input ?? [])) : await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
               } 
 
               // Error Handler
@@ -841,11 +852,15 @@ export class Router {
         let route = this.ROUTES[event.data.foo] ?? this.ROUTES[event.data.route] ?? this.ROUTES[event.data.functionName]
         if (!route) route = this.ROUTES[event.data.foo]
         if (route){
-              if (event.data.message && route.post instanceof Function) {
-                return await route.post(null, this, event.data.origin, ...(event.data.message ?? []));
-                // return await route.post.run(this, event.data.message, event.data.origin);
-              }
-              else return
+                if (this.method === 'process'){
+                  if (event.data.message && route.post instanceof Process) {
+                    return await route.post.run(this, event.data.origin, ...(event.data.message ?? []));
+                  } else return
+                } else {
+                  if (event.data.message && route.post instanceof Function) {
+                    return await route.post(null, this, event.data.origin, ...(event.data.message ?? []));
+                  } else return
+                }
         } else return false
     }
 }

@@ -102,11 +102,13 @@ class WebRTCService extends SubscriptionService {
             route: 'connect',
             post: async (self,router,origin,...args) => {
                 const o = args[0]
-                this.createPeerConnection(o) // connect to peer
-                for (let arr of this.sources) {
-                    let dataTracks = arr[1].getDataTracks()
-                    await this.addDataTracks(o?.id, dataTracks) // add data tracks from all sources
-                }         
+                if (o) {
+                    this.createPeerConnection(o) // connect to peer
+                    for (let arr of this.sources) {
+                        let dataTracks = arr[1].getDataTracks()
+                        await this.addDataTracks(o?.id, dataTracks) // add data tracks from all sources
+                    }  
+                } else console.warn('Peer info not defined!')
             }
         }
     ]

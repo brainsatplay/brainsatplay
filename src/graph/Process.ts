@@ -161,10 +161,20 @@ export default class Process {
         // Step #1: Transform Inputs into Single Output
         if (this.debug) console.log(`Input (${this.id}) : ${arr[0]}`)
         let output;
-        const args = Array.from(this.processes).map((a, i) => {
-            return (arr[i+1] === undefined) ? a[1].value : arr[i+1] // Override manually if desired
+
+        // Use manual inputs as base (to account for spread operator)
+        const input = arr[0] // Grab base input
+        const inputArr = arr.slice(1)
+        const processArr = Array.from(this.processes.values())
+        const baseArr = (inputArr.length > processArr.length) ? inputArr : processArr
+        const args = baseArr.map((v, i) => {
+            // Manual input override
+            if (processArr?.[i] === undefined || inputArr[i] !== undefined) return inputArr[i]
+            else return processArr[i].value
+
         })
-        output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, arr[0], ...args) : arr[0]
+
+        output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, input, ...args) : input
         if (this.debug) console.log(`Output (${this.id}) : ${output}`)
 
         // Step #2: Try to Send Output to Connected Processsall(promises)

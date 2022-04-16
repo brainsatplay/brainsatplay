@@ -97,13 +97,13 @@ export default function ProcessExample({server, endpoints, router}) {
 
 
       // ---------------------------- Basic Example ----------------------------
-      const add = new brainsatplay.Process((self, input, increment) => input + increment)
+      const add = new brainsatplay.Process((self, input, increment) => input + increment, null, true)
       add.set('increment', 1) // or add.set(0, 1)
 
-      const log = new brainsatplay.Process((self, input) => console.log(input))
+      const log = new brainsatplay.Process((self, input) => console.log(input), null, true)
       add.subscribe(log) // This should output 3 to the console
 
-      const random = new brainsatplay.Process(() => Math.floor(100*Math.random()))
+      const random = new brainsatplay.Process(() => Math.floor(100*Math.random()), null, true)
       const inc2 = add.set('increment', random)
       log.subscribe(inc2) // This will update the increment value after every run
       random.run()
