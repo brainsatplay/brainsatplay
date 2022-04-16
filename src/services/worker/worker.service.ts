@@ -23,7 +23,7 @@ class WorkerService extends Service {
     routes = [
       {
         route:'workerPost',
-        callback:(self, router, args,origin)=>{
+        callback:(self,router,origin,...args)=>{
           console.log('worker message received!', args, origin);
           return;
         }

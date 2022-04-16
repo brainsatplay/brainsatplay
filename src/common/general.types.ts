@@ -21,8 +21,8 @@ export type RouteConfig = {
         object: any,
         transform: (o, ...args) => any
     }, // Reference to an object that notifies subscribers on change
-    post?: Process | ((self: Process, router: Router, args: any[], id: string) => any) // Convert functions to Processes
-    delete?: (self: Router, args: any[], id: string) => any
+    post?: Process | ((self: Process, router: Router, id: string, ...args: any[]) => any) // Convert functions to Processes
+    delete?: (self: Router, id: string, ...args: any[]) => any
 }
 
 export type RouterOptions = {

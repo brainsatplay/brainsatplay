@@ -53,7 +53,7 @@ export class Router {
   },
   {   
     route: 'echo',
-    post:(self,router,args,origin) => {
+    post:(self,router,origin,...args) => {
         return args;
     }
 },
@@ -89,7 +89,9 @@ export class Router {
         // Shift Arguments
         let keys = (args.length > 0) ? [args[0]] : Object.keys(reference)
         keys.forEach(key => {
-          if (key) o[key] = {
+
+          // Ensure Route Name Exists
+          if (key && reference[key].route) o[key] = {
             route: reference[key].route.split('/').filter(str => !str.match(/\*\*?/)).join('/'),
             // args: reference[key].args,
             wildcard: key.includes('*')
@@ -106,13 +108,13 @@ export class Router {
   { //generic send message between two users (userId, message, other data)
       route:'sendMessage',
       aliases:['message','sendMsg'],
-      post:(self,router,args)=>{
+      post:(self,router,origin,...args)=>{
           return router.sendMsg(args[0],args[1],args[2]);
       }
   },
   { //set user details for yourRouter
       route:'setUserServerDetails',
-      post:(self,router,args,origin)=>{
+      post:(self,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
         if(args[0]) user.username = args[0];
@@ -126,7 +128,7 @@ export class Router {
   },
   { //assign user props for yourRouter or someone else (by user unique id)
       route:'setProps',
-      post:(self,router,args,origin)=>{
+      post:(self,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
         if(typeof args === 'object' && !Array.isArray(args)) {
@@ -143,7 +145,7 @@ export class Router {
   },
   { //get props of a user by id or of yourRouter
       route:'getProps',
-      post:(self,router,args,origin)=>{
+      post:(self,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
   
@@ -156,7 +158,7 @@ export class Router {
   },
   { //lists user keys
     route:'blockUser',
-    post:(self, router,args,origin)=>{
+    post:(self,router,origin,...args)=>{
       let user = router.USERS[origin]
       if (!user) return false
       return this.blockUser(user,args[0]);
@@ -195,7 +197,7 @@ export class Router {
   },
   { //get basic details of a user or of your Router
       route:'getUser',
-      post:(self, router,args,origin)=>{
+      post:(self,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
   
@@ -231,7 +233,7 @@ export class Router {
   {
     route:'login',
     aliases:['addUser', 'startSession'],
-    post: async (self, router, args, origin) => {
+    post: async (self,router,origin,...args) => {
       //console.log('logging in', args);
       const u = await router.addUser(args[0])
       return { message: u, id: u.origin }
@@ -240,7 +242,7 @@ export class Router {
   {
     route:'logout',
     aliases:['removeUser','endSession'],
-    post:(self, router, args, origin) => {
+    post:(self,router,origin,...args) => {
       let user = router.USERS[origin]
         if (!user) return false
       if(args[0]) router.removeUser(...args)
@@ -479,7 +481,6 @@ export class Router {
   // NOTE: Client can call itself. Server cannot.
   handleLocalRoute = async (o:MessageObject, endpoint?: Endpoint, route?: string) =>{
 
-
     // Notify through Subscription (if not suppressed)
     if (endpoint && route && !o.suppress && endpoint.connection) endpoint.connection?.service?.responses?.forEach(f => f(Object.assign({route}, o))) // Include send route if none returned
 
@@ -489,7 +490,7 @@ export class Router {
 
       if (route?.post instanceof Function) {
         // return route.post.run(this, o.message, o.id) // TODO: Enable non-post
-        return await route.post(null, this, o.message, o.id);
+        return await route.post(null, this, o.id, ...(o.message ?? []));
 
       }
     }
@@ -803,7 +804,7 @@ export class Router {
 
               // Delete Handler
                if (routeInfo?.delete && method.toUpperCase() === 'DELETE') {
-                res  = await routeInfo.delete(this, input, origin)
+                res  = await routeInfo.delete(this, origin, ...input)
               } 
               
               // Get Handler
@@ -819,7 +820,7 @@ export class Router {
               }
               // Post Handler
               else if (postProcess) {
-                res  = await (routeInfo.post as Function)(null, this, input, origin)
+                res  = await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
                 // res  = await (routeInfo.post as Process).run(this, input, origin)
               } 
 
@@ -841,7 +842,7 @@ export class Router {
         if (!route) route = this.ROUTES[event.data.foo]
         if (route){
               if (event.data.message && route.post instanceof Function) {
-                return await route.post(null, this, event.data.message, event.data.origin);
+                return await route.post(null, this, event.data.origin, ...(event.data.message ?? []));
                 // return await route.post.run(this, event.data.message, event.data.origin);
               }
               else return

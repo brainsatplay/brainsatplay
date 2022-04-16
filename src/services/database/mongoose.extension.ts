@@ -24,7 +24,6 @@ export const del = async (_, Model, o ) => {
 export const post = async (_, Model, args) => {
 
     if (Model){
-
     await Promise.all(args.map(async struct => {
         let copy = JSON.parse(JSON.stringify(struct)); // Deep Copy
         if(copy._id) delete copy._id;                                

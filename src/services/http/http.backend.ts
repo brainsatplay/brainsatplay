@@ -18,7 +18,7 @@ class HTTPService extends SubscriptionService {
     routes = [
         { //add a local function, can implement whole algorithm pipelines on-the-fly
           route: 'add',
-          post: async (self, router, args) => { //arg0 = name, arg1 = function string (arrow or normal)
+          post: async (self,router,origin,...args) => { //arg0 = name, arg1 = function string (arrow or normal)
 
             const get = {html: args[1] ?? `<p>Just a test lol</p>`}
             
@@ -28,7 +28,7 @@ class HTTPService extends SubscriptionService {
               headers: {
                 'Content-Type': 'text/html',
               },
-              post: (self, router, args) => {
+              post: (self,router,origin,...args) => {
                   get.html = args[0]
                 return {message: [get.html]}
               }

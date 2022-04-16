@@ -16,10 +16,10 @@ class WebRTCService extends Service {
 
         {
             route: 'subscribe',
-            post: (self, router, args, id) => {
+            post: (self,router,origin,...args) => {
 
-                let u = router.USERS[id] // NOTE: Requires being registered in the global server
-                if (u && !this.peers[id]) this.peers[id] = u
+                let u = router.USERS[origin] // NOTE: Requires being registered in the global server
+                if (u && !this.peers[origin]) this.peers[origin] = u
 
                 // Subscribe or Create Room
                 const rooms = this.getRooms()
@@ -33,17 +33,17 @@ class WebRTCService extends Service {
                         // First Check Room ID. Then fallback to name.
                         let room = this.rooms[route] || Object.values(this.rooms).find(r => r.name === route)
                         if (room) {
-                            this.connect(room, id)
+                            this.connect(room, origin)
                         } else {
                             room = this.createRoom({name: route})
-                            this.connect(room,id)
+                            this.connect(room,origin)
                         }
 
                     } else {
                         if (split[0] !== 'users') route = split[0] // base user
                         const user = this.peers[route]
                         if (user) {
-                            this.connect(user, id)
+                            this.connect(user, origin)
                         } else console.log('User not found.')
                     }
                 })
@@ -53,7 +53,7 @@ class WebRTCService extends Service {
         },
         {
             route: 'unsubscribe',
-            post: (self, router, args, id) => {
+            post: (self,router,origin,...args) => {
                 console.log('MUST IMPLEMENT UNSUBSCRIBE')
                 return;
             }
@@ -66,10 +66,10 @@ class WebRTCService extends Service {
                 object: this.peers,
                 transform: () => this.getPeers()
             },
-            delete: (self, router, args, id) => {
+            delete: (self,router,origin,...args) => {
 
                 // Expects User ID String
-                return this.disconnect(args?.[0] ?? id)
+                return this.disconnect(args?.[0] ?? origin)
             }
         },
 
@@ -80,7 +80,7 @@ class WebRTCService extends Service {
                 object: this.rooms,
                 transform: () => this.getRooms()
             },
-            // post: (self, router, args, id) => {
+            // post: (self,router,origin,...args) => {
             //     return;
             // }
         },
@@ -88,20 +88,20 @@ class WebRTCService extends Service {
         // WebRTC Basic Commands
         {
             route: 'offer',
-            post: (self, router, args, id) => {
-                return this.pass('webrtc/offer', id, args[0], JSON.parse(args[1]))
+            post: (self,router,origin,...args) => {
+                return this.pass('webrtc/offer', origin, args[0], JSON.parse(args[1]))
             }
         },
         {
             route: 'answer',
-            post: (self, router, args, id) => {
-                return this.pass('webrtc/answer', id, args[0], JSON.parse(args[1]))
+            post: (self,router,origin,...args) => {
+                return this.pass('webrtc/answer', origin, args[0], JSON.parse(args[1]))
             }
         },
         {
             route: 'candidate',
-            post: (self, router, args, id) => {
-                return this.pass('webrtc/candidate', id, args[0], JSON.parse(args[1]))
+            post: (self,router,origin,...args) => {
+                return this.pass('webrtc/candidate', origin, args[0], JSON.parse(args[1]))
             }
         },
 

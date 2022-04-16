@@ -155,7 +155,7 @@ class DatabaseService extends Service {
                 }, 
                 
                 // Generic Post Handler
-                post: async (self, router, args, origin): Promise<boolean | any[]> => {
+                post: async (self,router,origin,...args): Promise<boolean | any[]> => {
                     
                     // Don't Allow Users to Request until Logged In
                     const u = router.USERS[origin]
@@ -163,6 +163,7 @@ class DatabaseService extends Service {
                     if (!u) return null
 
                     let data;
+
                     if (args.length === 0) return getHandler(...args) // Use Get if post has no arguments
                     // Check filters
                     let passed = (this.collections[key]?.filters?.post) ? await this.collections[key].filters.post(u, args, this.collections) : true

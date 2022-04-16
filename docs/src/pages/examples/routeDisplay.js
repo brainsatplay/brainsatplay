@@ -38,7 +38,7 @@ export default function RouteDisplay({routes, sendCallback}) {
             let args = []
             if (o.route === 'unsafe/createRoute') args = [{
               route: 'add',
-              post: (_, [a, b=1]) => a + b
+              post: (_, __, ___, a, b=1) => a + b
             }]
             else if (o.route === 'add') args = [vals['add']?.[0]]
             else if (o.route === 'http/add') args = ['/arbitrary/route', '<p>Just some arbitrary HTML</p>']
