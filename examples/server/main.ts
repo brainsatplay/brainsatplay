@@ -9,7 +9,7 @@ import * as api from '../../src/backend/index'
 import WebsocketService from '../../src/services/websocket/websocket.backend'
 import HTTPService from '../../src/services/http/http.backend'
 
-import * as brainsatplay from '../../src/graph'
+import * as brainsatplay from '../../src/core/graph'
 
 import { User } from '../schemas/user.schema'
 import { Note } from '../schemas/note.schema'

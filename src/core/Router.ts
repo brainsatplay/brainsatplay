@@ -7,7 +7,7 @@ import { getParamNames } from '../common/parse.utils';
 import { SubscriptionService } from './SubscriptionService';
 import errorPage from '../services/http/404'
 import { Endpoint } from './Endpoint';
-import Process from '../graph/Process';
+import Process from './graph/Process';
 
 export const DONOTSEND = 'DONOTSEND';
 // export let NODE = false

@@ -1,6 +1,6 @@
 import { Router } from '../core/Router'
 import { Endpoint } from '../core/Endpoint'
-import Process from '../graph/Process'
+import Process from '../core/graph/Process'
 export type RouterInterface = Partial<Router>
 
 export type ArbitraryObject = {[x:string]:any}

@@ -15,17 +15,27 @@ We believe that physiological signals represent the next frontier of interactive
 ## Monorepo Contents
 This monorepo contains several NPM libraries for high-performance computing and inter-process communication.
 
-### Core
+### /core
 - **brainsatplay:** A set of generic message handlers written in Universal JavaScript.
+
+### /frontend
 - **brainsatplay-frontend:** Client-side HTTP and Websocket services.
+
+### /backend
 - **brainsatplay-backend:** Server-side HTTP and Websocket services.
 
-### Microservices
+### /services
 - **brainsatplay-database:** Store data + router extension for data management (implemented in [MyAlyce](https://github.com/MyAlyce/myalyce)).
 - **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
 
-### CLI
+### /cli
 - **brainsatplay-cli:** Program a new project through the terminal.
+
+### /chrome
+- **Brains@Play Extension:** A Chrome Extension for using Brains@Play applications.
+
+### /pwa
+- **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
 
 
 
@@ -108,6 +118,7 @@ const brainsatplay = require('brainsatplay')
 ```
 
 ## Roadmap
+- [ ] Entirely convert Routes to Processes
 - [ ] Assemble graphs in Node.js
 - [ ] Support Python
 - [ ] Support C/C++

@@ -1,5 +1,5 @@
-import { randomId } from "../common/id.utils";
-import { getParams } from '../common/parse.utils';
+import { randomId } from "../../common/id.utils";
+import { getParams } from '../../common/parse.utils';
 
 
 type ExportedProcess = {

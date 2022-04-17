@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Brains@Play Extension",
+  "version": "1.0",
+  "description": "Change the brightness of your browser to train your brain",
+
+  "icons": {
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "permissions": ["tabs", "activeTab"],
+  "minimum_chrome_version": "10.0",
+
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
+
+  "devtools_page": "devtools/devtools.html",
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["common/datastreams.js", "common/content_script.js"]
+    }
+  ]
+}
