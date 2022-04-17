@@ -837,3 +837,8 @@ export function parseFunctionFromText(method='') {
     return newFunc;
   
   }
+
+  
+
+export const ProcessGraph = AcyclicGraph;
+export const Process = GraphNode;
