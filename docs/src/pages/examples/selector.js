@@ -7,6 +7,7 @@ import AllExample from './components/all';
 import WebRTCExample from './components/webrtc';
 import StreamsExample from './components/streams';
 import ProcessExample from './components/process';
+import Process2Example from './components/process2';
 
 export default function ExampleSelector({server, endpoints, router, id}) {
    const history = useHistory();
@@ -53,6 +54,14 @@ export default function ExampleSelector({server, endpoints, router, id}) {
             endpoints={endpoints}
             id={id}
             />
+
+          case 'process2':
+            return <Process2Example
+            server={server}
+            router={router}
+            endpoints={endpoints}
+            id={id}
+            />
         }
       }
 
@@ -77,7 +86,10 @@ export default function ExampleSelector({server, endpoints, router, id}) {
           Streams
         </button>
         <button onClick={() => set('process')}>
-          Process (test)
+          Process
+        </button>
+        <button onClick={() => set('process2')}>
+          Process2 (test)
         </button>
         </nav>
 

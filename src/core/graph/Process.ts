@@ -5,7 +5,7 @@ import { getParams } from '../../common/parse.utils';
 type ExportedProcess = {
     id: string;
     processes: {[x: string]: ExportedProcess},
-    targets: string[],
+    targets: string[], // Could also be called "children"
     operator: Function
 }
 
