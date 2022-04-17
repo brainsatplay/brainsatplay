@@ -857,6 +857,86 @@ export const Process = GraphNode;
 /*
 More node examples (minus some added utility functions)
 
+   let CircleCanvasNode = {
+       canvas:document.querySelector('canvas'),
+       ctx:document.querySelector('canvas').getContext('2d'),
+        radius:20,
+        triggered:false,
+
+        operator:(
+            input,
+            node,
+            origin,
+            cmd
+        )=>{ 
+            
+            if(!this.triggered) {
+                this.radius += Math.random()-0.5;
+            }
+
+            if(cmd === 'animate') {
+                this.draw();
+                for(let i = 0; i < this.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
+                    let f = this.drawFuncs[i];
+                    if(typeof f === 'function') {
+                        f(input,node,origin,cmd); //pass the args in (need these if you pass arrow functions)
+                    }
+                }
+            } else {
+                if(typeof input === 'object') {
+                    if(input.radius) this.radius += input.radius;
+                    this.triggered = true;
+                } else if (typeof input === 'number') {
+                    this.radius += input;
+                    this.triggered = true;
+                } else if (typeof input === 'string') {
+                    this.radius += parseFloat(input);
+                    this.triggered = true;
+                } else {
+                    this.radius += Math.random()-0.5;
+                    this.triggered = true;
+                }
+            }
+        },
+        draw:(input,node,origin,cmd) => {
+            let canvas = this.canvas;
+            let ctx = this.ctx;
+            if(this.radius <= 1) this.radius = 1;
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            this.drawCircle(
+                canvas.width*0.5,
+                canvas.height*0.5,
+                this.radius,
+                'green',
+                5,
+                '#003300'
+            );
+        },
+        drawCircle:(centerX, centerY, radius, fill='green', strokewidth=5, strokestyle='#003300') => {
+            this.ctx.beginPath();
+            this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            this.ctx.fillStyle = fill;
+            this.ctx.fill();
+            this.ctx.lineWidth = strokewidth;
+            this.ctx.strokeStyle = strokestyle;
+            this.ctx.stroke();
+        }
+        forward:true, //pass output to child nodes
+        backward:false, //pass output to parent node
+        children:undefined, //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
+        parent:undefined, //parent graph node
+        delay:false, //ms delay to fire the node
+        repeat:false, // set repeat as an integer to repeat the input n times
+        recursive:false, //or set recursive with an integer to pass the output back in as the next input n times
+        animate:true, //true or false
+        loop:undefined, //milliseconds or false
+        tag:undefined, //generated if not specified, or use to get another node by tag instead of generating a new one
+        input:undefined,// can set on the attribute etc
+        graph:undefined, //parent AcyclicGraph instance, can set manually or via enclosing acyclic-graph div
+        node:undefined, //GraphNode instance, can set manually or as a string to grab a node by tag (or use tag)
+    }; //can specify properties of the element which can be subscribed to for changes.
+
+
    let SpaceNodeProps={
         bodies:{}, //the orbital body nodes we're updating
         speed:300000, //time multiplier
