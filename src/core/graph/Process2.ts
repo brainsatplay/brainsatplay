@@ -274,7 +274,7 @@ runNode(node,input,origin) {
 
 //runs the node sequence
 //Should create a sync version with no promises (will block but be faster)
-_run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
+run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
     if(typeof node === 'string') 
         {
             let fnd;

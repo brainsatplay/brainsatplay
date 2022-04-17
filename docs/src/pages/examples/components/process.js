@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/graph';
-import { ProcessGraph, Process } from '../../../../../src/core/graph/Process2';
+import { ProcessGraph, Process, GraphNode } from '../../../../../src/core/graph/Process2';
 
 export default function ProcessExample({server, endpoints, router}) {
   
@@ -120,6 +120,32 @@ export default function ProcessExample({server, endpoints, router}) {
     //another instantiation 
     upstream3.run(6)
 
+    //another example
+
+    let flow = {
+      tag:'upstream2',
+      increment:1,
+      multiplier:2,
+      operator:(self,input)=>{
+        let output = self.increment + self.multiplier;
+        terminal.current.insertAdjacentHTML(`beforeend`, `<p>Upstream: ${input} + ${self.increment} = ${output}</p>`)
+        return output;
+      },
+      forward:true,
+      children:{
+        tag:'downstream2',
+        operator:(self,input)=>{
+          const output = input+1;
+          terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
+          return output;
+        }
+      }
+    }
+
+    let flowNode = new GraphNode(flow,undefined,graph);
+
+    let res = flowNode.run(6)
+    console.log(res);
 
     // Load a Module
     // const loaded = new brainsatplay.Process(null, null, true)
