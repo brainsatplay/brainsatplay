@@ -57,8 +57,8 @@ export type GraphNodeProperties = {
     tag?:string, //generated if not specified, or use to get another node by tag instead of generating a new one
     operator?:(
         input:any, //input, e.g. output from another node
-        node:GraphNodeProperties,  //'this' node
-        origin?:GraphNodeProperties, //origin node
+        node:GraphNode|string,  //'this' node
+        origin?:GraphNode|string, //origin node
         cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any|AsyncGeneratorFunction, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
     forward?:boolean, //pass output to child nodes
