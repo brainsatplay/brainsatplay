@@ -118,7 +118,7 @@ export class AcyclicGraph {
     run(node,input,origin) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node)
-            return node.run(input,node,origin)
+            return node._run(input,node,origin)
         else return undefined;
     }
 
@@ -203,7 +203,7 @@ export class AcyclicGraph {
 
     //subscribe a node to this node that isn't a child of this node
     subscribeNode(inputNode:GraphNode, outputNode:GraphNode|string) {
-        return this.state.subscribeTrigger(inputNode.tag,(res)=>{this.run(outputNode,res,this);})
+        return this.state.subscribeTrigger(inputNode.tag,(res)=>{this._run(outputNode,res,this);})
     }
 
     print(node,printChildren=true) {
@@ -268,13 +268,13 @@ async runOp(input,node=this,origin,cmd) {
 runNode(node,input,origin) {
     if(typeof node === 'string') node = this.nodes.get(node);
     if(node)
-        return node.run(input,node,origin)
+        return node._run(input,node,origin);
     else return undefined;
 }
 
 //runs the node sequence
 //Should create a sync version with no promises (will block but be faster)
-run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
+_run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
     if(typeof node === 'string') 
         {
             let fnd;
