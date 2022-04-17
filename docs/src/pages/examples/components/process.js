@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/graph';
+import { ProcessGraph, Process } from '../../../../../src/core/graph/Process2';
 
 export default function ProcessExample({server, endpoints, router}) {
   
@@ -63,6 +64,37 @@ export default function ProcessExample({server, endpoints, router}) {
     imported.list(copy.current)
     console.log(imported, exported)
 
+
+    //new version
+
+    let graph = new ProcessGraph();
+
+    let upstreamProps = {
+      tag:'upstream',
+      increment:1,
+      multiplier:2,
+      operator:(self,input)=>{
+        let output = self.increment + self.multiplier;
+        terminal.current.insertAdjacentHTML(`beforeend`, `<p>Upstream: ${input} + ${self.increment} = ${output}</p>`)
+        return output;
+      }
+    }
+
+    let upstream2 = graph.addNode(upstreamProps);
+
+    let downstreamNode = graph.create((self,input)=>{
+      const output = input+1;
+      terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
+      return output;
+    },undefined,{tag:'downstream'});
+
+    upstream2.subscribeNode(downstreamNode);
+
+    upstream2.run(5);
+
+
+
+
     // Load a Module
     // const loaded = new brainsatplay.Process(null, null, true)
     // loaded.load(datastreams)
@@ -74,7 +106,7 @@ export default function ProcessExample({server, endpoints, router}) {
         terminal.current.innerHTML =  ''
 
         console.log('Run Graph #1', parent)
-        await parent.processes.get('upstream').run(input)
+        await graph.getNode('upstream').run(input)
         display.current.innerHTML =  `<h3>Original</h3><strong>Input: ${input}`
         copy.current.innerHTML = `<h3>Copy</h3><strong>Input: ${input}`
         parent.list(display.current)

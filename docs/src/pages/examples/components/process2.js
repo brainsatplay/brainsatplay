@@ -18,11 +18,11 @@ export default function Process2Example({server, endpoints, router}) {
       // ------------------------------ Basic Graph Example ------------------------------ 
       let tree = { //top level should be an object, children can be arrays of objects
         tag:'top',
-        operator:(input,node,origin,cmd)=>{
+        operator:(self,input,origin,cmd)=>{
             if(typeof input === 'object') {
-                if(input?.x) node.x = input.x; 
-                if(input?.y) node.y = input.y;
-                if(input?.z) node.z = input.z;
+                if(input?.x) self.x = input.x; 
+                if(input?.y) self.y = input.y;
+                if(input?.z) self.z = input.z;
                 console.log('top node, input:', input);
             }
             if(cmd === 'animate') {//seizure mode
@@ -43,11 +43,11 @@ export default function Process2Example({server, endpoints, router}) {
         //repeat:3 //can repeat an operator, or use "recursive" for the same but passing the node's result back in
         children:{ //object, array, or tag. Same as the 'next' tag in Sequencer.js
             tag:'next', //tagged nodes get added to the node map by name, they must be unique! non-tagged nodes are only referenced internally e.g. in call trees
-            operator:(input,node,origin,cmd)=>{
+            operator:(self,input,origin,cmd)=>{
                 if(origin.x) { //copy over the coordinates
-                    node.x = origin.x;
-                    node.y = origin.y;
-                    node.z = origin.z;
+                    self.x = origin.x;
+                    self.y = origin.y;
+                    self.z = origin.z;
                 }
                 console.log('next node \n parent node:',node,'\ninput',input);
             }, // if you use a normal function operator(input,node,origin){} then you can use 'this' reference instead of 'node', while 'node' is more flexible for arrow functions etc.
@@ -66,19 +66,19 @@ export default function Process2Example({server, endpoints, router}) {
        triggered:false,
 
        operator:(
+           self,
            input,
-           node,
            origin,
            cmd
        )=>{ 
            
-           if(!node.triggered) {
-               node.radius += Math.random()-0.5;
+           if(!self.triggered) {
+            self.radius += Math.random()-0.5;
            }
 
            if(cmd === 'animate') {
-               node.draw(input, node, origin, cmd);
-               console.log(node)
+            self.draw(self, input, origin, cmd);
+               console.log(self)
               //  for(let i = 0; i < node.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
               //      let f = node.drawFuncs[i];
               //      if(typeof f === 'function') {
@@ -87,46 +87,46 @@ export default function Process2Example({server, endpoints, router}) {
               //  }
            } else {
                if(typeof input === 'object') {
-                   if(input.radius) node.radius += input.radius;
-                   node.triggered = true;
+                   if(input.radius) self.radius += input.radius;
+                   self.triggered = true;
                } else if (typeof input === 'number') {
-                   node.radius += input;
-                   node.triggered = true;
+                self.radius += input;
+                self.triggered = true;
                } else if (typeof input === 'string') {
-                   node.radius += parseFloat(input);
-                   node.triggered = true;
+                self.radius += parseFloat(input);
+                self.triggered = true;
                } else {
-                   node.radius += Math.random()-0.5;
-                   node.triggered = true;
+                self.radius += Math.random()-0.5;
+                self.triggered = true;
                }
            }
 
            return node.radius;
        },
-       draw:(input,node,origin,cmd) => {
-          console.log(node)
-           let canvas = node.canvas;
-           let ctx = node.ctx;
-           if(node.radius <= 1) node.radius = 1;
+       draw:(self,input,origin,cmd) => {
+          console.log(self)
+           let canvas = self.canvas;
+           let ctx = self.ctx;
+           if(self.radius <= 1) self.radius = 1;
            ctx.clearRect(0,0,canvas.width,canvas.height);
-           node.drawCircle(
-              node,
+           self.drawCircle(
+                self,
                canvas.width*0.5,
                canvas.height*0.5,
-               node.radius,
+               self.radius,
                'green',
                5,
                '#003300'
            );
        },
-       drawCircle:(node, centerX, centerY, radius, fill='green', strokewidth=5, strokestyle='#003300') => {
-           node.ctx.beginPath();
-           node.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-           node.ctx.fillStyle = fill;
-           node.ctx.fill();
-           node.ctx.lineWidth = strokewidth;
-           node.ctx.strokeStyle = strokestyle;
-           node.ctx.stroke();
+       drawCircle:(self, centerX, centerY, radius, fill='green', strokewidth=5, strokestyle='#003300') => {
+        self.ctx.beginPath();
+        self.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+        self.ctx.fillStyle = fill;
+        self.ctx.fill();
+        self.ctx.lineWidth = strokewidth;
+        self.ctx.strokeStyle = strokestyle;
+        self.ctx.stroke();
        },
        forward:true, //pass output to child nodes
        backward:false, //pass output to parent node
@@ -146,7 +146,7 @@ export default function Process2Example({server, endpoints, router}) {
     // graph.addNode(tree);
     // let res = graph.run(tree.tag,{x:4,y:5,z:6}).then(res => console.log('promise, after', res));
     const node = graph.addNode(circle);
-    const node2 = graph.create((input,node,origin,cmd) => {
+    const node2 = graph.create((self,input,origin,cmd) => {
         console.log("Circle Radius: ",input);
     });
 

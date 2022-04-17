@@ -10,8 +10,8 @@ import { parseFunctionFromText } from '../../common/parse.utils';
 export type GraphNodeProperties = {
     tag?:string, //generated if not specified, or use to get another node by tag instead of generating a new one
     operator?:( //can be async
+        self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
-        node:GraphNode|string,  //'this' node
         origin?:GraphNode|string, //origin node
         cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
@@ -217,7 +217,7 @@ export class AcyclicGraph {
         if(parsed) this.addNode(parsed);
     }
 
-    create(operator:(input:any,node:GraphNode,origin:GraphNode,cmd:string)=>any,parentNode,props) {
+    create(operator:(self:GraphNode,input:any,origin:GraphNode,cmd:string)=>any,parentNode,props) {
         return createNode(operator,parentNode,props,this);
     }
 
@@ -259,7 +259,7 @@ operator(input,node=this,origin,cmd){
 
 //run the operator
 async runOp(input,node=this,origin,cmd) {
-    let result = await this.operator(input,node,origin,cmd);
+    let result = await this.operator(node,input,origin,cmd);
     if(this.tag) this.state.setState({[this.tag]:result});
     return result;
 }
@@ -778,7 +778,7 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
 }
 
 
-export function createNode(operator:(input,node,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
+export function createNode(operator:(self,input,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
     if(typeof props === 'object') {
         (props.operator as any) = operator;
         return new GraphNode(props,parentNode,graph);
