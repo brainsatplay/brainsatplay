@@ -7,14 +7,20 @@
 
 /*
 
+
 let tree = { //top level should be an object, children can be arrays of objects
     tag:'top',
-    operator:(input,node,origin)=>{
+    operator:(input,node,origin,cmd)=>{
         if(typeof input === 'object') {
             if(input?.x) node.x = input.x; 
             if(input?.y) node.y = input.y;
             if(input?.z) node.z = input.z;
             console.log('top node, input:', input);
+        }
+        if(cmd === 'animate') {//seizure mode
+            if(document.body.style.backgroundColor === 'white') 
+                document.body.backgroundColor = 'black';
+            else document.body.style.backgroundColor = 'white';
         }
         return input;
     }, //input is the previous result if passed from another node. node is 'this' node, origin is the previous node if passed
@@ -25,7 +31,7 @@ let tree = { //top level should be an object, children can be arrays of objects
     z:1,
     children:{ //object, array, or tag. Same as the 'next' tag in Sequencer.js
         tag:'next', //tagged nodes get added to the node map by name, they must be unique! non-tagged nodes are only referenced internally e.g. in call trees
-        operator:(input,node,origin)=>{
+        operator:(input,node,origin,cmd)=>{
             if(origin.x) { //copy over the coordinates
                 node.x = origin.x;
                 node.y = origin.y;
@@ -46,7 +52,9 @@ let tree = { //top level should be an object, children can be arrays of objects
 let graph = new AcyclicGraph();
 graph.addNode(tree);
 
-graph.run(tree.tag,{x:4,y:5,z:6});
+let res = graph.run(tree.tag,{x:4,y:5,z:6}).then(res => console.log('promise, after', res));
+
+console.log('promise returned:',res);
 
 each node in the tree becomes a GraphNode object
 
