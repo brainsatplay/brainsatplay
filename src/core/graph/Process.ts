@@ -5,7 +5,7 @@ import { getParams } from '../../common/parse.utils';
 type ExportedProcess = {
     id: string;
     processes: {[x: string]: ExportedProcess},
-    targets: string[],
+    targets: string[], // Could also be called "children"
     operator: Function
 }
 
@@ -59,17 +59,17 @@ export default class Process {
     }
 
     // --------------------- METHODS ---------------------
-    init = () => { 
-        window.addEventListener('resize', this.resize)
-        this.oninit() // specified by user
-    }
+    // init = () => { 
+    //     window.addEventListener('resize', this.resize)
+    //     this.oninit() // specified by user
+    // }
 
-    deinit = () => { 
-        window.removeEventListener('resize', this.resize)
-        this.ondeinit() // specified by user
-    }
+    // deinit = () => { 
+    //     window.removeEventListener('resize', this.resize)
+    //     this.ondeinit() // specified by user
+    // }
     
-    resize = ()  => { this.onresize() }
+    // resize = ()  => { this.onresize() }
     
     // Basic Map Functions
     get = (id:string) => this.processes.get(id)
@@ -144,11 +144,11 @@ export default class Process {
 
 
     // --------------------- CALLBACKS ---------------------
-    oninit: (self?:Process) => void = () => {};
-    ondeinit: (self?:Process) => void = () => {};
-    onconnect: (self?:Process) => void = () => {};
-    ondisconnect: (self?:Process) => void = () => {};
-    onresize: (self?:Process) => void = () => {};
+    // oninit: (self?:Process) => void = () => {};
+    // ondeinit: (self?:Process) => void = () => {};
+    // onconnect: (self?:Process) => void = () => {};
+    // ondisconnect: (self?:Process) => void = () => {};
+    // onresize: (self?:Process) => void = () => {};
 
 
     // --------------------- Push Data In ---------------------
@@ -171,7 +171,6 @@ export default class Process {
             // Manual input override
             if (processArr?.[i] === undefined || inputArr[i] !== undefined) return inputArr[i]
             else return processArr[i].value
-
         })
 
         output = (this.operator instanceof Function) ? await this.operator(this.parent ?? this, input, ...args) : input
