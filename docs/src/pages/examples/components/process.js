@@ -90,10 +90,13 @@ export default function ProcessExample({server, endpoints, router}) {
     }); //add a tag to make it easier to find
 
     //subscribe a node
-    upstream2.subscribeNode(downstream2);
-
+    let sub = upstream2.subscribeNode(downstream2);
+    //upstream2.unsubscribe(sub);
+    
     //subscribe a function
-    upstream2.subscribe((output)=>{console.log('upstream output: ', output);});
+    let sub2 = upstream2.subscribe((output)=>{console.log('upstream output: ', output);});
+    //upstream2.unsubscribe(sub2);
+
 
     upstream2.run(5); //run with an input
 
