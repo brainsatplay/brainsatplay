@@ -73,13 +73,6 @@ export type GraphNodeProperties = {
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
-export interface GraphNodeConstructor {
-    properties:GraphNodeProperties,
-    parentNode?:GraphNode|string,
-    graph?:AcyclicGraph
-}
-
-
 
 
 //TODO: try to reduce the async stack a bit for better optimization, though in general it is advantageous matter as long as node propagation isn't 
