@@ -144,8 +144,9 @@ export default function ProcessExample({server, endpoints, router}) {
 
     let flowNode = new GraphNode(flow,undefined,graph);
 
-    let res = flowNode.run(6)
-    console.log(res);
+    let res = flowNode.run(6);
+    let res2 = graph.run('upstream2',7);
+    console.log(res,res2);
 
     // Load a Module
     // const loaded = new brainsatplay.Process(null, null, true)

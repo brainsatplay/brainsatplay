@@ -122,6 +122,9 @@ export class AcyclicGraph {
         else return undefined;
     }
 
+    //Should create a sync version with no promises (will block but be faster)
+    runNode = this.run;
+
     removeTree(node) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node) {
