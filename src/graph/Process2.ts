@@ -852,3 +852,202 @@ export function parseFunctionFromText(method='') {
 
 export const ProcessGraph = AcyclicGraph;
 export const Process = GraphNode;
+
+
+/*
+More node examples (minus some added utility functions)
+
+   let SpaceNodeProps={
+        bodies:{}, //the orbital body nodes we're updating
+        speed:300000, //time multiplier
+        lastTime:undefined,
+        now:undefined,
+        canvas:undefined,
+        ctx:undefined,
+        useCanvas:true,
+        useHTML:true,
+        meter_per_px: 1e9, //viewport scales according to this
+        px_per_meter: 1/1e9,
+        zind:0,
+
+        stars:[],
+        boids:undefined,
+        nstars:undefined,
+        nboids:undefined,
+         
+        operator:(
+            input,
+            node,
+            origin,
+            cmd
+        )=>{ 
+
+            if(cmd === 'animate') {
+                this.lastTime = this.now;
+                this.now = Date.now();
+
+                let tstep;
+                let tminus = (this.now - this.lastTime)*0.001;
+                if(tminus > 0.1) tminus = 0.1; //prevent overly long time jumps  
+
+                tstep = tminus*this.speed; //seconds                
+               
+                let bodies = this.bodies;
+
+                let keys = Object.keys(bodies);
+
+                for(let i = 0; i < keys.length; i++) {
+                    for(let j = 0; j < keys.length; j++) {
+                        if(i !== j && !bodies[keys[i]].fixed && !bodies[keys[j]].fixed) {
+                            this.newtonianMechanics(bodies[keys[i]],bodies[keys[j]],tstep);
+                        }
+                    }
+                }
+
+                this.node.callChildren(tstep); // this will update positions
+
+                //draw loop
+                if(this.useCanvas) {
+                    this.draw(input,node,origin,cmd);
+                    for(let i = 0; i < this.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
+                        let f = this.drawFuncs[i];
+                        if(typeof f === 'function') {
+                            f(input,node,origin,cmd); //pass the args in (need these if you pass arrow functions)
+                        }
+                    }
+                }
+
+            } else {
+                //e.g. input commands
+                if(typeof input === 'object') {
+                    
+                } else if (typeof input === 'number') {
+                    
+                } else if (typeof input === 'string') {
+                    
+                } else {
+                    
+                }
+            }
+        },
+        forward:true, //pass output to child nodes
+        backward:false, //pass output to parent node
+        children:undefined, //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
+        delay:false, //ms delay to fire the node
+        repeat:false, // set repeat as an integer to repeat the input n times
+        recursive:false, //or set recursive with an integer to pass the output back in as the next input n times
+        animate:true, //true or false
+        loop:undefined, //milliseconds or false
+        tag:undefined, //generated if not specified, or use to get another node by tag instead of generating a new one
+        input:undefined,// can set on the attribute etc
+        graph:undefined, //parent AcyclicGraph instance, can set manually or via enclosing acyclic-graph div
+        node:undefined, //GraphNode instance, can set manually or as a string to grab a node by tag (or use tag)
+    }; //can specify properties of the element which can be subscribed to for changes.
+
+    //make these children of SpaceNode 
+    let PhysicsBodyChildProps = {
+        mass:5.972e24,              //kg  //e.g. earth's mass
+        radius:6.3781e9,            //body radius (m)   //e.g. earth's radius
+        distance:undefined, //distance from origin, can be used to set initial position with theta and azimuth
+        theta:undefined,   //xy circular angle (0-365 deg), can set this instead of initial position
+        azimuth:undefined, //z angle (0 - 180 deg), can set this instead of initial position coordinates 
+        position:{x:150e9,y:0,z:0}, //center is origin (0,0,0), position represents distance from center (m)
+        velocity:{x:0,y:0,z:0}, //m/s
+        acceleration:{x:0,y:0,z:0}, //m/s^2
+        force:{x:0,y:0,z:0},        //Newtons 
+        restitution:0.01,
+        vloss:0.00000000000001,                  //velocity loss multiplier (loss = 1-vloss), this causes more loss at higher speeds
+        fixed:false,
+        bounded:true, //bounded by parentNode clientRect
+        // collidedWith:{}, //last tick 
+        // prevCollidedWith:{}, //last last tick
+        operator:(input,node,origin,cmd) => {
+            
+            let tstep;
+
+            if(typeof input === 'object') {
+                if(input.position) this.position = input.position;
+                if(input.velocity) this.velocity = input.velocity;
+                if(input.acceleration) this.acceleration = input.acceleration;
+                if(input.force) this.force = input.force;
+                if(input.tstep) tstep = input.tstep;
+            } else if (typeof input === 'number') {
+                tstep = input;
+            } else if (typeof input === 'string') {
+                tstep = parseInt(input);
+            } else {
+                
+            }
+
+            let f = this.force;
+            let a = this.acceleration;
+            let v = this.velocity;
+            let p = this.position;
+            
+            if(tstep && this.fixed === false) {
+                if(f.x) { 
+                    a.x+=f.x/this.mass;
+                    f.x = 0;
+                }
+                if(f.y) {
+                    a.y+=f.y/this.mass;
+                    f.y = 0;
+                }
+                if(f.z) {
+                    a.z+=f.z/this.mass;
+                    f.z = 0;
+                }
+
+                // let vxn = v.x*tstep;
+                // let vyn = v.y*tstep;
+                // let vzn = v.z*tstep;
+
+                if(a.x) v.x+=a.x*tstep;//-this.vloss*vxn;
+                if(a.y) v.y+=a.y*tstep;//-this.vloss*vyn;
+                if(a.z) v.z+=a.z*tstep;//-this.vloss*vzn;
+                if(v.x) p.x+=v.x*tstep;
+                if(v.y) p.y+=v.y*tstep;
+                if(v.z) p.z+=v.z*tstep;
+
+                if(this.bounded) this.checkBoundaries(p,v);
+
+                // this.prevCollidedWith = this.collidedWith; //prevent overlapping collisions from adding too many forces etc on.
+                // this.collidedWith = {};                
+
+                //update reference values
+                this.distance = this.magnitude(this.position);
+                this.azimuth = this.calcAzimuth(this.position);
+                this.zenith = this.calcZenith(this.position,this.distance);
+
+                if(this.parentNode.props?.useHTML  || !this.parentNode.props) {
+                    this.div.style.left = (this.parentNode.clientWidth*0.5+this.position.x/this.parentNode.props.meter_per_px)+'px';
+                    this.div.style.top = (this.parentNode.clientHeight*0.5-this.position.y/this.parentNode.props.meter_per_px)+'px';
+                    let z = Math.floor(this.position.z/this.parentNode.props.meter_per_px);
+                    if(this.parentNode.props.zind > z) {this.parentNode.props.zind = z;}
+                    let pind = parseInt(this.parentNode.props.canvas.style.zIndex);
+                    if(!pind) pind = 1;
+                    this.div.style.zIndex = z + pind - this.parentNode.props.zind;
+                }
+            }
+
+            return input; 
+
+        }, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
+        forward:true, //pass output to child nodes
+        backward:false, //pass output to parent node
+        children:undefined, //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
+        parent:undefined, //parent graph node
+        delay:false, //ms delay to fire the node
+        repeat:false, // set repeat as an integer to repeat the input n times
+        recursive:false, //or set recursive with an integer to pass the output back in as the next input n times
+        animate:false, //true or false
+        loop:undefined, //milliseconds or false
+        tag:undefined, //generated if not specified, or use to get another node by tag instead of generating a new one
+        input:undefined,// can set on the attribute etc
+        graph:undefined, //parent AcyclicGraph instance, can set manually or via enclosing acyclic-graph div
+        node:undefined, //GraphNode instance, can set manually or as a string to grab a node by tag (or use tag)
+    }; //can specify properties of the element which can be subscribed to for changes.
+
+
+
+*/
