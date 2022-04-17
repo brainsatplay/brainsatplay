@@ -25,8 +25,6 @@ export type GraphNodeProperties = {
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
-
-
 /*
 
 
@@ -256,6 +254,11 @@ export class AcyclicGraph {
         this.state.unsubscribeTrigger(tag,sub);
     }
 
+    //subscribe a node to this node that isn't a child of this node
+    subscribeNode(inputNode:GraphNode, outputNode:GraphNode|string) {
+        return this.state.subscribeTrigger(inputNode.tag,(res)=>{this.run(outputNode,res,this);})
+    }
+
     print(node,printChildren=true) {
         if(node instanceof GraphNode)
             return node.print(node,printChildren);
@@ -265,6 +268,10 @@ export class AcyclicGraph {
     reconstruct(json='{}') {
         let parsed = reconstructObject(json);
         if(parsed) this.addNode(parsed);
+    }
+
+    create(operator:(input:any,node:GraphNode,origin:GraphNode,cmd:string)=>any,parentNode,props) {
+        return createNode(operator,parentNode,props,this);
     }
 
 }
@@ -320,7 +327,7 @@ runNode(node,input,origin) {
 
 //runs the node sequence
 //Should create a sync version with no promises (will block but be faster)
-run(input,node:GraphNode&GraphNodeProperties|any=this,origin) {
+run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
     if(typeof node === 'string') 
         {
             let fnd;
@@ -644,12 +651,19 @@ setProps(props={}) {
     Object.assign(this,props);
 }
 
+//subscribe an output with an arbitrary callback
 subscribe(tag=this.tag,callback=(res)=>{}) {
     return this.state.subscribeTrigger(tag,callback);
 }
 
+//unsub the callback
 unsubscribe(tag=this.tag,sub) {
     this.state.unsubscribeTrigger(tag,sub);
+}
+
+//subscribe a node to this node that isn't a child of this node
+subscribeNode(node:GraphNode) {
+    return this.state.subscribeTrigger(this.tag,(res)=>{this.runNode(node,res,this);})
 }
 
 //recursively print a reconstructible json hierarchy of the node and the children. 
@@ -848,7 +862,14 @@ export function parseFunctionFromText(method='') {
   
   }
 
-  
+export function createNode(operator:(input,node,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
+    if(typeof props === 'object') {
+        (props.operator as any) = operator;
+        return new GraphNode(props,parentNode,graph);
+    }
+    return new GraphNode({operator:operator},parentNode,graph);
+}
+
 
 export const ProcessGraph = AcyclicGraph;
 export const Process = GraphNode;
@@ -871,55 +892,55 @@ More node examples (minus some added utility functions)
         )=>{ 
             
             if(!this.triggered) {
-                this.radius += Math.random()-0.5;
+                node.radius += Math.random()-0.5;
             }
 
             if(cmd === 'animate') {
-                this.draw();
-                for(let i = 0; i < this.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
-                    let f = this.drawFuncs[i];
-                    if(typeof f === 'function') {
-                        f(input,node,origin,cmd); //pass the args in (need these if you pass arrow functions)
-                    }
-                }
+                node.draw(input,node,origin,cmd);
+                // for(let i = 0; i < node.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
+                //     let f = node.drawFuncs[i];
+                //     if(typeof f === 'function') {
+                //         f(input,node,origin,cmd); //pass the args in (need these if you pass arrow functions)
+                //     }
+                // }
             } else {
                 if(typeof input === 'object') {
-                    if(input.radius) this.radius += input.radius;
-                    this.triggered = true;
+                    if(input.radius) node.radius += input.radius;
+                    node.triggered = true;
                 } else if (typeof input === 'number') {
-                    this.radius += input;
-                    this.triggered = true;
+                    node.radius += input;
+                    node.triggered = true;
                 } else if (typeof input === 'string') {
-                    this.radius += parseFloat(input);
-                    this.triggered = true;
+                    node.radius += parseFloat(input);
+                    node.triggered = true;
                 } else {
-                    this.radius += Math.random()-0.5;
-                    this.triggered = true;
+                    node.radius += Math.random()-0.5;
+                    node.triggered = true;
                 }
             }
         },
         draw:(input,node,origin,cmd) => {
-            let canvas = this.canvas;
-            let ctx = this.ctx;
-            if(this.radius <= 1) this.radius = 1;
+            let canvas = node.canvas;
+            let ctx = node.ctx;
+            if(node.radius <= 1) node.radius = 1;
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            this.drawCircle(
+            node.drawCircle(
                 canvas.width*0.5,
                 canvas.height*0.5,
-                this.radius,
+                node.radius,
                 'green',
                 5,
                 '#003300'
             );
         },
         drawCircle:(centerX, centerY, radius, fill='green', strokewidth=5, strokestyle='#003300') => {
-            this.ctx.beginPath();
-            this.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-            this.ctx.fillStyle = fill;
-            this.ctx.fill();
-            this.ctx.lineWidth = strokewidth;
-            this.ctx.strokeStyle = strokestyle;
-            this.ctx.stroke();
+            node.ctx.beginPath();
+            node.ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            node.ctx.fillStyle = fill;
+            node.ctx.fill();
+            node.ctx.lineWidth = strokewidth;
+            node.ctx.strokeStyle = strokestyle;
+            node.ctx.stroke();
         }
         forward:true, //pass output to child nodes
         backward:false, //pass output to parent node
