@@ -37,8 +37,6 @@ This monorepo contains several NPM libraries for high-performance computing and 
 ### /pwa
 - **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
 
-
-
 ## Concepts
 ### Processes
 A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.).
@@ -120,8 +118,12 @@ const brainsatplay = require('brainsatplay')
 ## Roadmap
 - [ ] Entirely convert Routes to Processes
 - [ ] Assemble graphs in Node.js
+- [ ] Assemble graphs with CLI
 - [ ] Support Python
 - [ ] Support C/C++
+- [ ] Make Endpoint / Router entirely Process-centric
+- [ ] Assemble / edit Processes with [visualscript](https://github.com/brainsatplay/visualscript)
+- [ ] Acquire data persistently with a Chrome Extension
 
 
 ## Support
