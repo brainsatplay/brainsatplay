@@ -777,5 +777,16 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
     })();
 }
 
+
+export function createNode(operator:(input,node,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
+    if(typeof props === 'object') {
+        (props.operator as any) = operator;
+        return new GraphNode(props,parentNode,graph);
+    }
+    return new GraphNode({operator:operator},parentNode,graph);
+}
+
+
+
 export const ProcessGraph = AcyclicGraph;
 export const Process = GraphNode;
