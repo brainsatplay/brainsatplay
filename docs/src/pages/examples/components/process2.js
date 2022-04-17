@@ -100,6 +100,8 @@ export default function Process2Example({server, endpoints, router}) {
                    node.triggered = true;
                }
            }
+
+           return node.radius;
        },
        draw:(input,node,origin,cmd) => {
           console.log(node)
@@ -144,6 +146,14 @@ export default function Process2Example({server, endpoints, router}) {
     // graph.addNode(tree);
     // let res = graph.run(tree.tag,{x:4,y:5,z:6}).then(res => console.log('promise, after', res));
     const node = graph.addNode(circle);
+    const node2 = graph.create((input,node,origin,cmd) => {
+        console.log("Circle Radius: ",input);
+    });
+
+    node.subscribeNode(node2);
+    //OR:
+    //graph.subscribeNode(node,node2);
+
     let res = graph.run(circle.tag).then(res => console.log('promise, after', res));
     
     button1.current.onclick = () => {
