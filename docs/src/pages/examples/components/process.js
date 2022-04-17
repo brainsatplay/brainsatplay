@@ -92,7 +92,8 @@ export default function ProcessExample({server, endpoints, router}) {
 
     upstream2.run(5);
 
-
+    upstream2.increment = 3;
+    upstream2.multiplier = 10;
 
 
     // Load a Module
