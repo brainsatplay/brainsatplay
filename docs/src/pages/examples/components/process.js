@@ -82,18 +82,35 @@ export default function ProcessExample({server, endpoints, router}) {
 
     let upstream2 = graph.addNode(upstreamProps);
 
-    let downstreamNode = graph.create((self,input)=>{
+    let downstream2 = graph.create((self,input)=>{
       const output = input+1;
       terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
       return output;
     },undefined,{tag:'downstream'});
 
-    upstream2.subscribeNode(downstreamNode);
+    upstream2.subscribeNode(downstream2);
 
     upstream2.run(5);
 
     upstream2.increment = 3;
     upstream2.multiplier = 10;
+
+    let json = upstream2.print()
+    let json2 = downstream2.print()
+
+    let reconstructed1 = graph.reconstruct(json);
+    let reconstructed2 = graph.reconstruct(json2);
+
+    console.log(json,json2,reconstructed1,reconstructed2);
+
+    reconstructed1.subscribeNode(reconstructed2);
+    reconstructed1.run(5);
+
+    upstreamProps.tag = 'upstream3';
+
+    let upstream3 = new Process(upstreamProps,undefined,graph);
+    //another instantiation 
+    upstream3.run(6)
 
 
     // Load a Module
