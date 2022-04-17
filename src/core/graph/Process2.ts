@@ -599,12 +599,12 @@ setProps(props={}) {
 }
 
 //subscribe an output with an arbitrary callback
-subscribe(tag=this.tag,callback=(res)=>{}) {
+subscribe(callback=(res)=>{},tag=this.tag) {
     return this.state.subscribeTrigger(tag,callback);
 }
 
 //unsub the callback
-unsubscribe(tag=this.tag,sub) {
+unsubscribe(sub,tag=this.tag) {
     this.state.unsubscribeTrigger(tag,sub);
 }
 

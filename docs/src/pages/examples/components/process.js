@@ -81,16 +81,21 @@ export default function ProcessExample({server, endpoints, router}) {
     }
 
     let upstream2 = graph.addNode(upstreamProps);
+    console.log(graph.getNode('upstream')); //graph.nodes.get('upstream');
 
     let downstream2 = graph.create((self,input)=>{
       const output = input+1;
       terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
       return output;
-    },undefined,{tag:'downstream'});
+    }); //add a tag to make it easier to find
 
+    //subscribe a node
     upstream2.subscribeNode(downstream2);
 
-    upstream2.run(5);
+    //subscribe a function
+    upstream2.subscribe((output)=>{console.log('upstream output: ', output);});
+
+    upstream2.run(5); //run with an input
 
     upstream2.increment = 3;
     upstream2.multiplier = 10;
