@@ -51,6 +51,10 @@ let tree = { //top level should be an object, children can be arrays of objects
     x:3, //arbitrary properties available on the node variable in the operator 
     y:2,
     z:1,
+    animate:true,
+    delay:1000,//, //can timeout the operation
+    //frame:true //can have the operation run via requestAnimationFrame (throttling)
+    //repeat:3 //can repeat an operator, or use "recursive" for the same but passing the node's result back in
     children:{ //object, array, or tag. Same as the 'next' tag in Sequencer.js
         tag:'next', //tagged nodes get added to the node map by name, they must be unique! non-tagged nodes are only referenced internally e.g. in call trees
         operator:(input,node,origin,cmd)=>{
@@ -64,10 +68,7 @@ let tree = { //top level should be an object, children can be arrays of objects
         //etc..
         delay:500,
         repeat:3
-    },
-    delay:1000//, //can timeout the operation
-    //frame:true //can have the operation run via requestAnimationFrame (throttling)
-    //repeat:3 //can repeat an operator, or use "recursive" for the same but passing the node's result back in
+    }
 };
 
 
