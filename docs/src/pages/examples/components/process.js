@@ -114,12 +114,16 @@ export default function ProcessExample({server, endpoints, router}) {
     reconstructed1.subscribeNode(reconstructed2);
     reconstructed1.run(5);
 
+
+    //another way to make the node
+
     upstreamProps.tag = 'upstream3';
 
     let upstream3 = new Process(upstreamProps,undefined,graph);
     //another instantiation 
     upstream3.run(6)
 
+    
     //another example
 
     let flow = {
