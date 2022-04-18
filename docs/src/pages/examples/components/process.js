@@ -146,7 +146,7 @@ export default function ProcessExample({server, endpoints, router}) {
       }
     }
 
-    let flowNode = new GraphNode(flow,undefined,graph);
+    let flowNode = new Process(flow,undefined,graph);
 
     let res = flowNode.run(6);
     let res2 = graph.run('upstream2',7);
