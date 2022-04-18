@@ -13,7 +13,7 @@ export type GraphNodeProperties = {
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
-        cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+        cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
     forward?:boolean, //pass output to child nodes
     backward?:boolean, //pass output to parent node
@@ -28,13 +28,13 @@ export type GraphNodeProperties = {
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
-        cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+        cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined,
     looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
-        cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+        cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined,
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
