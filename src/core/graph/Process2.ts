@@ -29,13 +29,13 @@ export type GraphNodeProperties = {
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
-    )=>any | undefined,
+    )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
     looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
-    )=>any | undefined,
+    )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
