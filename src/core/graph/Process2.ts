@@ -23,13 +23,13 @@ export type GraphNodeProperties = {
     repeat?:false|number, // set repeat as an integer to repeat the input n times
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times
     animate?:boolean, //true or false
+    loop?:false|number, //milliseconds or false
     animation?:( //uses operator by default unless defined otherwise can be async 
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
         origin?:GraphNode|string, //origin node
         cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined,
-    loop?:false|number, //milliseconds or false
     looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
         self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
