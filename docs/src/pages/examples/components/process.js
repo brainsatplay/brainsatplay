@@ -111,7 +111,7 @@ export default function ProcessExample({server, endpoints, router}) {
 
     console.log(json,json2,reconstructed1,reconstructed2);
 
-    reconstructed1.subscribeNode(reconstructed2);
+    reconstructed1.subscribe(reconstructed2);
     reconstructed1.run(5);
 
 
@@ -123,7 +123,7 @@ export default function ProcessExample({server, endpoints, router}) {
     //another instantiation 
     upstream3.run(6)
 
-    
+
     //another example
 
     let flow = {
