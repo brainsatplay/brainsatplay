@@ -603,6 +603,7 @@ setProps(props={}) {
 
 //subscribe an output with an arbitrary callback
 subscribe(callback=(res)=>{},tag=this.tag) {
+    if(callback instanceof GraphNode) return this.subscribeNode(callback);
     return this.state.subscribeTrigger(tag,callback);
 }
 
