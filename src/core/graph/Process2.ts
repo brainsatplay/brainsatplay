@@ -23,7 +23,19 @@ export type GraphNodeProperties = {
     repeat?:false|number, // set repeat as an integer to repeat the input n times
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times
     animate?:boolean, //true or false
+    animation?:( //uses operator by default unless defined otherwise can be async 
+        self:GraphNode|string,  //'this' node
+        input:any, //input, e.g. output from another node
+        origin?:GraphNode|string, //origin node
+        cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+    )=>any | undefined,
     loop?:false|number, //milliseconds or false
+    looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
+        self:GraphNode|string,  //'this' node
+        input:any, //input, e.g. output from another node
+        origin?:GraphNode|string, //origin node
+        cmd?:string    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+    )=>any | undefined,
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
@@ -239,6 +251,8 @@ ANIMATE = 'animate'; //operator is running on the animation loop (cmd = 'animate
 LOOP = 'loop'; //operator is running on a setTimeout loop (cmd = 'loop')
 isLooping = false;
 isAnimating = false;
+looper = undefined; //loop function, uses operator if undefined (with cmd 'loop');
+animation = undefined; //animation function, uses operator if undefined (with cmd 'animate')
 
 constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
     if(!properties.tag && graph) properties.tag = `node${graph.nNodes}`; //add a sequential id to find the node in the tree 
@@ -256,7 +270,7 @@ constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
 }
 
 //I/O scheme for this node
-operator(input,node=this,origin,cmd){
+operator(self=this,input,origin,cmd){
     return input;
 }
 
@@ -346,6 +360,16 @@ run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
 
                 let res = await run(node,input); //repeat/recurse before moving on to the parent/child
 
+                //can add an animationFrame coroutine, one per node //because why not
+                if(node.animate && !node.isAnimating) {
+                    this.runAnimation(this.animation,input,node,origin);
+                }
+
+                //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
+                if(typeof node.loop === 'number' && !node.isLooping) {
+                    this.runLoop(this.looper,input,node,origin);
+                }
+
                 if(node.backward && node.parent) {
                     await this.runNode(node.parent,res,node);
                 }
@@ -358,16 +382,6 @@ run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
                     else await this.runNode(node.children,res,node);
                 }
 
-                //can add an animationFrame coroutine, one per node //because why not
-                if(node.animate && !node.isAnimating) {
-                    this.runAnimation(input,node,origin);
-                }
-
-                //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
-                if(typeof node.loop === 'number' && !node.isLooping) {
-                    this.runLoop(input,node,origin);
-                }
-                
                 return res;
             }
 
@@ -388,18 +402,34 @@ run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
     });
 }
 
-runAnimation(input,node:GraphNode&GraphNodeProperties|any=this,origin) {
+runAnimation(animation:(input,node,origin,cmd)=>any=this.animation,input,node:GraphNode&GraphNodeProperties|any=this,origin) {
     //can add an animationFrame coroutine, one per node //because why not
+    this.animation = animation;
+    if(!animation) this.animation = this.operator;
     if(node.animate && !node.isAnimating) {
         node.isAnimating = true;
         let anim = async () => {
             if(node.isAnimating) {
-                await node.runOp( 
+                let result = await animation( 
                     input,
                     node,
                     origin,
-                    this.ANIMATE  // if(cmd === node.ANIMATE) {  } //'animate'
+                    this.ANIMATE
                 );
+                if(this.tag && typeof result !== 'undefined') {
+                    this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
+                    if(node.backward && node.parent) {
+                        await this.runNode(node.parent,result,node);
+                    }
+                    if(node.children && node.forward) {
+                        if(Array.isArray(node.children)) {
+                            for(let i = 0; i < node.children.length; i++) {
+                                await this.runNode(node.children[i],result,node);
+                            }
+                        }
+                        else await this.runNode(node.children,result,node);
+                    }
+                }
                 requestAnimationFrame(async ()=>{await anim();});
             }
         }
@@ -407,19 +437,30 @@ runAnimation(input,node:GraphNode&GraphNodeProperties|any=this,origin) {
     }
 }
 
-runLoop(input,node:GraphNode&GraphNodeProperties|any=this,origin) {
+runLoop(loop:(input,node,origin,cmd)=>any=this.looper,input,node:GraphNode&GraphNodeProperties|any=this,origin) {
     //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
+    this.looper = loop;
+    if(!loop) this.looper = this.operator;
     if(typeof node.loop === 'number' && !node.isLooping) {
         node.isLooping = true;
-        let loop = async () => {
+        let looping = async () => {
             if(node.looping)  {
-                await node.runOp( 
-                    input,
-                    node,
-                    origin,
-                    this.LOOP // if(cmd === node.LOOP) {  } //'loop'
-                );
-                setTimeout(async ()=>{await loop();},node.loop);
+                let result = await this.looper(input,node,origin);
+                if(this.tag && typeof result !== 'undefined') {
+                    this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
+                    if(node.backward && node.parent) {
+                        await this.runNode(node.parent,result,node);
+                    }
+                    if(node.children && node.forward) {
+                        if(Array.isArray(node.children)) {
+                            for(let i = 0; i < node.children.length; i++) {
+                                await this.runNode(node.children[i],result,node);
+                            }
+                        }
+                        else await this.runNode(node.children,result,node);
+                    }
+                }
+                setTimeout(async ()=>{await looping();},node.loop);
             }
         }
     }
