@@ -410,7 +410,7 @@ runAnimation(animation:(input,node,origin,cmd)=>any=this.animation,input,node:Gr
         node.isAnimating = true;
         let anim = async () => {
             if(node.isAnimating) {
-                let result = await animation( 
+                let result = await this.animation( 
                     input,
                     node,
                     origin,
