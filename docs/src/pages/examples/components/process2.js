@@ -17,7 +17,7 @@ export default function Process2Example({server, endpoints, router}) {
       // ------------------------------ Basic Graph Example ------------------------------ 
       let tree = { //top level should be an object, children can be arrays of objects
         tag:'top',
-        operator:(self,input,origin,cmd)=>{
+        operator:(input,self,origin,cmd)=>{
             if(typeof input === 'object') {
                 if(input?.x) self.x = input.x; 
                 if(input?.y) self.y = input.y;
@@ -42,7 +42,7 @@ export default function Process2Example({server, endpoints, router}) {
         //repeat:3 //can repeat an operator, or use "recursive" for the same but passing the node's result back in
         children:{ //object, array, or tag. Same as the 'next' tag in Sequencer.js
             tag:'next', //tagged nodes get added to the node map by name, they must be unique! non-tagged nodes are only referenced internally e.g. in call trees
-            operator:(self,input,origin,cmd)=>{
+            operator:(input,self,origin,cmd)=>{
                 if(origin.x) { //copy over the coordinates
                     self.x = origin.x;
                     self.y = origin.y;
@@ -76,7 +76,7 @@ export default function Process2Example({server, endpoints, router}) {
            }
 
            if(cmd === 'animate') {
-            self.draw(self, input, origin, cmd);
+            self.draw(input, self, origin, cmd);
                console.log(self)
               //  for(let i = 0; i < node.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
               //      let f = node.drawFuncs[i];
@@ -102,7 +102,7 @@ export default function Process2Example({server, endpoints, router}) {
 
            return node.radius;
        },
-       draw:(self,input,origin,cmd) => {
+       draw:(input,self,origin,cmd) => {
           console.log(self)
            let canvas = self.canvas;
            let ctx = self.ctx;
@@ -145,7 +145,7 @@ export default function Process2Example({server, endpoints, router}) {
     // graph.addNode(tree);
     // let res = graph.run(tree.tag,{x:4,y:5,z:6}).then(res => console.log('promise, after', res));
     const node = graph.addNode(circle);
-    const node2 = graph.create((self,input,origin,cmd) => {
+    const node2 = graph.create((input,self,origin,cmd) => {
         console.log("Circle Radius: ",input);
     });
 

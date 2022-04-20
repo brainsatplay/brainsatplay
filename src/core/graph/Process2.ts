@@ -270,13 +270,13 @@ constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
 }
 
 //I/O scheme for this node
-operator(self=this,input,origin,cmd){
+operator(input,self=this,origin,cmd){
     return input;
 }
 
 //run the operator
 async runOp(input,node=this,origin,cmd) {
-    let result = await this.operator(node,input,origin,cmd);
+    let result = await this.operator(input,node,origin,cmd);
     if(this.tag) this.state.setState({[this.tag]:result});
     return result;
 }

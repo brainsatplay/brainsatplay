@@ -73,7 +73,7 @@ export default function ProcessExample({server, endpoints, router}) {
       tag:'upstream',
       increment:1,
       multiplier:2,
-      operator:(self,input)=>{
+      operator:(input,self)=>{
         let output = self.increment + self.multiplier;
         terminal.current.insertAdjacentHTML(`beforeend`, `<p>Upstream: ${input} + ${self.increment} = ${output}</p>`)
         return output;
@@ -83,7 +83,7 @@ export default function ProcessExample({server, endpoints, router}) {
     let upstream2 = graph.addNode(upstreamProps);
     console.log(graph.getNode('upstream')); //graph.nodes.get('upstream');
 
-    let downstream2 = graph.create((self,input)=>{
+    let downstream2 = graph.create((input,self)=>{
       const output = input+1;
       terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
       return output;
@@ -130,7 +130,7 @@ export default function ProcessExample({server, endpoints, router}) {
       tag:'upstream2',
       increment:1,
       multiplier:2,
-      operator:(self,input)=>{
+      operator:(input,self)=>{
         let output = self.increment + self.multiplier;
         terminal.current.insertAdjacentHTML(`beforeend`, `<p>Upstream: ${input} + ${self.increment} = ${output}</p>`)
         return output;
@@ -138,7 +138,7 @@ export default function ProcessExample({server, endpoints, router}) {
       forward:true,
       children:{
         tag:'downstream2',
-        operator:(self,input)=>{
+        operator:(input,self)=>{
           const output = input+1;
           terminal.current.insertAdjacentHTML(`beforeend`, `<p>Downstream: ${input} + ${1} = ${output}</p>`);
           return output;
