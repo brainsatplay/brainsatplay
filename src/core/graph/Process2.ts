@@ -10,8 +10,8 @@ import { parseFunctionFromText } from '../../common/parse.utils';
 export type GraphNodeProperties = {
     tag?:string, //generated if not specified, or use to get another node by tag instead of generating a new one
     operator?:( //can be async
-        self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
+        self:GraphNode|string,  //'this' node
         origin?:GraphNode|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
@@ -25,14 +25,14 @@ export type GraphNodeProperties = {
     animate?:boolean, //true or false
     loop?:false|number, //milliseconds or false
     animation?:( //uses operator by default unless defined otherwise can be async 
-        self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
+        self:GraphNode|string,  //'this' node
         origin?:GraphNode|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
     looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
-        self:GraphNode|string,  //'this' node
         input:any, //input, e.g. output from another node
+        self:GraphNode|string,  //'this' node
         origin?:GraphNode|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
@@ -823,7 +823,7 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
 }
 
 
-export function createNode(operator:(self,input,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
+export function createNode(operator:(input,self,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
     if(typeof props === 'object') {
         (props.operator as any) = operator;
         return new GraphNode(props,parentNode,graph);
