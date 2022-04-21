@@ -46,18 +46,15 @@ export type GraphNodeProperties = {
 
 //a graph representing a callstack of nodes which can be arranged arbitrarily with forward and backprop or propagation to wherever
 export const state = {
+    pushToState:{},
     data:{},
     triggers:{},
     setState(updateObj){
         
-        Object.assign(this.data,updateObj);
+        Object.assign(this.data, updateObj);
 
-        if(Object.keys(this.triggers).length > 0) {
-            for (const prop of Object.getOwnPropertyNames(this.triggers)) {
-                    this.triggers[prop].forEach((obj)=>{
-                        obj.onchange(this.data[prop]);
-                    });
-            }
+        for (const prop of Object.getOwnPropertyNames(updateObj)) {
+                if (this.triggers[prop]) this.triggers[prop].forEach((obj) => obj.onchange(this.data[prop]));
         }
 
         return this.data;
@@ -98,6 +95,7 @@ export const state = {
 }
 
 
+
 //the utilities in this class can be referenced in the operator after setup for more complex functionality
 //node functionality is self-contained, use a graph for organization
 export class GraphNode {
@@ -106,6 +104,7 @@ export class GraphNode {
     children;
     graph;
     state = state; //shared trigger state
+    attributes = new Set()
     nodes = new Map();
     ANIMATE = 'animate'; //operator is running on the animation loop (cmd = 'animate')
     LOOP = 'loop'; //operator is running on a setTimeout loop (cmd = 'loop')
@@ -115,6 +114,13 @@ export class GraphNode {
     animation = undefined; //animation function, uses operator if undefined (with cmd 'animate')
     
     constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
+
+        const keys = Object.keys(this)
+        const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']
+        for (let key in properties){
+            if (!keys.includes(key) && !prohibited.includes(key)) this.attributes.add(key)
+        }
+
         if(!properties.tag && graph) properties.tag = `node${graph.nNodes}`; //add a sequential id to find the node in the tree 
         else if(!properties.tag) properties.tag = `node${Math.floor(Math.random()*10000000000)}`; //add a random id for the top index if none supplied
         Object.assign(this,properties); //set the node's props as this
@@ -435,7 +441,7 @@ export class GraphNode {
         else this.children.push(children);
     }
     
-    convertChildrenToNodes(n=this) {
+    convertChildrenToNodes(n) {
         if(n.children?.name === 'GraphNode') { 
             if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
             if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
@@ -709,6 +715,7 @@ export class AcyclicGraph {
 
         // Drill All
         const setNode = (n, parent) => {
+
             if (o[n.tag]) delete o[n.tag] // Remove loose nodes
 
             // Add to List If Not Child
@@ -717,6 +724,8 @@ export class AcyclicGraph {
                     state: n.state.data[n.tag], // Look at both signals that bubble and those that don't
                     nodes: {}
                 }
+
+                n.attributes.forEach(attr => parent[n.tag][attr] = n[attr])
 
                 usedTags.push(n.tag)
 
