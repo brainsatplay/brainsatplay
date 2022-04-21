@@ -46,27 +46,21 @@ export type GraphNodeProperties = {
 
 //a graph representing a callstack of nodes which can be arranged arbitrarily with forward and backprop or propagation to wherever
 export const state = {
-    pushToState:{},
     data:{},
     triggers:{},
     setState(updateObj){
         
-        Object.assign(this.pushToState,updateObj);
+        Object.assign(this.data,updateObj);
 
         if(Object.keys(this.triggers).length > 0) {
-            // Object.assign(this.data,this.pushToState);
             for (const prop of Object.getOwnPropertyNames(this.triggers)) {
-                if(this.pushToState[prop]) {
-                    this.data[prop] = this.pushToState[prop]
-                    delete this.pushToState[prop];
                     this.triggers[prop].forEach((obj)=>{
                         obj.onchange(this.data[prop]);
                     });
-                }
             }
         }
 
-        return this.pushToState;
+        return this.data;
     },
     subscribeTrigger(key,onchange=(res)=>{}){
         if(key) {
@@ -720,7 +714,7 @@ export class AcyclicGraph {
             // Add to List If Not Child
             if (!usedTags.includes(n.tag)){
                 parent[n.tag] = {
-                    state: n.state.data[n.tag],
+                    state: n.state.data[n.tag], // Look at both signals that bubble and those that don't
                     nodes: {}
                 }
 
