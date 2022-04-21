@@ -178,7 +178,7 @@ export default function Process2Example({server, endpoints, router}) {
           </div>
           <canvas></canvas>
 
-          <div className={styles.terminal}><span ref={terminal}></span></div>
+          <div className={styles.terminal} ><textarea ref={terminal} disabled></textarea></div>
 
       </header>
     );

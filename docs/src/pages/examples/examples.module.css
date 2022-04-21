@@ -11,10 +11,17 @@
   height: 150px;
   width: 100vw;
   color: white;
-  padding: 25px;
-  padding-top: 45px;
   overflow: scroll;
   z-index: 1000;
+ }
+
+ .terminal > * {
+   background: transparent;
+   width: 100%;
+   height: 100%;
+   color: white;
+   padding: 25px;
+   padding-top: 35px;
  }
 
  .terminal::before {

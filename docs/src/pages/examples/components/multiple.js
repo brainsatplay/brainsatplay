@@ -14,7 +14,7 @@ export default function MultipleExample({server, endpoints, router}) {
           route: 'services',
           endpoint: endpoints[0]
         }).then(res => {
-          if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+          if (!res?.error) output.current.innerHTML = JSON.stringify(res, undefined,2)
           else output.current.innerHTML = res.error
   
         }).catch(err => {
@@ -26,7 +26,7 @@ export default function MultipleExample({server, endpoints, router}) {
           route: 'services',
           endpoint: endpoints[1]
         }).then(res => {
-          if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+          if (!res?.error) output.current.innerHTML = JSON.stringify(res, undefined,2)
           else output.current.innerHTML = res.error
   
         }).catch(err => {
@@ -42,7 +42,7 @@ export default function MultipleExample({server, endpoints, router}) {
             <button ref={ping1} className="button button--secondary button--lg">Ping 1</button>
             <button ref={ping2} className="button button--secondary button--lg">Ping 2</button>
           </div>
-          <div className={styles.terminal}><span ref={output}></span></div>
+          <div className={styles.terminal} ><textarea ref={output} disabled></textarea></div>
 
         </div>
       </header>

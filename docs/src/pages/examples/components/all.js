@@ -21,7 +21,7 @@ export default function AllExample({server, endpoints, router}) {
         else {
         
         // Subscription Responses
-        if (!data?.error) if (outputRef) outputRef.innerHTML = JSON.stringify(data)
+        if (!data?.error) if (outputRef) outputRef.innerHTML = JSON.stringify(data, undefined, 2)
         else if (outputRef) outputRef.innerHTML = data.error
 
       }
@@ -45,7 +45,7 @@ export default function AllExample({server, endpoints, router}) {
 
         if (!res?.error) {
           if (res && route === 'routes') setRoutes(res[0])
-          if (outputRef) outputRef.innerHTML = JSON.stringify(res)
+          if (outputRef) outputRef.innerHTML = JSON.stringify(res, undefined, 2)
         } else if (outputRef) outputRef.innerHTML = res.error
 
         return res
@@ -61,7 +61,7 @@ export default function AllExample({server, endpoints, router}) {
       <header className={clsx('hero hero--primary')}>
         <div className="container">
           <h1 className="hero__title">All Routes</h1>
-          <div className={styles.terminal}><span ref={output}></span></div>
+          <div className={styles.terminal} ><textarea ref={output} disabled></textarea></div>
           <RouteDisplay routes={routes} sendCallback={send}/>
         </div>
       </header>

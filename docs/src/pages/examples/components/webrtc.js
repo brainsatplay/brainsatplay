@@ -69,7 +69,7 @@ export default function WebRTCExample({server, endpoints, router, id}) {
           if (!res?.error) {
             
             // Print to Terminal and Peer Readout
-            output.current.innerHTML = JSON.stringify(res)
+            output.current.innerHTML = JSON.stringify(res, undefined,2)
             if (peers[res.id]) peers[res.id].readout.innerHTML += res.message ?? res.route
 
           } else output.current.innerHTML = res.error 
@@ -102,7 +102,7 @@ export default function WebRTCExample({server, endpoints, router, id}) {
           </div>
           <div><strong>Me: </strong><span ref={meReadout}></span></div>
           <div ref={peerDiv}></div>
-          <div className={styles.terminal}><span ref={output}></span></div>
+          <div className={styles.terminal} ><textarea ref={output} disabled></textarea></div>
 
         </div>
       </header>

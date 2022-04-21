@@ -38,6 +38,8 @@ This monorepo contains several NPM libraries for high-performance computing and 
 - **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
 
 ## Concepts
+*List and explain all design intuitions here*
+
 ### Processes
 A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.).
 
@@ -124,6 +126,9 @@ const brainsatplay = require('brainsatplay')
 - [ ] Make Endpoint / Router entirely Process-centric
 - [ ] Assemble / edit Processes with [visualscript](https://github.com/brainsatplay/visualscript)
 - [ ] Acquire data persistently with a Chrome Extension
+
+## Low Effort Extensions
+*Coming soon...*
 
 
 ## Support

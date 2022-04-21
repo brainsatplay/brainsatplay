@@ -110,7 +110,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
         }, {route: 'manipulateDataStream', post: (Router, args, origin) => {
           return args[0].map(v => 1000*v)
         }}).then(res => {
-          if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+          if (!res?.error) output.current.innerHTML = JSON.stringify(res, undefined,2)
           else output.current.innerHTML = res.error
         }).catch(err => {
           output.current.innerHTML = err.error
@@ -130,7 +130,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
             route: 'manipulateDataStream',
             endpoint: endpoints[0]
           }, data, timestamps, contentHint).then(res => {
-            if (!res?.error) output.current.innerHTML = JSON.stringify(res)
+            if (!res?.error) output.current.innerHTML = JSON.stringify(res, undefined,2)
             else output.current.innerHTML = res.error
           }).catch(err => {
             output.current.innerHTML = err.error
@@ -218,7 +218,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
         <div ref={graph}>
         </div>
 
-        <div className={styles.terminal}><span ref={output}></span></div>
+        <div className={styles.terminal} ><textarea ref={output} disabled></textarea></div>
     </header>
   );
 }
