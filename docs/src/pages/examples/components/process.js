@@ -132,7 +132,7 @@ export default function ProcessExample({server, endpoints, router}) {
       button1.current.click()
 
 
-      // ---------------------------- Basic OLD Example ----------------------------
+      // ---------------------------- Basic Example ----------------------------
       const add = new Process({
         increment: 1,
         operator: (input, self) => input + self.increment
@@ -142,7 +142,7 @@ export default function ProcessExample({server, endpoints, router}) {
         operator: (input) => console.log(input)
       })
 
-      add.addChildren(log) // This should output 3 to the console
+      add.subscribe(log) // This should output 3 to the console
 
       const random = new Process({
         operator: () => Math.floor(100*Math.random())
@@ -152,7 +152,7 @@ export default function ProcessExample({server, endpoints, router}) {
         add.increment = v
       })
 
-      log.addChildren(random) // This will update the increment value after every run
+      log.subscribe(random) // This will update the increment value after every run
 
 
       random.run() // initialize random value
