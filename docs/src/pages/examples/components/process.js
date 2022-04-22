@@ -101,7 +101,6 @@ export default function ProcessExample({server, endpoints, router}) {
 
     console.log('----------------- Run Flow -----------------')
     let flowNode = new Process(flow,undefined,graph);
-
     let res = await flowNode.run(6);
 
     console.log('----------------- Run Upstream #2 -----------------')
@@ -121,12 +120,12 @@ export default function ProcessExample({server, endpoints, router}) {
 
         await graph.getNode('upstream').run(input)
 
-        const list = graph.tree()
-        terminal.current.value = JSON.stringify(list, undefined, 4)
-
 
         console.log('----------------- Run Graph #2 -----------------')
         await graph.getNode('upstream2').run(input)
+
+        const list = graph.tree()
+        terminal.current.value = JSON.stringify(list, undefined, 4)
 
       }
 
@@ -134,20 +133,37 @@ export default function ProcessExample({server, endpoints, router}) {
 
 
       // ---------------------------- Basic OLD Example ----------------------------
-      const add = new brainsatplay.Process((self, input, increment) => input + increment, null, true)
-      add.set('increment', 1) // or add.set(0, 1)
+      const add = new Process({
+        increment: 1,
+        operator: (input, self) => input + self.increment
+      })
 
-      const log = new brainsatplay.Process((self, input) => console.log(input), null, true)
-      add.subscribe(log) // This should output 3 to the console
+      const log = new Process({
+        operator: (input) => console.log(input)
+      })
 
-      const random = new brainsatplay.Process(() => Math.floor(100*Math.random()), null, true)
-      const inc2 = add.set('increment', random)
-      log.subscribe(inc2) // This will update the increment value after every run
-      random.run()
+      add.addChildren(log) // This should output 3 to the console
 
-      // button2.current.onclick = async () => {    
-      //   add.run(2)
-      // }
+      const random = new Process({
+        operator: () => Math.floor(100*Math.random())
+      })
+
+      random.subscribe((v) => {
+        add.increment = v
+      })
+
+      log.addChildren(random) // This will update the increment value after every run
+
+
+      random.run() // initialize random value
+
+      button2.current.onclick = async () => {    
+        add.run(2)
+        const list = add.tree()
+        console.log(add)
+        terminal.current.value = JSON.stringify(list, undefined, 4)
+
+      }
       
     });
   
@@ -155,7 +171,7 @@ export default function ProcessExample({server, endpoints, router}) {
       <header className={clsx('hero hero--primary')}>
           <div>
             <button ref={button1} className="button button--secondary button--lg">Run</button>
-            {/* <button ref={button2} className="button button--secondary button--lg">Test</button> */}
+            <button ref={button2} className="button button--secondary button--lg">Test</button>
           </div>
           <br/>
           {/* <div ref={display}>

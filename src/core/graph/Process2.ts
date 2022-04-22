@@ -54,7 +54,7 @@ export const state = {
         Object.assign(this.data, updateObj);
 
         for (const prop of Object.getOwnPropertyNames(updateObj)) {
-                if (this.triggers[prop]) this.triggers[prop].forEach((obj) => obj.onchange(this.data[prop]));
+            if (this.triggers[prop]) this.triggers[prop].forEach((obj) => obj.onchange(this.data[prop]));
         }
 
         return this.data;
@@ -95,15 +95,98 @@ export const state = {
 }
 
 
-
-//the utilities in this class can be referenced in the operator after setup for more complex functionality
-//node functionality is self-contained, use a graph for organization
-export class GraphNode {
+class BaseProcess {
     tag;
     parent;
     children;
     graph;
     state = state; //shared trigger state
+    nodes = new Map()
+    attributes = new Set()
+
+    constructor() {
+
+    }
+
+    tree = () => {
+        const o = {}
+
+        const usedTags = []
+
+        // Drill All
+        const setNode = (n, parent) => {
+
+            if (o[n.tag]) delete o[n.tag] // Remove loose nodes
+
+            // Add to List If Not Child
+            if (!usedTags.includes(n.tag)){
+                parent[n.tag] = {
+                    state: n.state.data[n.tag], // Look at both signals that bubble and those that don't
+                    nodes: {}
+                }
+
+                n.attributes.forEach(attr => parent[n.tag][attr] = n[attr])
+
+                usedTags.push(n.tag)
+
+                n.nodes.forEach((n2) => setNode(n2, parent[n.tag].nodes))
+            }
+        }
+
+        // Set Node on Object
+        this.nodes.forEach(n =>setNode(n, o))
+
+        return o
+    }
+
+        
+    convertChildrenToNodes(n) {
+        if(n.children?.name === 'GraphNode') { 
+            if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
+            if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
+        }
+        else if (Array.isArray(n.children)) {
+            for(let i = 0; i < n.children.length; i++) {
+                if(n.children[i].name === 'GraphNode') { 
+                    if(!this.graph?.nodes.get(n.children[i].tag)) this.graph.nodes.set(n.children[i].tag,n.children[i]);
+                    if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
+                    continue; 
+                }
+                else if(typeof n.children[i] === 'object') {
+                    n.children[i] = new GraphNode(n.children[i],n,this.graph);
+                    this.nodes.set(n.children[i].tag,n.children[i]);
+                    this.convertChildrenToNodes(n.children[i]);
+                } 
+                else if (typeof n.children[i] === 'string') {
+                    if(this.graph) {
+                        n.children[i] = this.graph.getNode(n.children[i]); //try graph scope
+                        if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
+                    }
+                    if(!n.children[i]) n.children[i] = this.nodes.get(n.children[i]); //try local scope
+                }
+                
+            }
+        }
+        else if(typeof n.children === 'object') {
+            n.children = new GraphNode(n.children,n,this.graph);
+            this.nodes.set(n.children.tag,n.children);
+            this.convertChildrenToNodes(n.children);
+        } 
+        else if (typeof n.children === 'string') {
+            if(this.graph) {
+                n.children = this.graph.getNode(n.children); //try graph scope
+                if(!this.nodes.get(n.children.tag)) this.nodes.set(n.children.tag,n.children);
+            }
+            if(!n.children) n.children = this.nodes.get(n.children); //try local scope
+        }
+        return n.children;
+    }
+}
+
+
+//the utilities in this class can be referenced in the operator after setup for more complex functionality
+//node functionality is self-contained, use a graph for organization
+export class GraphNode extends BaseProcess{
     attributes = new Set()
     nodes = new Map();
     ANIMATE = 'animate'; //operator is running on the animation loop (cmd = 'animate')
@@ -114,7 +197,7 @@ export class GraphNode {
     animation = undefined; //animation function, uses operator if undefined (with cmd 'animate')
     
     constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
-
+        super()
         const keys = Object.keys(this)
         const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']
         for (let key in properties){
@@ -348,7 +431,7 @@ export class GraphNode {
     removeTree(node) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node) {
-            function recursivelyRemove(node) {
+            const recursivelyRemove = (node) => {
                 if(node.children) {
                     if(Array.isArray(node.children)) {
                         node.children.forEach((c)=>{
@@ -439,48 +522,6 @@ export class GraphNode {
         if(!Array.isArray(this.children) && this.children) this.children = [this.children];
         else if(Array.isArray(children)) this.children.push(...children);
         else this.children.push(children);
-    }
-    
-    convertChildrenToNodes(n) {
-        if(n.children?.name === 'GraphNode') { 
-            if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
-            if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
-        }
-        else if (Array.isArray(n.children)) {
-            for(let i = 0; i < n.children.length; i++) {
-                if(n.children[i].name === 'GraphNode') { 
-                    if(!this.graph?.nodes.get(n.children[i].tag)) this.graph.nodes.set(n.children[i].tag,n.children[i]);
-                    if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
-                    continue; 
-                }
-                else if(typeof n.children[i] === 'object') {
-                    n.children[i] = new GraphNode(n.children[i],n,this.graph);
-                    this.nodes.set(n.children[i].tag,n.children[i]);
-                    this.convertChildrenToNodes(n.children[i]);
-                } 
-                else if (typeof n.children[i] === 'string') {
-                    if(this.graph) {
-                        n.children[i] = this.graph.getNode(n.children[i]); //try graph scope
-                        if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
-                    }
-                    if(!n.children[i]) n.children[i] = this.nodes.get(n.children[i]); //try local scope
-                }
-                
-            }
-        }
-        else if(typeof n.children === 'object') {
-            n.children = new GraphNode(n.children,n,this.graph);
-            this.nodes.set(n.children.tag,n.children);
-            this.convertChildrenToNodes(n.children);
-        } 
-        else if (typeof n.children === 'string') {
-            if(this.graph) {
-                n.children = this.graph.getNode(n.children); //try graph scope
-                if(!this.nodes.get(n.children.tag)) this.nodes.set(n.children.tag,n.children);
-            }
-            if(!n.children) n.children = this.nodes.get(n.children); //try local scope
-        }
-        return n.children;
     }
     
     //Call parent node operator directly
@@ -587,17 +628,13 @@ export class GraphNode {
 
 
     // Macro for GraphNode
-export class AcyclicGraph {
-    state = state;
-    nodes = new Map()
+export class AcyclicGraph extends BaseProcess {
     nNodes = 0
 
-    constructor() {}
-
-    //convert child objects to nodes
-    convertChildrenToNodes(n) {
-        n.convertChildrenToNodes(n);
+    constructor() {
+        super()
     }
+
 
     //converts all children nodes and tag references to graphnodes also
     addNode(node:GraphNodeProperties={}) {
@@ -708,37 +745,6 @@ export class AcyclicGraph {
         if(node instanceof GraphNode) return node.print(node,printChildren);
     }
 
-    tree = () => {
-        const o = {}
-
-        const usedTags = []
-
-        // Drill All
-        const setNode = (n, parent) => {
-
-            if (o[n.tag]) delete o[n.tag] // Remove loose nodes
-
-            // Add to List If Not Child
-            if (!usedTags.includes(n.tag)){
-                parent[n.tag] = {
-                    state: n.state.data[n.tag], // Look at both signals that bubble and those that don't
-                    nodes: {}
-                }
-
-                n.attributes.forEach(attr => parent[n.tag][attr] = n[attr])
-
-                usedTags.push(n.tag)
-
-                n.nodes.forEach((n2) => setNode(n2, parent[n.tag].nodes))
-            }
-        }
-
-        // Set Node on Object
-        this.nodes.forEach(n =>setNode(n, o))
-
-        return o
-    }
-
     //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
     reconstruct(json:string|{[x:string]: any}) {
         let parsed = reconstructObject(json);
@@ -769,7 +775,7 @@ export function reconstructObject(json:string|{[x:string]: any}='{}') {
         // Allow raw object
         let parsed = (typeof json === 'string') ? JSON.parse(json) : json
 
-        function parseObj(obj) {
+        const parseObj = (obj) => {
             for(const prop in obj) {
                 if(typeof obj[prop] === 'string') {
                     let funcParsed = parseFunctionFromText(obj[prop]);
