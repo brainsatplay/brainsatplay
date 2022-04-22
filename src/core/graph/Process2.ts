@@ -59,13 +59,13 @@ export const state = {
 
         return this.data;
     },
-    subscribeTrigger(key,onchange=(res)=>{}){
+    subscribeTrigger(key,onchange:Function=()=>{}){
         if(key) {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
             }
             let l = this.triggers[key].length;
-            this.triggers[key].push({idx:l, onchange:onchange});
+            this.triggers[key].push({idx:l, onchange});
             return this.triggers[key].length-1;
         } else return undefined;
     },
@@ -573,9 +573,10 @@ export class GraphNode extends BaseProcess{
     }
     
     //subscribe an output with an arbitrary callback
-    subscribe(callback=(res)=>{},tag=this.tag) {
-        if(typeof callback === 'object' && callback.operator) return this.subscribeNode(callback);
-        return this.state.subscribeTrigger(tag,callback);
+    subscribe(callback:GraphNode|Function=(res)=>{},tag=this.tag) {
+        if(callback instanceof GraphNode) {
+            return this.subscribeNode(callback);
+        } else return this.state.subscribeTrigger(tag,callback);
     }
     
     //unsub the callback

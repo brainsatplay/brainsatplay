@@ -67,10 +67,8 @@ class WebsocketService extends SubscriptionService {
               if(ws.readyState === 1) ws.send(JSON.stringify(data))
             }})]});
 
-            ws.on('message', (json) => {
-
-              let parsed = JSON.parse(json);
-
+            ws.on('message', (rawdata) => {
+              let parsed = JSON.parse(rawdata.toString())
               if(Array.isArray(parsed)) { //push arrays of requests instead of single objects (more optimal potentially, though fat requests can lock up servers)
                   parsed.forEach((obj) => {
                     // if (!obj.id) obj.id = msg.id // DO NOT ALLOW FOR TRACKING
@@ -98,7 +96,7 @@ class WebsocketService extends SubscriptionService {
     else if (res != null) ws.send(JSON.stringify(res)) // send back  
   }
 
-  defaultCallback = async (ws, o) => {
+  defaultCallback = async (ws, o) : Promise<any> => {
 
       // Check to Add Subscribers (only ws)
       let query = `${this.name}/subscribe`

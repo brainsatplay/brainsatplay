@@ -22,42 +22,37 @@ const config = {
   // ---------------------- TypeDoc Configuration ----------------------
   plugins: [
     './plugins/webpack',
-    // [
-    //   'docusaurus-plugin-typedoc',
+    [
+      'docusaurus-plugin-typedoc',
 
-    //   // Plugin / TypeDoc options
-    //   {
-    //     tsconfig: '../tsconfig.json',
-    //     ignoreCompilerErrors: true,
-    //     entryPoints: [
-    //       "../src/backend", 
-    //       "../src/frontend", 
-    //       "../src/core", 
-    //       "../src/services/database",
-    //       "../src/services/http",
-    //       "../src/services/osc",
-    //       "../src/services/sessions",
-    //       "../src/services/stream",
-    //       "../src/services/unsafe",
-    //       "../src/services/webrtc",
-    //       "../src/services/websocket",
-    //       "../src/services/worker"
-    //     ],
-    //     // entryPointStrategy: "Expand",
-    //     exclude: [
-    //         "./"
-    //     ],
-    //     readme: "none",
+      // Plugin / TypeDoc options
+      {
+        tsconfig: './tsconfig.json',
+        entryPoints: [
+          "../src/backend", 
+          "../src/frontend", 
+          "../src/core", 
+          // "../src/services/database",
+          // "../src/services/http",
+          // "../src/services/osc",
+          // "../src/services/sessions",
+          // "../src/services/stream",
+          // "../src/services/unsafe",
+          // "../src/services/webrtc",
+          // "../src/services/websocket",
+          // "../src/services/worker"
+        ],
+        readme: "none",
 
-    //     // Plugin options
-    //     out: 'reference',
-    //     sidebar: {
-    //       categoryLabel: 'Reference',
-    //       position: 1,
-    //       fullNames: false
-    //     },
-    //   },
-    // ],
+        // Plugin options
+        out: 'reference',
+        sidebar: {
+          categoryLabel: 'Reference',
+          position: 1,
+          fullNames: false
+        },
+      },
+    ],
   ],
 
   presets: [
@@ -108,12 +103,12 @@ const config = {
             position: 'left',
             label: 'Examples',
           },
-          // { 
-          //   type: 'doc',
-          //   docId: 'reference/index',
-          //   label: "Reference", 
-          //   position: 'left'
-          // },
+          { 
+            type: 'doc',
+            docId: 'reference/index',
+            label: "Reference", 
+            position: 'left'
+          },
           // { href: repoUrl, label: "GitHub", external: true },
           // { blog: true, label: "Blog" },
           // { href: helpUrl, label: "Need Help?", external: true }
