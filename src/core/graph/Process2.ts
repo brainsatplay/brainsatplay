@@ -572,7 +572,7 @@ export class GraphNode extends BaseProcess{
     
     //subscribe an output with an arbitrary callback
     subscribe(callback=(res)=>{},tag=this.tag) {
-        if(callback instanceof GraphNode) return this.subscribeNode(callback);
+        if(typeof callback === 'object' && callback.operator) return this.subscribeNode(callback);
         return this.state.subscribeTrigger(tag,callback);
     }
     
@@ -763,7 +763,7 @@ export class AcyclicGraph extends BaseProcess {
     }
 
     print(node,printChildren=true) {
-        if(node instanceof GraphNode) return node.print(node,printChildren);
+        if(typeof node === 'object') return node.print(node,printChildren);
     }
 
     //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
