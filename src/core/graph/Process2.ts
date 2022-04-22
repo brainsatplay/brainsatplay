@@ -521,7 +521,7 @@ export class GraphNode extends BaseProcess{
         if(!this.children) this.children = [];
         if(!Array.isArray(this.children)) {
             this.children = [children];
-            if(children instanceof GraphNode) {
+            if(typeof children === 'object' && children.tag) {
                 this.nodes.set(children.tag,children);
                 if(this.graph) this.graph.nodes.set(children.tag,children);
             }
@@ -529,7 +529,7 @@ export class GraphNode extends BaseProcess{
         else if(Array.isArray(children)) {
             this.children.push(...children);
             children.forEach((c) => { 
-                if(c instanceof GraphNode) {
+                if(typeof c === 'object' && c.tag) {
                     this.nodes.set(c.tag,c);
                     if(this.graph) this.graph.nodes.set(c.tag,c);
                 }
@@ -537,7 +537,7 @@ export class GraphNode extends BaseProcess{
         }
         else {
             this.children.push(children);
-            if(children instanceof GraphNode) {
+            if(typeof children === 'object' && children.tag) {
                 this.nodes.set(children.tag,children);
                 if(this.graph) this.graph.nodes.set(children.tag,children);
             }
