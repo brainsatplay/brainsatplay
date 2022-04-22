@@ -519,10 +519,31 @@ export class GraphNode extends BaseProcess{
     //append child
     addChildren(children) {
         if(!this.children) this.children = [];
-        if(!Array.isArray(this.children) && this.children) this.children = [this.children];
-        else if(Array.isArray(children)) this.children.push(...children);
-        else this.children.push(children);
+        if(!Array.isArray(this.children)) {
+            this.children = [children];
+            if(children instanceof GraphNode) {
+                this.nodes.set(children.tag,children);
+                if(this.graph) this.graph.nodes.set(children.tag,children);
+            }
+        }
+        else if(Array.isArray(children)) {
+            this.children.push(...children);
+            children.forEach((c) => { 
+                if(c instanceof GraphNode) {
+                    this.nodes.set(c.tag,c);
+                    if(this.graph) this.graph.nodes.set(c.tag,c);
+                }
+            })
+        }
+        else {
+            this.children.push(children);
+            if(children instanceof GraphNode) {
+                this.nodes.set(children.tag,children);
+                if(this.graph) this.graph.nodes.set(children.tag,children);
+            }
+        }
     }
+
     
     //Call parent node operator directly
     async callParent(input, origin=this, cmd){
