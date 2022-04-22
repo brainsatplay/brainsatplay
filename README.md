@@ -1,5 +1,5 @@
 # brainsatplay
-`brainsatplay` enables on-browser **interactive reactive programming** for high-performance scientific computing applications that span multiple programming environments. 
+`brainsatplay` enables **interactive reactive programming** on the browser—specifically for high-performance scientific computing applications that span multiple programming environments.
 
 We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
 
