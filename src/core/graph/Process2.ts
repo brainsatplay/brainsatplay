@@ -585,6 +585,7 @@ export class GraphNode extends BaseProcess{
     
     //subscribe a node to this node that isn't a child of this node
     subscribeNode(node:GraphNode) {
+        if(node.tag) this.nodes.set(node.tag,node);
         return this.state.subscribeTrigger(this.tag,(res)=>{this.runNode(node,res,this);})
     }
     
