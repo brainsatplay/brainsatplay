@@ -897,5 +897,5 @@ export function createNode(operator:(input,self,origin,cmd)=>any,parentNode:Grap
 
 
 
-export const ProcessGraph = AcyclicGraph;
+export const Graph = AcyclicGraph;
 export const Process = GraphNode;

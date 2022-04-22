@@ -1,29 +1,13 @@
 ---
-sidebar_position: 2
+sidebar_position: 4
+title: Routers
 ---
 
-# Using the Router
+# Getting Started with Routers
 
-### Getting Started
-To start using the router, import `brainsatplay` into your project:
+`brainsatplay-frontend` and `brainsatplay-backend` provide default communication services including HTTPService and WebsocketService.
 
-#### Browser
-##### Script Tag
-``` html
-<script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest">
-```
-
-#### ES6
-``` js
-import router from 'brainsatplay'
-```
-
-#### Node
-``` js
-const router = require('brainsatplay')
-```
-
-### Loading Frontend Services
+## Loading Frontend Services
 In your frontend code, load specify the remote endpoints your Router will listen to:
 
 ```js
@@ -39,16 +23,11 @@ Then load any services you'll want the Router to use:
 
 ```js
 
-import WebsocketClient from '@brainsatplay/websockets' // TODO: Publish and change name
+import {WebsocketService} from 'brainsatplay-frontend' // TODO: Publish and change name
 
-let services = [
-//   new SessionsClient(), 
-//   new OSCClient(), 
-  new WebsocketClient(), 
-//   new WebRTCClient(), 
-//   new HTTPClient(),
-//   new DatabaseClient(),
-//   new UnsafeClient()
+let services = [ 
+    new HTTPService(), 
+    new WebsocketService(), 
 ]
 
 services.forEach(service => router.load(service).then(() => console.log('Service connected!', service)))
@@ -59,7 +38,7 @@ At this point, your project should be able to send HTTP and WebSocket messages t
 
 > **Note:** Services can be strongly or weakly linked to FE / BE. Weakly linked Services can run on either FE or BE. For this case, specify backend methods with an underscore (e.g. _backendMethod) so that all frontend methods are easily referenced by an end-user.
 
-### Adding the Backend
+## Adding the Backend
 
 In your backend code, create an Express application and link this to your Router with an HTTP Service. Here we will instantiate the Router class ourselves to enable auto-debugging:
 
@@ -71,8 +50,7 @@ let bodyParser = require("body-parser")
 
 // Router Imports
 import { Router } from 'brainsatplay'
-import { HTTPBackend } from '@brainsatplay/http' // TODO: Publish and relink
-import { WebsocketBackend } from '@brainsatplay/websockets' // TODO: Publish and relink
+import {HTTPService, WebsocketService} from 'brainsatplay-backend'
 
 // Create Express App
 const app = express();
@@ -87,14 +65,14 @@ const server = http.createServer(app);
 let router = new Router({ debug: true });
 
 // Handle All HTTP Routes
-let http = new HTTPBackend();
+let http = new HTTPService();
 app.get("**", http.controller);
 app.post("**", http.controller);
 app.delete("**", http.controller);
 router.load(http);
 
 // Handle WebSocket Messages
-let websocket = new WebsocketBackend(server);
+let websocket = new WebsocketService(server);
 router.load(websocket)
 
 // Start the Server
