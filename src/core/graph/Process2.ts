@@ -195,6 +195,8 @@ export class GraphNode extends BaseProcess{
     isAnimating = false;
     looper = undefined; //loop function, uses operator if undefined (with cmd 'loop');
     animation = undefined; //animation function, uses operator if undefined (with cmd 'animate')
+    forward = true; /// propagate outputs to children?
+    backward = false; //propagate outputs to parents?
     
     constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
         super()
