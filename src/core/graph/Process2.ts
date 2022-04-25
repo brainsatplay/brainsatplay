@@ -21,8 +21,9 @@ export type GraphProperties = {
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
-    animate?:boolean, //true or false
-    loop?:false|number, //milliseconds or false
+    frame?:boolean, //true or false. If repeating or recursing, execute on requestAnimationFrame? Careful mixing this with animate:true
+    animate?:boolean, //true or false, run the operation on an animationFrame loop?
+    loop?:false|number, //milliseconds or false, run the operation on a loop?
     animation?:( //uses operator by default unless defined otherwise can be async 
         input:any, //input, e.g. output from another node
         self:Graph|string,  //'this' node
