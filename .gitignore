@@ -14,6 +14,7 @@ docs/docs/reference
 # Library Builds
 **/dist
 **/package-lock.json
+/src/core/graph
 
 # Tests
 /coverage

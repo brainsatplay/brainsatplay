@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
-import * as brainsatplay from '../../../../../src/core/graph/Process2';
+import * as brainsatplay from '../../../../../src/core/Graph';
 
 export default function Process2Example({server, sockets, router}) {
   

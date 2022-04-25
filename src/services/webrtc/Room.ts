@@ -49,7 +49,6 @@ export class Room {
 
             // Request Peer Connections
             Object.values(this.peers).forEach((peer) => {
-                console.log(o, peer)
                 if (o.send && peer.send) { // Only start when both can complete the negotiation
                     o.send({route: "webrtc/connect", message: [{id:peer.id, info: peer}]}) // initialize connections
                     peer.send({route: "webrtc/connect", message: [{id:o.id, info: o}]}) // extend connections

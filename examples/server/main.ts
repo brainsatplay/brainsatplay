@@ -9,7 +9,7 @@ import * as api from '../../src/backend/index'
 import WebsocketService from '../../src/services/websocket/websocket.backend'
 import HTTPService from '../../src/services/http/http.backend'
 
-import * as brainsatplay from '../../src/core/graph'
+import * as brainsatplay from '../../src/core/index'
 
 import { User } from '../schemas/user.schema'
 import { Note } from '../schemas/note.schema'
@@ -144,27 +144,41 @@ mongoose
 
 
     // ---------------------------- Create Graph ----------------------------
-    const add = new brainsatplay.Process((self, input, increment) => input + increment, null, false)
-    add.set('increment', 1) // or add.set(0, 1)
-    // add.subscribe((out, input) => {
-    //   console.log(input)
-    // }) // This should output 3 to the console
+    const add = new brainsatplay.Graph({
+      tag: 'add',
+      increment: 1,
+      operator: (self, origin, input) => {
+        return input + self.increment
+      }
+    })
 
+    const log = new brainsatplay.Graph({
+      tag: 'log',
+      operator: (self, origin, input) => console.log(input)
+    })
 
-    add.run(2)
-
-    const log = new brainsatplay.Process((self, input) => console.log('Graph Output', input), null, false)
     add.subscribe(log) // This should output 3 to the console
 
-    const random = new brainsatplay.Process((self) => Math.floor(100*Math.random()), null, false)
-    const increment = add.set('increment', random)
-    log.subscribe(increment)
+    const random = new brainsatplay.Graph({
+      tag: 'random',
+      operator: () => Math.floor(100*Math.random())
+    })
 
-    // Ensure Synchronous Run
-    await random.run()
+    random.subscribe((v) => {
+      add.increment = v
+    })
+
+    log.subscribe(random) // This will update the increment value after every run
+
+    random.run() // initialize random value
+
     await add.run(2)
+    console.log('Done 1')
     await add.run(2)
+    console.log('Done 2')
     await add.run(2)
+    console.log('Done 3')
+
   }
 }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/graph';
-import { Graph, AcyclicGraph } from '../../../../../src/core/graph/Process2';
+import { Graph, AcyclicGraph } from '../../../../../src/core/Graph';
 
 export default function ProcessExample({server, sockets, router}) {
   
@@ -29,12 +29,12 @@ export default function ProcessExample({server, sockets, router}) {
       const add = new Graph({
         tag: 'add',
         increment: 1,
-        operator: (input, self) => input + self.increment
+        operator: (self, graphOrigin, input) => input + self.increment
       })
 
       const log = new Graph({
         tag: 'log',
-        operator: (input) => console.log(input)
+        operator: (self, graphOrigin, input) => console.log(input)
       })
 
       add.subscribe(log) // This should output 3 to the console

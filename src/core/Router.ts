@@ -7,7 +7,7 @@ import { getParamNames } from '../common/parse.utils';
 import { SubscriptionService } from './SubscriptionService';
 import errorPage from '../services/http/404'
 import { Socket } from './Socket';
-import { Graph } from './graph/Process2';
+import { Graph } from './Graph';
 
 export const DONOTSEND = 'DONOTSEND';
 // export let NODE = false
@@ -316,7 +316,7 @@ export class Router {
   }
 
 
-  _loadBackend = (service: Service|SubscriptionService, name:string=service.name) => {
+  private _loadBackend = (service: Service|SubscriptionService, name:string=service.name) => {
     
     this.SERVICES[name] = service
     this.SERVICES[name].status = true
@@ -338,12 +338,12 @@ export class Router {
     if (service?.serviceType === 'subscription') this.SUBSCRIPTIONS.push((service  as SubscriptionService).updateSubscribers)
   }
 
-  _loadService = async (service: Service, name=service?.name) => {
+  private _loadService = async (service: Service, name=service?.name) => {
     this._loadBackend(service, name) // Load a backend Service
     return this._loadClient(service, name, true) // Load a client Service but skip waiting to resolve the remote name
   }
 
-  _loadClient = (service: Service, _?, onlySubscribe=false) => {
+  private _loadClient = (service: Service, _?, onlySubscribe=false) => {
 
       return new Promise(resolve => {
 
@@ -494,7 +494,7 @@ export class Router {
 
       if (this.method === 'process'){
         if (route?.post instanceof Graph) {
-          return route.post.run(undefined, undefined, ...([this, o.id, ...(o.message ?? [])]));
+          return route.post.run(...([this, o.id, ...(o.message ?? [])]));
         }
       } else {
         if (route?.post instanceof Function) {
@@ -832,7 +832,7 @@ export class Router {
               // Post Handler
               else if (postGraph) {
                 // res  = await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
-                res  = (this.method === 'process') ? await (routeInfo.post as Graph).run(undefined, undefined, ...([this, origin, ...(input ?? [])])) : await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
+                res  = (this.method === 'process') ? await (routeInfo.post as Graph).run(...([this, origin, ...(input ?? [])])) : await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
               } 
 
               // Error Handler
@@ -854,7 +854,7 @@ export class Router {
         if (route){
                 if (this.method === 'process'){
                   if (event.data.message && route.post instanceof Graph) {
-                    return await route.post.run(undefined, undefined, ...([this, event.data.origin, ...(event.data.message ?? [])]));
+                    return await route.post.run(...([this, event.data.origin, ...(event.data.message ?? [])]));
                   } else return
                 } else {
                   if (event.data.message && route.post instanceof Function) {
