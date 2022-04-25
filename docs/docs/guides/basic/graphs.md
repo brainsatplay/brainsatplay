@@ -27,7 +27,7 @@ Then populate the graph with nodes.
       }
     }
 
-    let upstream2 = graph.addNode(upstreamProps);
+    let upstream2 = graph.add(upstreamProps);
     let downstream2 = graph.create((input,self)=>{
       const output = input+1;
       console.log(`Downstream: ${input} + ${1} = ${output}`)        

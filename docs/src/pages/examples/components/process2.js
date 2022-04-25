@@ -17,7 +17,8 @@ export default function Process2Example({server, sockets, router}) {
       // ------------------------------ Basic Graph Example ------------------------------ 
       let tree = { //top level should be an object, children can be arrays of objects
         tag:'top',
-        operator:(input,self,origin,cmd)=>{
+        operator:(self, origin, input)=>{
+            const cmd = null
             if(typeof input === 'object') {
                 if(input?.x) self.x = input.x; 
                 if(input?.y) self.y = input.y;
@@ -42,7 +43,7 @@ export default function Process2Example({server, sockets, router}) {
         //repeat:3 //can repeat an operator, or use "recursive" for the same but passing the node's result back in
         children:{ //object, array, or tag. Same as the 'next' tag in Sequencer.js
             tag:'next', //tagged nodes get added to the node map by name, they must be unique! non-tagged nodes are only referenced internally e.g. in call trees
-            operator:(input,self,origin,cmd)=>{
+            operator:(self, origin, input)=>{
                 if(origin.x) { //copy over the coordinates
                     self.x = origin.x;
                     self.y = origin.y;
@@ -66,44 +67,41 @@ export default function Process2Example({server, sockets, router}) {
 
        operator:(
            self,
-           input,
            origin,
-           cmd
+           input,
        )=>{ 
            
-           if(!self.triggered) {
-            self.radius += Math.random()-0.5;
-           }
+        //    if(!self.triggered) {
+        //     self.radius += Math.random()-0.5;
+        //    }
 
-           if(cmd === 'animate') {
-            self.draw(input, self, origin, cmd);
-               console.log(self)
+        //    if(cmd === 'animate') {
+            self.draw(self, origin, input);
               //  for(let i = 0; i < node.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
               //      let f = node.drawFuncs[i];
               //      if(typeof f === 'function') {
               //          f(input,node,origin,cmd); //pass the args in (need these if you pass arrow functions)
               //      }
               //  }
-           } else {
-               if(typeof input === 'object') {
-                   if(input.radius) self.radius += input.radius;
-                   self.triggered = true;
-               } else if (typeof input === 'number') {
-                self.radius += input;
-                self.triggered = true;
-               } else if (typeof input === 'string') {
-                self.radius += parseFloat(input);
-                self.triggered = true;
-               } else {
-                self.radius += Math.random()-0.5;
-                self.triggered = true;
-               }
-           }
+        //    } else {
+        //        if(typeof input === 'object') {
+        //            if(input.radius) self.radius += input.radius;
+        //            self.triggered = true;
+        //        } else if (typeof input === 'number') {
+        //         self.radius += input;
+        //         self.triggered = true;
+        //        } else if (typeof input === 'string') {
+        //         self.radius += parseFloat(input);
+        //         self.triggered = true;
+        //        } else {
+        //         self.radius += Math.random()-0.5;
+        //         self.triggered = true;
+        //        }
+        //    }
 
            return node.radius;
        },
-       draw:(input,self,origin,cmd) => {
-          console.log(self)
+       draw:(self, origin, input) => {
            let canvas = self.canvas;
            let ctx = self.ctx;
            if(self.radius <= 1) self.radius = 1;
@@ -142,9 +140,9 @@ export default function Process2Example({server, sockets, router}) {
     
     
     let graph = new brainsatplay.AcyclicGraph();
-    // graph.addNode(tree);
+    // graph.add(tree);
     // let res = graph.run(tree.tag,{x:4,y:5,z:6}).then(res => console.log('promise, after', res));
-    const node = graph.addNode(circle);
+    const node = graph.add(circle);
     const node2 = graph.create((input,self,origin,cmd) => {
         console.log("Circle Radius: ",input);
     });
