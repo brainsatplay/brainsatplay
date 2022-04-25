@@ -246,7 +246,11 @@ export class Graph extends BaseProcess {
      * ```
      */   
 
-    run(node=this,origin,...args) {
+    run(...args) {
+        return this._run(this,this,...args);
+    }
+
+    _run(node=this,origin,...args) {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
         if(typeof node === 'string') { //can pass the node tag instead
@@ -259,7 +263,7 @@ export class Graph extends BaseProcess {
         if(!node) return undefined;
         
         //no async/flow logic so just run and return the operator result
-        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
+        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator instanceof AsyncFunction)){
             let res = node.runOp(node, origin, ...args); //repeat/recurse before moving on to the parent/child
     
             //can add an animationFrame coroutine, one per node //because why not
@@ -347,15 +351,15 @@ export class Graph extends BaseProcess {
                     }
     
                     if(node.backward && node.parent) {
-                        await node.parent.run(node, this, res);
+                        await node.parent._run(node, this, res);
                     }
                     if(node.children && node.forward) {
                         if(Array.isArray(node.children)) {
                             for(let i = 0; i < node.children.length; i++) {
-                                await node.children[i].run(node, this, res);
+                                await node.children[i]._run(node, this, res);
                             }
                         }
-                        else await node.children.run(node, this, res);
+                        else await node.children._run(node, this, res);
                     }
     
                     return res;
@@ -395,15 +399,15 @@ export class Graph extends BaseProcess {
                     if(this.tag && typeof result !== 'undefined') {
                         this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent) {
-                            await node.parent.run(node, this, result);
+                            await node.parent._run(node, this, result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(node.children)) {
                                 for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i].run(node, this, result);
+                                    await node.children[i]._run(node, this, result);
                                 }
                             }
-                            else await node.children.run(node, this, result);
+                            else await node.children._run(node, this, result);
                         }
                     }
                     requestAnimationFrame(anim);
@@ -425,15 +429,15 @@ export class Graph extends BaseProcess {
                     if(this.tag && typeof result !== 'undefined') {
                         this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
-                            await node.parent.run(node, this,  result);
+                            await node.parent._run(node, this,  result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(node.children)) {
                                 for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i].run(node, this, result);
+                                    await node.children[i]._run(node, this, result);
                                 }
                             }
-                            else await node.children.run(node, this, result);
+                            else await node.children._run(node, this, result);
                         }
                     }
                     setTimeout(async ()=>{await looping();},node.loop);
@@ -604,7 +608,7 @@ export class Graph extends BaseProcess {
     
     //subscribe an output with an arbitrary callback
     subscribe(callback:Graph|Function=(res)=>{},tag=this.tag) {
-        if(typeof callback === 'object') {
+        if(callback instanceof Graph) {
             return this.subscribeNode(callback);
         } else return this.state.subscribeTrigger(tag,callback);
     }
@@ -617,7 +621,7 @@ export class Graph extends BaseProcess {
     //subscribe a node to this node that isn't a child of this node
     subscribeNode(node:Graph) {
         if(node.tag) this.nodes.set(node.tag,node);
-        return this.state.subscribeTrigger(this.tag,(res)=>{node.run(node, this, res);})
+        return this.state.subscribeTrigger(this.tag,(res)=>{node._run(node, this, res);})
     }
     
     //recursively print a reconstructible json hierarchy of the node and the children. 
@@ -705,7 +709,7 @@ export class AcyclicGraph extends BaseProcess {
     run(node,origin,input=[]) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node)
-            return node.run(node,origin,...input)
+            return node._run(node,origin,...input)
         else return undefined;
     }
 
