@@ -604,7 +604,7 @@ export class Graph extends BaseProcess {
     
     //subscribe an output with an arbitrary callback
     subscribe(callback:Graph|Function=(res)=>{},tag=this.tag) {
-        if(callback instanceof Graph) {
+        if(typeof callback === 'object') {
             return this.subscribeNode(callback);
         } else return this.state.subscribeTrigger(tag,callback);
     }
