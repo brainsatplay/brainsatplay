@@ -233,8 +233,8 @@ export class Graph extends BaseProcess {
         origin=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args
     ) {
-        let result = await this.operator(node,origin,...args);
-        if(this.tag) this.state.setState({[this.tag]:result});
+        let result = await node.operator(node,origin,...args);
+        if(node.tag) this.state.setState({[node.tag]:result});
         return result;
     }
 
