@@ -28,7 +28,7 @@ import UnsafeService from '../../src/services/unsafe/unsafe.service'
 config({ path: resolve(__dirname, `../.env`) });
 config({ path: resolve(__dirname, `../.key`) });
 
-import {settings} from '../../src/settings'
+import {settings, localIP} from '../../src/settings'
 import StructService from '../../src/services/database/structs.service'
 
 const main = (port=settings.port, services:{[x:string] : boolean}={}) => {
@@ -48,7 +48,7 @@ const server = http.createServer(app);
 
 // Start Server
 server.listen(parseInt(port), () => {
-  console.log(`Server created on ${protocol}://${settings.hosturl}:${port}`);
+  console.log(`Server created on ${protocol}://${localIP}:${port}`);
 });
 
 // ---------------- Start Database --------------------

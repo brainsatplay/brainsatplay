@@ -1,5 +1,5 @@
 // grab IP address on the local network
-let localIP = 'localhost'
+export let localIP = 'localhost'
 try {
 const { networkInterfaces } = require('os');
 
