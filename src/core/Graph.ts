@@ -229,10 +229,11 @@ export class Graph extends BaseProcess {
     
     //run the operator
     private async runOp(
+        node=this,
         origin=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args
     ) {
-        let result = await this.operator(this,origin,...args);
+        let result = await this.operator(node,origin,...args);
         if(this.tag) this.state.setState({[this.tag]:result});
         return result;
     }
