@@ -16,7 +16,7 @@ oscstream.startOSC(
     onframe = (result) => {}   //per-frame callback (e.g. for UI updates)
 );
 
-//send data to the other endpoint
+//send data to the other socket
 oscstream.sendOSC(
     message='test',
     localAddress,

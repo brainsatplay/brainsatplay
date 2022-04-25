@@ -1,6 +1,6 @@
 import { randomId } from "../common/id.utils"
 import { RouterInterface, MessageObject, ProtocolObject, RouteConfig, SubscriptionCallbackType, MessageType } from "../common/general.types"
-import { Endpoint } from './Endpoint'
+import { Socket } from './Socket'
 
 // Browser and Node-Compatible Service Class
 export class Service {
@@ -8,7 +8,7 @@ export class Service {
     id = randomId('service') // Unique Service ID
     name:string = 'service' // Service Name
     callbacks: Map<string, SubscriptionCallbackType >  = new Map() // Subscriber Callbacks
-    endpoint?: Endpoint
+    socket?: Socket
     route?: string; // Expected server name (added in router)
     status: boolean = false // Is connected with server (set externally by router)
     serviceType: 'default' | 'subscription' = 'default'
@@ -43,7 +43,7 @@ export class Service {
         return this.delegate?.removeEventListener.apply(this.delegate, args);
     }
 
-    setEndpointRoute = (name) => {
+    setSocketRoute = (name) => {
         this.route = name
     }
 
@@ -66,9 +66,9 @@ export class Service {
         return responses?.[0]
     }
 
-    // Bind Endpoint
-    setEndpoint = (endpoint) => {
-        this.endpoint = endpoint
+    // Bind Socket
+    setSocket = (socket) => {
+        this.socket = socket
     }
 
     // Subscribe to Notifications

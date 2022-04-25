@@ -2,7 +2,7 @@
 export * from './Service'
 export * from './SubscriptionService'
 export * from './Router'
-export * from './Endpoint'
+export * from './Socket'
 
 // const router = new Router()
 // export default router

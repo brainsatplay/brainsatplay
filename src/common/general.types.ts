@@ -1,6 +1,6 @@
 import { Router } from '../core/Router'
-import { Endpoint } from '../core/Endpoint'
-import Process from '../core/graph/Process'
+import { Socket } from '../core/Socket'
+import { Graph } from '../core/graph/Process2'
 export type RouterInterface = Partial<Router>
 
 export type ArbitraryObject = {[x:string]:any}
@@ -21,29 +21,29 @@ export type RouteConfig = {
         object: any,
         transform: (o, ...args) => any
     }, // Reference to an object that notifies subscribers on change
-    post?: Process | ((self: Process, router: Router, id: string, ...args: any[]) => any) // Convert functions to Processes
+    post?: Graph | ((graph: Graph, graphOrigin: Graph|string, router: Router, id: string, ...args: any[]) => any) // Convert functions to Processes
     delete?: (self: Router, id: string, ...args: any[]) => any
 }
 
 export type RouterOptions = {
-    endpoints?: EndpointConfig[]
+    sockets?: SocketConfig[]
     debug?:boolean 
     safe?:boolean
     interval?:number
   }
 
-  export type EndpointType = 'http' | 'websocket' | 'webrtc'
+  export type SocketType = 'http' | 'websocket' | 'webrtc'
 
-export type EndpointConfig = string | URL | {
-    type?: EndpointType
+export type SocketConfig = string | URL | {
+    type?:SocketType
     target?: string|URL,
-    link?: Endpoint
+    link?: Socket
     credentials: Partial<UserObject>
   }
 
 export type RouteSpec = string | {
     route: string,
-    endpoint?: Endpoint // === id
+    socket?: Socket // === id
     service?: string
     // id?: string // id
 }
@@ -62,7 +62,7 @@ export type MessageObject = {
     // NOTE: Most have route OR message
     id?: string;
     _id?: string;
-    route?: string; // what to do at the endpoint
+    route?: string; // what to do at the socket
     method?: FetchMethods, // Method constraints
     callbackId?: string; // unique id for the request (stored client-side)
     message?: [] | any // data passed,

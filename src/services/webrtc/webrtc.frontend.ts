@@ -57,7 +57,7 @@ class WebRTCService extends SubscriptionService {
         // },
         {
             route: 'room',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 const o = args[0]
                 this.rooms.set(o.id, o)
                 this.dispatchEvent(new CustomEvent('room', {detail: {room: o, rooms: Array.from(this.rooms, ([_,value]) => value)}}))
@@ -70,7 +70,7 @@ class WebRTCService extends SubscriptionService {
         // Default WebRTC Commands
         {
             route: 'answer',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 let peer = this.peers[args[0]]
                 if (peer) peer.connection.setRemoteDescription(args[1]);
 
@@ -78,7 +78,7 @@ class WebRTCService extends SubscriptionService {
         },
         {
             route: 'candidate',
-            post: (self,router,origin,peerId,iceCandidate) => {
+            post: (self,graphOrigin,router,origin,peerId,iceCandidate) => {
                 let peer = this.peers[peerId]
                 let candidate = new RTCIceCandidate(iceCandidate)
                 if (peer)  peer.connection.addIceCandidate(candidate).catch(() => {}); // silent, first candidates usually aren't appropriate
@@ -86,7 +86,7 @@ class WebRTCService extends SubscriptionService {
         },
         {
             route: 'offer',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 if (args) this.onoffer(args[1], args[0])
             }
         },
@@ -94,13 +94,13 @@ class WebRTCService extends SubscriptionService {
         // Extra Commands
         {
             route: 'disconnectPeer',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 this.closeConnection(this.peers[args[0]])
             }
         },
         {
             route: 'connect',
-            post: async (self,router,origin,...args) => {
+            post: async (self,graphOrigin,router,origin,...args) => {
                 const o = args[0]
                 if (o) {
                     this.createPeerConnection(o) // connect to peer
@@ -383,7 +383,7 @@ class WebRTCService extends SubscriptionService {
                     dataChannel.addEventListener("message", async (event) => {
                         const o = JSON.parse(event.data)
                         if (!o.id) o.id = peer // Set Peer ID
-                        this.responses.forEach((foo) => foo(o)) // Bubble up to Endpoint subscriptions
+                        this.responses.forEach((foo) => foo(o)) // Bubble up to Socket subscriptions
                         let res = await this.notify(o, 'local') // Notify Router
                         const controller =this.peers[peer].channel.controller as any
                         if (controller.addData) controller.addData(o) // Add data to Channel = DataTrack

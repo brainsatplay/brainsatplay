@@ -9,7 +9,7 @@ import StreamsExample from './components/streams';
 import ProcessExample from './components/process';
 import Process2Example from './components/process2';
 
-export default function ExampleSelector({server, endpoints, router, id}) {
+export default function ExampleSelector({server, sockets, router, id}) {
    const history = useHistory();
     var url = window.location;
     var name = new URLSearchParams(url.search).get('name');
@@ -22,21 +22,21 @@ export default function ExampleSelector({server, endpoints, router, id}) {
             return <AllExample
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
           />
 
           case 'multiple':
             return <MultipleExample
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
             />
 
           case 'webrtc':
             return <WebRTCExample
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
             id={id}
             />
 
@@ -44,14 +44,14 @@ export default function ExampleSelector({server, endpoints, router, id}) {
             return <StreamsExample
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
           />
 
           case 'process':
             return <ProcessExample
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
             id={id}
             />
 
@@ -59,7 +59,7 @@ export default function ExampleSelector({server, endpoints, router, id}) {
             return <Process2Example
             server={server}
             router={router}
-            endpoints={endpoints}
+            sockets={sockets}
             id={id}
             />
         }
@@ -77,7 +77,7 @@ export default function ExampleSelector({server, endpoints, router, id}) {
           All Routes
         </button>
         <button onClick={() => set('multiple')}>
-          Multiple Remote Endpoints
+          Multiple Remote Sockets
         </button>
         <button onClick={() => set('webrtc')}>
           WebRTC

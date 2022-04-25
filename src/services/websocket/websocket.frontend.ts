@@ -48,8 +48,8 @@ class WebsocketService extends SubscriptionService {
 
     }
 
-    add = async (user, endpoint) => {
-        return this.addSocket(endpoint, user)
+    add = async (user, socket) => {
+        return this.addSocket(socket, user)
     }
 
     addSocket(url:string|URL=new URL(`${settings.protocol}://${settings.host}:${settings.port}`), subprotocolObject=this.subprotocols) {

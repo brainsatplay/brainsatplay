@@ -1,4 +1,4 @@
-import { EndpointConfig, EndpointType, RouteSpec, RouteConfig, MessageType, MessageObject, UserObject } from '../common/general.types';
+import { SocketConfig, SocketType, RouteSpec, RouteConfig, MessageType, MessageObject, UserObject } from '../common/general.types';
 import { SubscriptionService } from './SubscriptionService';
 import { safeStringify } from '../common/parse.utils';
 import { createRoute } from '../common/general.utils';
@@ -18,12 +18,12 @@ try {
     }
 } catch (err) {}
 
-export class Endpoint {
+export class Socket {
 
     id: string = null
     target: URL = null
-    type: EndpointType = null
-    link: Endpoint = null
+    type: SocketType = null
+    link: Socket = null
 
     credentials: Partial<UserObject> = {}
 
@@ -54,9 +54,9 @@ export class Endpoint {
 
 
     // Interface for Sending / Receiving Information
-    constructor(config: EndpointConfig = 'https://localhost', clients?, router?:Router){
+    constructor(config: SocketConfig = 'https://localhost', clients?, router?:Router){
 
-        // Set Endpoint Details
+        // Set Socket Details
         let target, type;
         if (typeof config === 'object'){
           if (config instanceof URL) target = config
@@ -66,7 +66,7 @@ export class Endpoint {
             this.link = config.link 
             this.setCredentials(config.credentials)
 
-            // Use Link to Communicate with an Additional Endpoint Dependency
+            // Use Link to Communicate with an Additional Socket Dependency
             // if (this.link) {
             //     this.link?.connection?.service?.addResponse(this.id,(res) => {
             //         console.log('Listen to the Link',res)
@@ -113,14 +113,14 @@ export class Endpoint {
 
         const connectHTTP = async () => {
             const res = await this.send('services')
-            if (!res) throw `No services returned from the endpoint.`
+            if (!res) throw `No services returned from the socket.`
             this.status = true
             return res
         }
         
 
         let res;
-        console.log('endpoint type', this.type)
+        console.log('socket type', this.type)
         // ------------ Check Which Protocol to Connect Under ------------
         
         // ------------ Handle WebRTC ------------
@@ -141,7 +141,7 @@ export class Endpoint {
                     return await connectHTTP()
                 }
             });
-            console.log('endpoint res', res);
+            console.log('socket res', res);
         } 
         
         // ------------ Handle HTTP ------------
@@ -314,13 +314,13 @@ export class Endpoint {
                           (client?.status === true && (client?.serviceType === 'subscription'))
                         ) {
 
-                        let subscriptionEndpoint = `${this.link.services.available[client?.service] ?? client.name.toLowerCase()}/subscribe`
+                        let subscriptionSocket = `${this.link.services.available[client?.service] ?? client.name.toLowerCase()}/subscribe`
                                 
-                        client.setEndpoint(this.link) // Bind Endpoint to Subscription Client
+                        client.setSocket(this.link) // Bind Socket to Subscription Client
                     
-                        // Note: Only One Subscription per Endpoint
+                        // Note: Only One Subscription per Socket
                         if (!this.connection){
-                            const target = (this.type === 'http' || this.type === 'websocket') ? new URL(subscriptionEndpoint, this.target) : this.target
+                            const target = (this.type === 'http' || this.type === 'websocket') ? new URL(subscriptionSocket, this.target) : this.target
                             
                             const id = await client.add(this.credentials, target.href) // Pass full target string
 
@@ -353,7 +353,7 @@ export class Endpoint {
                             opts.routes = [this.target] // Connect to Target Room / User only
                         }
 
-                        await this.link.send(subscriptionEndpoint, Object.assign({
+                        await this.link.send(subscriptionSocket, Object.assign({
                             route: opts.route,
                             message: opts.message,
                             protocol: opts.protocol,

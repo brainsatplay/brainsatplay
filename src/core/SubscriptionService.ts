@@ -36,7 +36,7 @@ export class SubscriptionService extends Service {
         super(router)
     }
 
-    add = (user:Partial<UserObject>, endpoint:string):Promise<any> => {
+    add = (user:Partial<UserObject>, socket:string):Promise<any> => {
         throw 'Add not implemented'
     }
 

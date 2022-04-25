@@ -16,7 +16,7 @@ class WebRTCService extends Service {
 
         {
             route: 'subscribe',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
 
                 let u = router.USERS[origin] // NOTE: Requires being registered in the global server
                 if (u && !this.peers[origin]) this.peers[origin] = u
@@ -53,7 +53,7 @@ class WebRTCService extends Service {
         },
         {
             route: 'unsubscribe',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 console.log('MUST IMPLEMENT UNSUBSCRIBE')
                 return;
             }
@@ -66,7 +66,7 @@ class WebRTCService extends Service {
                 object: this.peers,
                 transform: () => this.getPeers()
             },
-            delete: (self,router,origin,...args) => {
+            delete: (self,graphOrigin,router,origin,...args) => {
 
                 // Expects User ID String
                 return this.disconnect(args?.[0] ?? origin)
@@ -80,7 +80,7 @@ class WebRTCService extends Service {
                 object: this.rooms,
                 transform: () => this.getRooms()
             },
-            // post: (self,router,origin,...args) => {
+            // post: (self,graphOrigin,router,origin,...args) => {
             //     return;
             // }
         },
@@ -88,19 +88,19 @@ class WebRTCService extends Service {
         // WebRTC Basic Commands
         {
             route: 'offer',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 return this.pass('webrtc/offer', origin, args[0], JSON.parse(args[1]))
             }
         },
         {
             route: 'answer',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 return this.pass('webrtc/answer', origin, args[0], JSON.parse(args[1]))
             }
         },
         {
             route: 'candidate',
-            post: (self,router,origin,...args) => {
+            post: (self,graphOrigin,router,origin,...args) => {
                 return this.pass('webrtc/candidate', origin, args[0], JSON.parse(args[1]))
             }
         },

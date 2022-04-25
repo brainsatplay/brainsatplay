@@ -11,10 +11,10 @@ class HTTPService extends SubscriptionService {
         super(router)
     }
 
-    add = (user, endpoint) => {
+    add = (user, socket) => {
         return new Promise(resolve => {
 
-            this.connection = new EventSource(createRoute('',endpoint))
+            this.connection = new EventSource(createRoute('',socket))
             this.connection.onopen = () => {
                 this.connection.onmessage = (event) => {
                 let data = JSON.parse(event.data)

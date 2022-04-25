@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import styles from '../examples.module.css'
 import RouteDisplay from '../routeDisplay';
 
-export default function AllExample({server, endpoints, router}) {
+export default function AllExample({server, sockets, router}) {
 
   const [routes, setRoutes] = useState({});
 
@@ -25,7 +25,7 @@ export default function AllExample({server, endpoints, router}) {
         else if (outputRef) outputRef.innerHTML = data.error
 
       }
-    }, {protocol: 'http', routes: ['routes', 'osc'], endpoint: endpoints[0]})
+    }, {protocol: 'http', routes: ['routes', 'osc'], socket: sockets[0]})
 
     useEffect(async () => {
       buttonRef = buttons.current
@@ -40,7 +40,7 @@ export default function AllExample({server, endpoints, router}) {
 
       return await router[method]({
         route,
-        endpoint: endpoints[0]
+        socket: sockets[0]
       }, ...args).then(res => {
 
         if (!res?.error) {

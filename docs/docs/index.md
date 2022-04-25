@@ -4,31 +4,27 @@ title: Introduction
 ---
 # Introduction
 
-`brainsatplay` enables **interactive reactive programming** on the browser—specifically for high-performance scientific computing applications that span multiple programming environments. 
+## What is Brains@Play?
+`brainsatplay` is a concurrency framework for interactive, high-performance applications controlled by the browser. It gives you [Sockets](./guides/basic/sockets) that carry messages across various transport protocols, as well as [Graphs](./guides/basic/graphs) that can be dynamically modified at runtime. You may also integrate software written for other environments such as Node.js, Python, or C++. 
 
-## Our Values
-- We take a **developer-first approach** with first-class TypeScript support.
-- We take a user-first approach by prioritizing **inspectability and interactivity**.
-- We use the latest Chromium browers (e.g. Google Chrome, Microsoft Edge, Brave Browser, etc.) to ensure the availability of the l**atest APIs for data acquisition** (e.g. Web Bluetooth, Web Serial, etc.).
-- We use a Progressive Web App (PWA) to support **installable, reliable, and capable applications**.
-- We leverage the inbuilt accessibility features of modern browsers to ensure **everyone can use apps built with Brains@Play tools**.
+This framework is [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html) and maintained by [Brains@Play](https://brainsatplay.com).
 
-## Getting Started
-To get started, import `brainsatplay` into your project:
+:::note
 
-### Installation
-#### Browser
-##### Script Tag
-``` html
-<script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest">
-```
+This documentation was heavily inspired by [ØMQ - The Guide](https://zguide.zeromq.org/docs/preface/).
 
-#### ES6
-``` js
-import router from 'brainsatplay'
-```
+:::
 
-#### Node
-``` js
-const router = require('brainsatplay')
-```
+## How It Began
+We took the latest latest APIs for data acquisition (e.g. Web Bluetooth, Web Serial, etc.) and developed a way to process and forward data as fast as possible. 
+
+We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
+
+## Playing with Code
+The **play** in `brainsatplay` embodies our desire to support the joy of developers as they create high-performance code. It encompasses many different goals including **first-class TypeScript support**, a focus on **inspectability and interactivity**, and **accessibility** for use by everyone with a brain. 
+
+More generally, play refers to the culture of rapid prototyping that permeates the project by extending functionality from simple components rather than adding unneccesary complexity.
+
+
+## Audience
+This documentation is written for **programmers who care about the agency of their users**. We assume that you can read JavaScript code—as all of the examples here are written for the Browser (specifically the latest Chromium browsers) or Node. Other than that basic background, we try to present all the concepts you will need to use `brainsatplay`.

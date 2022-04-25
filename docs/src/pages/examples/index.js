@@ -40,26 +40,26 @@ services.forEach(service => {
 
 const id = randomId()
 
-const endpoints = []
-const endpoint = router.connect({
+const sockets = []
+const socket = router.connect({
   target: SERVER_URI,
   credentials: {id, _id: id}
 })
-endpoints.push(endpoint)
-const endpoint2 = router.connect({
+sockets.push(socket)
+const socket2 = router.connect({
   target: SERVER_URI_2,
   credentials: {id, _id: id}
 })
 
-endpoints.push(endpoint2)
+sockets.push(socket2)
 
 
-endpoint.send('http/add', {
+socket.send('http/add', {
   method: 'POST',
-  message: ['/ssr/endpoint', '<p>Just some arbitrary HTML</p>']
+  message: ['/ssr/socket', '<p>Just some arbitrary HTML</p>']
 })
 
-endpoint.send('echo', {
+socket.send('echo', {
   method: 'POST',
   message: ['test']
 })
@@ -76,7 +76,7 @@ export default function Examples() {
       description={`Examples for ${siteConfig.title}.`}>
       <ExampleSelector 
         server={SERVER_URI}
-        endpoints={endpoints}
+        sockets={sockets}
         router={router}
         id={id}
       />

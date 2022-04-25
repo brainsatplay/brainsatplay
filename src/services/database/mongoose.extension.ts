@@ -30,7 +30,8 @@ export const post = async (_, Model, args) => {
         // Only Set _id if Appropriate
         const _id = safeObjectID(struct._id)
         const toFind = (_id !== struct._id) ? { _id } : {id: struct.id}
-        await Model.updateOne(toFind, {$set: copy}, {upsert: true});   
+
+        await Model.updateOne(toFind, {$set: copy}, {upsert: true}).catch(e => console.warn(e))  
 
         // TODO: Add subscriptions rather than checkToNotify                              
         // this.checkToNotify(user, [struct]);

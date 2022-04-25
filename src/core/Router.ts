@@ -1,13 +1,13 @@
 import StateManager from 'anotherstatemanager'
 import { getRouteMatches } from '../common/general.utils'
 import { randomId, pseudoObjectId, generateCredentials,  } from '../common/id.utils'
-import { RouterOptions, AllMessageFormats, EndpointConfig, FetchMethods, MessageObject, MessageType, RouteConfig, RouteSpec, UserObject } from '../common/general.types';
+import { RouterOptions, AllMessageFormats, SocketConfig, FetchMethods, MessageObject, MessageType, RouteConfig, RouteSpec, UserObject } from '../common/general.types';
 import { Service } from './Service';
 import { getParamNames } from '../common/parse.utils';
 import { SubscriptionService } from './SubscriptionService';
 import errorPage from '../services/http/404'
-import { Endpoint } from './Endpoint';
-import Process from './graph/Process';
+import { Socket } from './Socket';
+import { Graph } from './graph/Process2';
 
 export const DONOTSEND = 'DONOTSEND';
 // export let NODE = false
@@ -40,7 +40,7 @@ export class Router {
   CONNECTIONS: Map<string,{}> = new Map(); //threads or other servers
   SUBSCRIPTIONS: Function[] = [] // an array of handlers (from services)
   DEBUG: boolean;
-  ENDPOINTS: {[x:string]:Endpoint} = {}
+  SOCKETS: {[x:string]:Socket} = {}
 
   SERVICES: {[x:string] : any} = {}
 
@@ -57,7 +57,7 @@ export class Router {
   },
   {   
     route: 'echo',
-    post:(self,router,origin,...args) => {
+    post:(self,graphOrigin,router,origin,...args) => {
         return args;
     }
 },
@@ -112,13 +112,13 @@ export class Router {
   { //generic send message between two users (userId, message, other data)
       route:'sendMessage',
       aliases:['message','sendMsg'],
-      post:(self,router,origin,...args)=>{
+      post:(self,graphOrigin,router,origin,...args)=>{
           return router.sendMsg(args[0],args[1],args[2]);
       }
   },
   { //set user details for yourRouter
       route:'setUserServerDetails',
-      post:(self,router,origin,...args)=>{
+      post:(self,graphOrigin,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
         if(args[0]) user.username = args[0];
@@ -132,7 +132,7 @@ export class Router {
   },
   { //assign user props for yourRouter or someone else (by user unique id)
       route:'setProps',
-      post:(self,router,origin,...args)=>{
+      post:(self,graphOrigin,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
         if(typeof args === 'object' && !Array.isArray(args)) {
@@ -149,7 +149,7 @@ export class Router {
   },
   { //get props of a user by id or of yourRouter
       route:'getProps',
-      post:(self,router,origin,...args)=>{
+      post:(self,graphOrigin,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
   
@@ -162,7 +162,7 @@ export class Router {
   },
   { //lists user keys
     route:'blockUser',
-    post:(self,router,origin,...args)=>{
+    post:(self,graphOrigin,router,origin,...args)=>{
       let user = router.USERS[origin]
       if (!user) return false
       return this.blockUser(user,args[0]);
@@ -201,7 +201,7 @@ export class Router {
   },
   { //get basic details of a user or of your Router
       route:'getUser',
-      post:(self,router,origin,...args)=>{
+      post:(self,graphOrigin,router,origin,...args)=>{
         let user = router.USERS[origin]
         if (!user) return false
   
@@ -237,7 +237,7 @@ export class Router {
   {
     route:'login',
     aliases:['addUser', 'startSession'],
-    post: async (self,router,origin,...args) => {
+    post: async (self,graphOrigin,router,origin,...args) => {
       //console.log('logging in', args);
       const u = await router.addUser(args[0])
       return { message: u, id: u.origin }
@@ -246,7 +246,7 @@ export class Router {
   {
     route:'logout',
     aliases:['removeUser','endSession'],
-    post:(self,router,origin,...args) => {
+    post:(self,graphOrigin,router,origin,...args) => {
       let user = router.USERS[origin]
         if (!user) return false
       if(args[0]) router.removeUser(...args)
@@ -280,7 +280,7 @@ export class Router {
         if ('onbeforeunload' in globalThis){
           globalThis.onbeforeunload = () => {
 
-            Object.values(this.ENDPOINTS).forEach(e => {if (e.type != 'webrtc') this.logout(e)}) // TODO: Make generic. Currently excludes WebRTC
+            Object.values(this.SOCKETS).forEach(e => {if (e.type != 'webrtc') this.logout(e)}) // TODO: Make generic. Currently excludes WebRTC
           }
         }
 
@@ -289,7 +289,7 @@ export class Router {
 
         if(this.DEBUG) this.runCallback('routes', [true])
 
-        if (options?.endpoints) options.endpoints.forEach(e => this.connect(e))
+        if (options?.sockets) options.sockets.forEach(e => this.connect(e))
     }
 
     // -----------------------------------------------
@@ -297,22 +297,22 @@ export class Router {
     // Frontend Methods (OG)
     // 
     // -----------------------------------------------
-    connect = (config:EndpointConfig, onconnect?:Function) => {
-      let endpoint = new Endpoint(config, this.SERVICES, this)
+    connect = (config:SocketConfig, onconnect?:Function) => {
+      let socket = new Socket(config, this.SERVICES, this)
       // Register User and Get Available Functions
-      this.ENDPOINTS[endpoint.id] = endpoint;
-      endpoint.check().then(res => {
+      this.SOCKETS[socket.id] = socket;
+      socket.check().then(res => {
           if (res) {
-            if (onconnect) onconnect(endpoint);
-            this.login(endpoint, endpoint.credentials); // Login user to connect to new remote
+            if (onconnect) onconnect(socket);
+            this.login(socket, socket.credentials); // Login user to connect to new remote
           }
       })
-      return endpoint;
+      return socket;
   }
 
   disconnect = async (id) => {
-    this.logout(this.ENDPOINTS[id]);
-    delete this.ENDPOINTS[id];
+    this.logout(this.SOCKETS[id]);
+    delete this.SOCKETS[id];
   }
 
 
@@ -366,7 +366,7 @@ export class Router {
                   } else if (available) {
                     res = await this.send({
                       route: `${client.route}/${o.route}`,
-                      endpoint: service?.endpoint // If remote is bound to client
+                      socket: service?.socket // If remote is bound to client
                     }, ...o.message ?? []) // send automatically with extension
                 }
 
@@ -383,7 +383,7 @@ export class Router {
               const toResolve = (route) => {
                 this.SERVICES[name].status = true
     
-                if (service.setEndpointRoute instanceof Function) service.setEndpointRoute(route)
+                if (service.setSocketRoute instanceof Function) service.setSocketRoute(route)
     
                   // Expect Certain Callbacks from the Service
                   service.routes.forEach(o => {
@@ -394,7 +394,7 @@ export class Router {
                   resolve(service)
               }
     
-              // Don't Resolve Unless Matching Service at Endpoint...
+              // Don't Resolve Unless Matching Service at Socket...
               if (this.SERVICES[name].status === true) toResolve(name)
               else this.SERVICES[name].status = toResolve;
             }
@@ -404,24 +404,24 @@ export class Router {
 
   }
 
-  async login(endpoint?:Endpoint, user?:Partial<UserObject>) {
+  async login(socket?:Socket, user?:Partial<UserObject>) {
 
-    await this.logout(endpoint);
+    await this.logout(socket);
 
     //console.log('logging in')
 
-    const arr = Object.values((endpoint) ? {endpoint} : this.ENDPOINTS)
+    const arr = Object.values((socket) ? {socket} : this.SOCKETS)
     
-    let res = await Promise.all(arr.map(async (endpoint) => {
+    let res = await Promise.all(arr.map(async (socket) => {
       
       let res = await this.send({
         route: 'login',
-        endpoint
+        socket
       }, user);
 
       //console.log('logging in res', res)
       //console.log('Resolved from server', res[0])
-      endpoint.setCredentials(res[0]);
+      socket.setCredentials(res[0]);
       return res;
     }))
 
@@ -430,13 +430,13 @@ export class Router {
     return res.reduce((a,b) => a*b[0], true) === 1
   }
 
-  async logout(endpoint?:Endpoint) {
+  async logout(socket?:Socket) {
 
-    const res = await Promise.all(Object.values((endpoint) ? {endpoint} : this.ENDPOINTS).map(async (endpoint) => {
+    const res = await Promise.all(Object.values((socket) ? {socket} : this.SOCKETS).map(async (socket) => {
       const res = await this.send({
         route: 'logout',
-        endpoint
-      }, endpoint.credentials)
+        socket
+      }, socket.credentials)
 
       return res
     }))
@@ -463,19 +463,19 @@ export class Router {
 
   private _send = async (routeSpec:RouteSpec, method?: FetchMethods, ...args:any[]) => {
     
-      let endpoint;
-      if (typeof routeSpec === 'string' || routeSpec?.endpoint == null) endpoint = Object.values(this.ENDPOINTS)[0]
-      else endpoint = routeSpec.endpoint
+      let socket;
+      if (typeof routeSpec === 'string' || routeSpec?.socket == null) socket = Object.values(this.SOCKETS)[0]
+      else socket = routeSpec.socket
       
-      if (!endpoint) return
+      if (!socket) return
 
       let response;      
-      response = await endpoint.send(routeSpec, {
+      response = await socket.send(routeSpec, {
         message: args, 
         method
       })
 
-      if (response) this.handleLocalRoute(response, endpoint)
+      if (response) this.handleLocalRoute(response, socket)
 
       // Pass Back to the User
       return response?.message
@@ -483,22 +483,22 @@ export class Router {
   }
 
   // NOTE: Client can call itself. Server cannot.
-  handleLocalRoute = async (o:MessageObject, endpoint?: Endpoint, route?: string) =>{
+  handleLocalRoute = async (o:MessageObject, socket?: Socket, route?: string) =>{
 
     // Notify through Subscription (if not suppressed)
-    if (endpoint && route && !o.suppress && endpoint.connection) endpoint.connection?.service?.responses?.forEach(f => f(Object.assign({route}, o))) // Include send route if none returned
+    if (socket && route && !o.suppress && socket.connection) socket.connection?.service?.responses?.forEach(f => f(Object.assign({route}, o))) // Include send route if none returned
 
     // Activate Internal Routes if Relevant (currently blocking certain command chains)
     if (!o.block) {
       let route = this.ROUTES[o?.route]
 
       if (this.method === 'process'){
-        if (route?.post instanceof Process) {
-          return route.post.run(this, o.id, ...(o.message ?? []));
+        if (route?.post instanceof Graph) {
+          return route.post.run(undefined, undefined, ...([this, o.id, ...(o.message ?? [])]));
         }
       } else {
         if (route?.post instanceof Function) {
-             return await route.post(null, this, o.id, ...(o.message ?? []));
+             return await route.post(undefined, undefined, this, o.id, ...(o.message ?? []));
         }
       }
     }
@@ -507,13 +507,13 @@ export class Router {
   subscribe = async (callback: Function, options: {
       protocol?:string
       routes?: string[]
-      endpoint?: Endpoint,
+      socket?: Socket,
       force?:boolean
   } = {}) => {
 
-      if (Object.keys(this.ENDPOINTS).length > 0 || options?.endpoint) {
-          if (!options.endpoint) options.endpoint = Object.values(this.ENDPOINTS)[0]
-          const res = await options.endpoint._subscribe(options).then(res => options.endpoint.subscribe(callback))
+      if (Object.keys(this.SOCKETS).length > 0 || options?.socket) {
+          if (!options.socket) options.socket = Object.values(this.SOCKETS)[0]
+          const res = await options.socket._subscribe(options).then(res => options.socket.subscribe(callback))
           return res
       } else throw 'Remote is not specified'
 
@@ -753,9 +753,9 @@ export class Router {
             this.removeRoute(route); //removes existing callback if it is there
             if (route[0] === '/') route = route.slice(1)
 
-            // --------------- Process Support ---------------
+            // --------------- Graph Support ---------------
             if (this.method === 'process'){
-              if (o.post && !(o.post instanceof Process)) o.post = new Process(o.post) // Map to process
+              if (o.post && !(o.post instanceof Graph)) o.post = new Graph({tag: route, operator: o.post}) // Map to process
             }
 
             this.ROUTES[route] = Object.assign(o, {route})
@@ -811,7 +811,7 @@ export class Router {
             try {
               let res;
 
-              const postProcess = (this.method === 'process') ? routeInfo?.post instanceof Process : routeInfo?.post instanceof Function
+              const postGraph = (this.method === 'process') ? routeInfo?.post instanceof Graph : routeInfo?.post instanceof Function
 
               // Delete Handler
                if (routeInfo?.delete && method.toUpperCase() === 'DELETE') {
@@ -819,7 +819,7 @@ export class Router {
               } 
               
               // Get Handler
-              else if (method.toUpperCase() === 'GET' || !postProcess) {
+              else if (method.toUpperCase() === 'GET' || !postGraph) {
                 const value = this.STATE.data[routeInfo.route] // Get State by route
 
                 if (value){
@@ -830,9 +830,9 @@ export class Router {
                 } else res = errorRes
               }
               // Post Handler
-              else if (postProcess) {
+              else if (postGraph) {
                 // res  = await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
-                res  = (this.method === 'process') ? await (routeInfo.post as Process).run(this, origin, ...(input ?? [])) : await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
+                res  = (this.method === 'process') ? await (routeInfo.post as Graph).run(undefined, undefined, ...([this, origin, ...(input ?? [])])) : await (routeInfo.post as Function)(null, this, origin, ...(input ?? []))
               } 
 
               // Error Handler
@@ -853,12 +853,12 @@ export class Router {
         if (!route) route = this.ROUTES[event.data.foo]
         if (route){
                 if (this.method === 'process'){
-                  if (event.data.message && route.post instanceof Process) {
-                    return await route.post.run(this, event.data.origin, ...(event.data.message ?? []));
+                  if (event.data.message && route.post instanceof Graph) {
+                    return await route.post.run(undefined, undefined, ...([this, event.data.origin, ...(event.data.message ?? [])]));
                   } else return
                 } else {
                   if (event.data.message && route.post instanceof Function) {
-                    return await route.post(null, this, event.data.origin, ...(event.data.message ?? []));
+                    return await route.post(undefined, undefined, this, event.data.origin, ...(event.data.message ?? []));
                   } else return
                 }
         } else return false

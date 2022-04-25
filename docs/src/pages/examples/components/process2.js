@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/graph/Process2';
 
-export default function Process2Example({server, endpoints, router}) {
+export default function Process2Example({server, sockets, router}) {
   
     const button1 = useRef(null);
     const button2 = useRef(null);

@@ -4,7 +4,7 @@ import styles from '../examples.module.css'
 import { randomId } from '../../../../../src/common/id.utils';
 import RouteDisplay from '../routeDisplay';
 
-export default function WebRTCExample({server, endpoints, router, id}) {
+export default function WebRTCExample({server, sockets, router, id}) {
   
     const send = useRef(null);
     const connect = useRef(null);
@@ -48,7 +48,7 @@ export default function WebRTCExample({server, endpoints, router, id}) {
     delete peers[ev.detail.id]
   }
 
-  let endpoint;
+  let socket;
 
     useEffect(() => {
       
@@ -56,14 +56,14 @@ export default function WebRTCExample({server, endpoints, router, id}) {
 
 
         // Can be Room or Peer
-        endpoint = router.connect({
+        socket = router.connect({
           type: 'webrtc',
           target: 'rooms/myroom', // e.g. 'rooms/myroom', 'peers/test'
-          link: endpoints[1],
+          link: sockets[1],
           credentials: {id, _id:id}
         })
         
-        endpoint.subscribe((res) => {
+        socket.subscribe((res) => {
           console.log('Peer message...', res); 
 
           if (!res?.error) {
@@ -80,13 +80,13 @@ export default function WebRTCExample({server, endpoints, router, id}) {
       send.current.onclick = () => {
         let route = 'ping'
         meReadout.current.innerHTML += route
-        endpoint.send({route})
+        socket.send({route})
       }
 
       disconnect.current.onclick = () => {
         // peerReference.delete({
         //   route: 'webrtc/user',
-        //   // endpoint: endpoints[1]
+        //   // socket: sockets[1]
         // })
       }
 

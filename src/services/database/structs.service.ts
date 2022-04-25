@@ -124,7 +124,7 @@ export class StructService extends Service {
             },
             {
                 route:'getUser',
-                post:async (self,router,origin,...args) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin];
                     if (!u) return false;
     
@@ -152,7 +152,7 @@ export class StructService extends Service {
             {
                 route:'setUser',
                 aliases: ['addUser'],
-                post:async (self,router,origin,...args) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin]
                     if (!u) return false
                     let data;
@@ -216,7 +216,7 @@ export class StructService extends Service {
             {
                 route:'deleteUser',
                 aliases: ['removeUser'],
-                post:async (self,router,origin,...args) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin]
                     if (!u) return false
     
@@ -240,7 +240,7 @@ export class StructService extends Service {
             {   
                 route:'setData', 
                 aliases:['setMongoData'],
-                post: async (self,router,origin,...args) => {
+                post: async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin]
                     if (!u) return false
 
@@ -276,7 +276,7 @@ export class StructService extends Service {
             { 
                 route:'getData', 
                 aliases:['getMongoData','getUserData'],
-                post:async (self,router,origin,...args) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin]
                     if (!u) return false
 
@@ -304,7 +304,7 @@ export class StructService extends Service {
             { 
             route:'getDataByIds', 
             aliases:['getMongoDataByIds','getUserDataByIds'],
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -330,7 +330,7 @@ export class StructService extends Service {
         },     
         {
             route:'getAllData',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -363,7 +363,7 @@ export class StructService extends Service {
         }, 
         {
             route:'deleteData', 
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -388,7 +388,7 @@ export class StructService extends Service {
         {
             route:'getGroup',
             aliases:['getGroups'],
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -419,7 +419,7 @@ export class StructService extends Service {
         },
         {
             route:'setGroup',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false;
                 let data = await this.setGroup(u,args[0], this.mode);
@@ -429,7 +429,7 @@ export class StructService extends Service {
         },
         {
             route:'deleteGroup',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -453,7 +453,7 @@ export class StructService extends Service {
         },
         {
             route:'setAuth',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin];
                 //console.log('users',origin,u,JSON.stringify(router.USERS))
                 if (!u) return false;
@@ -464,7 +464,7 @@ export class StructService extends Service {
         },
         {
             route:'getAuths',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 
@@ -485,7 +485,7 @@ export class StructService extends Service {
         },
         {
             route:'deleteAuth',
-            post:async (self,router,origin,...args) => {
+            post:async (self,graphOrigin,router,origin,...args) => {
                 const u = router.USERS[origin]
                 if (!u) return false
 

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 2
 title: Routers
 ---
 
@@ -8,15 +8,15 @@ title: Routers
 `brainsatplay-frontend` and `brainsatplay-backend` provide default communication services including HTTPService and WebsocketService.
 
 ## Loading Frontend Services
-In your frontend code, load specify the remote endpoints your Router will listen to:
+In your frontend code, load specify the Sockets your Router will listen to:
 
 ```js
 const SERVER_URI = (window.location.href.includes('localhost')) ? 'http://localhost:80' : 'http://localhost:80' // Replace with production server URI
 const SERVER_URI_2 = (window.location.href.includes('localhost')) ? 'http://localhost:81' : 'http://localhost:81' // Replace with production server URI
 
-const endpoints = []
-endpoints.push(router.addEndpoint(SERVER_URI))
-endpoints.push(router.addEndpoint(SERVER_URI_2))
+const sockets = []
+sockets.push(router.addSocket(SERVER_URI))
+sockets.push(router.addSocket(SERVER_URI_2))
 ```
 
 Then load any services you'll want the Router to use:

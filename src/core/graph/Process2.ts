@@ -6,19 +6,18 @@ import { parseFunctionFromText } from '../../common/parse.utils';
 // or propagate to children/parents with utility calls that get added to the objects
 //Joshua Brewster and Garrett Flynn AGPLv3.0
 
-//properties input on GraphNode or addNode, or for children
-export type GraphNodeProperties = {
+//properties input on Graph or addNode, or for children
+export type GraphProperties = {
     tag?:string, //generated if not specified, or use to get another node by tag instead of generating a new one
     operator?:( //can be async
-        input:any, //input, e.g. output from another node
-        self:GraphNode|string,  //'this' node
-        origin?:GraphNode|string, //origin node
-        cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
+        self:Graph|string,  //'this' node
+        origin:Graph|string, //origin node
+        ...input:any //input, e.g. output from another nod
     )=>any, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
     forward?:boolean, //pass output to child nodes
     backward?:boolean, //pass output to parent node
-    children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
-    parent?:GraphNode|undefined, //parent graph node
+    children?:string|GraphProperties|Graph|(GraphProperties|Graph|string)[], //child node(s), can be tags of other nodes, properties objects like this, or Graphs, or null
+    parent?:Graph|undefined, //parent graph node
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
@@ -26,14 +25,14 @@ export type GraphNodeProperties = {
     loop?:false|number, //milliseconds or false
     animation?:( //uses operator by default unless defined otherwise can be async 
         input:any, //input, e.g. output from another node
-        self:GraphNode|string,  //'this' node
-        origin?:GraphNode|string, //origin node
+        self:Graph|string,  //'this' node
+        origin?:Graph|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
     looper?:( //uses operator by default unless defined otherwise (to separate functions or keep them consolidated) can be async
         input:any, //input, e.g. output from another node
-        self:GraphNode|string,  //'this' node
-        origin?:GraphNode|string, //origin node
+        self:Graph|string,  //'this' node
+        origin?:Graph|string, //origin node
         cmd?:string|number    //e.g. 'loop' or 'animate' will be defined if the operator is running on the loop or animate routines, needed something. Can define more commands but you might as well use an object in input for that. 
     )=>any | undefined, //if it outputs something not undefined it will trigger parent/child operators
     [key:string]:any //add whatever variables and utilities
@@ -141,19 +140,19 @@ class BaseProcess {
 
         
     convertChildrenToNodes(n) {
-        if(n.children?.name === 'GraphNode') { 
+        if(n.children?.name === 'Graph') { 
             if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
             if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
         }
         else if (Array.isArray(n.children)) {
             for(let i = 0; i < n.children.length; i++) {
-                if(n.children[i].name === 'GraphNode') { 
+                if(n.children[i].name === 'Graph') { 
                     if(!this.graph?.nodes.get(n.children[i].tag)) this.graph.nodes.set(n.children[i].tag,n.children[i]);
                     if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
                     continue; 
                 }
                 else if(typeof n.children[i] === 'object') {
-                    n.children[i] = new GraphNode(n.children[i],n,this.graph);
+                    n.children[i] = new Graph(n.children[i],n,this.graph);
                     this.nodes.set(n.children[i].tag,n.children[i]);
                     this.convertChildrenToNodes(n.children[i]);
                 } 
@@ -168,7 +167,7 @@ class BaseProcess {
             }
         }
         else if(typeof n.children === 'object') {
-            n.children = new GraphNode(n.children,n,this.graph);
+            n.children = new Graph(n.children,n,this.graph);
             this.nodes.set(n.children.tag,n.children);
             this.convertChildrenToNodes(n.children);
         } 
@@ -186,7 +185,7 @@ class BaseProcess {
 
 //the utilities in this class can be referenced in the operator after setup for more complex functionality
 //node functionality is self-contained, use a graph for organization
-export class GraphNode extends BaseProcess{
+export class Graph extends BaseProcess{
     attributes = new Set()
     nodes = new Map();
     ANIMATE = 'animate'; //operator is running on the animation loop (cmd = 'animate')
@@ -198,7 +197,7 @@ export class GraphNode extends BaseProcess{
     forward = true; /// propagate outputs to children?
     backward = false; //propagate outputs to parents?
     
-    constructor(properties:GraphNodeProperties={}, parentNode?, graph?) {
+    constructor(properties:GraphProperties={}, parentNode?, graph?) {
         super()
         const keys = Object.keys(this)
         const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']
@@ -221,13 +220,13 @@ export class GraphNode extends BaseProcess{
     }
     
     //I/O scheme for this node
-    operator(input,self=this,origin,cmd){
-        return input;
+    operator(self=this, origin=this, ...args){
+        return args;
     }
     
     //run the operator
-    async runOp(input,node=this,origin,cmd) {
-        let result = await this.operator(input,node,origin,cmd);
+    async runOp(input=[],node=this,origin,cmd) {
+        let result = await this.operator(node,origin,...input);
         if(this.tag) this.state.setState({[this.tag]:result});
         return result;
     }
@@ -236,13 +235,13 @@ export class GraphNode extends BaseProcess{
     runNode(node,input,origin) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node)
-            return node.run(input,node,origin);
+            return node.run(node, origin, ...input);
         else return undefined;
     }
     
     //runs the node sequence
     //Should create a sync version with no promises (will block but be faster)
-    run(input,node:GraphNode & GraphNodeProperties|any=this,origin) {
+    run(node:Graph & GraphProperties|any=this, origin, ...args) {
         if(typeof node === 'string') 
             {
                 let fnd;
@@ -254,7 +253,7 @@ export class GraphNode extends BaseProcess{
     
         return new Promise(async (resolve) => {
             if(node) {
-                let run = (node, inp, tick=0) => {
+                let run = (node, tick=0, ...inp) => {
                     return new Promise (async (r) => {
                         tick++;
                         let res = await node.runOp(inp,node,origin,tick);
@@ -262,12 +261,12 @@ export class GraphNode extends BaseProcess{
                             while(tick < node.repeat) {
                                 if(node.delay) {
                                     setTimeout(async ()=>{
-                                        r(await run(node,inp,tick));
+                                        r(await run(node,tick, ...inp));
                                     },node.delay);
                                     break;
                                 } else if (node.frame && requestAnimationFrame) {
                                     requestAnimationFrame(async ()=>{
-                                        r(await run(node,inp,tick));
+                                        r(await run(node,tick, ...inp));
                                     });
                                     break;
                                 }
@@ -283,12 +282,12 @@ export class GraphNode extends BaseProcess{
                             while(tick < node.recursive) {
                                 if(node.delay) {
                                     setTimeout(async ()=>{
-                                        r(await run(node,res,tick));
+                                        r(await run(node,tick, ...res));
                                     },node.delay);
                                     break;
                                 } else if (node.frame && requestAnimationFrame) {
                                     requestAnimationFrame(async ()=>{
-                                        r(await run(node,res,tick));
+                                        r(await run(node,tick, ...res));
                                     });
                                     break;
                                 }
@@ -309,16 +308,16 @@ export class GraphNode extends BaseProcess{
     
                 let runnode = async () => {
     
-                    let res = await run(node,input); //repeat/recurse before moving on to the parent/child
+                    let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
     
                     //can add an animationFrame coroutine, one per node //because why not
                     if(node.animate && !node.isAnimating) {
-                        this.runAnimation(this.animation,input,node,origin);
+                        this.runAnimation(this.animation,args,node,origin);
                     }
     
                     //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
                     if(typeof node.loop === 'number' && !node.isLooping) {
-                        this.runLoop(this.looper,input,node,origin);
+                        this.runLoop(this.looper,args,node,origin);
                     }
     
                     if(node.backward && node.parent) {
@@ -353,7 +352,7 @@ export class GraphNode extends BaseProcess{
         });
     }
     
-    runAnimation(animation:(input,node,origin,cmd)=>any=this.animation,input,node:GraphNode&GraphNodeProperties|any=this,origin) {
+    runAnimation(animation:(input,node,origin,cmd)=>any=this.animation,input,node:Graph&GraphProperties|any=this,origin) {
         //can add an animationFrame coroutine, one per node //because why not
         this.animation = animation;
         if(!animation) this.animation = this.operator;
@@ -388,7 +387,7 @@ export class GraphNode extends BaseProcess{
         }
     }
     
-    runLoop(loop:(input,node,origin,cmd)=>any=this.looper,input,node:GraphNode&GraphNodeProperties|any=this,origin) {
+    runLoop(loop:(input,node,origin,cmd)=>any=this.looper,input,node:Graph&GraphProperties|any=this,origin) {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
         this.looper = loop;
         if(!loop) this.looper = this.operator;
@@ -471,9 +470,9 @@ export class GraphNode extends BaseProcess{
         }
     }
     
-    //converts all children nodes and tag references to graphnodes also
+    //converts all children nodes and tag references to Graphs also
     addNode(node={}) {
-        let converted = new GraphNode(node,this,this.graph); 
+        let converted = new Graph(node,this,this.graph); 
         this.nodes.set(converted.tag,converted);
         if(this.graph) this.graph.nodes.set(converted.tag,converted);
         return converted;
@@ -573,8 +572,8 @@ export class GraphNode extends BaseProcess{
     }
     
     //subscribe an output with an arbitrary callback
-    subscribe(callback:GraphNode|Function=(res)=>{},tag=this.tag) {
-        if(callback instanceof GraphNode) {
+    subscribe(callback:Graph|Function=(res)=>{},tag=this.tag) {
+        if(callback instanceof Graph) {
             return this.subscribeNode(callback);
         } else return this.state.subscribeTrigger(tag,callback);
     }
@@ -585,7 +584,7 @@ export class GraphNode extends BaseProcess{
     }
     
     //subscribe a node to this node that isn't a child of this node
-    subscribeNode(node:GraphNode) {
+    subscribeNode(node:Graph) {
         if(node.tag) this.nodes.set(node.tag,node);
         return this.state.subscribeTrigger(this.tag,(res)=>{this.runNode(node,res,this);})
     }
@@ -594,7 +593,7 @@ export class GraphNode extends BaseProcess{
     // Start at the top/initially called nodes to print the whole hierarchy in one go
     print(node=this,printChildren=true,nodesPrinted=[]) {
     
-        let dummyNode = new GraphNode(); //test against this for adding props
+        let dummyNode = new Graph(); //test against this for adding props
     
         nodesPrinted.push(node.tag);
     
@@ -643,7 +642,7 @@ export class GraphNode extends BaseProcess{
     
     }
     
-    //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
+    //reconstruct a node hierarchy (incl. stringified functions) into a Graph set
     reconstruct(json:string|{[x:string]: any}) {
         let parsed = reconstructObject(json);
         if(parsed) return this.addNode(parsed);
@@ -652,7 +651,7 @@ export class GraphNode extends BaseProcess{
 
 
 
-    // Macro for GraphNode
+    // Macro for Graph
 export class AcyclicGraph extends BaseProcess {
     nNodes = 0
 
@@ -661,9 +660,9 @@ export class AcyclicGraph extends BaseProcess {
     }
 
 
-    //converts all children nodes and tag references to graphnodes also
-    addNode(node:GraphNodeProperties={}) {
-        let converted = new GraphNode(node,undefined,this); 
+    //converts all children nodes and tag references to Graphs also
+    addNode(node:GraphProperties={}) {
+        let converted = new Graph(node,undefined,this); 
         return converted;
     }
 
@@ -672,10 +671,10 @@ export class AcyclicGraph extends BaseProcess {
     }
 
     //Should create a sync version with no promises (will block but be faster)
-    run(node,input,origin) {
+    run(node,origin, ...input) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node)
-            return node.run(input,node,origin)
+            return node.run(node,origin,...input)
         else return undefined;
     }
 
@@ -762,21 +761,21 @@ export class AcyclicGraph extends BaseProcess {
     }
 
     //subscribe a node to this node that isn't a child of this node
-    subscribeNode(inputNode:GraphNode, outputNode:GraphNode|string) {
-        return this.state.subscribeTrigger(inputNode.tag,(res)=>{this.run(outputNode,res,this);})
+    subscribeNode(inputNode:Graph, outputNode:Graph|string) {
+        return this.state.subscribeTrigger(inputNode.tag,(res)=>{this.run(outputNode,this, ...res);}) // TODO: Check if correct node
     }
 
     print(node,printChildren=true) {
         if(typeof node === 'object') return node.print(node,printChildren);
     }
 
-    //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
+    //reconstruct a node hierarchy (incl. stringified functions) into a Graph set
     reconstruct(json:string|{[x:string]: any}) {
         let parsed = reconstructObject(json);
         if(parsed) return this.addNode(parsed);
     }
 
-    create(operator:(self:GraphNode,input:any,origin:GraphNode,cmd:string)=>any,parentNode,props) {
+    create(operator:(self:Graph,input:any,origin:Graph,cmd:string)=>any,parentNode,props) {
         return createNode(operator,parentNode,props,this);
     }
 
@@ -786,12 +785,12 @@ export class AcyclicGraph extends BaseProcess {
 //macro
 export function reconstructNode(json:string|{[x:string]: any},parentNode,graph) {
     let reconstructed = reconstructObject(json);
-    if(reconstructed) return new GraphNode(reconstructed,parentNode,graph);
+    if(reconstructed) return new Graph(reconstructed,parentNode,graph);
     else return undefined;
 }
 
 // exports.AcyclicGraph = AcyclicGraph;
-// exports.GraphNode = GraphNode;
+// exports.Graph = Graph;
 
 //parse stringified object with stringified functions
 export function reconstructObject(json:string|{[x:string]: any}='{}') {
@@ -888,15 +887,10 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
 }
 
 
-export function createNode(operator:(input,self,origin,cmd)=>any,parentNode:GraphNode,props:GraphNodeProperties,graph:AcyclicGraph) {
+export function createNode(operator:(input,self,origin,cmd)=>any,parentNode:Graph,props:GraphProperties,graph:AcyclicGraph) {
     if(typeof props === 'object') {
         (props.operator as any) = operator;
-        return new GraphNode(props,parentNode,graph);
+        return new Graph(props,parentNode,graph);
     }
-    return new GraphNode({operator:operator},parentNode,graph);
+    return new Graph({operator:operator},parentNode,graph);
 }
-
-
-
-export const Graph = AcyclicGraph;
-export const Process = GraphNode;

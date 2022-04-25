@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import styles from '../examples.module.css'
 // import webgazer from '../../../../../src/webgazer/dist/index.esm'
 
-export default function StreamsExample({ server, endpoints, router, id }) {
+export default function StreamsExample({ server, sockets, router, id }) {
 
   const output = useRef(null);
   const video = useRef(null);
@@ -106,7 +106,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
         // ------------- Add Custom Route -------------
         router.post({
           route: 'unsafe/createRoute',
-          endpoint: endpoints[0]
+          socket: sockets[0]
         }, {route: 'manipulateDataStream', post: (Router, args, origin) => {
           return args[0].map(v => 1000*v)
         }}).then(res => {
@@ -128,7 +128,7 @@ export default function StreamsExample({ server, endpoints, router, id }) {
           // Use the Router
           router.post({
             route: 'manipulateDataStream',
-            endpoint: endpoints[0]
+            socket: sockets[0]
           }, data, timestamps, contentHint).then(res => {
             if (!res?.error) output.current.innerHTML = JSON.stringify(res, undefined,2)
             else output.current.innerHTML = res.error

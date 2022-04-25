@@ -1,7 +1,5 @@
 # brainsatplay
-`brainsatplay` enables **interactive reactive programming** on the browser—specifically for high-performance scientific computing applications that span multiple programming environments.
-
-We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
+`brainsatplay` is a concurrency framework for interactive, high-performance applications controlled by the browser.
 
 ### Supporting Projects
 - [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
@@ -90,8 +88,8 @@ To offload a `Process` to a Web Worker:
 ### Router
 A `Router` will host a `Process` and send outputs back to the requester.
 
-### Endpoint
-An `Endpoint` will forward data to a `Process`.
+### Socket
+An `Socket` will forward data to a `Process`.
 
 ## Documentation
 Coming soon at https://docs.brainsatplay.com
@@ -123,7 +121,7 @@ const brainsatplay = require('brainsatplay')
 - [ ] Assemble graphs with CLI
 - [ ] Support Python
 - [ ] Support C/C++
-- [ ] Make Endpoint / Router entirely Process-centric
+- [ ] Make Socket / Router entirely Process-centric
 - [ ] Assemble / edit Processes with [visualscript](https://github.com/brainsatplay/visualscript)
 - [ ] Acquire data persistently with a Chrome Extension
 

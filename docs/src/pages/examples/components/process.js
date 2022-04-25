@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/graph';
-import { Graph, Process, GraphNode } from '../../../../../src/core/graph/Process2';
+import { Graph, AcyclicGraph } from '../../../../../src/core/graph/Process2';
 
-export default function ProcessExample({server, endpoints, router}) {
+export default function ProcessExample({server, sockets, router}) {
   
     const button1 = useRef(null);
     const button2 = useRef(null);
@@ -26,20 +26,20 @@ export default function ProcessExample({server, endpoints, router}) {
     // loaded.list(load.current)
 
       // ---------------------------- Basic Example ----------------------------
-      const add = new Process({
+      const add = new Graph({
         tag: 'add',
         increment: 1,
         operator: (input, self) => input + self.increment
       })
 
-      const log = new Process({
+      const log = new Graph({
         tag: 'log',
         operator: (input) => console.log(input)
       })
 
       add.subscribe(log) // This should output 3 to the console
 
-      const random = new Process({
+      const random = new Graph({
         tag: 'random',
         operator: () => Math.floor(100*Math.random())
       })
