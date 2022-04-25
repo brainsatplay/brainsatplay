@@ -50,6 +50,15 @@ export const state = {
     pushToState:{},
     data:{},
     triggers:{},
+    setStateByKey(key,value) { //faster, no object created
+        if(!key) return;
+        this.data[key] = value;
+        if(this.triggers[key]) {
+            this.triggers[key].forEach((obj) => obj.onchange(this.data[key]));
+        }
+
+        return this.data;
+    },
     setState(updateObj){
         
         Object.assign(this.data, updateObj);
@@ -229,7 +238,7 @@ export class GraphNode extends BaseProcess{
     //run the operator
     async runOp(input,node=this,origin,cmd) {
         let result = await this.operator(input,node,origin,cmd);
-        if(this.tag) this.state.setState({[this.tag]:result});
+        if(this.tag) this.state.setStateByKey(this.tag,result);
         return result;
     }
     
@@ -369,7 +378,7 @@ export class GraphNode extends BaseProcess{
                         this.ANIMATE
                     );
                     if(this.tag && typeof result !== 'undefined') {
-                        this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
+                        this.state.setStateByKey(this.tag,result); //if the anim returns it can trigger state
                         if(node.backward && node.parent) {
                             await this.runNode(node.parent,result,node);
                         }
@@ -399,7 +408,7 @@ export class GraphNode extends BaseProcess{
                 if(node.looping)  {
                     let result = await this.looper(input,node,origin);
                     if(this.tag && typeof result !== 'undefined') {
-                        this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
+                        this.state.setStateByKey(this.tag,result); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
                             await this.runNode(node.parent,result,node);
                         }
