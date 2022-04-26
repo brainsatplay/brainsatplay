@@ -134,7 +134,7 @@ class BaseProcess {
 
         
     convertChildrenToNodes(n) {
-        if(n.children?.name === 'Graph') { 
+        if( n?.children instanceof Graph ) { 
             if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
             if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
         }
@@ -283,12 +283,14 @@ export class Graph extends BaseProcess {
             }
 
             //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
-            if(typeof node.loop === 'number' && !node.isLooping) {
+            if(node.loop && typeof node.loop === 'number' && !node.isLooping) {
                 this.runLoop(this.looper,args,node,origin);
             }
 
             return res;
         }
+
+        console.log('running node ', node.tag);
     
         return new Promise(async (resolve) => {
             if(node) {
@@ -348,7 +350,7 @@ export class Graph extends BaseProcess {
                 let runnode = async () => {
     
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
-    
+                    
                     //can add an animationFrame coroutine, one per node //because why not
                     if(node.animate && !node.isAnimating) {
                         this.runAnimation(this.animation,args,node,origin);
@@ -391,7 +393,7 @@ export class Graph extends BaseProcess {
         });
     }
     
-    runAnimation(animation:(node, origin, ...input)=>any=this.animation,input,node:Graph&GraphProperties|any=this,origin) {
+    runAnimation(animation:(node, origin, input)=>any=this.animation,input=[],node:Graph&GraphProperties|any=this,origin) {
         //can add an animationFrame coroutine, one per node //because why not
         this.animation = animation;
         if(!animation) this.animation = this.operator;
@@ -426,7 +428,7 @@ export class Graph extends BaseProcess {
         }
     }
     
-    runLoop(loop:(node, origin, ...input)=>any=this.looper,input,node:Graph&GraphProperties|any=this,origin) {
+    runLoop(loop:(node, origin, input)=>any=this.looper,input=[],node:Graph&GraphProperties|any=this,origin) {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
         this.looper = loop;
         if(!loop) this.looper = this.operator;

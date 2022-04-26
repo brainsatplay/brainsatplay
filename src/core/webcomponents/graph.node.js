@@ -30,13 +30,15 @@ export class NodeDiv extends DOMElement {
         node:undefined, //GraphNode instance, will be created or you can set manually or as a string to grab a node by tag (or use tag)
     }; //can specify properties of the element which can be subscribed to for changes.
 
-    input_delay=100 //onload runNode delay for graph nodes to run operations on inputs, they will not recognize their children otherwise as the DOM loads
+    input_delay=1 //onload runNode delay for graph nodes to run operations on inputs, they will not recognize their children otherwise as the DOM loads
 
     //set the template string or function (which can input props to return a modified string)
     template=component;
 
     //gotta customize this a little from the default DOMElement
     render = (props=this.props) => {
+
+        //console.log('rendering!')
 
         if(typeof this.template === 'function') this.templateString = this.template(props); //can pass a function
         else this.templateString = this.template;
@@ -58,7 +60,7 @@ export class NodeDiv extends DOMElement {
         this.setupNode(this.props);
         if(this.props.input) { //e.g. run the node on input
             setTimeout(async()=>{
-                this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
+                //this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
             },
             this.input_delay //makes sure children are loaded (e.g. on a DOM with a lot of loading, should add some execution delay to anticipate it as initial nodes are not aware of later-rendered nodes on the DOM)
             );
@@ -95,6 +97,7 @@ export class NodeDiv extends DOMElement {
 
         props.tag = props.node.tag;
         if(!this.id) this.id = props.tag;
+
 
         if(props.parent) {
             props.parent.addChildren(props.node);

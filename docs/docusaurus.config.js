@@ -103,12 +103,12 @@ const config = {
             position: 'left',
             label: 'Examples',
           },
-          { 
-            type: 'doc',
-            docId: 'reference/index',
-            label: "Reference", 
-            position: 'left'
-          },
+          // { 
+          //   type: 'doc',
+          //   docId: 'reference/index',
+          //   label: "Reference", 
+          //   position: 'left'
+          // },
           // { href: repoUrl, label: "GitHub", external: true },
           // { blog: true, label: "Blog" },
           // { href: helpUrl, label: "Need Help?", external: true }
