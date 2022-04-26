@@ -18,7 +18,7 @@ export default function WebComponentsExample({server, sockets, router}) {
       <header className={clsx('hero hero--primary')}>
 
           {/* Web Component Section */}
-          <acyclic-graph>
+          {/* <acyclic-graph> */}
             <graph-node tag='a' input="HELLO WORLD O__O">
                 <graph-node tag='b' ></graph-node>
             </graph-node>
@@ -28,7 +28,7 @@ export default function WebComponentsExample({server, sockets, router}) {
                     <circlecanvas-node tag='canvas' style={{height: "100%", width: "100%"}}></circlecanvas-node>
                 </button-node>
             </input-node> 
-        </acyclic-graph>
+        {/* </acyclic-graph> */}
 
         {/* Terminal */}
           <div className={styles.terminal} ><textarea ref={terminal} disabled></textarea></div>

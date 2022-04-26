@@ -15,6 +15,12 @@ export class CircleCanvasNode extends NodeDiv {
             origin,
             input
         ) => {
+
+
+            if(!this.props.triggered) {
+                this.props.radius += Math.random()-0.5;
+            }
+
             this.draw(node,origin,input);
             for(let i = 0; i < this.drawFuncs.length; i++) { //lets use other nodes to send draw functions to the canvas
                 let f = this.drawFuncs[i];
@@ -29,9 +35,6 @@ export class CircleCanvasNode extends NodeDiv {
             input,
         )=>{ 
             
-            if(!this.props.triggered) {
-                this.props.radius += Math.random()-0.5;
-            }
 
             //if(cmd === 'animate') {
              
