@@ -272,6 +272,8 @@ export class Graph extends BaseProcess {
         }
         
         if(!node) return undefined;
+
+        console.log('running node ', node.tag, 'children: ', node.children.map(c => c.tag));
         
         //no async/flow logic so just run and return the operator result
         if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
@@ -290,7 +292,6 @@ export class Graph extends BaseProcess {
             return res;
         }
 
-        console.log('running node ', node.tag);
     
         return new Promise(async (resolve) => {
             if(node) {
