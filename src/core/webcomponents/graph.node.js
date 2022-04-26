@@ -13,7 +13,7 @@ export class NodeDiv extends DOMElement {
             self, //'this' node
             origin, //origin node
             input, //input, e.g. output from another node
-        )=>{ console.log(input); return input; }, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
+        )=>{ console.log(this.tag,' input: ',input); return input; }, //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
         forward:true, //pass output to child nodes
         backward:false, //pass output to parent node
         children:undefined, //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
