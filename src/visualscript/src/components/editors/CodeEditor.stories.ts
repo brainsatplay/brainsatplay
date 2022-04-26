@@ -9,7 +9,7 @@ export default {
 } as Meta;
 
 const instance = new Graph({operator: (self, origin, input) => console.log(input)})
-const Template: Story<Partial<CodeEditorProps>> = (args) => new CodeEditor(args);
+const Template: Story<CodeEditorProps> = (args) => new CodeEditor(args);
 
 export const Default = Template.bind({});
 Default.args = {

@@ -124,4 +124,4 @@ export class Button extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-button', Button);
+  customElements.define('visualscript-button', Button);

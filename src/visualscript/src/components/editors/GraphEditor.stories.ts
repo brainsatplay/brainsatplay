@@ -10,7 +10,7 @@ export default {
 
 const graph = new Graph({operator: (self, origin, input) => console.log(input)})
 
-const Template: Story<Partial<GraphEditorProps>> = (args) => new GraphEditor(args);
+const Template: Story<GraphEditorProps> = (args) => new GraphEditor(args);
 
 export const Default = Template.bind({});
 Default.args = {

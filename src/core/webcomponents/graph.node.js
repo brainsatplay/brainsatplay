@@ -3,7 +3,7 @@ import {DOMElement} from 'fragelement';
 
 import {Graph} from '../Graph'
 
-let component = require('./graph.node.html');
+let component = require('./graph.node.html').default;
 
 //See: https://github.com/brainsatplay/domelement
 export class NodeDiv extends DOMElement {
@@ -30,7 +30,7 @@ export class NodeDiv extends DOMElement {
         node:undefined, //GraphNode instance, will be created or you can set manually or as a string to grab a node by tag (or use tag)
     }; //can specify properties of the element which can be subscribed to for changes.
 
-    input_delay=1 //onload runNode delay for graph nodes to run operations on inputs, they will not recognize their children otherwise as the DOM loads
+    input_delay=100 //onload runNode delay for graph nodes to run operations on inputs, they will not recognize their children otherwise as the DOM loads
 
     //set the template string or function (which can input props to return a modified string)
     template=component;
@@ -50,6 +50,7 @@ export class NodeDiv extends DOMElement {
             this.removeChild(this.fragment); 
         }
         this.fragment = fragment;
+        console.log(this.fragment, this.templateString, this.template)
         this.appendChild(fragment);
         
         

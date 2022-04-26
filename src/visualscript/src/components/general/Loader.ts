@@ -223,4 +223,4 @@ export class Loader extends LitElement {
 
   }
   
-  customElements.define('brainsatplay-loader', Loader);
+  customElements.define('visualscript-loader', Loader);

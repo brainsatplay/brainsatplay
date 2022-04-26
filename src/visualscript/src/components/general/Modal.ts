@@ -173,4 +173,4 @@ Phasellus sodales eros at erat elementum, a semper ligula facilisis. Class apten
     }
   }
   
-  customElements.define('brainsatplay-modal', Modal);
+  customElements.define('visualscript-modal', Modal);

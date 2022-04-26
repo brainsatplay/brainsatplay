@@ -28,7 +28,7 @@ export default {
   }
 } as Meta;
 
-const Template: Story<Partial<VolumeProps>> = (args) => new Volume(args);
+const Template: Story<VolumeProps> = (args) => new Volume(args);
 
 export const Default = Template.bind({});
 Default.args = {

@@ -98,12 +98,12 @@ export class GraphEditor extends LitElement {
       };
     }
 
-    graph: ObjectEditorProps['graph']
-    header: ObjectEditorProps['header']
+    graph: GraphEditorProps['graph']
+    header: GraphEditorProps['header']
     history: any[] = []
     mode: string
 
-    constructor(props: ObjectEditorProps = {graph: {}, header: 'Object'}) {
+    constructor(props: GraphEditorProps = {graph: {}, header: 'Object'}) {
       super();
 
       this.graph = props.graph ?? {}
@@ -181,4 +181,4 @@ export class GraphEditor extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-graph-editor', GraphEditor);
+  customElements.define('visualscript-graph-editor', GraphEditor);

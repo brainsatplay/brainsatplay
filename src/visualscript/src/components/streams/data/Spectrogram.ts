@@ -175,4 +175,4 @@ export class Spectrogram extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-spectrogram', Spectrogram);
+  customElements.define('visualscript-spectrogram', Spectrogram);

@@ -8,7 +8,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Partial<ModalProps>> = (args) => new Modal(args);
+const Template: Story<ModalProps> = (args) => new Modal(args);
 
 export const Default = Template.bind({});
 Default.args = {

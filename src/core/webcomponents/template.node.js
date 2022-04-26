@@ -1,7 +1,7 @@
 
-import {NodeDiv} from '../acyclicgraph/graph.node'
+import {NodeDiv} from './graph.node'
 
-let component = require('./template.node.html');
+let component = require('./template.node.html').default;
 
 //See: https://github.com/brainsatplay/domelement
 export class TemplateNodeDiv extends NodeDiv {

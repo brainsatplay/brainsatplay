@@ -21,7 +21,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Partial<LoaderProps>> = (args) => new Loader(args);
+const Template: Story<LoaderProps> = (args) => new Loader(args);
 
 
 export const Default = Template.bind({});

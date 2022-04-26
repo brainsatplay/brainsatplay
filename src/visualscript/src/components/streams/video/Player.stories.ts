@@ -5,7 +5,7 @@ export default {
   title: 'Streams/Video/Player',
 } as Meta;
 
-const Template: Story<Partial<PlayerProps>> = (args) => new Player(args);
+const Template: Story<PlayerProps> = (args) => new Player(args);
 
 export const Default = Template.bind({});
 

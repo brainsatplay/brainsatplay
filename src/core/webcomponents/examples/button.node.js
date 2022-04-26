@@ -1,9 +1,9 @@
 
 import {addCustomElement} from 'fragelement';
 
-import {NodeDiv} from '../acyclicgraph/graph.node'
+import {NodeDiv} from '../graph.node'
 
-let component = require('./button.node.html');
+let component = require('./button.node.html').default;
 
 //See: https://github.com/brainsatplay/domelement
 export class ButtonNode extends NodeDiv {
@@ -32,9 +32,9 @@ export class ButtonNode extends NodeDiv {
     
     //DOMElement custom callbacks:
     oncreate=(props)=>{
+        console.log(this.template)
         let button = this.querySelector('button');
-
-        button.onclick = (ev) => {
+        if (button) button.onclick = (ev) => {
             props.node.run(props.input);
         }
     } //after rendering

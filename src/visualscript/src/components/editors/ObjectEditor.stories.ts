@@ -8,7 +8,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Partial<ObjectEditorProps>> = (args) => new ObjectEditor(args);
+const Template: Story<ObjectEditorProps> = (args) => new ObjectEditor(args);
 
 export const Default = Template.bind({});
 Default.args = {

@@ -7,7 +7,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Partial<NavProps>> = (args) => new Nav(args);
+const Template: Story<NavProps> = (args) => new Nav(args);
 
 const primary = {
   menu: [

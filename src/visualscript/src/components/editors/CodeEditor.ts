@@ -206,4 +206,4 @@ export class CodeEditor extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-code-editor', CodeEditor);
+  customElements.define('visualscript-code-editor', CodeEditor);

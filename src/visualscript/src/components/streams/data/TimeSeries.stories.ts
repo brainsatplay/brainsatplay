@@ -28,7 +28,7 @@ export default {
   }
 } as Meta;
 
-const Template: Story<Partial<TimeSeriesProps>> = (args) => new TimeSeries(args);
+const Template: Story<TimeSeriesProps> = (args) => new TimeSeries(args);
 
 export const Default = Template.bind({});
 Default.args = {

@@ -16,7 +16,7 @@ export default {
   }
 } as Meta;
 
-const Template: Story<Partial<SpectrogramProps>> = (args) => new Spectrogram(args);
+const Template: Story<SpectrogramProps> = (args) => new Spectrogram(args);
 
 export const Default = Template.bind({});
 Default.args = {

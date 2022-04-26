@@ -8,7 +8,7 @@ export default {
   },
 } as Meta;
 
-const Template: Story<Partial<ButtonProps>> = (args) => new Button(args);
+const Template: Story<ButtonProps> = (args) => new Button(args);
 
 export const Default = Template.bind({});
 Default.args = {};

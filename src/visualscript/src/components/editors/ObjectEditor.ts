@@ -181,4 +181,4 @@ export class ObjectEditor extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-object-editor', ObjectEditor);
+  customElements.define('visualscript-object-editor', ObjectEditor);

@@ -37,8 +37,8 @@ export default function StreamsExample({ server, sockets, router, id }) {
     pseudo.click()
 
     // const synthetic = await import('@brainsatplay/device')
-    const components = await import("https://cdn.jsdelivr.net/npm/brainsatplay-ui@0.0.7/dist/index.esm.js")  
-    // const components = await import('../../../../libraries/brainsatplay-components/dist/module')
+    // const components = await import("https://cdn.jsdelivr.net/npm/brainsatplay-ui@0.0.7/dist/index.esm.js")  
+    const components = await import('../../../../../src/visualscript/src/index')
     // import RouteDisplay from '../routeDisplay';
     console.log(components)
 

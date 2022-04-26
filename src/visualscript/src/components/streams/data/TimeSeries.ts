@@ -116,4 +116,4 @@ export class TimeSeries extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-timeseries', TimeSeries);
+  customElements.define('visualscript-timeseries', TimeSeries);

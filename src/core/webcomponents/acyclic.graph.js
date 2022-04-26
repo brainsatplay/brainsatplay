@@ -3,7 +3,7 @@ import {DOMElement} from 'fragelement';
 
 import {AcyclicGraph} from '../Graph'
 
-let component = require('./acyclic.graph.html');
+let component = require('./acyclic.graph.html').default;
 
 //See: https://github.com/brainsatplay/domelement
 export class Graph extends DOMElement {

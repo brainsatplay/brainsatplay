@@ -174,7 +174,7 @@ export class Nav extends LitElement {
       this.primary = props.primary ?? {menu: [], options: []}
       this.secondary = props.secondary ?? []
       this.color = props.color ?? 'blue'
-      this.brand = props.brand ?? 'My Brand'
+      this.brand = props.brand ?? {content: 'My Brand'}
 
     }
     
@@ -221,4 +221,4 @@ export class Nav extends LitElement {
     }
   }
   
-  customElements.define('brainsatplay-nav', Nav);
+  customElements.define('visualscript-nav', Nav);

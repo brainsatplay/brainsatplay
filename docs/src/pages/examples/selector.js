@@ -8,6 +8,7 @@ import WebRTCExample from './components/webrtc';
 import StreamsExample from './components/streams';
 import ProcessExample from './components/process';
 import Process2Example from './components/process2';
+import WebComponentsExample from './components/webcomponents';
 
 export default function ExampleSelector({server, sockets, router, id}) {
    const history = useHistory();
@@ -62,6 +63,14 @@ export default function ExampleSelector({server, sockets, router, id}) {
             sockets={sockets}
             id={id}
             />
+
+          case 'webcomponents':
+            return <WebComponentsExample
+            server={server}
+            router={router}
+            sockets={sockets}
+            id={id}
+            />
         }
       }
 
@@ -90,6 +99,9 @@ export default function ExampleSelector({server, sockets, router, id}) {
         </button>
         <button onClick={() => set('process2')}>
           Graph Animation
+        </button>
+        <button onClick={() => set('webcomponents')}>
+          WebComponents
         </button>
         </nav>
 

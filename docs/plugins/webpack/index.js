@@ -5,6 +5,14 @@ module.exports = function (context, options) {
       // eslint-disable-next-line
       configureWebpack(config, isServer, utils) {
         return {
+          module: {
+            rules: [
+            {
+              test: /\.html$/i,
+              loader: "html-loader",
+            }
+          ]
+        },
           externals: {
            "node:buffer": "{}",
            "node:fs": "{}",
