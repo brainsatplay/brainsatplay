@@ -15,7 +15,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
     "anotherstatemanager": "^1.1.0",
-    "fragelement":"^1.3.2"
+    "fragelement":"^1.3.3"
   },
   "bugs": {
     "url": "https://github.com/brainsatplay/brainsatplay"

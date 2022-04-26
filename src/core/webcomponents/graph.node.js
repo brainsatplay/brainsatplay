@@ -45,15 +45,25 @@ export class NodeDiv extends DOMElement {
 
         //this.innerHTML = this.templateString;
 
+        
         const t = document.createElement('template');
         t.innerHTML = this.templateString;
         const fragment = t.content;
-        if(this.fragment) { //will reappend the fragment without reappending the whole node if already rendered once
-            this.removeChild(this.fragment); 
+
+        if(this.FRAGMENT) { //will reappend the fragment without reappending the whole node if already rendered once
+            if(this.useShadow) {
+                this.shadowRoot.removeChild(this.FRAGMENT);
+            }   
+            else this.removeChild(this.FRAGMENT); 
         }
-        this.fragment = fragment;
-        //console.log(this.fragment, this.templateString, this.template)
-        this.appendChild(fragment);
+        if(this.useShadow) {
+            if(!this.attachedShadow) this.attachShadow({mode:'open'});
+            this.shadowRoot.prepend(fragment); //now you need to use the shadowRoot.querySelector etc.
+            this.FRAGMENT = this.shadowRoot.childNodes[this.shadowRoot.childNodes.length-1]
+        }   
+        else this.prepend(fragment);
+        this.FRAGMENT = this.childNodes[this.childNodes.length-1]
+        //this.appendChild(fragment);
         
         
         //add this here which will run a routine AFTER rendering so the elements can be updated
