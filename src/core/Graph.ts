@@ -257,11 +257,11 @@ export class Graph extends BaseProcess {
      * ```
      */   
 
-    async run(...args) {
-        return await this._run(this,this,...args);
+    run(...args) {
+        return this._run(this,this,...args); //will be a promise
     }
 
-    async _run(node=this,origin,...args) {
+    _run(node=this,origin,...args) {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
         if(typeof node === 'string') { //can pass the node tag instead

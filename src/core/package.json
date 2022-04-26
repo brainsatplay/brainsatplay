@@ -14,7 +14,8 @@
   "author": "Joshua Brewster, Garrett Flynn",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "anotherstatemanager": "^1.1.0"
+    "anotherstatemanager": "^1.1.0",
+    "fragelement":"^1.3.2"
   },
   "bugs": {
     "url": "https://github.com/brainsatplay/brainsatplay"

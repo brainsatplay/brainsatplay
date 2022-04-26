@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head> 
+    <script> //Service workers for pwa test.  `npm run pwa`
+        if(typeof process !== 'undefined') { //node environment variable        
+            // Check that service workers are supported
+            if (process.env.NODE_ENV === 'production' && "serviceWorker" in navigator) addEventListener('load', () => {
+                navigator.serviceWorker
+                .register("dist/service-worker.js")
+                .catch((err) => console.log("Service worker registration failed", err));
+            });
+        }
+    </script>
+</head>
+<body>
+    <script src="dist/app.js"></script>    
+
+    <acyclic-graph>
+        <graph-node input="HELLO WORLD O__O">
+            <graph-node></graph-node>
+        </graph-node>
+        
+        Add:<input-node type="number">
+            <button-node>
+                <circlecanvas-node style="height:100%;width:100%;"></circlecanvas-node>
+            </button-node>
+        </input-node>
+    </acyclic-graph>
+
+    <!-- <space-node style="height:100%; width:100%; position:absolute;">
+        <physics-body  
+            px="-250000000000" 
+            py="70000000000"  
+            vx="5000"  
+            vy="10000"  
+            style="background-color:rgb(255, 28, 28);" 
+            radius="10000000000" 
+            mass="400000000000000000000000000" 
+        ></physics-body>
+        <physics-body 
+            px="-150000000000" 
+            py="20000000000"  
+            vx="-2000"  
+            vy="10000"  
+            style="background-color:rgb(89, 0, 255);" 
+            radius="10000000000" 
+            mass="500000000000000000000000000" 
+        ></physics-body>
+    </space-node> -->
+</body>
+</html>
