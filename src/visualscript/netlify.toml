@@ -1,0 +1,10 @@
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false # Leave false else get prod bug
+
+[context.deployment]
+  publish = "docs/"
+  command = "yarn storybook:build"
+  environment = { NODE_VERSION = "16", NETLIFY_USE_YARN = true }

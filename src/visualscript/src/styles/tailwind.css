@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer components {
+    .svg-fix {
+        @apply h-full
+    }
+    .svg-fix path {
+        stroke: currentColor;
+    }
+    .dropdown:focus-within .dropdown-menu {
+        display: block;
+    }
+    /* .nav-drawer-scroll::-webkit-scrollbar {
+        width: 1rem
+    }
+
+    .nav-drawer-scroll::-webkit-scrollbar-track {
+        cursor: pointer;
+        background: red;
+    } */
+}

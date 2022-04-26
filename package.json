@@ -16,7 +16,9 @@
     "build": "cd docs && yarn && yarn build",
     "killall-node": "killall node",
     "killall-node:windows": "taskkill /F /IM node.exe",
-    "cli": "npm i -g ./src/cli"
+    "cli": "npm i -g ./src/cli",
+    "ui": "cd src/visualscript && yarn start"
+
   },
   "repository": {
     "type": "git",

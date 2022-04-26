@@ -35,6 +35,9 @@ This monorepo contains several NPM libraries for high-performance computing and 
 ### /pwa
 - **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
 
+### /visualscript
+- **visualscript:** Visual programming system for **brainsatplay** 
+
 ## Concepts
 *List and explain all design intuitions here*
 

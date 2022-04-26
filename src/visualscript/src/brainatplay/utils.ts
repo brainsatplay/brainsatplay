@@ -1,0 +1,1 @@
+export const randomId = () => `${Math.floor(1000000*Math.random())}`
