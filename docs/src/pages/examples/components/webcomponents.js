@@ -19,13 +19,13 @@ export default function WebComponentsExample({server, sockets, router}) {
 
           {/* Web Component Section */}
           <acyclic-graph>
-            <graph-node input="HELLO WORLD O__O">
-                <graph-node></graph-node>
+            <graph-node tag='a' input="HELLO WORLD O__O">
+                <graph-node tag='b' ></graph-node>
             </graph-node>
             
-            Add:<input-node type="number">
-                <button-node>
-                    <circlecanvas-node style={{height: "100%", width: "100%"}}></circlecanvas-node>
+            Add:<input-node type="number" tag='inp'>
+                <button-node tag='btn'>
+                    <circlecanvas-node tag='canvas' style={{height: "100%", width: "100%"}}></circlecanvas-node>
                 </button-node>
             </input-node> 
         </acyclic-graph>
