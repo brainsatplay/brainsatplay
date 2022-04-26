@@ -1,21 +1,20 @@
 import { Story, Meta } from '@storybook/web-components';
-import { GraphEditor, GraphEditorProps } from './GraphEditor';
-import { Graph } from '../brainatplay';
+import { CodeEditor, CodeEditorProps } from './CodeEditor';
+import { Graph } from '../../../../core/index';
 
 export default {
-  title: 'Editor/Graph',
+  title: 'Editor/Code',
   argTypes: {
   },
 } as Meta;
 
-const graph = new Graph()
-
-const Template: Story<Partial<GraphEditorProps>> = (args) => new GraphEditor(args);
+const instance = new Graph({operator: (self, origin, input) => console.log(input)})
+const Template: Story<Partial<CodeEditorProps>> = (args) => new CodeEditor(args);
 
 export const Default = Template.bind({});
 Default.args = {
-  header: 'Graph',
-  graph,
+  header: 'Instance',
+  instance,
 };
 
 // export const Stacked = Template.bind({});

@@ -1,5 +1,5 @@
 import {LitElement, css, } from 'lit';
-import { WebglLinePlotUtils } from '../../../libraries/webglplotutil/webgl-plot-utils.js';
+import { WebglLinePlotUtils } from '../../../../libraries/webglplotutil/webgl-plot-utils.js';
 
 export type TimeSeriesProps = {
   data?: any[][];
