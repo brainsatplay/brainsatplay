@@ -1,6 +1,6 @@
 import {NodeDiv} from '../graph.node'
 
-let component = require('./place.node.html');
+let component = require('./place.node.html').default;
 
 // /r/place ripoff
 export class PlaceNode extends NodeDiv {

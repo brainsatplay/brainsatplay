@@ -6,6 +6,7 @@ import '../../../../../src/core/webcomponents/examples/button.node';
 import '../../../../../src/core/webcomponents/examples/canvas.node';
 import '../../../../../src/core/webcomponents/examples/circlecanvas.node';
 import '../../../../../src/core/webcomponents/examples/input.node';
+import '../../../../../src/core/webcomponents/examples/place.node';
 import '../../../../../src/core/webcomponents/acyclic.graph';
 import '../../../../../src/core/webcomponents/graph.node';
 import '../../../../../src/core/webcomponents/template.node';
@@ -28,6 +29,11 @@ export default function WebComponentsExample({server, sockets, router}) {
                     <circlecanvas-node tag='canvas' style={{height: "100%", width: "100%"}}></circlecanvas-node>
                 </button-node>
             </input-node> 
+            <br></br>
+            <place-node
+              style={{height:'500px', width:'500px'}}
+            >
+            </place-node>
         {/* </acyclic-graph> */}
 
         {/* Terminal */}
