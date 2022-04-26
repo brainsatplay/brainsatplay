@@ -228,13 +228,24 @@ export class Graph extends BaseProcess {
     }
     
     //run the operator
-    private async runOp(
+    private runOp(
         node=this,
         origin=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args
     ) {
-        let result = await node.operator(node,origin,...args);
-        if(node.tag) this.state.setState({[node.tag]:result});
+        let result;
+        if(node.operator.constructor.name === 'AsyncFunction') { //await runOp in this case or do runOp().then(res => ...)
+            result = new Promise(async (resolve) => {
+                let res = await node.operator(node,origin,...args);
+                this.state.setState({[node.tag]:res});
+                resolve(res);
+            });
+        }
+        else {
+            result = node.operator(node,origin,...args);
+            this.state.setState({[node.tag]:result});
+        }
+        
         return result;
     }
 
@@ -246,11 +257,11 @@ export class Graph extends BaseProcess {
      * ```
      */   
 
-    run(...args) {
-        return this._run(this,this,...args);
+    async run(...args) {
+        return await this._run(this,this,...args);
     }
 
-    _run(node=this,origin,...args) {
+    async _run(node=this,origin,...args) {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
         if(typeof node === 'string') { //can pass the node tag instead
@@ -263,7 +274,7 @@ export class Graph extends BaseProcess {
         if(!node) return undefined;
         
         //no async/flow logic so just run and return the operator result
-        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator?.constructor?.name  === 'AsyncFunction')){
+        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
             let res = node.runOp(node, origin, ...args); //repeat/recurse before moving on to the parent/child
     
             //can add an animationFrame coroutine, one per node //because why not
@@ -282,8 +293,6 @@ export class Graph extends BaseProcess {
         return new Promise(async (resolve) => {
             if(node) {
                 let run = (node, tick=0, ...input) => {
-
-
                     return new Promise (async (r) => {
                         tick++;
                         let res = await node.runOp(node, origin, ...input); //executes the operator on the node in the flow logic
@@ -294,7 +303,7 @@ export class Graph extends BaseProcess {
                                         r(await run(node,tick, ...input));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && requestAnimationFrame) {
+                                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...input));
                                     });
@@ -315,7 +324,7 @@ export class Graph extends BaseProcess {
                                         r(await run(node,tick, ...res));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && requestAnimationFrame) {
+                                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...res));
                                     });
@@ -369,7 +378,7 @@ export class Graph extends BaseProcess {
                     setTimeout(async ()=>{
                         resolve(await runnode());
                     },node.delay);
-                } else if (node.frame && requestAnimationFrame) {
+                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
                     requestAnimationFrame(async ()=>{
                         resolve(await runnode());
                     });
