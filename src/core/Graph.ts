@@ -235,7 +235,7 @@ export class Graph extends BaseProcess {
     ) {
         let result;
         if(node.operator.constructor.name === 'AsyncFunction') { //await runOp in this case or do runOp().then(res => ...)
-            result = new Promise((resolve) => {
+            result = new Promise(async (resolve) => {
                 let res = await node.operator(node,origin,...args);
                 this.state.setState({[node.tag]:res});
                 resolve(res);
