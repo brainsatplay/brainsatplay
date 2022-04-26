@@ -1,5 +1,5 @@
 
-import {NodeDiv} from '../acyclicgraph/graph.node'
+import {NodeDiv} from '../graph.node'
 
 let component = require('./template.node.html');
 
