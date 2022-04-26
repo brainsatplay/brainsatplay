@@ -45,4 +45,4 @@ export class ButtonNode extends NodeDiv {
 
 //window.customElements.define('custom-', Custom);
 
-addCustomElement(ButtonNode,'button-node');
+ButtonNode.addElement('button-node');

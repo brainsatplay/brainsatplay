@@ -118,4 +118,4 @@ export class CanvasNode extends NodeDiv {
 
 //window.customElements.define('custom-', Custom);
 
-addCustomElement(CanvasNode,'canvas-node');
+CanvasNode.addElement('canvas-node');
