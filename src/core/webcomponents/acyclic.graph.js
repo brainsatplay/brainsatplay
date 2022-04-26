@@ -41,7 +41,7 @@ export class Graph extends DOMElement {
 
     //like oncreate but once all of the child nodes should be loaded in the DOM, so you don't need to change the constructor
     children_ready(all_children=[],top_children=[]) {
-        this.querySelector('button').onclick = () => { //test 
+        this.querySelector('#rungraph').onclick = () => { //test 
             //console.log('all children on graph:',all_children,', tree-top nodes: ',top_children);
             top_children.forEach((c)=>{
                 c.props.node._run(c.props.node)
