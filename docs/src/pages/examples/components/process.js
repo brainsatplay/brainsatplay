@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
-import * as brainsatplay from '../../../../../src/core/graph';
-import { Graph, AcyclicGraph } from '../../../../../src/core/Graph';
+import { Graph, AcyclicGraph } from '../../../../../src/core/index';
 
 export default function ProcessExample({server, sockets, router}) {
   
@@ -69,7 +68,7 @@ export default function ProcessExample({server, sockets, router}) {
         terminal.current.value = JSON.stringify(list, undefined, 4)
       }
 
-      button1.click()
+      button1.current.click()
       
     });
   

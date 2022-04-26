@@ -20,9 +20,7 @@ for (const name of Object.keys(nets)) {
   const res = (results["en0"] ?? results["Wi-Fi"])?.[0]
   if (res) localIP = res
   else console.error('Could not get local IP address')
-} catch (e) {
-    console.error('Could not get network structure', e)
-}
+} catch {}
     
 
 

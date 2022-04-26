@@ -263,7 +263,7 @@ export class Graph extends BaseProcess {
         if(!node) return undefined;
         
         //no async/flow logic so just run and return the operator result
-        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator instanceof AsyncFunction)){
+        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator?.constructor?.name  === 'AsyncFunction')){
             let res = node.runOp(node, origin, ...args); //repeat/recurse before moving on to the parent/child
     
             //can add an animationFrame coroutine, one per node //because why not

@@ -389,7 +389,7 @@ class WebRTCService extends SubscriptionService {
                         if (controller.addData) controller.addData(o) // Add data to Channel = DataTrack
 
                         // Send Response Back to Peer
-                        if (res) this.peers[peer].channel.controller.send({message: res}) // TODO: Associate route
+                        if (res) controller.send({message: res}) // TODO: Associate route
                     })
 
                 } else this.peers[peer].channel.local = dataChannel
