@@ -59,10 +59,10 @@ export class NodeDiv extends DOMElement {
         //add this here which will run a routine AFTER rendering so the elements can be updated
         this.setupNode(props);
 
-        console.log('Node tag: ',props.node.tag,', parent: ',props.node.parent);
+        //console.log('Node tag: ',props.node.tag,', parent: ',props.node.parent);
         if(this.props.input) { //e.g. run the node on input
             setTimeout(async()=>{
-                //this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
+                this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
             },
             this.input_delay //makes sure children are loaded (e.g. on a DOM with a lot of loading, should add some execution delay to anticipate it as initial nodes are not aware of later-rendered nodes on the DOM)
             );

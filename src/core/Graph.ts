@@ -273,7 +273,7 @@ export class Graph extends BaseProcess {
         
         if(!node) return undefined;
 
-        console.log('running node ', node.tag, 'children: ', node.children);
+        //console.log('running node ', node.tag, 'children: ', node.children);
         
         //no async/flow logic so just run and return the operator result
         if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
@@ -363,15 +363,15 @@ export class Graph extends BaseProcess {
                     }
     
                     if(node.backward && node.parent) {
-                        await node.parent._run(node, this, res);
+                        await node.parent._run(node.parent, this, res);
                     }
                     if(node.children && node.forward) {
                         if(Array.isArray(node.children)) {
                             for(let i = 0; i < node.children.length; i++) {
-                                await node.children[i]._run(node, this, res);
+                                await node.children[i]._run(node.children[i], this, res);
                             }
                         }
-                        else await node.children._run(node, this, res);
+                        else await node.children._run(node.children, this, res);
                     }
     
                     return res;
@@ -409,18 +409,18 @@ export class Graph extends BaseProcess {
                         ...input
                         // this.ANIMATE
                     );
-                    if(this.tag && typeof result !== 'undefined') {
-                        this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
+                    if(typeof result !== 'undefined') {
+                        if(this.tag) this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent) {
-                            await node.parent._run(node, this, result);
+                            await node.parent._run(node.parent, this, result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(node.children)) {
                                 for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i]._run(node, this, result);
+                                    await node.children[i]._run(node.children[i], this, result);
                                 }
                             }
-                            else await node.children._run(node, this, result);
+                            else await node.children._run(node.children, this, result);
                         }
                     }
                     requestAnimationFrame(anim);
@@ -439,18 +439,18 @@ export class Graph extends BaseProcess {
             let looping = async () => {
                 if(node.looping)  {
                     let result = await this.looper(node, origin, ...input);
-                    if(this.tag && typeof result !== 'undefined') {
-                        this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
+                    if(typeof result !== 'undefined') {
+                        if(this.tag) this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
-                            await node.parent._run(node, this,  result);
+                            await node.parent._run(node.parent, this,  result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(node.children)) {
                                 for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i]._run(node, this, result);
+                                    await node.children[i]._run(node.children[i], this, result);
                                 }
                             }
-                            else await node.children._run(node, this, result);
+                            else await node.children._run(node.children, this, result);
                         }
                     }
                     setTimeout(async ()=>{await looping();},node.loop);
