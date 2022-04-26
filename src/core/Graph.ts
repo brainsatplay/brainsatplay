@@ -273,7 +273,7 @@ export class Graph extends BaseProcess {
         
         if(!node) return undefined;
 
-        console.log('running node ', node.tag, 'children: ', node.children.map(c => c.tag));
+        console.log('running node ', node.tag, 'children: ', node.children);
         
         //no async/flow logic so just run and return the operator result
         if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
@@ -401,6 +401,7 @@ export class Graph extends BaseProcess {
         if(node.animate && !node.isAnimating) {
             node.isAnimating = true;
             let anim = async () => {
+                //console.log('anim')
                 if(node.isAnimating) {
                     let result = await this.animation( 
                         node,
@@ -591,25 +592,25 @@ export class Graph extends BaseProcess {
 
     
     //Call parent node operator directly (.run calls the flow logic)
-    async callParent(input){
+    callParent(input){
         const origin = this // NOTE: This node must be the origin
-        if(typeof this.parent?.operator === 'function') return await this.parent.runOp(origin, ...input);
+        if(typeof this.parent?.operator === 'function') return this.parent.runOp(this.parent, origin, ...input);
     }
     
     //call children operators directly (.run calls the flow logic)
-    async callChildren(idx, ...input){
+    callChildren(idx, ...input){
         const origin = this // NOTE: This node must be the origin
         let result;
         if(Array.isArray(this.children)) {
-            if(idx) result = await this.children[idx]?.runOp(this.children[idx], origin, ...input);
+            if(idx) result = this.children[idx]?.runOp(this.children[idx], origin, ...input);
             else {
                 result = [];
                 for(let i = 0; i < this.children.length; i++) {
-                    result.push(await this.children[i]?.runOp(this.children[i], origin, ...input));
+                    result.push(this.children[i]?.runOp(this.children[i], origin, ...input));
                 } 
             }
         } else if(this.children) {
-            result = await this.children.runOp(this.children, origin, ...input);
+            result = this.children.runOp(this.children, origin, ...input);
         }
         return result;
     }

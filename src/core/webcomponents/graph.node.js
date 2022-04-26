@@ -52,12 +52,14 @@ export class NodeDiv extends DOMElement {
             this.removeChild(this.fragment); 
         }
         this.fragment = fragment;
-        console.log(this.fragment, this.templateString, this.template)
+        //console.log(this.fragment, this.templateString, this.template)
         this.appendChild(fragment);
         
         
         //add this here which will run a routine AFTER rendering so the elements can be updated
-        this.setupNode(this.props);
+        this.setupNode(props);
+
+        console.log('Node tag: ',props.node.tag,', parent: ',props.node.parent);
         if(this.props.input) { //e.g. run the node on input
             setTimeout(async()=>{
                 //this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
