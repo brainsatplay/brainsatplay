@@ -234,7 +234,7 @@ export class Graph extends BaseProcess {
         ...args
     ) {
         let result;
-        if(node.operator instanceof AsyncFunction) { //await runOp in this case or do runOp().then(res => ...)
+        if(node.operator.constructor.name === 'AsyncFunction') { //await runOp in this case or do runOp().then(res => ...)
             result = new Promise((resolve) => {
                 let res = await node.operator(node,origin,...args);
                 this.state.setState({[node.tag]:res});
@@ -274,7 +274,7 @@ export class Graph extends BaseProcess {
         if(!node) return undefined;
         
         //no async/flow logic so just run and return the operator result
-        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator instanceof AsyncFunction)){
+        if(!((node.children && node.forward) || (node.parent && node.backward) || node.repeat || node.delay || node.frame || node.recursive || node.operator.constructor.name === 'AsyncFunction')){
             let res = node.runOp(node, origin, ...args); //repeat/recurse before moving on to the parent/child
     
             //can add an animationFrame coroutine, one per node //because why not
