@@ -159,4 +159,4 @@ export class CircleCanvasNode extends NodeDiv {
 
 //window.customElements.define('custom-', Custom);
 
-addCustomElement(CircleCanvasNode,'circlecanvas-node');
+CircleCanvasNode.addElement('circlecanvas-node');

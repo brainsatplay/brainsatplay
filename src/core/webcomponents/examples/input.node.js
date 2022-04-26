@@ -1,5 +1,4 @@
 
-import {addCustomElement} from 'fragelement';
 
 import {NodeDiv} from '../acyclicgraph/graph.node'
 
@@ -47,4 +46,4 @@ export class InputNode extends NodeDiv {
 
 //window.customElements.define('custom-', Custom);
 
-addCustomElement(InputNode,'input-node');
+InputNode.addElement('input-node');
