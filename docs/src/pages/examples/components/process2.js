@@ -162,18 +162,10 @@ export default function Process2Example({server, sockets, router}) {
     return (
       <header className={clsx('hero hero--primary')}>
           <div>
-            <button ref={button1} className="button button--secondary button--lg">Run</button>
+            <button ref={button1} className="button button--secondary button--lg">Add to Circle Diameter</button>
             {/* <button ref={button2} className="button button--secondary button--lg">Test</button> */}
           </div>
           <br/>
-          <div ref={display}>
-            <h3>Original</h3>
-          </div>
-          <div ref={copy}>
-            <h3>Copy</h3>
-          </div>
-          <div ref={load}>
-          </div>
           <canvas></canvas>
 
           <div className={styles.terminal} ><textarea ref={terminal} disabled></textarea></div>

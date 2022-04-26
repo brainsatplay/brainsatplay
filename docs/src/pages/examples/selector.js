@@ -86,10 +86,10 @@ export default function ExampleSelector({server, sockets, router, id}) {
           Streams
         </button>
         <button onClick={() => set('process')}>
-          Process
+          Graph
         </button>
         <button onClick={() => set('process2')}>
-          Process2 (test)
+          Graph Animation
         </button>
         </nav>
 
