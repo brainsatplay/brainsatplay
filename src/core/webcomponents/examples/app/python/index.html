@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>My TEST</title>
+    <!-- From: https://stackoverflow.com/questions/64571066/quart-python-send-websocket-broadcast-message-from-curl-and-display-it -->
+  </head>
+  <body>
+    <h3>Quart server test page (served from python):</h3>
+    <br>
+    WebSocket output:
+    <ul></ul>
+
+    <script type="text/javascript">
+    
+        let host = 'localhost';
+        let port = 7000;
+
+        let ws;
+        
+        try{
+          ws = new WebSocket(`wss://${host}:${port}/`);  
+        } catch (err) {  
+          ws = new WebSocket(`ws://${host}:${port}/`); //var ws = new WebSocket('ws://' + document.domain + ':' + location.port + '/');
+        }
+        ws.onerror = (e) => {
+          console.error(e);
+        }
+        
+        ws.onmessage = function (event) {
+          const messagesDOM = document.getElementsByTagName('ul')[0];
+          const messageDOM = document.createElement('li');
+          //const message = JSON.parse(event.data).message;
+          const message = event.data;
+          const contentDOM = document.createTextNode(message);
+          messageDOM.appendChild(contentDOM);
+          messagesDOM.appendChild(messageDOM);
+        };
+        
+    </script>
+  </body>
+</html>
