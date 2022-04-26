@@ -403,12 +403,15 @@ export class Graph extends BaseProcess {
             let anim = async () => {
                 //console.log('anim')
                 if(node.isAnimating) {
-                    let result = await this.animation( 
+                    let result = this.animation( 
                         node,
                         origin,
                         ...input
                         // this.ANIMATE
                     );
+                    if(result instanceof Promise) {
+                        result = await result;
+                    }
                     if(typeof result !== 'undefined') {
                         if(this.tag) this.state.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent) {
@@ -438,7 +441,10 @@ export class Graph extends BaseProcess {
             node.isLooping = true;
             let looping = async () => {
                 if(node.looping)  {
-                    let result = await this.looper(node, origin, ...input);
+                    let result = this.looper(node, origin, ...input);
+                    if(result instanceof Promise) {
+                        result = await result;
+                    }
                     if(typeof result !== 'undefined') {
                         if(this.tag) this.state.setState({[this.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
