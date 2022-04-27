@@ -1,7 +1,7 @@
 
 import {DOMElement} from 'fragelement';
 
-import {Graph} from '../Graph'
+import {Graph} from '../dist/index'
 
 let component = require('./graph.node.html').default;
 

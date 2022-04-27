@@ -17,15 +17,18 @@ esbuild.build({ //commonjs
   entryPoints,
   bundle:true,
   outfile:outfile+'.js',
-  platform:'node',
+  //platform:'node',
+  external:['node-fetch'],
   format:'cjs'
+  
 }).then(()=>{
   esbuild.build({ //esmodules
     entryPoints,
     bundle:true,
     outfile:outfile+'.esm.js',
     format:'esm',
-    platform:'node',
+    //platform:'node',
+    external:['node-fetch'],
     minify:true
   }).then(()=>{
     esbuild.build({ //generates types correctly
@@ -33,7 +36,8 @@ esbuild.build({ //commonjs
       bundle:true,
       outfile:outfile+'.iife.js',
       format:'iife',
-      platform:'node',
+      //platform:'node',
+      external:['node-fetch'],
       minify:true,
       plugins:[ 
         dtsPlugin() 
