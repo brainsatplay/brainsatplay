@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="./src/defaults.css"> -->
+    <script src="./src/core/dist/index.js"></script> 
+</head>
+<body>
+    
+</body>
+<script type="module">
+
+    import * as brainsatplay from './src/core/dist/index.esm.js'
+
+    const add = new brainsatplay.Graph({
+        tag: 'add',
+        increment: 1,
+        operator: (self, graphOrigin, input) => input + self.increment
+      })
+
+      const log = new brainsatplay.Graph({
+        tag: 'log',
+        operator: (self, graphOrigin, input) => console.log(input)
+      })
+
+      add.subscribe(log) // This should output 3 to the console
+
+      const random = new brainsatplay.Graph({
+        tag: 'random',
+        operator: () => Math.floor(100*Math.random())
+      })
+
+      random.subscribe((v) => {
+        add.increment = v
+      })
+
+      log.subscribe(random) // This will update the increment value after every run
+
+      random.run() // initialize random value
+
+      add.run(2)
+
+</script>
+</html>
