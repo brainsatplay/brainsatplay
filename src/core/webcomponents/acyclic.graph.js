@@ -6,7 +6,7 @@ import {Graph} from '../Graph'
 let component = require('./acyclic.graph.html').default;
 
 //See: https://github.com/brainsatplay/domelement
-export class Graph extends DOMElement {
+export class AcyclicGraphNode extends DOMElement {
     props={
         graph:new AcyclicGraph(),
         nodes:[]
@@ -58,4 +58,4 @@ export class Graph extends DOMElement {
 
 //window.customElements.define('custom-', Custom);
 
-Graph.addElement('acyclic-graph');
+AcyclicGraphNode.addElement('acyclic-graph');
