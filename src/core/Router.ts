@@ -271,7 +271,7 @@ export class Router {
         this.STATE = new StateManager(
           {},
           this.INTERVAL,
-          undefined //false
+          false
         );
 
         this.DEBUG = options?.debug
@@ -765,7 +765,7 @@ export class Router {
               // Subscribe to Base Route // TODO: Doube-check that subscriptions are working
               this.STATE.setState({[route]: o.get?.object ?? o.get});
 
-              this.STATE.subscribe(route, (data) => {
+              this.STATE.subscribeTrigger(route, (data) => {
 
                 const message = (o.get?.transform) ? o.get.transform(data, ...[]) : data
                 
