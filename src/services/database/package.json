@@ -18,7 +18,7 @@
   "dependencies": {
     "brainsatplay-data": "^0.0.47",
     "brainsatplay-storage": "^0.0.19",
-    "bson-objectid": "^2.0.2",
+    "bson-objectid": "^2.0.2"
   },
   "devDependencies": {
     "rollup": "^2.68.0",
