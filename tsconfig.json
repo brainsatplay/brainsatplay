@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
       /* -- Basic Options -- */
-      "target": "es5", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */
+      "target": "es2020", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */
       "rootDir": "./", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
       "outDir": "dist/", /* Redirect output structure to the directory. */
       "module": "es2020", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
