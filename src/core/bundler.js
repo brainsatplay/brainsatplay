@@ -66,7 +66,7 @@ async function bundle() {
 
   let temp_files = [...entryPoints];
   let to_clean = [];
-  if(Object.keys(INSTALL_GLOBALLY).length > 0 || Object.keys(GLOBAL_SCRIPTS).length > 0) {
+  if(Object.keys(INSTALL_GLOBALLY).length > 0 || Object.keys(GLOBAL_SCRIPTS).length > 0 && createBrowserJS) {
 
     entryPoints.forEach((f,i)=>{  
 
