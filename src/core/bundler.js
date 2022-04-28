@@ -80,7 +80,7 @@ async function bundle() {
           'temp_'+f,
           `
           //we can't circularly export a namespace for index.ts so this is the intermediary
-          //import * as bundle from './x' then set INSTALL_GLOBALS[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+          //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
           
           export * from './${subpath}' //still works in esm
           
