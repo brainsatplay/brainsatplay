@@ -11,7 +11,16 @@ const fs = require('fs');
 
 
 const entryPoints = ['index.ts'];
-const moduleGlobalsEntryPoints = ['index_globals.ts'];
+
+const INSTALL_GLOBALS = { //for browser js only, it just declares globalThis[key] = import(path) via import * as bundle from 'path'
+  //install bundles as global variables?
+  //globalThis key : imported module (or import * as key from value)
+  brainsatplay: entryPoints[0] //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+};
+
+
+
+
 const outfile = 'dist/index'; 
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
@@ -29,7 +38,7 @@ const external = ['node-fetch']; // [];
 
 
 const loader = {
-  '.html': 'text',
+  '.html': 'text', //not always necessary but it doesn't hurt
   '.png' : 'file',
   '.jpg' : 'file',
   '.gif' : 'file',
@@ -64,36 +73,67 @@ async function bundle() {
   }
 
   if(createBrowserJS) {
+    //our very own esbuild plugin
+    let temp_files = [];
+    entryPoints.forEach((f,i)=>{  
+
+      let ext = f.split('.')[f.split('.').length-1];
+      let subpath = f.substring(0,f.indexOf('.'+ext));
+      console.log(f,subpath,ext);
+
+      let propname;
+
+      for(const prop in INSTALL_GLOBALS) { 
+        if(INSTALL_GLOBALS[prop] === f) {
+          propname = prop;
+        }
+      }
+
+      fs.copyFileSync(f,'temp_'+f); 
+      fs.appendFileSync(
+        'temp_'+f,
+        `
+        //we can't circularly export a namespace for index.ts so this is the intermediary
+        //import * as bundle from './x' then set INSTALL_GLOBALS[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+        
+        export * from './${subpath}' //still works in esm
+        
+        //this takes all of the re-exported modules in index.ts and contains them in an object
+        import * as bundle from './${subpath}'
+        
+        //webpack? i.e. set the bundled index.ts modules to be globally available? 
+        // You can set many modules and assign more functions etc. to the same globals without error
+        
+        //globals are not declared by default in browser scripts, these files are function scopes!
+       
+        if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+        else globalThis['${propname}'] = bundle;
+      
+        `
+      );
+
+      temp_files.push('temp_'+f);  
+
+    });
+
+    
+
     console.time('\n Built browser .js file(s)');
-    if(moduleGlobalsEntryPoints.length > 0) { //this has globals declared for bundled modules
-      await esbuild.build({ //browser-friendly scripting globals
-        entryPoints:moduleGlobalsEntryPoints,
-        bundle:true,
-        logLevel:'error',
-        outfile:outfile+'.js',
-         //outdir:outfile, // for multiple entry points
-        platform:platform,
-        external:external,
-        minify:minify,
-        loader
-      }).then(()=>{
-        console.timeEnd('\n Built browser .js file(s)');
-      });
-    } else {
-      await esbuild.build({
-        entryPoints,
-        bundle:true,
-        logLevel:'error',
-        outfile:outfile+'.js',
-         //outdir:outfile, // for multiple entry points
-        platform:platform,
-        external:external,
-        minify:minify,
-        loader
-      }).then(()=>{
-        console.timeEnd('\n Built browser .js file(s)');
-      });
-    }
+    await esbuild.build({ //browser-friendly scripting globals
+      entryPoints:temp_files,
+      bundle:true,
+      logLevel:'error',
+      outfile:outfile+'.js', //'.browser.js
+        //outdir:outfile, // for multiple entry points
+      platform:platform,
+      external:external,
+      minify:minify,
+      loader
+    }).then(()=>{
+      temp_files.map(f => fs.unlinkSync(f));
+      console.timeEnd('\n Built browser .js file(s)');
+    });
+      
   }
 
   if(createCommonJS) {
