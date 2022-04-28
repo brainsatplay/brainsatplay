@@ -136,7 +136,7 @@ async function bundle() {
   if(createESMJS) {
     console.time('\n Built .esm.js file(s)')
     await esbuild.build({ //es modules
-      entryPoints,
+      entryPoints,//:temp_files,
       bundle:true,
       outfile:outfile+'.esm.js',
       //outdir:outfile, // for multiple entry points
