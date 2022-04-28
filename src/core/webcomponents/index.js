@@ -7,3 +7,5 @@ export * from './examples/input.node'
 
 export * from './examples/canvas.node'
 export * from './examples/circlecanvas.node'
+
+export * from './examples/place.node'

@@ -5,6 +5,7 @@ const settings = {
     port: 8080, //e.g. port 80, 443, 8000
     socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
     hotreload: 5000, //hotreload websocket server port
+    pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
     python: 7000,  //quart server port
     python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
     startpage: 'place_ripoff.html',  //home page

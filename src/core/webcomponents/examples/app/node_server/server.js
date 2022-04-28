@@ -61,11 +61,34 @@ function onRequest(request, response) {
 
                 response.writeHead(200, { 'Content-Type': contentType }); //set response headers
 
-                //add hot reload if specified
-                if(process.env.NODEMON && requestURL.endsWith('.html') && typeof hotreload !== 'undefined') {
-                    content = hotreload.addhotload(content);
+                //html injection
+                if(requestURL.endsWith('.html')) {
+
+                    //inject hot reload if specified
+                    if(process.env.NODEMON && typeof hotreload !== 'undefined' && cfg.settings.hotreload) {
+                        content = hotreload.addhotload(content,hotreload.socketUrl);
+                    }
+                    
+                    //inject pwa code
+                    if(cfg.settings.pwa) {
+                        if(fs.existsSync(cfg.settings.pwa)) {
+                            content = `${content.toString()}\n\n
+                                <script>
+                                    console.log('Using PWA!');  
+                                    if(typeof process !== 'undefined') { //node environment variable in served code        
+                                        // Check that service workers are supported
+                                        if (process.env.NODE_ENV === 'production' && "serviceWorker" in navigator) addEventListener('load', () => {
+                                            navigator.serviceWorker
+                                            .register("${cfg.settings.pwa}")
+                                            .catch((err) => console.log("Service worker registration failed", err));
+                                        });
+                                    }
+                                </script>`;
+                        }
+                    }
+
                 }
-                
+
                 response.end(content, 'utf-8'); //set response content
 
                 //console.log(content); //debug
@@ -86,9 +109,11 @@ function onUpgrade(request, socket, head) { //https://github.com/websockets/ws
     if(cfg.settings.debug) console.log("Upgrade request at: ", request.url);
     
     if(request.url === '/' || request.url === '/home') {
-        py_wss.handleUpgrade(request, socket, head, (ws) => {
-            py_wss.emit('connection', ws, request);
-        });
+        if(typeof py_wss !== 'undefined') {
+            py_wss.handleUpgrade(request, socket, head, (ws) => {
+                py_wss.emit('connection', ws, request);
+            });
+        }
     } else if(request.url === '/hotreload') {
         hotreload.hotreload.handleUpgrade(request, socket, head, (ws) => {
             hotreload.hotreload.emit('connection', ws, request);

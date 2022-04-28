@@ -25,8 +25,8 @@ hotreload.on('connection', (ws) => {
 
 });
 
-const addhotreload = (content) => {
-  return `${content.toString()}\n\n<script>(`+hotreloadclient.toString()+`)('${socketUrl}')</script>`;
+const addhotreload = (content, url=socketUrl) => {
+  return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${url}');  (`+hotreloadclient.toString()+`)('${url}')  </script>`;
 }
 
 const hotreloadclient = (socketUrl) => {
