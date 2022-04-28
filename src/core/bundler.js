@@ -19,7 +19,7 @@ const createTypes = true;
 const createBrowserJS = true;
 const createCommonJS = false;
 
-const minify = false;
+const minify = true;
 const sourcemap = false;
 
 const platform = 'browser'; //'node'; //set node for node module compilation, uncomment 
