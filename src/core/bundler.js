@@ -115,7 +115,7 @@ async function bundle() {
   }
 
   if(createTypes) {
-    console.time('\n Built .d.ts and .iife.js files');
+    console.time('\n Built .d.ts files');
     await esbuild.build({ //generates types correctly
       entryPoints, //entry point should be a ts file
       bundle:true,
