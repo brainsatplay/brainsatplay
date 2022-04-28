@@ -12,7 +12,7 @@ const fs = require('fs');
 
 const entryPoints = ['index.ts'];
 
-const INSTALL_GLOBALS = { //for browser js only, it just declares globalThis[key] = import(path) via import * as bundle from 'path'
+const INSTALL_GLOBALLY = { //for browser js only right now, it just declares globalThis[key] = import(path) via import * as bundle from 'path'
   //install bundles as global variables?
   //globalThis key : imported module (or import * as key from value)
   brainsatplay: entryPoints[0] //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
@@ -73,52 +73,57 @@ async function bundle() {
   }
 
   if(createBrowserJS) {
+    console.time('\n Built browser .js file(s)');
     //our very own esbuild plugin
-    let temp_files = [];
+    let temp_files = [...entryPoints];
+    let to_clean = [];
     entryPoints.forEach((f,i)=>{  
 
       let ext = f.split('.')[f.split('.').length-1];
       let subpath = f.substring(0,f.indexOf('.'+ext));
-      console.log(f,subpath,ext);
+      //console.log(f,subpath,ext);
 
       let propname;
 
-      for(const prop in INSTALL_GLOBALS) { 
-        if(INSTALL_GLOBALS[prop] === f) {
+      for(const prop in INSTALL_GLOBALLY) { 
+        if(INSTALL_GLOBALLY[prop] === f) {
           propname = prop;
         }
       }
 
-      fs.copyFileSync(f,'temp_'+f); 
-      fs.appendFileSync(
-        'temp_'+f,
-        `
-        //we can't circularly export a namespace for index.ts so this is the intermediary
-        //import * as bundle from './x' then set INSTALL_GLOBALS[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+      if(propname) {
+        fs.writeFileSync(
+          'temp_'+f,
+          `
+          //we can't circularly export a namespace for index.ts so this is the intermediary
+          //import * as bundle from './x' then set INSTALL_GLOBALS[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+          
+          export * from './${subpath}' //still works in esm
+          
+          //this takes all of the re-exported modules in index.ts and contains them in an object
+          import * as bundle from './${subpath}'
+          
+          //webpack? i.e. set the bundled index.ts modules to be globally available? 
+          // You can set many modules and assign more functions etc. to the same globals without error
+          
+          //globals are not declared by default in browser scripts, these files are function scopes!
         
-        export * from './${subpath}' //still works in esm
+          if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+          else globalThis['${propname}'] = bundle;
         
-        //this takes all of the re-exported modules in index.ts and contains them in an object
-        import * as bundle from './${subpath}'
-        
-        //webpack? i.e. set the bundled index.ts modules to be globally available? 
-        // You can set many modules and assign more functions etc. to the same globals without error
-        
-        //globals are not declared by default in browser scripts, these files are function scopes!
-       
-        if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
-        else globalThis['${propname}'] = bundle;
-      
-        `
-      );
+          `
+        );
 
-      temp_files.push('temp_'+f);  
+        temp_files[i] = 'temp_'+f;  
+        to_clean.push(temp_files[i]);
+
+      }
 
     });
 
     
 
-    console.time('\n Built browser .js file(s)');
+
     await esbuild.build({ //browser-friendly scripting globals
       entryPoints:temp_files,
       bundle:true,
@@ -130,7 +135,7 @@ async function bundle() {
       minify:minify,
       loader
     }).then(()=>{
-      temp_files.map(f => fs.unlinkSync(f));
+      to_clean.map(f => fs.unlinkSync(f));
       console.timeEnd('\n Built browser .js file(s)');
     });
       
