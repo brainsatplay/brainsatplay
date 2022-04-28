@@ -37,7 +37,11 @@ const INSTALL_GLOBALLY = {
 
 }; //our very own esbuild plugin
 
-
+const GLOBAL_SCRIPTS = { //append somes scripts to our bundles per entry point e.g. instantiate a class from our index.js files (like magicworker)
+  [entryPoints[0]]:function index(bundle) {
+    console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
+  }
+};
 
 
 
@@ -62,7 +66,7 @@ async function bundle() {
 
   let temp_files = [...entryPoints];
   let to_clean = [];
-  if(Object.keys(INSTALL_GLOBALLY).length > 0) {
+  if(Object.keys(INSTALL_GLOBALLY).length > 0 || Object.keys(GLOBAL_SCRIPTS).length > 0) {
 
     entryPoints.forEach((f,i)=>{  
 
@@ -80,33 +84,43 @@ async function bundle() {
         }
       }
 
-      if(propname) {
+      let append_script = GLOBAL_SCRIPTS[f];
+
+      let bundleWrapper = `
+
+      //we can't circularly export a namespace for index.ts so this is the intermediary
+      //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+      
+      export * from './${subpath}' //still works in esm
+      
+      //this takes all of the re-exported modules in index.ts and contains them in an object
+      import * as bundle from './${subpath}'
+      
+      //webpack? i.e. set the bundled index.ts modules to be globally available? 
+      // You can set many modules and assign more functions etc. to the same globals without error
+      
+      //globals are not declared by default in browser scripts, these files are function scopes!
+    
+      if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+      else globalThis['${propname}'] = bundle;
+
+      (${JSON.stringify(otherkeys)}).forEach((key) => {
+        if(bundle[key]) {
+          globalThis[key] = bundle[key];
+        }
+      });
+    
+      ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
+
+      if(append_script) {
+        bundleWrapper += `eval(${append_script.toString()})(bundle)`;
+        //console.log(bundleWrapper);
+      }
+
+      if(propname || GLOBAL_SCRIPTS[f]) {
         fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
           'temp_'+f,
-          `
-          //we can't circularly export a namespace for index.ts so this is the intermediary
-          //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
-          
-          export * from './${subpath}' //still works in esm
-          
-          //this takes all of the re-exported modules in index.ts and contains them in an object
-          import * as bundle from './${subpath}'
-          
-          //webpack? i.e. set the bundled index.ts modules to be globally available? 
-          // You can set many modules and assign more functions etc. to the same globals without error
-          
-          //globals are not declared by default in browser scripts, these files are function scopes!
-        
-          if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
-          else globalThis['${propname}'] = bundle;
-
-          (${JSON.stringify(otherkeys)}).forEach((key) => {
-            if(bundle[key]) {
-              globalThis[key] = bundle[key];
-            }
-          });
-        
-          ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
+          bundleWrapper
         );
 
         temp_files[i] = 'temp_'+f;  
