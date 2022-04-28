@@ -33,7 +33,7 @@ const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
   brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
-  Graph:'class' //the value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
+  Graph:'any keys not used for the current entry point bundle will be set on globalThis if they exist in the bundle' //this value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
 
 }; //our very own esbuild plugin
 
