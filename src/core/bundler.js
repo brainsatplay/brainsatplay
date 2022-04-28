@@ -32,8 +32,11 @@ const external = ['node-fetch']; // [];
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
-  brainsatplay: entryPoints[0] //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+  brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+  Graph:'class' //the value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
+
 }; //our very own esbuild plugin
+
 
 
 
@@ -68,10 +71,12 @@ async function bundle() {
       //console.log(f,subpath,ext);
 
       let propname;
+      let otherkeys = Object.keys(INSTALL_GLOBALLY); //
 
       for(const prop in INSTALL_GLOBALLY) { 
         if(INSTALL_GLOBALLY[prop] === f) {
           propname = prop;
+          otherkeys.splice(otherkeys.indexOf(propname),1);
         }
       }
 
@@ -94,6 +99,12 @@ async function bundle() {
         
           if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
           else globalThis['${propname}'] = bundle;
+
+          (${JSON.stringify(otherkeys)}).forEach((key) => {
+            if(bundle[key]) {
+              globalThis[key] = bundle[key];
+            }
+          });
         
           ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
         );

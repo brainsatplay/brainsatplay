@@ -11,13 +11,17 @@
 <body>
     
 </body>
+<script>
+  console.time('test');
+</script>
 <script src="./src/core/dist/index.js">
 </script>
 <script>
-  console.log('abc')
-  console.log(brainsatplay, brainsatplay.Graph)
+  console.log('start test');
+  
+  console.log('globalThis.brainsatplay',brainsatplay, 'brainsatplay.Graph:',brainsatplay.Graph, 'globalThis.Graph:', Graph)
 
-  let x = new brainsatplay.Graph();
+  let x = new Graph();
   console.log('Graph:', x);
 </script>
 <!-- <script type="module">
@@ -52,4 +56,7 @@
       add.run(2)
 
 </script> -->
+<script>
+  console.timeEnd('test');
+</script>
 </html>
