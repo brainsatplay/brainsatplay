@@ -72,6 +72,23 @@ function onRequest(request, response) {
                     //inject pwa code
                     if(cfg.settings.pwa) {
                         if(fs.existsSync(cfg.settings.pwa)) {
+                            if(!fs.existsSync('manifest.webmanifest')) {
+                                fs.writeFileSync('manifest.webmanifest',
+                                `{
+                                    "short_name": "PWA",
+                                    "name": "PWA",
+                                    "start_url": ".",
+                                    "display": "standalone",
+                                    "theme_color": "#000000",
+                                    "background_color": "#ffffff",
+                                    "description": "PWA Test",
+                                    "lang": "en-US",
+                                    "permissions": [
+                                    "storage"
+                                    ]
+                                }`
+                                )
+                            }
                             content = `${content.toString()}\n\n
                                 <script>
                                     console.log('Using PWA!');  
