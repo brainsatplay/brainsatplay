@@ -13,13 +13,17 @@ const {dtsPlugin} = require('esbuild-plugin-d.ts');
 //import esbuild from 'esbuild'
 //import { dtsPlugin } from 'esbuild-plugin-d.ts'
 
+let globals = {
+  Graph:'Graph'
+}
+
 esbuild.build({ //commonjs
   entryPoints,
   bundle:true,
   outfile:outfile+'.js',
   //platform:'node',
   external:['node-fetch'],
-  format:'cjs'
+  //format:'cjs'
   
 }).then(()=>{
   esbuild.build({ //esmodules
@@ -29,6 +33,7 @@ esbuild.build({ //commonjs
     format:'esm',
     //platform:'node',
     external:['node-fetch'],
+    plugins: [],
     minify:true
   }).then(()=>{
     esbuild.build({ //generates types correctly
