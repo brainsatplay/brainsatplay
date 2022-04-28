@@ -76,7 +76,7 @@ async function bundle() {
       }
 
       if(propname) {
-        fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in node!)
+        fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
           'temp_'+f,
           `
           //we can't circularly export a namespace for index.ts so this is the intermediary
