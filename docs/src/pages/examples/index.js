@@ -10,7 +10,7 @@ import OSCClient from './../../../../src/services/osc/osc.frontend';
 import WebRTCClient from './../../../../src/services/webrtc/webrtc.frontend';
 import HTTPClient from './../../../../src/services/http/http.frontend';
 import WebsocketClient from './../../../../src/services/websocket/websocket.frontend';
-import { Router } from './../../../../src/core/Router';
+import { Router } from './../../../../src/core/dist/index.esm';
 import { randomId } from '../../../../src/common/id.utils';
 
 import {settings} from '../../../../src/settings.js'
