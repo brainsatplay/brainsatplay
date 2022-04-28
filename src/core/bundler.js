@@ -26,6 +26,21 @@ const platform = 'browser'; //'node'; //set node for node module compilation, un
 const external = ['node-fetch']; // [];
 
 
+const loader = {
+  '.html': 'text',
+  '.png' : 'file',
+  '.jpg' : 'file',
+  '.gif' : 'file',
+  '.svg': 'file',
+  '.woff': 'file',
+  '.woff2': 'file',
+  '.ttf': 'file',
+  '.eot': 'file',
+  '.mp3': 'file',
+  '.mp4': 'file',
+  '.json': 'text',
+};
+
 async function bundle() {
 
   if(createESMJS) {
@@ -39,7 +54,8 @@ async function bundle() {
       //platform:'node',
       external:external,
       minify:minify,
-      sourcemap:sourcemap
+      sourcemap:sourcemap,
+      loader
     }).then(()=>{
       console.timeEnd('\n Built .esm.js file(s)');
     });
@@ -56,7 +72,8 @@ async function bundle() {
          //outdir:outfile, // for multiple entry points
         platform:platform,
         external:external,
-        minify:minify
+        minify:minify,
+        loader
       }).then(()=>{
         console.timeEnd('\n Built browser .js file(s)');
       });
@@ -69,7 +86,8 @@ async function bundle() {
          //outdir:outfile, // for multiple entry points
         platform:platform,
         external:external,
-        minify:minify
+        minify:minify,
+        loader
       }).then(()=>{
         console.timeEnd('\n Built browser .js file(s)');
       });
@@ -87,7 +105,8 @@ async function bundle() {
       platform:platform,
       external:external,
       format:'cjs',
-      minify:minify
+      minify:minify,
+      loader
     }).then(()=>{
       console.timeEnd('\n Built .cjs.js');
     });
@@ -107,7 +126,8 @@ async function bundle() {
       minify:minify,
       plugins:[ 
         dtsPlugin() 
-      ]
+      ],
+      loader
     }).then(()=>{
       console.timeEnd('\n Built .d.ts and .iife.js files');
     });
