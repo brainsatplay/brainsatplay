@@ -72,7 +72,7 @@ function onRequest(request, response) {
                     //inject pwa code
                     if(cfg.settings.pwa && cfg.settings.protocol === 'https') {
                         if(fs.existsSync(cfg.settings.pwa)) {
-                            if(!fs.existsSync('manifest.webmanifest')) {
+                            if(!fs.existsSync('manifest.webmanifest')) { //lets create a default webmanifest on the local server if none found
                                 fs.writeFileSync('manifest.webmanifest',
                                 `{
                                     "short_name": "PWA",
