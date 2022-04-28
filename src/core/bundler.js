@@ -7,17 +7,19 @@ console.log('esbuild starting!');
 
 const esbuild = require('esbuild');
 const {dtsPlugin} = require('esbuild-plugin-d.ts');
-
+const fs = require('fs');
 
 
 const entryPoints = ['index.ts'];
 const moduleGlobalsEntryPoints = ['index_globals.ts'];
-const outfile = 'dist/index';
+const outfile = 'dist/index'; 
+//outdir = ['dist/index','dist/index2']; //for multiple files
 
 const createESMJS = true;
 const createTypes = true;
 const createBrowserJS = true;
 const createCommonJS = false;
+const createIIFE = false;
 
 const minify = true;
 const sourcemap = false;
@@ -129,7 +131,12 @@ async function bundle() {
       ],
       loader
     }).then(()=>{
-      console.timeEnd('\n Built .d.ts and .iife.js files');
+      if(!createIIFE) {
+        entryPoints.forEach((path) => {
+          fs.unlinkSync(outfile+'.iife.js'); //remove the extraneous iife file
+        });
+      }
+      console.timeEnd('\n Built .d.ts files');
     });
   }
 
