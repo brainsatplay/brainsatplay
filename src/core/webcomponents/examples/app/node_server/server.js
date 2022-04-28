@@ -70,7 +70,7 @@ function onRequest(request, response) {
                     }
                     
                     //inject pwa code
-                    if(cfg.settings.pwa) {
+                    if(cfg.settings.pwa && cfg.settings.protocol === 'https') {
                         if(fs.existsSync(cfg.settings.pwa)) {
                             if(!fs.existsSync('manifest.webmanifest')) {
                                 fs.writeFileSync('manifest.webmanifest',
