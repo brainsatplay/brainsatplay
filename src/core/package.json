@@ -10,6 +10,7 @@
   "scripts": {
     "build": "rollup -c && tsc",
     "esbuild": "node bundler.js",
+    "esbuild-node": "node node.bundler.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Joshua Brewster, Garrett Flynn",
