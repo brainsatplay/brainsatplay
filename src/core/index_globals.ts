@@ -1,4 +1,5 @@
 //we can't circularly export a namespace for index.ts so this is the intermediary
+//import * as bundle from './x' then set INSTALL_GLOBALS[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
 
 export * from './index' //still works in esm
 

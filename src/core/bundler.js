@@ -1,9 +1,12 @@
 
-//import globalExternals from '@fal-works/esbuild-plugin-global-externals'
+//const globalExternals = require('@fal-works/esbuild-plugin-global-externals');
 
 
-console.time('es');
+console.time('esbuild');
 console.log('esbuild starting!');
+
+const esbuild = require('esbuild');
+const {dtsPlugin} = require('esbuild-plugin-d.ts');
 
 
 
@@ -16,20 +19,17 @@ const createTypes = true;
 const createBrowserJS = true;
 const createCommonJS = false;
 
-const minify = true;
+const minify = false;
 const sourcemap = false;
 
 const platform = 'browser'; //'node'; //set node for node module compilation, uncomment 
 const external = ['node-fetch']; // [];
 
-const esbuild = require('esbuild');
-const {dtsPlugin} = require('esbuild-plugin-d.ts');
-//import esbuild from 'esbuild'
-//import { dtsPlugin } from 'esbuild-plugin-d.ts'
 
 async function bundle() {
 
   if(createESMJS) {
+    console.time('\n Built .esm.js file(s)')
     await esbuild.build({ //es modules
       entryPoints,
       bundle:true,
@@ -41,42 +41,47 @@ async function bundle() {
       minify:minify,
       sourcemap:sourcemap
     }).then(()=>{
-        
+      console.timeEnd('\n Built .esm.js file(s)');
     });
   }
 
   if(createBrowserJS) {
+    console.time('\n Built browser .js file(s)');
     if(moduleGlobalsEntryPoints.length > 0) { //this has globals declared for bundled modules
       await esbuild.build({ //browser-friendly scripting globals
         entryPoints:moduleGlobalsEntryPoints,
         bundle:true,
+        logLevel:'error',
         outfile:outfile+'.js',
          //outdir:outfile, // for multiple entry points
         platform:platform,
         external:external,
         minify:minify
       }).then(()=>{
-        
+        console.timeEnd('\n Built browser .js file(s)');
       });
     } else {
       await esbuild.build({
         entryPoints,
         bundle:true,
+        logLevel:'error',
         outfile:outfile+'.js',
          //outdir:outfile, // for multiple entry points
         platform:platform,
         external:external,
         minify:minify
       }).then(()=>{
-        
+        console.timeEnd('\n Built browser .js file(s)');
       });
     }
   }
 
   if(createCommonJS) {
+    console.time('\n Built .cjs.js');
     await esbuild.build({
       entryPoints,
       bundle:true,
+      logLevel:'error',
       outfile:outfile+'.cjs.js',
        //outdir:outfile, // for multiple entry points
       platform:platform,
@@ -84,14 +89,16 @@ async function bundle() {
       format:'cjs',
       minify:minify
     }).then(()=>{
-        
+      console.timeEnd('\n Built .cjs.js');
     });
   }
 
   if(createTypes) {
+    console.time('\n Built .d.ts and .iife.js files');
     await esbuild.build({ //generates types correctly
       entryPoints, //entry point should be a ts file
       bundle:true,
+      logLevel:'error',
       outfile:outfile+'.iife.js', //don't need this one
        //outdir:outfile, // for multiple entry points
       format:'iife',
@@ -102,14 +109,14 @@ async function bundle() {
         dtsPlugin() 
       ]
     }).then(()=>{
-        
+      console.timeEnd('\n Built .d.ts and .iife.js files');
     });
   }
 
 
 
   console.log('esbuild completed!')
-  console.timeEnd('es');
+  console.timeEnd('esbuild');
 
 }
 
