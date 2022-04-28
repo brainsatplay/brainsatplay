@@ -17,11 +17,11 @@ const entryPoints = ['index.ts'];
 const outfile = 'dist/index'; 
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
-const createESMJS = true;
-const createTypes = true;
-const createBrowserJS = true;
-const createCommonJS = false;
-const createIIFE = false;
+const createESMJS = true; //.esm format
+const createTypes = true; //entry point should be a ts or jsx (or other typescript) file
+const createBrowserJS = true; //js format
+const createCommonJS = false; //cjs format
+const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
 
 const minify = true;
 const sourcemap = false;
@@ -33,7 +33,8 @@ const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
   brainsatplay: entryPoints[0] //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
-};
+}; //our very own esbuild plugin
+
 
 
 
@@ -127,11 +128,7 @@ async function bundle() {
 
   if(createBrowserJS) {
     console.time('\n Built browser .js file(s)');
-    //our very own esbuild plugin
     
-    
-
-
     await esbuild.build({ //browser-friendly scripting globals
       entryPoints:temp_files, //use the modified files with the globals
       bundle:true,
