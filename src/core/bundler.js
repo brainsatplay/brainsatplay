@@ -100,17 +100,22 @@ async function bundle() {
       // You can set many modules and assign more functions etc. to the same globals without error
       
       //globals are not declared by default in browser scripts, these files are function scopes!
-    
-      if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
-      else globalThis['${propname}'] = bundle;
 
-      (${JSON.stringify(otherkeys)}).forEach((key) => {
-        if(bundle[key]) {
-          globalThis[key] = bundle[key];
-        }
-      });
     
       ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
+
+      if(propname) {    
+        bundleWrapper += `     
+          if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+          else globalThis['${propname}'] = bundle;
+
+          (${JSON.stringify(otherkeys)}).forEach((key) => {
+            if(bundle[key]) {
+              globalThis[key] = bundle[key];
+            }
+          });
+        `
+      }
 
       if(append_script) {
         bundleWrapper += `eval(${append_script.toString()})(bundle)`;
