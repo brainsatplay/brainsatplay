@@ -15,7 +15,7 @@ const INSTALL_GLOBALS = { //install bundles as global variables?
 
 //globals are not declared by default in browser scripts, these files are function scopes!
 for(const prop in INSTALL_GLOBALS) {
-    if(typeof globalThis[prop] !== 'undefined') Object.assign(globalThis[prop],INSTALL_GLOBALS[prop]);
+    if(typeof globalThis[prop] !== 'undefined') Object.assign(globalThis[prop],INSTALL_GLOBALS[prop]); //we can keep assigning the same namespaces more module objects without error!
     else globalThis[prop] = INSTALL_GLOBALS[prop];
 }
 
