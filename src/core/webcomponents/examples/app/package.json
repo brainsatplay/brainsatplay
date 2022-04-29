@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "concurrently": "^7.1.0",
-    "esbuild": "^0.14.34",
+    "esbuild": "^0.14.38",
     "nodemon": "^2.0.15",
     "ws": "^8.5.0"
   },

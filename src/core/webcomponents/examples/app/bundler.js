@@ -23,7 +23,7 @@ const outfile = 'dist/app.js';
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
 const createBrowserJS = true; //plain js format
-const createESMJS = true; //.esm format
+const createESMJS = false; //.esm format
 const createTypes = true; //entry point should be a ts or jsx (or other typescript) file
 const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
@@ -37,15 +37,15 @@ const external = ['node-fetch']; // [];
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
-  brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
-  Graph:'any keys not used for the current entry point bundle will be set on globalThis if they exist in the bundle' //this value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
+  // brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+  // Graph:'any keys not used for the current entry point bundle will be set on globalThis if they exist in the bundle' //this value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
 
 }; //our very own esbuild plugin
 
 const GLOBAL_SCRIPTS = { //append somes scripts to our bundles per entry point e.g. instantiate a class from our index.js files (like magicworker)
-  [entryPoints[0]]:function index(bundle) {
-    console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
-  }
+  // [entryPoints[0]]:function index(bundle) {
+  //   console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
+  // }
 };
 
 
