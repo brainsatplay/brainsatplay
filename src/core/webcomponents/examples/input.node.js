@@ -2,7 +2,8 @@
 
 import {NodeDiv} from '../graph.node'
 
-let component = require('./input.node.html').default;
+let component = require('./input.node.html');
+if(typeof component !== 'string') component = component.default;
 
 //See: https://github.com/brainsatplay/domelement
 export class InputNode extends NodeDiv {

@@ -3,7 +3,9 @@ import {DOMElement} from 'fragelement';
 
 import {AcyclicGraph} from '../dist/index.esm'
 
-let component = require('./acyclic.graph.html').default;
+let component = require('./acyclic.graph.html');
+if(typeof component !== 'string') component = component.default;
+
 
 //See: https://github.com/brainsatplay/domelement
 export class AcyclicGraphNode extends DOMElement {

@@ -3,7 +3,9 @@ import {addCustomElement} from 'fragelement';
 
 import {NodeDiv} from '../graph.node'
 
-let component = require('./circlecanvas.node.html').default;
+let component = require('./circlecanvas.node.html');
+if(typeof component !== 'string') component = component.default;
+
 
 //See: https://github.com/brainsatplay/domelement
 export class CircleCanvasNode extends NodeDiv {

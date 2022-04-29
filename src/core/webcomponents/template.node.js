@@ -1,7 +1,9 @@
 
 import {NodeDiv} from './graph.node'
 
-let component = require('./template.node.html').default;
+let component = require('./template.node.html');
+if(typeof component !== 'string') component = component.default;
+
 
 //See: https://github.com/brainsatplay/domelement
 export class TemplateNodeDiv extends NodeDiv {

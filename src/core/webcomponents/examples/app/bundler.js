@@ -19,12 +19,12 @@ const fs = require('fs');
 //setup
 
 const entryPoints = ['./app.js'];
-const outfile = 'dist/app.js'; 
+const outfile = 'dist/app'; 
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
 const createBrowserJS = true; //plain js format
 const createESMJS = false; //.esm format
-const createTypes = true; //entry point should be a ts or jsx (or other typescript) file
+const createTypes = false; //entry point should be a ts or jsx (or other typescript) file
 const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
 

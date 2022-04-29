@@ -3,7 +3,8 @@ import {DOMElement} from 'fragelement';
 
 import {Graph} from '../dist/index.esm'
 
-let component = require('./graph.node.html').default;
+let component = require('./graph.node.html');
+if(typeof component !== 'string') component = component.default;
 
 //See: https://github.com/brainsatplay/domelement
 export class NodeDiv extends DOMElement {

@@ -1,4 +1,6 @@
-import '../../components/components.index'
+import '../../index'
+
+
 
 //let elm = document.createElement('custom-');
 

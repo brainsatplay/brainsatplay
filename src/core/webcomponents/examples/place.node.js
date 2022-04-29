@@ -1,6 +1,7 @@
 import {NodeDiv} from '../graph.node'
 
-let component = require('./place.node.html').default;
+let component = require('./place.node.html');
+if(typeof component !== 'string') component = component.default;
 
 // /r/place ripoff
 export class PlaceNode extends NodeDiv {
@@ -311,6 +312,7 @@ export class PlaceNode extends NodeDiv {
     //DOMElement custom callbacks:
     oncreate=(props)=>{
         this.canvas = this.querySelector('canvas');
+        
         if(props.width) {
             this.canvas.width = props.width;
             this.canvas.style.height = props.height;
