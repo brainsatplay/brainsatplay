@@ -24,12 +24,12 @@ const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
 const createNodeJS = true;  //platform = 'node' and any node externals not included. returns a .node.js file
 
-const platform = 'browser'; //createNodeJS will use 'node' mode by default
+const platform = 'node'; //createNodeJS will use 'node' mode by default
 const minify = true;
 const sourcemap = false;
 
-const external = ['node-fetch']; // [];
 const node_external = []; //externals for node environment builds
+const external = node_external// ['node-fetch']; // [];
 
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
