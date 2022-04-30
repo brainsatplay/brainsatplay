@@ -235,11 +235,10 @@ export class Graph extends BaseProcess {
     ) {
         let result = node.operator(node,origin,...args);
         if(result instanceof Promise) {
-            result = new Promise(async (resolve) => {
-                let res = await result;
-                this.state.setState({[node.tag]:res});
-                resolve(res);
-            }) as any;
+            result.then((res) => {
+                this.state.setState({[node.tag]:res})
+                return res;
+            })
         }
         else {
             this.state.setState({[node.tag]:result});
