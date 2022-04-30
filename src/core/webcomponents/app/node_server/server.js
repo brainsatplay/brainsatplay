@@ -132,9 +132,11 @@ function onUpgrade(request, socket, head) { //https://github.com/websockets/ws
             });
         }
     } else if(request.url === '/hotreload') {
-        hotreload.hotreload.handleUpgrade(request, socket, head, (ws) => {
-            hotreload.hotreload.emit('connection', ws, request);
-        }); 
+        if(typeof hotreload !== 'undefined') {
+            hotreload.hotreload.handleUpgrade(request, socket, head, (ws) => {
+                hotreload.hotreload.emit('connection', ws, request);
+            }); 
+        }
     } 
 }
 
