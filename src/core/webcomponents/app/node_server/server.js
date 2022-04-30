@@ -6,9 +6,11 @@ const fs = require('fs');
 const path = require('path');
 const hotreload = require('./hotreload/hotreload.js');
 
-
-const { py_wss, py_client } = require('./relay/python_relay.js');
-
+if(cfg.settings.python) {
+    const { py_wss, py_client } = require('./relay/python_relay.js');
+    globalThis.py_wss = py_wss;
+    globalThis.py_client = py_client;
+}
 //when a request is made to the server from a user, what should we do with it?
 function onRequest(request, response) {
     if(cfg.settings.debug) console.log('request ', request.url);
