@@ -20,7 +20,7 @@
   "author": "Joshua Brewster",
   "license": "AGPL-3.0-or-later",
   "dependencies": {
-    "fragelement": "^1.3.3"
+    "fragelement": "^1.3.4"
   },
   "devDependencies": {
     "concurrently": "^7.1.0",

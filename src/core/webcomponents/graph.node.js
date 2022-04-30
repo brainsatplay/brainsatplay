@@ -60,10 +60,10 @@ export class NodeDiv extends DOMElement {
         if(this.useShadow) {
             if(!this.attachedShadow) this.attachShadow({mode:'open'});
             this.shadowRoot.prepend(fragment); //now you need to use the shadowRoot.querySelector etc.
-            this.FRAGMENT = this.shadowRoot.childNodes[this.shadowRoot.childNodes.length-1]
+            this.FRAGMENT = this.shadowRoot.childNodes[0];
         }   
         else this.prepend(fragment);
-        this.FRAGMENT = this.childNodes[this.childNodes.length-1]
+        this.FRAGMENT = this.childNodes[0];
         //this.appendChild(fragment);
         
         
