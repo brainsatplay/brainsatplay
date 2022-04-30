@@ -22,7 +22,7 @@ const createESMJS = true; //.esm format
 const createTypes = true; //entry point should be a ts or jsx (or other typescript) file
 const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
-const createNodeJS = false;  //platform = 'node' and any node externals not included
+const createNodeJS = true;  //platform = 'node' and any node externals not included
 
 const platform = 'browser'; //createNodeJS will use 'node' mode by default
 const minify = true;
@@ -34,7 +34,7 @@ const node_external = []; //externals for node environment builds
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
-  database: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+  brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
   //Graph:'any keys not used for the current entry point bundle will be set on globalThis if they exist in the bundle' //this value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
 
 }; //our very own esbuild plugin

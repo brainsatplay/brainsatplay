@@ -1,8 +1,3 @@
-//ESBuild instructions:
-//https://esbuild.github.io/getting-started/#your-first-bundle
-//Natively builds react, ts, etc. with added specification.
-
-
 
 //const globalExternals = require('@fal-works/esbuild-plugin-global-externals');
 
@@ -18,7 +13,7 @@ const fs = require('fs');
 
 //setup
 
-const entryPoints = ['./app.js'];
+const entryPoints = ['app.js'];
 const outfile = 'dist/app'; 
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
@@ -27,12 +22,14 @@ const createESMJS = false; //.esm format
 const createTypes = false; //entry point should be a ts or jsx (or other typescript) file
 const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
+const createNodeJS = false;  //platform = 'node' and any node externals not included
 
+const platform = 'browser'; //createNodeJS will use 'node' mode by default
 const minify = true;
-const sourcemap = false;
+const sourcemap = false; //only done on the esm.js file right now
 
-const platform = 'browser'; //'node'; //set node for node module compilation, uncomment 
 const external = ['node-fetch']; // [];
+const node_external = []; //externals for node environment builds
 
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
@@ -152,9 +149,9 @@ async function bundle() {
       //outdir:outfile, // for multiple entry points
       format:'esm',
       //platform:'node',
-      external:external,
-      minify:minify,
-      sourcemap:sourcemap,
+      external,
+      minify,
+      sourcemap,
       loader
     }).then(()=>{
       console.timeEnd('\n Built .esm.js file(s)');
@@ -170,12 +167,31 @@ async function bundle() {
       logLevel:'error',
       outfile:outfile+'.js', //'.browser.js
         //outdir:outfile, // for multiple entry points
-      platform:platform,
-      external:external,
-      minify:minify,
+      platform,
+      external,
+      minify,
       loader
     }).then(()=>{
       console.timeEnd('\n Built browser .js file(s)');
+    });
+      
+  }
+
+  if(createNodeJS) {
+    console.time('\n Built node .js file(s)');
+    
+    await esbuild.build({ //browser-friendly scripting globals
+      entryPoints, //use the modified files with the globals
+      bundle:true,
+      logLevel:'error',
+      outfile:outfile+'.node.js', //'.browser.js
+        //outdir:outfile, // for multiple entry points
+      platform:'node',
+      external:node_external,
+      minify,
+      loader
+    }).then(()=>{
+      console.timeEnd('\n Built node .js file(s)');
     });
       
   }
@@ -188,10 +204,10 @@ async function bundle() {
       logLevel:'error',
       outfile:outfile+'.cjs.js',
        //outdir:outfile, // for multiple entry points
-      platform:platform,
-      external:external,
+      platform,
+      external,
       format:'cjs',
-      minify:minify,
+      minify,
       loader
     }).then(()=>{
       console.timeEnd('\n Built .cjs.js');
@@ -207,9 +223,9 @@ async function bundle() {
       outfile:outfile+'.iife.js', //don't need this one
        //outdir:outfile, // for multiple entry points
       format:'iife',
-      platform:platform,
-      external:external,
-      minify:minify,
+      platform,
+      external,
+      minify,
       plugins:[ 
         dtsPlugin() 
       ],

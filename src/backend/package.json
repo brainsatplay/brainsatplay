@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "rollup -c && tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "esbuild": "node bundler.js"
   },
   "author": "Joshua Brewster, Garrett Flynn",
   "license": "AGPL-3.0-or-later",
@@ -22,6 +23,8 @@
   },
   "homepage": "https://github.com/brainsatplay/brainsatplay#readme",
   "devDependencies": {
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "esbuild": "^0.14.38",
+    "esbuild-plugin-d.ts": "^1.1.0"
   }
 }

@@ -14,7 +14,7 @@ const fs = require('fs');
 //setup
 
 const entryPoints = ['index.ts'];
-const outfile = 'dist/node.index'; 
+const outfile = 'dist/index'; 
 //outdir = ['dist/index','dist/index2']; //for multiple files
 
 const createBrowserJS = true; //plain js format
@@ -22,17 +22,19 @@ const createESMJS = true; //.esm format
 const createTypes = true; //entry point should be a ts or jsx (or other typescript) file
 const createCommonJS = false; //cjs format
 const createIIFE = false;     //iife format, this one is compiled temporarily otherwise for correct .d.ts compilation
+const createNodeJS = true;  //platform = 'node' and any node externals not included
 
+const platform = 'browser'; //createNodeJS will use 'node' mode by default
 const minify = true;
 const sourcemap = false;
 
-const platform = 'node'; //'node'; //set node for node module compilation, uncomment 
-const external = [];//['node-fetch']; // [];
+const external = ['node-fetch']; // [];
+const node_external = []; //externals for node environment builds
 
 const INSTALL_GLOBALLY = {
   //install bundles with additionally available global variables? Makes it browser scripting-compatible with window variables for bundles.
   //globalThis key : imported module (or import * as key from value)
-  brainsatplay: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
+  serverworkers: entryPoints[0], //set key values for variables to be accessable from browser script via window/globalThis.key.function() etc.
   //Graph:'any keys not used for the current entry point bundle will be set on globalThis if they exist in the bundle' //this value can be anything if it's not a recognized path as it will try to look for the keys in the bundle and set them to be on globalThis
 
 }; //our very own esbuild plugin
@@ -147,9 +149,9 @@ async function bundle() {
       //outdir:outfile, // for multiple entry points
       format:'esm',
       //platform:'node',
-      external:external,
-      minify:minify,
-      sourcemap:sourcemap,
+      external,
+      minify,
+      sourcemap,
       loader
     }).then(()=>{
       console.timeEnd('\n Built .esm.js file(s)');
@@ -165,12 +167,31 @@ async function bundle() {
       logLevel:'error',
       outfile:outfile+'.js', //'.browser.js
         //outdir:outfile, // for multiple entry points
-      platform:platform,
-      external:external,
-      minify:minify,
+      platform,
+      external,
+      minify,
       loader
     }).then(()=>{
       console.timeEnd('\n Built browser .js file(s)');
+    });
+      
+  }
+
+  if(createNodeJS) {
+    console.time('\n Built node .js file(s)');
+    
+    await esbuild.build({ //browser-friendly scripting globals
+      entryPoints, //use the modified files with the globals
+      bundle:true,
+      logLevel:'error',
+      outfile:outfile+'.node.js', //'.browser.js
+        //outdir:outfile, // for multiple entry points
+      platform:'node',
+      external:node_external,
+      minify,
+      loader
+    }).then(()=>{
+      console.timeEnd('\n Built node .js file(s)');
     });
       
   }
@@ -183,10 +204,10 @@ async function bundle() {
       logLevel:'error',
       outfile:outfile+'.cjs.js',
        //outdir:outfile, // for multiple entry points
-      platform:platform,
-      external:external,
+      platform,
+      external,
       format:'cjs',
-      minify:minify,
+      minify,
       loader
     }).then(()=>{
       console.timeEnd('\n Built .cjs.js');
@@ -202,9 +223,9 @@ async function bundle() {
       outfile:outfile+'.iife.js', //don't need this one
        //outdir:outfile, // for multiple entry points
       format:'iife',
-      platform:platform,
-      external:external,
-      minify:minify,
+      platform,
+      external,
+      minify,
       plugins:[ 
         dtsPlugin() 
       ],
