@@ -233,16 +233,15 @@ export class Graph extends BaseProcess {
         origin=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args
     ) {
-        let result;
-        if(node.operator.constructor.name === 'AsyncFunction') { //await runOp in this case or do runOp().then(res => ...)
+        let result = node.operator(node,origin,...args);
+        if(result instanceof Promise) {
             result = new Promise(async (resolve) => {
-                let res = await node.operator(node,origin,...args);
+                let res = await result;
                 this.state.setState({[node.tag]:res});
                 resolve(res);
-            });
+            }) as any;
         }
         else {
-            result = node.operator(node,origin,...args);
             this.state.setState({[node.tag]:result});
         }
         
