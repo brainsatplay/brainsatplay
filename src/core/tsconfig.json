@@ -4,7 +4,8 @@
         /* -- Basic Options -- */
         "rootDir": "../", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
         "outDir": "./dist",
-        "module": "es2020"
+        "module": "es2020",
+        "esModuleInterop": true
     },
     "include": ["./"],
 }

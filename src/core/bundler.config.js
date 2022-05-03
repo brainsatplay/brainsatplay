@@ -20,4 +20,12 @@ import bundle from '../bundler.config.js'
 //   output: [{ file: pkg.module, format: 'esm' }]
 // }
 
-bundle({globalThis: 'brainsatplay'}, true)
+bundle({
+    globalThis: 'brainsatplay',
+    //globals:{
+    //    [entryPoints[0]]:['Graph','Router','AcyclicGraph]
+    //}
+    //init: {[entryPoints[0]]:function index(bundle) {
+    //    console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
+    //}}
+}, true)

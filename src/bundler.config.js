@@ -54,7 +54,9 @@ export default async function bundle(configs, createTypes=false) {
           file: pkg.main,
           format: 'umd', // the preferred format
           exports: 'named',
-          name: config.globalThis
+          name: config.globalThis,
+          globals: config.globals,
+          init: config.init
         },
         {
           file: pkg.module,
@@ -90,7 +92,7 @@ export default async function bundle(configs, createTypes=false) {
       bundle:true,
       outfile,
       //outdir:outfile, // for multiple entry points
-      format:config.output.format,
+      format:'esm',
       //platform:'node',
       external: config.external,
       minify: config.minify,
@@ -106,54 +108,78 @@ export default async function bundle(configs, createTypes=false) {
 
 
     // Globals
-    if(o.name) {
 
       config.entryPoints.forEach((f,i)=>{  
-  
-        let ext = f.split('.')[f.split('.').length-1];
-        let subpath = f.substring(0,f.indexOf('.'+ext));
-  
-        let propname = o.name;
+        if(o.name || o.init || o.globals) {
     
-        let bundleWrapper = `
-  
-        //we can't circularly export a namespace for index.ts so this is the intermediary
-        //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
-        
-        export * from '../${subpath}' //still works in esm, getting out of .temp
-        
-        //this takes all of the re-exported modules in index.ts and contains them in an object
-        import * as bundle from '../${subpath}' // getting out of .temp
-        
-        //webpack? i.e. set the bundled index.ts modules to be globally available? 
-        // You can set many modules and assign more functions etc. to the same globals without error
-        
-        //globals are not declared by default in browser scripts, these files are function scopes!
-  
+          let ext = f.split('.')[f.split('.').length-1];
+          let subpath = f.substring(0,f.indexOf('.'+ext));
+    
+          let propname = o.name;
       
-        ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
-  
-        if(propname) {    
-          bundleWrapper += `   
-            if(typeof globalThis['${propname}'] !== 'undefined') Object.assign(globalThis['${propname}'],bundle); //we can keep assigning the same namespaces more module objects without error!
-            else globalThis['${propname}'] = bundle;
-          `
+          let bundleWrapper = `
+    
+          //we can't circularly export a namespace for index.ts so this is the intermediary
+          //import * as bundle from './x' then set globalThis[key] = bundle; The only other option is dynamic importing or a bigger bundler with more of these features built in
+          
+          export * from '../${subpath}' //still works in esm, getting out of .temp
+          
+          //this takes all of the re-exported modules in index.ts and contains them in an object
+          import * as bundle from '../${subpath}' // getting out of .temp
+          
+          //webpack? i.e. set the bundled index.ts modules to be globally available? 
+          // You can set many modules and assign more functions etc. to the same globals without error
+          
+          //globals are not declared by default in browser scripts, these files are function scopes!
+    
+        
+          ` //we could do more with this with other settings! It just builds this file instead of the original one then deletes the temp file.
+    
+          if(o.name) {    
+            bundleWrapper += `   
+              if(typeof globalThis['${o.name}'] !== 'undefined') Object.assign(globalThis['${o.name}'],bundle); //we can keep assigning the same namespaces more module objects without error!
+              else globalThis['${o.name}'] = bundle;
+            `
+          }
+
+          //declare any keys in the bundle as globals
+          if(typeof o.globals === 'object') {
+            if(o.globals[f]) { //e.g. {globals:{entryPoints[0]:['Graph','Router','AcyclicGraph']}
+              bundleWrapper += `
+              (${JSON.stringify(otherkeys)}).forEach((key) => {
+                if(bundle[key]) {
+                  globalThis[key] = bundle[key];
+                }
+              });
+              `
+            }
+          }
+
+          /** init scripts per entry point
+          e.g. {[entryPoints[0]]:function index(bundle) {
+                  console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
+                }}
+          */
+          if(typeof o.init === 'object') {
+            if(o.init[f]) { 
+              bundleWrapper += `eval(${o.inif[f].toString()})(bundle)`;
+            }
+          }
+    
+          if(propname) {
+    
+            const tempName = tempDir + '/temp_'+f
+            fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
+              tempName,
+              bundleWrapper
+            );
+    
+            temp_files[i] = tempName;  
+          }
+    
         }
-  
-        if(propname) {
-  
-          const tempName = tempDir + '/temp_'+f
-          fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
-            tempName,
-            bundleWrapper
-          );
-  
-          temp_files[i] = tempName;  
-        }
-  
       });
   
-    }
 
 
     
@@ -230,11 +256,11 @@ export default async function bundle(configs, createTypes=false) {
       loader: config.loader
     }).then(()=>{
       // TODO: Add actual IIFE support 
-      // if(!(iifeGenerated)) { 
-        // config.entryPoints.forEach((path) => {
-          fs.unlink(outfile, () => {}); //remove the extraneous iife file
-        // });
-      // }
+      if(!(config.createIIFE)) { 
+        //config.entryPoints.forEach((path) => {  
+        fs.unlink(outfile, () => {}); //remove the extraneous iife file
+        //});
+      }
       console.timeEnd(`\n Built .d.ts files (${i})`);
     });
   }
