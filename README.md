@@ -119,8 +119,6 @@ const brainsatplay = require('brainsatplay')
 ```
 
 ## Roadmap
-- [ ] Genuinely support UMD in bundler (https://github.com/evanw/esbuild/pull/1331)
-- [ ] Fix ESM in bunlder
 - [ ] Entirely convert Routes to Processes
 - [ ] Assemble graphs in Node.js
 - [ ] Assemble graphs with CLI

@@ -52,8 +52,8 @@ export default async function bundle(configs, createTypes=false) {
       output: [
         {
           file: pkg.main,
-          format: 'umd', // the preferred format
-          exports: 'named',
+          format: 'browser', // the preferred format
+          // exports: 'named',
           name: config.globalThis,
           globals: config.globals,
           init: config.init
@@ -84,7 +84,6 @@ export default async function bundle(configs, createTypes=false) {
     switch(o.format){
 
 
-  // TODO: Fix esm build to work with named exports
   case 'esm': 
     console.time('\n Built .esm.js file(s)')
     await esbuild.build({ //es modules
@@ -103,12 +102,10 @@ export default async function bundle(configs, createTypes=false) {
     });
     break;
   
-  case 'umd': // kinda UMD
-    console.time('\n Built UMD-like .js file(s)');
-
+  case 'browser': // kinda UMD
+    console.time('\n Built UMD-like .js file(s) for browser');
 
     // Globals
-
       config.entryPoints.forEach((f,i)=>{  
         if(o.name || o.init || o.globals) {
     
@@ -194,7 +191,7 @@ export default async function bundle(configs, createTypes=false) {
       minify: config.minify,
       loader: config.loader
     }).then(()=>{
-      console.timeEnd('\n Built UMD-like .js file(s)');
+      console.timeEnd('\n Built UMD-like .js file(s) for browser');
     });
     break;
 
