@@ -12,11 +12,12 @@ import {dtsPlugin} from 'esbuild-plugin-d.ts'
 import fs from 'fs'
 
 const defaultConfig = {
-  createBrowser:true,
+  createBrowser:true, //create plain js build? Can include globals and init scripts
   createESM:true,
   createNode:false,
   createIIFE:false,
   createTypes:true,
+  createHTML:false,
   allowOverwrite:true,
   entryPoints:['index.ts'],
   outfile:'dist/index',
@@ -44,7 +45,10 @@ const defaultConfig = {
     node:{ 
       external:[] //externals for node environment builds
     }
-  }
+  },
+  //globalThis:null
+  //globals:{[this.entryPoints[0]]:['Graph']}
+  //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }
 
 
@@ -204,7 +208,7 @@ export default async function bundle(configs) {
       await esbuild.build(cfg).then(()=>{
         console.timeEnd('\n Built UMD-like .js file(s) for browser');
 
-        if(config.html) { //bundle the outfile into a boilerplate html
+        if(config.createHTML) { //bundle the outfile into a boilerplate html
 
           let htmlurl = split.join('.')+'.html';
 
@@ -344,5 +348,5 @@ function cleanupConfig(cfg={}) {
   delete cfg.globalThis;
   delete cfg.globals;
   delete cfg.init;
-  delete cfg.html;
+  delete cfg.createHTML;
 }
