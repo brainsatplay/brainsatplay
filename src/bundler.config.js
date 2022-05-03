@@ -56,7 +56,8 @@ export default async function bundle(configs, createTypes=false) {
           // exports: 'named',
           name: config.globalThis,
           globals: config.globals,
-          init: config.init
+          init: config.init,
+          html: config.html
         },
         {
           file: pkg.module,
@@ -192,6 +193,29 @@ export default async function bundle(configs, createTypes=false) {
       loader: config.loader
     }).then(()=>{
       console.timeEnd('\n Built UMD-like .js file(s) for browser');
+
+      if(config.html) { //bundle the outfile into a boilerplate html
+
+        let split = outfile.split('.');
+        split.pop();
+        split.join('.')+'.html';
+
+        fs.writeFileSync(split,
+          `
+            <!DOCTYPE html>
+            <head>
+            </head>
+            <body>  
+              <script>
+                ${fs.readFileSync(outfile).toString()}
+              </script>
+            </body>
+          `
+          );
+
+      }
+
+
     });
     break;
 
