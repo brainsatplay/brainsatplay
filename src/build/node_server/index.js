@@ -160,7 +160,7 @@ export const serve = (cfg={}) => {
 
     // Create classes to pass
     if (cfg.settings.hotreload) cfg.hotreload = new hotreload.HotReload(cfg)
-    if (cfg.settings.python) cfg.python =new PythonWSS(cfg) 
+    if (cfg.settings.python_node) cfg.python =new PythonWSS(cfg) 
 
     if(cfg.settings.protocol === 'http') {
         

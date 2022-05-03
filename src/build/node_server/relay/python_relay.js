@@ -77,7 +77,7 @@ export class PythonWSS {
 
     constructor(cfg={}) {
         this.config = cfg
-        if(cfg.settings.python){
+        if(cfg.settings.python_node){
 
         this.url = `ws://${this.config.settings.host}:${this.config.settings.python_node}`;
         this.wss = new WebSocketServer({ // new WebSocket.Server({
