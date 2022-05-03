@@ -243,8 +243,8 @@ export const serve = (cfg=defaultServer) => {
     function exitHandler(options, exitCode) {
 
         if(typeof py_client != 'undefined') {
-            if(py_client.send) {
-                py_client.send('kill');
+            if(py_client.ws.readyState === 1) {
+                py_client.ws.send('kill');
             }
         }
 
