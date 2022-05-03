@@ -242,7 +242,11 @@ export const serve = (cfg=defaultServer) => {
 
     function exitHandler(options, exitCode) {
 
-        if(typeof py_client !== 'undefined') py_client.send('kill');
+        if(typeof py_client != 'undefined') {
+            if(py_client.send) {
+                py_client.send('kill');
+            }
+        }
 
         if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
         if (options.exit) process.exit();
