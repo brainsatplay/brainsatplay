@@ -4,25 +4,25 @@ import {WebSocketServer} from 'ws'
 
 export class HotReload {
   config = null;
-  server = null;
+  wss = null;
   url = null;
 
   constructor (cfg){
     this.config = cfg
-    this.server = new WebSocketServer({ // new WebSocket.Server({
-      port: cfg.settings.hotreload
+    this.wss = new WebSocketServer({ // new WebSocket.Server({
+      port: cfg.hotreload
     });
 
-    this.url = `${cfg.settings.socket_protocol}://${cfg.settings.host}:${cfg.settings.port}/hotreload`;
+    this.url = `${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`;
 
-    this.server.on('error',(err)=>{
+    this.wss.on('error',(err)=>{
       console.error('python wss error:',err);
     })
 
-    this.server.on('connection', (ws) => {
+    this.wss.on('connection', (ws) => {
       //ws.send(something);
     
-      if(cfg.settings.debug) console.log('New Connection to Hot Reload socket!');
+      if(cfg.debug) console.log('New Connection to Hot Reload socket!');
     
       ws.on('message', function message(data) {
           console.log('received: %s', data); //log messages from clients
@@ -35,13 +35,18 @@ export class HotReload {
   }
 
   add = (content) => {
-    return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+hotreloadclient.toString()+`)('${this.url}')  </script>`;
+    return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+HotReloadClient.toString()+`)('${this.url}')  </script>`;
   }
 }
 
-export const hotreloadclient = (socketUrl) => {
+export function addHotReloadClient(content,socketUrl) {
+  return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${socketUrl}');  (`+HotReloadClient.toString()+`)('${socketUrl}')  </script>`;
+}
+
+//frontend js function to be stringified, injected, and executed in-browser
+export const HotReloadClient = (socketUrl) => {
     //hot reload code injected from backend
-    //const socketUrl = `ws://${cfg.settings.host}:${cfg.settings.hotreload}`;
+    //const socketUrl = `ws://${cfg.host}:${cfg.hotreload}`;
     let socket = new WebSocket(socketUrl);
     socket.addEventListener('close',()=>{
       // Then the server has been turned off,

@@ -1,7 +1,4 @@
 //let cfg = require('../server_settings');
-
-
-import * as cfg from '../../example/server_settings.js'
 import WebSocket from 'ws';
 import {WebSocketServer} from 'ws';
 
@@ -18,9 +15,9 @@ export class PythonClient {
 
     constructor(cfg={}) {
         this.config = cfg
-        if(cfg.settings.python){
+        if(cfg.python){
 
-        this.url = `wss://${cfg.settings.host}:${cfg.settings.python}`;
+        this.url = `wss://${cfg.host}:${cfg.python}`;
         this.ws = new WebSocket(
             this.url,
             {
@@ -77,11 +74,11 @@ export class PythonRelay {
 
     constructor(cfg={}) {
         this.config = cfg
-        if(cfg.settings.python_node){
+        if(cfg.python_node){
 
-        this.url = `ws://${this.config.settings.host}:${this.config.settings.python_node}`;
+        this.url = `ws://${this.cfg.host}:${this.cfg.python_node}`;
         this.wss = new WebSocketServer({ // new WebSocket.Server({
-            port:this.config.settings.python_node
+            port:this.cfg.python_node
         });
 
 
@@ -92,7 +89,7 @@ export class PythonRelay {
     this.wss.on('connection', (ws) => {
         //ws.send(something);
 
-        if(this.config.settings.debug) console.log('New Connection to Python Socket Relay!');
+        if(this.cfg.debug) console.log('New Connection to Python Socket Relay!');
 
         ws.on('message', function message(data) {
             console.log('received: %s', data); //log messages from clients

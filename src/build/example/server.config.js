@@ -1,4 +1,3 @@
-import {serve} from '../index.js'
-import * as settings from './server_settings.js'
+import {serve,defaultServer} from '../index.js'
 
-serve(settings)
+let info = serve(defaultServer);
