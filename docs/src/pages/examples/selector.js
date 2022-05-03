@@ -8,7 +8,7 @@ import WebRTCExample from './components/webrtc';
 import StreamsExample from './components/streams';
 import ProcessExample from './components/process';
 import Process2Example from './components/process2';
-import WebComponentsExample from './components/webcomponents';
+import WebComponentsExample from './components';
 
 export default function ExampleSelector({server, sockets, router, id}) {
    const history = useHistory();

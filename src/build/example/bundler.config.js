@@ -1,4 +1,4 @@
-import bundle from '../../../bundler.config.js'
+import {bundle} from '../index.js'
 
 bundle({
   entryPoints: ['app.js'],

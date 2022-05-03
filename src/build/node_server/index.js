@@ -1,21 +1,16 @@
-//Run: `node server.js`
-
-// const cfg = require('./server_settings.js');
-// const fs = require('fs');
-// const path = require('path');
-// const hotreload = require('./hotreload/hotreload.js');
-
-import * as cfg from './server_settings.js'
+//Run: `node index.js`
+import * as http from 'http'
+import * as https from 'https'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as hotreload from './hotreload/hotreload.js'
 
-import { py_wss, py_client } from './relay/python_relay.js';
+import { PythonWSS, PythonClient } from './relay/python_relay.js';
 
 console.time(`node server started!`);
 
 //when a request is made to the server from a user, what should we do with it?
-function onRequest(request, response) {
+function onRequest(request, response, cfg) {
     if(cfg.settings.debug) console.log('request ', request.url);
     //console.log(request); //debug
 
@@ -36,8 +31,8 @@ function onRequest(request, response) {
 
                         
                         //add hot reload if specified
-                        if(process.env.NODEMON && requestURL.endsWith('.html') && typeof hotreload !== 'undefined') {
-                            content = hotreload.addhotload(content);
+                        if(process.env.NODEMON && requestURL.endsWith('.html') && cfg.hotreload) {
+                            content = cfg.hotreload.add(content);
                         }
 
                         response.end(content, 'utf-8'); //set response content
@@ -70,8 +65,8 @@ function onRequest(request, response) {
                 if(requestURL.endsWith('.html')) {
 
                     //inject hot reload if specified
-                    if(process.env.NODEMON && typeof hotreload !== 'undefined' && cfg.settings.hotreload) {
-                        content = hotreload.addhotreload(content,hotreload.socketUrl);
+                    if(process.env.NODEMON && cfg.hotreload && cfg.settings.hotreload) {
+                        content = cfg.hotreload.add(content);
                     }
                     
                     //inject pwa code
@@ -126,20 +121,20 @@ function onRequest(request, response) {
 
 
 //Websocket upgrading
-function onUpgrade(request, socket, head) { //https://github.com/websockets/ws
+function onUpgrade(request, socket, head, cfg) { //https://github.com/websockets/ws
 
     if(cfg.settings.debug) console.log("Upgrade request at: ", request.url);
     
     if(request.url === '/' || request.url === '/home') {
-        if(typeof py_wss !== 'undefined') {
-            py_wss.handleUpgrade(request, socket, head, (ws) => {
-                py_wss.emit('connection', ws, request);
+        if(cfg.python) {
+            cfg.python.wss.handleUpgrade(request, socket, head, (ws) => {
+                cfg.python.wss.emit('connection', ws, request);
             });
         }
     } else if(request.url === '/hotreload') {
-        if(typeof hotreload !== 'undefined') {
-            hotreload.hotreload.handleUpgrade(request, socket, head, (ws) => {
-                hotreload.hotreload.emit('connection', ws, request);
+        if(cfg.hotreload) {
+            cfg.hotreload.server.handleUpgrade(request, socket, head, (ws) => {
+                cfg.hotreload.server.emit('connection', ws, request);
             }); 
         }
     } 
@@ -148,7 +143,7 @@ function onUpgrade(request, socket, head) { //https://github.com/websockets/ws
 
 
 //runs when the server starts successfully.
-function onStarted() {      
+function onStarted(cfg) {      
     
     console.timeEnd(`node server started!`);
     console.log(`Server running at 
@@ -156,72 +151,83 @@ function onStarted() {
     );
 }
 
-//now create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
+// create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
+export const serve = (cfg={}) => {
 
-import * as http from 'http'
-import * as https from 'https'
+    const py_client = new PythonClient(cfg)
 
-if(cfg.settings.protocol === 'http') {
-    
-    //var http = require('http');
-    let server = http.createServer(
-        onRequest
-    );
+    cfg = Object.assign({}, cfg) // Make modules editable
 
-    server.on('error',(err)=>{
-        console.error('onupgrade error:',err.toString());
-    })
-    
-    server.on('upgrade', onUpgrade);
+    // Create classes to pass
+    if (cfg.settings.hotreload) cfg.hotreload = new hotreload.HotReload(cfg)
+    if (cfg.settings.python) cfg.python =new PythonWSS(cfg) 
 
-    server.listen( //SITE AVAILABLE ON PORT:
-        cfg.settings.port,
-        cfg.settings.host,
-        onStarted
-    );
+    if(cfg.settings.protocol === 'http') {
+        
+        //var http = require('http');
+        let server = http.createServer(
+            (request,response) => onRequest(request,response, cfg)
+        );
+
+        server.on('error',(err)=>{
+            console.error('onupgrade error:',err.toString());
+        })
+        
+        server.on('upgrade', (request, socket, head) => {
+            onUpgrade(request, socket, head, cfg)
+        });
+
+        server.listen( //SITE AVAILABLE ON PORT:
+            cfg.settings.port,
+            cfg.settings.host,
+            () => onStarted(cfg)
+        );
+    }
+    else if (cfg.settings.protocol === 'https') {
+        
+        //var https = require('https');
+        // options are used by the https server
+        // pfx handles the certificate file
+        var options = {
+            key: fs.readFileSync(cfg.settings.keypath),
+            cert: fs.readFileSync(cfg.settings.certpath),
+            passphrase: "encrypted"
+        };
+        let server = https.createServer(
+            options,
+            (request,response) => onRequest(request,response, cfg)
+        );
+
+        server.on('error',(err)=>{
+            console.error('onupgrade error:',err.toString());
+        })
+        
+        server.on('upgrade', (request, socket, head) => {
+            onUpgrade(request, socket, head, cfg)
+        });
+        
+        server.listen(
+            cfg.settings.port,
+            cfg.settings.host,
+            () => onStarted(cfg)
+        );
+
+    }
+
+
+
+    function exitHandler(options, exitCode) {
+
+        if(typeof py_client !== 'undefined') py_client.send('kill');
+
+        if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
+        if (options.exit) process.exit();
+    }
+
+    //do something when app is closing
+    process.on('exit', exitHandler.bind(null,{cleanup:true}));
+
+    //catches ctrl+c event
+    process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 }
-else if (cfg.settings.protocol === 'https') {
-    
-    //var https = require('https');
-    // options are used by the https server
-    // pfx handles the certificate file
-    var options = {
-        key: fs.readFileSync(cfg.settings.keypath),
-        cert: fs.readFileSync(cfg.settings.certpath),
-        passphrase: "encrypted"
-    };
-    let server = https.createServer(
-        options,
-        onRequest
-    );
-
-    server.on('error',(err)=>{
-        console.error('onupgrade error:',err.toString());
-    })
-    
-    server.on('upgrade', onUpgrade);
-    
-    server.listen(
-        cfg.settings.port,
-        cfg.settings.host,
-        onStarted
-    );
-
-}
-
-
-
-function exitHandler(options, exitCode) {
-
-    if(typeof py_client !== 'undefined') py_client.send('kill');
-
-    if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
-    if (options.exit) process.exit();
-}
-
-//do something when app is closing
-process.on('exit', exitHandler.bind(null,{cleanup:true}));
-
-//catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 

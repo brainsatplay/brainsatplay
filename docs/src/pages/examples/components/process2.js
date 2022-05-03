@@ -2,13 +2,13 @@ import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import styles from '../examples.module.css'
 import * as brainsatplay from '../../../../../src/core/index';
-import '../../../../../src/core/webcomponents/examples/button.node';
-import '../../../../../src/core/webcomponents/examples/canvas.node';
-import '../../../../../src/core/webcomponents/examples/circlecanvas.node';
-import '../../../../../src/core/webcomponents/examples/input.node';
-import '../../../../../src/core/webcomponents/acyclic.graph';
-import '../../../../../src/core/webcomponents/graph.node';
-import '../../../../../src/core/webcomponents/template.node';
+import '../../../../../src/components/examples/button.node';
+import '../../../../../src/components/examples/canvas.node';
+import '../../../../../src/components/examples/circlecanvas.node';
+import '../../../../../src/components/examples/input.node';
+import '../../../../../src/components/acyclic.graph';
+import '../../../../../src/components/graph.node';
+import '../../../../../src/components/template.node';
 // import '../../../../../src/visualscript/src/components/general/Button';
 
 export default function Process2Example({server, sockets, router}) {

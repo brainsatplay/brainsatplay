@@ -1,36 +1,42 @@
-// const cfg = require('../server_settings.js');
-// const WebSocket = require('ws');
 
-import * as cfg from '../server_settings.js'
 import WebSocket from 'ws'
 import {WebSocketServer} from 'ws'
 
-//set in server_settings.js
-export const socketUrl = `${cfg.settings.socket_protocol}://${cfg.settings.host}:${cfg.settings.port}/hotreload`;
+export class HotReload {
+  config = null;
+  server = null;
+  url = null;
 
-export const hotreload = new WebSocketServer({ // new WebSocket.Server({
-    port: cfg.settings.hotreload
-});
+  constructor (cfg){
+    this.config = cfg
+    this.server = new WebSocketServer({ // new WebSocket.Server({
+      port: cfg.settings.hotreload
+    });
 
-hotreload.on('error',(err)=>{
-  console.error('python wss error:',err);
-})
+    this.url = `${cfg.settings.socket_protocol}://${cfg.settings.host}:${cfg.settings.port}/hotreload`;
 
-hotreload.on('connection', (ws) => {
-  //ws.send(something);
+    this.server.on('error',(err)=>{
+      console.error('python wss error:',err);
+    })
 
-  if(cfg.settings.debug) console.log('New Connection to Hot Reload socket!');
+    this.server.on('connection', (ws) => {
+      //ws.send(something);
+    
+      if(cfg.settings.debug) console.log('New Connection to Hot Reload socket!');
+    
+      ws.on('message', function message(data) {
+          console.log('received: %s', data); //log messages from clients
+      });
+    
+      ws.send(`${this.url}: pong!`);
+    
+    });
 
-  ws.on('message', function message(data) {
-      console.log('received: %s', data); //log messages from clients
-  });
+  }
 
-  ws.send(`${socketUrl}: pong!`);
-
-});
-
-export const addhotreload = (content, url=socketUrl) => {
-  return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${url}');  (`+hotreloadclient.toString()+`)('${url}')  </script>`;
+  add = (content) => {
+    return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+hotreloadclient.toString()+`)('${this.url}')  </script>`;
+  }
 }
 
 export const hotreloadclient = (socketUrl) => {

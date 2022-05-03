@@ -2,6 +2,7 @@
 //const globalExternals = require('@fal-works/esbuild-plugin-global-externals');
 
 
+
 console.time('esbuild');
 console.log('esbuild starting!');
 
@@ -55,7 +56,7 @@ const defaultConfig = {
 }
 
 
-export default async function bundle(configs) {
+export async function bundle(configs) {
 
   if (!Array.isArray(configs)) configs = [configs]
   const tempDir = `.temp`
@@ -393,7 +394,6 @@ export default async function bundle(configs) {
         console.timeEnd(`\n Built .d.ts files (${i})`);
       });
     }
-
   }))
 
   //clean temp files we wrote extra code to
@@ -401,6 +401,7 @@ export default async function bundle(configs) {
 
   console.log('esbuild completed!')
   console.timeEnd('esbuild');
+  process.exit(0); // Manually make process exit
 }
 
 

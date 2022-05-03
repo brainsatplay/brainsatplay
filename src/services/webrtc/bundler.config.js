@@ -1,4 +1,5 @@
-import bundle from '../../bundler.config.js'
+import {bundle} from '../../build/index.js'
+
 
 bundle({
   globalThis: 'webrtc',

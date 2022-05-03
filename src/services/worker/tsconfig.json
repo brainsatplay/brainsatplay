@@ -3,6 +3,5 @@
     "compilerOptions": {
         "rootDir": "../../", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
         "module": "ESNext" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-    },
-    "include": ["./"]
+    }
 }

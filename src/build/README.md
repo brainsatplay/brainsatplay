@@ -1,8 +1,9 @@
-# MyAlyce: React + TS minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent test env.  
+# @brainsatplay/build
+React + TS minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent test env.  
 
 ## Build & Run Development Server without Python Server
 
-`npm i` then `npm run startdev`
+`npm i` then `npm start`
 
 Find node_server/server_settings.js for easy config for http/https (set socket protocol 'ws' to 'wss' for hosted https). https requires ssl (instructions included in node_server/ssl)
 
@@ -40,7 +41,7 @@ You can specify https and add an ssl certificate if you follow the instructions.
 
 ## Hot reloading (for dev)
 
-`npm run startdev` 
+`npm run start` 
 
 nodemon restarts the node server automatically when changes to included source files are detected.
 
