@@ -85,7 +85,6 @@ export default async function bundle(configs) {
     config.entryPoints = config.entryPoints.map(v => cwd+'/'+v.split('/').slice(1).join('/')) // Remove first folder
     // TODO: Make sure that relative references are fully maintained
 
-    let temp_files = [...config.entryPoints];
 
     if(config.createESM) {
       console.time('\n Built .esm.js file(s)')
@@ -135,8 +134,14 @@ export default async function bundle(configs) {
 
       cleanupConfig(cfg);
       
-      // Globals
-      if(config.browser?.entryPoints) entryPoints = config.browser.entryPoints;
+      // Globals   
+      let temp_files = [...config.entryPoints];
+      if(config.browser?.entryPoints) {
+        temp_files = [...config.browser.entryPoints];
+        entryPoints = config.browser.entryPoints;
+      }
+      cfg.entryPoints = temp_files;
+
       entryPoints.forEach((f,i)=>{  
         if(config.globalThis || config.init || config.globals) {
     
