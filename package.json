@@ -1,5 +1,6 @@
 {
   "name": "brainsatplay",
+  "type":"module",
   "private": true,
   "workspaces": [
     "src/**"

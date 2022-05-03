@@ -11,7 +11,7 @@
   "scripts": {
     "build": "rollup -c && tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "esbuild": "node bundler.js"
+    "esbuild": "node bundler.config.js"
   },
   "repository": {
     "type": "git",

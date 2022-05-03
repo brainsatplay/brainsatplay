@@ -23,7 +23,7 @@ const umd = {
     file: pkg.main,
     format: 'umd', // the preferred format
     exports: 'named',
-    name: 'brainsatplay'
+    name: 'frontend'
   } ]
 }
 

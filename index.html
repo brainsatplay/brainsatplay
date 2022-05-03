@@ -14,14 +14,13 @@
 <script>
   console.time('test');
 </script>
-<script src="./src/core/dist/index.js">
+<script src='./src/core/dist/index.js'>
 </script>
-<script>
-  console.log('start test');
-  
-  console.log('globalThis.brainsatplay',brainsatplay, 'brainsatplay.Graph:',brainsatplay.Graph, 'globalThis.Graph:', Graph)
+<script type="module">
+  // import * as brainsatplay from './src/core/dist/index.esm.js'
+  console.log('globalThis.brainsatplay', brainsatplay)
 
-  let x = new Graph();
+  let x = new brainsatplay.Graph();
   console.log('Graph:', x);
 </script>
 <!-- <script type="module">
