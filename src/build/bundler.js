@@ -411,7 +411,6 @@ export async function bundleTypes(config) {
 //deletes any optional keys we use to customize configs
 function cleanupConfig(cfg={}) { //should just use a defaults list for the esbuild object
   delete cfg.bundleBrowser;
-  delete cfg.createCommonJS;
   delete cfg.bundleESM;
   delete cfg.bundleIIFE;
   delete cfg.bundleNode;
