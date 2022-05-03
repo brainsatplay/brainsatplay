@@ -1,7 +1,7 @@
 const { build } = require("esbuild")
 
 build({
-  entryPoints: ["bundler/pwa/service-worker.js"],
+  entryPoints: ["node_server/pwa/service-worker.js"],
   outfile: "dist/service-worker.js",
   minify: true,
   bundle: true,
