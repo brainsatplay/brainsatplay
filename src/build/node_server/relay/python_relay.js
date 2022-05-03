@@ -13,8 +13,9 @@ export class PythonClient {
     ws = null;
     url = null;
 
-    constructor(cfg={}) {
-        this.config = cfg
+    constructor(cfg={},wss) {
+        this.config = cfg;
+        this.wss = wss;
         if(cfg.python){
 
         this.url = `wss://${cfg.host}:${cfg.python}`;
@@ -43,7 +44,7 @@ export class PythonClient {
             this.ws.on('message',(msg)=>{
                 //let now = new Date(Date.now());
                 //console.log(now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + ': Python->Node:',decoder.decode(msg))
-                py_wss.clients.forEach((cl) => {
+                wss.clients.forEach((cl) => {
                     cl.send(msg);
                 });
             })
