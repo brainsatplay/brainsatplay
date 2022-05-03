@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as hotreload from './hotreload/hotreload.js'
 
-import { PythonWSS, PythonClient } from './relay/python_relay.js';
+import { PythonRelay, PythonClient } from './relay/python_relay.js';
 
 console.time(`node server started!`);
 
@@ -160,7 +160,7 @@ export const serve = (cfg={}) => {
 
     // Create classes to pass
     if (cfg.settings.hotreload) cfg.hotreload = new hotreload.HotReload(cfg)
-    if (cfg.settings.python_node) cfg.python =new PythonWSS(cfg) 
+    if (cfg.settings.python_node) cfg.python =new PythonRelay(cfg) 
 
     if(cfg.settings.protocol === 'http') {
         

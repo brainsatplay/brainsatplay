@@ -70,7 +70,7 @@ export class PythonClient {
 
 
 
-export class PythonWSS {
+export class PythonRelay {
     config = null;
     server = null;
     url = null;
