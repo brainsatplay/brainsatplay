@@ -12,21 +12,22 @@ import {dtsPlugin} from 'esbuild-plugin-d.ts'
 import fs from 'fs'
 
 export const defaultBundler = {
-  createBrowser:true, //create plain js build? Can include globals and init scripts
-  createESM:true,     //create esm module js files
-  createTypes:true,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
-  createNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
-  createIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
-  createHTML:false,   //wrap the plain js file as a script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
-  allowOverwrite:true, 
+  bundleBrowser:true, //create plain js build? Can include globals and init scripts
+  bundleESM:true,     //create esm module js files
+  bundleTypes:true,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
+  bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
+  bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
+  bundleCommonJS:false, //cjs format outputted as .cjs.js
+  bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
   entryPoints:['index.ts'], //entry point file(s)
   outfile:'dist/index',     //exit point file
   //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
-  platform: 'browser', //'node' //createNodeJS will use 'node' mode by default
+  platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
   sourcemap: false,
   external: ['node-fetch'], // [];
+  allowOverwrite:true, 
   loader: {
     '.html': 'text', //not always necessary but it doesn't hurt
     '.png' : 'file',
@@ -56,7 +57,6 @@ export const defaultBundler = {
   //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }
 
-
 export async function bundle(configs) {
 
   if (!Array.isArray(configs)) configs = [configs];
@@ -80,25 +80,25 @@ export async function bundle(configs) {
       config
     }
     
-    if(config.createBrowser){ // kinda UMD
+    if(config.bundleBrowser == true){ // kinda UMD
       bundles.browser = await bundleBrowser(config);
     }
     
     // console.log('CONFIG', config)
-    if(config.createESM) {
+    if(config.bundleESM == true) {
       bundles.esm = await bundleESM(config);
     }
 
-    if(config.createNode) {
+    if(config.bundleNode == true) {
       bundles.node = await bundleNode(config);
     }
     
-    if(config.createCommonJS) {
+    if(config.bundleCommonJS == true) {
       bundles.commonjs = await bundleCommonJS(config);
     }
 
     // Create Types Once
-    if(config.createTypes) {
+    if(config.bundleTypes == true) {
       bundles.ts = await bundleTypes(config);
     }
 
@@ -110,6 +110,25 @@ export async function bundle(configs) {
   console.log('esbuild completed!')
   console.timeEnd('esbuild');
   //process.exit(0); // Manually make process exit
+}
+
+export function bundleHTML(fromJSPath) {
+
+  let split = fromJSPath.split('.'); split.pop();
+  let path = split.join('.')+'.build.html';
+
+  return fs.writeFileSync(path,
+    `
+      <!DOCTYPE html>
+      <head>
+      </head>
+      <body>  
+        <script>
+          ${fs.readFileSync(fromJSPath).toString()}
+        </script>
+      </body>
+    `
+  );
 }
 
 
@@ -226,30 +245,14 @@ export async function bundleBrowser(config) {
   return await esbuild.build(cfg).then(()=>{
     console.timeEnd('\n Built UMD-like .js file(s) for browser');
 
-    if(config.createHTML) { //bundle the outfile into a boilerplate html
+    if(config.bundleHTML) { //bundle the outfile into a boilerplate html
 
       let outfile = cfg.outfile;
       if(!outfile) outfile = cfg.outdir[0]
 
-      let split = outfile.split('.'); split.pop();
-      let path = split.join('.')+'.build.html';
-
-
-      fs.writeFileSync(path,
-        `
-          <!DOCTYPE html>
-          <head>
-          </head>
-          <body>  
-            <script>
-              ${fs.readFileSync(outfile).toString()}
-            </script>
-          </body>
-        `
-        );
+      bundleHTML(outfile);
 
     }
-
     
     //clean temp files we wrote extra code to
     fs.rm(tempDir,{ recursive: true }, () => {})
@@ -392,7 +395,7 @@ export async function bundleTypes(config) {
 
   //generates types correctly
   return await esbuild.build(cfg).then(()=>{
-    if(!(config.createIIFE)) { 
+    if(!(config.bundleIIFE)) { 
       if(cfg.outfile) {
         fs.unlink(cfg.outfile, () => {}); //remove the extraneous iife file
       }
@@ -407,17 +410,18 @@ export async function bundleTypes(config) {
 
 //deletes any optional keys we use to customize configs
 function cleanupConfig(cfg={}) { //should just use a defaults list for the esbuild object
-  delete cfg.createBrowser;
+  delete cfg.bundleBrowser;
   delete cfg.createCommonJS;
-  delete cfg.createESM;
-  delete cfg.createIIFE;
-  delete cfg.createNode;
-  delete cfg.createTypes;
+  delete cfg.bundleESM;
+  delete cfg.bundleIIFE;
+  delete cfg.bundleNode;
+  delete cfg.bundleCommonJS;
+  delete cfg.bundleTypes;
   delete cfg.outputs;
   delete cfg.globalThis;
   delete cfg.globals;
   delete cfg.init;
-  delete cfg.createHTML;
+  delete cfg.bundleHTML;
   delete cfg.defaultConfig;
 }
 

@@ -4,10 +4,10 @@ let config = {
     bundler:{
         entryPoints: ['app.js'],
         outfile: 'dist/app',
-        createBrowser: true, //plain js format
-        createESM: false, //.esm format
-        createTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        createHTML: true
+        bundleBrowser: true, //plain js format
+        bundleESM: false, //.esm format
+        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+        bundleHTML: true
       },
     server:defaultServer
 }
