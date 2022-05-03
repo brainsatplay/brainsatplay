@@ -13,17 +13,17 @@ import fs from 'fs'
 
 const defaultConfig = {
   createBrowser:true, //create plain js build? Can include globals and init scripts
-  createESM:true,
-  createNode:false,
-  createIIFE:false,
-  createTypes:true,
-  createHTML:false,
-  allowOverwrite:true,
-  entryPoints:['index.ts'],
-  outfile:'dist/index',
-  //outdir:[]
+  createESM:true,     //create esm module js files
+  createNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
+  createIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
+  createTypes:true,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
+  createHTML:false,   //wrap the plain js file as a script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
+  allowOverwrite:true, 
+  entryPoints:['index.ts'], //entry point file(s)
+  outfile:'dist/index',     //exit point file
+  //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
-  platform: 'browser', //createNodeJS will use 'node' mode by default
+  platform: 'browser', //'node' //createNodeJS will use 'node' mode by default
   minify: true,
   sourcemap: false,
   external: ['node-fetch'], // [];
@@ -41,10 +41,14 @@ const defaultConfig = {
     '.mp4': 'file',
     '.json': 'text',
   },
-  outputs:{
+  outputs:{ //overwrites main config settings for specific use cases
     node:{ 
       external:[] //externals for node environment builds
     }
+    //esm:{}
+    //commonjs:{}
+    //browser:{}
+    //iife:{}
   },
   //globalThis:null
   //globals:{[this.entryPoints[0]]:['Graph']}
