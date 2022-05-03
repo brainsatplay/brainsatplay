@@ -1,10 +1,14 @@
-const cfg = require('../server_settings.js');
-const WebSocket = require('ws');
+// const cfg = require('../server_settings.js');
+// const WebSocket = require('ws');
+
+import * as cfg from '../server_settings.js'
+import WebSocket from 'ws'
+import {WebSocketServer} from 'ws'
 
 //set in server_settings.js
-const socketUrl = `${cfg.settings.socket_protocol}://${cfg.settings.host}:${cfg.settings.port}/hotreload`;
+export const socketUrl = `${cfg.settings.socket_protocol}://${cfg.settings.host}:${cfg.settings.port}/hotreload`;
 
-const hotreload = new WebSocket.Server({
+export const hotreload = new WebSocketServer({ // new WebSocket.Server({
     port: cfg.settings.hotreload
 });
 
@@ -25,11 +29,11 @@ hotreload.on('connection', (ws) => {
 
 });
 
-const addhotreload = (content, url=socketUrl) => {
+export const addhotreload = (content, url=socketUrl) => {
   return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${url}');  (`+hotreloadclient.toString()+`)('${url}')  </script>`;
 }
 
-const hotreloadclient = (socketUrl) => {
+export const hotreloadclient = (socketUrl) => {
     //hot reload code injected from backend
     //const socketUrl = `ws://${cfg.settings.host}:${cfg.settings.hotreload}`;
     let socket = new WebSocket(socketUrl);
@@ -66,7 +70,8 @@ const hotreloadclient = (socketUrl) => {
     });
 }
 
-exports.hotreload = hotreload;
-exports.socketUrl = socketUrl;
-exports.addhotload = addhotreload;
-exports.hotreloadclient = hotreloadclient;
+// exports.hotreload = hotreload;
+// exports.socketUrl = socketUrl;
+// exports.addhotload = addhotreload;
+// exports.hotreloadclient = hotreloadclient;
+

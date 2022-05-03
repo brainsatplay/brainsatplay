@@ -1,16 +1,17 @@
 //Run: `node server.js`
 
-const cfg = require('./server_settings.js');
+// const cfg = require('./server_settings.js');
+// const fs = require('fs');
+// const path = require('path');
+// const hotreload = require('./hotreload/hotreload.js');
 
-const fs = require('fs');
-const path = require('path');
-const hotreload = require('./hotreload/hotreload.js');
+import * as cfg from './server_settings.js'
+import * as fs from 'fs'
+import * as path from 'path'
+import * as hotreload from './hotreload/hotreload.js'
 
-if(cfg.settings.python) {
-    const { py_wss, py_client } = require('./relay/python_relay.js');
-    globalThis.py_wss = py_wss;
-    globalThis.py_client = py_client;
-}
+import { py_wss, py_client } from './relay/python_relay.js';
+
 //when a request is made to the server from a user, what should we do with it?
 function onRequest(request, response) {
     if(cfg.settings.debug) console.log('request ', request.url);
@@ -68,7 +69,7 @@ function onRequest(request, response) {
 
                     //inject hot reload if specified
                     if(process.env.NODEMON && typeof hotreload !== 'undefined' && cfg.settings.hotreload) {
-                        content = hotreload.addhotload(content,hotreload.socketUrl);
+                        content = hotreload.addhotreload(content,hotreload.socketUrl);
                     }
                     
                     //inject pwa code
@@ -152,9 +153,13 @@ function onStarted() {
 }
 
 //now create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
+
+import * as http from 'http'
+import * as https from 'https'
+
 if(cfg.settings.protocol === 'http') {
     
-    var http = require('http');
+    //var http = require('http');
     let server = http.createServer(
         onRequest
     );
@@ -173,7 +178,7 @@ if(cfg.settings.protocol === 'http') {
 }
 else if (cfg.settings.protocol === 'https') {
     
-    var https = require('https');
+    //var https = require('https');
     // options are used by the https server
     // pfx handles the certificate file
     var options = {
