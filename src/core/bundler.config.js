@@ -28,5 +28,5 @@ bundle({
     //init: {[entryPoints[0]]:function index(bundle) {
     //    console.log('this is a prebundled script to provide some initial values! bundle:', bundle);
     //}}
-    //html: true //spit out a .html file that executes the umd js file in the body? This is like bundling a '.exe', only works for pure frontend bundles (i.e. no assets unless from url)
+    //createHTML: true //spit out a .html file that executes the umd js file in the body? This is like bundling a '.exe', only works for pure frontend bundles (i.e. no assets unless from url)
 })

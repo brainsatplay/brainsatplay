@@ -12,17 +12,18 @@ import {dtsPlugin} from 'esbuild-plugin-d.ts'
 import fs from 'fs'
 
 const defaultConfig = {
-  createBrowser:true,
-  createESM:true,
-  createNode:false,
-  createIIFE:false,
-  createTypes:true,
-  allowOverwrite:true,
-  entryPoints:['index.ts'],
-  outfile:'dist/index',
-  //outdir:[]
+  createBrowser:true, //create plain js build? Can include globals and init scripts
+  createESM:true,     //create esm module js files
+  createNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
+  createIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
+  createTypes:true,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
+  createHTML:false,   //wrap the plain js file as a script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
+  allowOverwrite:true, 
+  entryPoints:['index.ts'], //entry point file(s)
+  outfile:'dist/index',     //exit point file
+  //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
-  platform: 'browser', //createNodeJS will use 'node' mode by default
+  platform: 'browser', //'node' //createNodeJS will use 'node' mode by default
   minify: true,
   sourcemap: false,
   external: ['node-fetch'], // [];
@@ -40,11 +41,18 @@ const defaultConfig = {
     '.mp4': 'file',
     '.json': 'text',
   },
-  outputs:{
+  outputs:{ //overwrites main config settings for specific use cases
     node:{ 
       external:[] //externals for node environment builds
     }
-  }
+    //esm:{}
+    //commonjs:{}
+    //browser:{}
+    //iife:{}
+  },
+  //globalThis:null
+  //globals:{[this.entryPoints[0]]:['Graph']}
+  //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }
 
 
@@ -265,7 +273,7 @@ export default async function bundle(configs) {
       await esbuild.build(cfg).then(()=>{
         console.timeEnd('\n Built UMD-like .js file(s) for browser');
 
-        if(config.html) { //bundle the outfile into a boilerplate html
+        if(config.createHTML) { //bundle the outfile into a boilerplate html
 
           let htmlurl = split.join('.')+'.html';
 
@@ -405,5 +413,5 @@ function cleanupConfig(cfg={}) {
   delete cfg.globalThis;
   delete cfg.globals;
   delete cfg.init;
-  delete cfg.html;
+  delete cfg.createHTML;
 }
