@@ -92,6 +92,23 @@ export default async function bundle(configs) {
       if(config.outputs?.esm) {
         if(config.outputs.esm.entryPoints) {
           cfg.entryPoints = config.outputs.esm.entryPoints.map(v => `${cwd}/${v}`);
+    // const pkg = { main: 'dist/index.js', module: 'dist/index.esm.js' }
+
+    // const genericBAPInputObject = {
+    //   input: config.entryPoints[0] ?? './index.ts', // our source file
+    //   output: [
+    //     {
+    //       file: config.outfile ?? pkg.main,
+    //       format: 'browser', // the preferred format
+    //       // exports: 'named',
+    //       name: config.globalThis,
+    //       globals: config.globals,
+    //       init: config.init,
+    //       html: config.html
+    //     },
+    //     {
+    //       file: pkg.module,
+    //       format: 'esm'
         }
         Object.assign(cfg,config.outputs.esm);
       }
@@ -144,7 +161,52 @@ export default async function bundle(configs) {
 
       entryPoints.forEach((f,i)=>{  
         if(config.globalThis || config.init || config.globals) {
+//     config = genericBAPInputObject
+//     console.log(config)
+
+//   // ------------------ END PROVISIONAL CODE ------------------
+
+//   config = Object.assign(defaultConfig, config)
+//   config.entryPoints = Array.isArray(config.index) ? config.input : [config.input]
+//   config.entryPoints = config.entryPoints.map(v => v.split('/').slice(1).join('/')) // Remove first folder
+//   // TODO: Make sure that relative references are fully maintained
+
+//   let temp_files = [...config.entryPoints];
+
+//  await Promise.all(config.output.map(async o => {
+
+//     // const dir = o.dir ?? 'dist'
+//     const outfile = `${cwd}/${o.file}`
+
+//     switch(o.format){
+
+
+//   case 'esm': 
+//     console.time('\n Built .esm.js file(s)')
+//     await esbuild.build({ //es modules
+//       entryPoints: config.entryPoints.map(v => `${cwd}/${v}`),//:temp_files,
+//       bundle:true,
+//       outfile,
+//       //outdir:outfile, // for multiple entry points
+//       format:'esm',
+//       //platform:'node',
+//       external: config.external,
+//       minify: config.minify,
+//       sourcemap: config.sourcemap,
+//       loader: config.loader
+//     }).then(()=>{
+//       console.timeEnd('\n Built .esm.js file(s)');
+//     });
+//     break;
+  
+//   case 'browser': // kinda UMD
+//     console.time('\n Built UMD-like .js file(s) for browser');
+
+//     // Globals
+//       config.entryPoints.forEach((f,i)=>{  
+//         if(o.name || o.init || o.globals) {
     
+
           let ext = f.split('.')[f.split('.').length-1];
           let subpath = f.substring(0,f.indexOf('.'+ext));
     
@@ -199,8 +261,7 @@ export default async function bundle(configs) {
             }
           }
     
-          if(propname) {
-    
+          if(propname) {    
             const tempName = cwd + '/' + tempDir + '/temp_'+f
             fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
               tempName,
