@@ -1,7 +1,7 @@
 
 import {DOMElement} from 'fragelement';
 
-import {AcyclicGraph} from '../dist/index.esm'
+import {AcyclicGraph} from '../index'
 
 let component = require('./acyclic.graph.html');
 if(typeof component !== 'string') component = component.default;
