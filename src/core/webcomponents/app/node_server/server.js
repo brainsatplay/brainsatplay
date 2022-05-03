@@ -12,6 +12,8 @@ import * as hotreload from './hotreload/hotreload.js'
 
 import { py_wss, py_client } from './relay/python_relay.js';
 
+console.time(`node server started!`);
+
 //when a request is made to the server from a user, what should we do with it?
 function onRequest(request, response) {
     if(cfg.settings.debug) console.log('request ', request.url);
@@ -147,6 +149,8 @@ function onUpgrade(request, socket, head) { //https://github.com/websockets/ws
 
 //runs when the server starts successfully.
 function onStarted() {      
+    
+    console.timeEnd(`node server started!`);
     console.log(`Server running at 
         ${cfg.settings.protocol}://${cfg.settings.host}:${cfg.settings.port}/`
     );
