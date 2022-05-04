@@ -1,4 +1,4 @@
-import {bundle} from '../index.js'
+import {bundle} from '../bundlify.js'
 
 bundle({
   entryPoints: ['app.js'],

@@ -1,4 +1,4 @@
-import {bundle} from '../build/index.js'
+import {bundle} from '../build/tinybuild.js'
 
 // import pkg from './package.json';
 // const pkg = { main: 'index.js', module: 'index.esm.js' }

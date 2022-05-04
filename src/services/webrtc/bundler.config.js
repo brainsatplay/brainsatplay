@@ -1,4 +1,4 @@
-import {bundle} from '../../build/index.js'
+import {bundle} from '../../build/tinybuild.js'
 
 
 bundle({

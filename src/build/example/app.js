@@ -1,3 +1,6 @@
+
+//alert('Hello World!');
+
 import * as components from '../../components'
 console.log('window.components:', components)
 

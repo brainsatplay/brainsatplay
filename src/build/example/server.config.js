@@ -1,3 +1,3 @@
-import {serve,defaultServer} from '../index.js'
+import {serve,defaultServer} from '../bundlify.js'
 
 let info = serve(defaultServer);
