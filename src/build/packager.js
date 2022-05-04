@@ -18,7 +18,7 @@ export async function packager(config=defaultConfig) {
         packaged.bundles = await bundler.bundle(config.bundler);
     
         if(config.server) { //now serve the default server
-            if(config.bundler.createHTML) { //serve the bundled app page 
+            if(config.bundler.bundleHTML) { //serve the bundled app page 
                 
                 let outfile = config.bundler.outfile;
                 if(!outfile) outfile = config.bundler.outdir[0];
