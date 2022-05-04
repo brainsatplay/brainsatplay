@@ -125,10 +125,10 @@ export async function initRepo(
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild: "~0.0.6",
+                "tinybuild: "~0.0.7",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15",
-                "ws": "^8.5.0",
+                "ws": "^8.5.0"
             },
             "nodemonConfig": {
                 "env": {
@@ -227,7 +227,7 @@ export async function initRepo(
                 "esbuild": "^0.14.38",
                 "esbuild-plugin-d.ts":"^1.1.0",
                 "nodemon": "^2.0.15",
-                "ws": "^8.5.0",
+                "ws": "^8.5.0"
             },
             "nodemonConfig": {
                 "env": {

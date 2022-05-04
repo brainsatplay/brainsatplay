@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "Barebones esbuild and test node server implementation. For building",
   "main": "tinybuild.js",
   "type":"module",
