@@ -1,0 +1,79 @@
+//node tinybuild/init.js
+
+import { initRepo } from "./repo";
+
+let defaultRepo = {
+    dirName:'example',    
+    entryPoint:'index.js', //your head js file
+    initScript:`
+        /* 
+            esbuild + nodejs (with asyncio python) development/production server. 
+            Begin your javascript application here. This file serves as a simplified entry point to your app, 
+            all other scripts you want to build can stem from here if you don't want to define more entryPoints 
+            and an outdir in the bundler settings.
+        */
+
+        document.body.style.backgroundColor = '#101010'; //page color
+        document.body.style.color = 'white'; //text color
+        let div = document.createElement('div');
+        div.innerHTML = 'Hello World!';
+        document.body.appendChild(div);
+
+        alert('tinybuild successful!');
+    `,
+    config:{
+        bundler:{
+            entryPoints: [entryPoint],
+            outfile: 'dist/'+entryPoint.slice(0,entryPoint.lastIndexOf('.')),
+            bundleBrowser: true, //plain js format
+            bundleESM: false, //.esm format
+            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+            bundleHTML: true
+        },
+        server:server.defaultServer
+    }, //can set the config here
+    includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
+}
+
+let argIdx = null;
+let tick = 0;
+let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
+process.argv.forEach((val, idx, array) => {
+    //idx = 0: 'node'
+    //idx = 1: 'tinybuild/init.js
+    // dir='example'
+    // entry='index.js'
+    // core=false/true
+    // script=``   //no spaces
+    // config={} //no spaces
+
+    if(argIdx && tick < 5){ //after 5 args we probably aren't on these args anymore
+        if(val.includes('dir')) {
+            defaultRepo.dirName = val.split('=').pop()
+        }
+        if(val.includes('entry')) {
+            defaultRepo.entryPoint = val.split('=').pop()
+        }
+        if(val.includes('core')) {
+            defaultRepo.includeCore = val.split('=').pop()
+        }
+        if(val.includes('script')) {
+            defaultRepo.initScript = val.split('=').pop()
+        }
+        if(val.includes('config')) {
+            defaultRepo.config = val.split('=').pop()
+        }
+        tick++;
+    }
+    if(val === fileName) argIdx = true;
+
+});
+
+
+initRepo(
+    defaultRepo.dirName,    
+    defaultRepo.entryPoint, //your head js file
+    defaultRepo.initScript,
+    defaultRepo.config, //can set the config here
+    defaultRepo.includeCore, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
+)

@@ -1,12 +1,13 @@
 {
   "name": "tinybuild",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Barebones esbuild and test node server implementation. For building",
   "main": "tinybuild.js",
   "type":"module",
   "scripts": {
     "start": "npm run startdev",
     "build": "cd example && node tinybuild.js",
+    "init": "node tinybuild/init.js",
     "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
     "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
     "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
