@@ -1,5 +1,6 @@
 export * from './esbuild/bundler.js'
 export * from './node_server/server.js'
+export * from './repo'
 
 import * as bundler from './esbuild/bundler.js'
 import * as server from './node_server/server.js'
