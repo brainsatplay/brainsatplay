@@ -204,7 +204,7 @@ To run: `npm run build` to bundle, then `npm start` to run the node server.
 
 You can specify https and add an ssl certificate if you follow the instructions.
 
->2 dependencies: `esbuild` and [`fragelement`](https://github.com/brainsatplay/domelement)
+>2 dependencies: `esbuild` 
 
 ## Hot reloading (for dev)
 

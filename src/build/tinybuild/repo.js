@@ -84,7 +84,7 @@ export async function initRepo(
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild: "~0.0.9",
+                "tinybuild: "~0.0.10",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15"
             },
