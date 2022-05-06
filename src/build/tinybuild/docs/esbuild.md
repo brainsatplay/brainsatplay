@@ -93,7 +93,11 @@ const bundlerSettings = {
 
 ### Browser Bundling
 
-Browser bundling simply breaks projects down into plain js format, usable e.g. in script tags. This includes support for setting module global names as well as specifying specific class names or functions, variables, etc you want to expose via the `globalThis:string` and `globals:{'entrypoint.js':['ClassToSetOnglobalThis']}`. The `init:{'entrypoint.js':function(bundle){}}` setting lets you specify scripts to append to bundles e.g. to initialize bundled class instances with default settings. It's painless! 
+Browser bundling simply breaks projects down into plain js format, usable e.g. in script tags. 
+
+This includes support for setting module global names as well as specifying specific class names or functions, variables, etc you want to expose via the `globalThis:string` and `globals:{'entrypoint.js':['ClassToSetOnglobalThis']}` settings. 
+
+The `init:{'entrypoint.js':function(bundle){}}` setting lets you specify scripts to append to bundles e.g. to initialize bundled class instances with default settings. It's painless! Currently these extra settings only applies to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'.
 
 ### ESM Bundling
 
@@ -101,11 +105,15 @@ ESM bundles are for enabling the `import`/`export` syntax either in es6 or later
 
 ### Types Bundling
 
-As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. These function sort of like header files in C, which show you all of the functions/classes/variables/etc. and their input/output formats (including detailed formatting for objects or array types) in each respective script file.
+As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. 
+
+These function sort of like header files in strongly-typed C, which show you all of the functions/classes/variables/etc. and their expected input/output formats (including detailed formatting for objects or array types) in each respective script file. Nice for reference, VSCode otherwise does this on-the-fly even in .js files when working.
 
 ### Node Bundling 
 
-This is a setting to generate a plain js file with `platform:'node'` targeted. If you include this setting in the bundler settings object it will apply to all bundles. It allows node modules like `fs` or `ws` etc. to be bundled as needed. We use it in some cases to create frontend and backend libraries from the same files that otherwise use the same function calls just with different dependencies if running a client or server, as browsers lack backend server libraries and node lacks frontend tools like animations or the DOM (without an engine anyway). 
+This is a setting to generate a plain js file with `platform:'node'` targeted. If you include this setting in the bundler settings object it will apply to all bundles. It allows node modules like `fs` or `ws` etc. to be bundled as needed. 
+
+We use it in some cases to create frontend and backend libraries from the same files that otherwise use the same function calls just with different dependencies if running a client or server, as browsers lack backend server libraries and node lacks frontend tools like animations or the DOM (without an engine anyway). 
 
 ### IIFE/CommonJS
 
@@ -113,7 +121,11 @@ These are other bundle formats. We temporarily generate IIFE files so the types 
 
 ### HTML Bundling
 
-This is an extension to the browser bundler (including the global installs) that will wrap the browser bundle in HTML boilerplate. If your script entry point is to your app, then this can automatically be served, and if the app does not require served files etc. then it essentially serves like a built .exe file. You may also use it if you want to write library tests for esm bundles with quick init scripts and bundling->serving. 
+This is an extension to the browser bundler (including the global installs) that will wrap the browser bundle in HTML boilerplate. 
+
+If your script entry point is to your app, then this can automatically be served, and if the app does not require served files etc. then it essentially serves like a built .exe file. 
+
+You may also use it if you want to write quick library or frontend tests with init scripts and test serving scripts to execute in-browser. Currently this test setting only applies to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'. 
 
 ### External
 
