@@ -19,8 +19,8 @@ export const defaultBundler = {
   bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
   bundleCommonJS:false, //cjs format outputted as .cjs.js
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
-  entryPoints:['index.ts'], //entry point file(s)
-  outfile:'dist/index',     //exit point file
+  entryPoints:['index.ts'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
+  outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
   //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
@@ -52,7 +52,7 @@ export const defaultBundler = {
     //iife:{}
   },
   defaultConfig: true //indicates this object is the default config
-  //globalThis:null
+  //globalThis:null //'brainsatplay'
   //globals:{[this.entryPoints[0]]:['Graph']}
   //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }

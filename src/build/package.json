@@ -1,7 +1,7 @@
 {
   "name": "tinybuild",
-  "version": "0.0.10",
-  "description": "Barebones esbuild and test node server implementation. For building",
+  "version": "0.0.11",
+  "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type":"module",
   "scripts": {
@@ -11,9 +11,9 @@
     "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
     "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
     "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-    "python": "python python/server.py",
+    "python": "python tinybuild/python/server.py",
     "pip": "pip install quart && pip install websockets",
-    "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+    "pwa": "npm i workbox-cli && workbox generateSW tinybuild/node_server/pwa/workbox-config.js && npm run build && npm start"
   },
   "keywords": [
     "esbuild"

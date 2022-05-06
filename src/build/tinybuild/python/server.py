@@ -11,7 +11,8 @@
 production = False ### For serving HTTPS, use False for HTTP and hot reloading quart (only if this file changes)
 host = 'localhost' ## e.g. mywebsite.com
 port = 7000
-base_dir = '../' ## Example serves both templates and static files from the base dir
+startpage = 'index.html'
+base_dir = '../../' ## Example serves both templates and static files from the base dir
 debug = False
 
 config = {
@@ -91,12 +92,12 @@ async def broadcast(message):
 ## test route for receiving messages
 @app.route('/')
 async def index():
-    return await render_template('python/index.html')
+    return await render_template(startpage)
 
 ## Can serv the built app from quart too
-@app.route('/build')
+@app.route('/test')
 async def build():
-    return await render_template('src/index.html')
+    return await render_template('python/index.html')
 
 # returns arbitrary files (e.g. the built app files)
 @app.route('/<path:path>')

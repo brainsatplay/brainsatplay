@@ -27,7 +27,7 @@ export async function initRepo(
             bundleBrowser: true, //plain js format
             bundleESM: false, //.esm format
             bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-            bundleHTML: true
+            bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
         },
         server:server.defaultServer
     }, //can set the config here
@@ -84,7 +84,7 @@ export async function initRepo(
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild: "~0.0.10",
+                "tinybuild: "~0.0.11",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15"
             },
@@ -146,7 +146,7 @@ export async function initRepo(
             //node init.js to run the packager function
             
             export * from './tinybuild/packager'
-            import { packager, defaultServer, initRepo } from './tinybuild/packager'
+            import { packager, defaultServer } from './tinybuild/packager'
         
             let config = ${JSON.stringify(config)};
             

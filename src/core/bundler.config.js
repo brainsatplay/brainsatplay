@@ -23,6 +23,8 @@ import {bundle} from '../build/tinybuild.js'
 
 bundle({
     globalThis: 'brainsatplay',
+    bundleESM:true,
+    bundleTypes:true
     //globals:{
     //    [entryPoints[0]]:['Graph','Router','AcyclicGraph]
     //}
