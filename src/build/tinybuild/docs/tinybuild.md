@@ -54,7 +54,7 @@ defaultRepo = {
 
 You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo(dirName='example',entryPoint='index.js',initScript='some stringified script',config={...bundlerConfig},includeCore=boolean)`
 
-Like so `node tinybuild/init.js dir=myApp core=true` to make a directory called myApp that includes the source code and a default package.json and index.js and tinybuild.js bundle+serve file.
+Like so `node tinybuild/init.js dir=myApp core=true` to make a directory called myApp that includes the source code and a default package.json, app or library entry point .js file, and tinybuild.js bundle+serve file for you to customize following our documentation.
 
 ```js
 // e.g. via command line: 'node tinybuild/init.js dir=myApp core=true'
