@@ -60,10 +60,10 @@ process.argv.forEach((val, idx, array) => {
             defaultRepo.includeCore = command.split('=').pop()
         }
         if(command.includes('script')) {
-            defaultRepo.initScript = command.split('=').pop()
+            defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
         }
         if(command.includes('config')) {
-            defaultRepo.config = command.split('=').pop()
+            defaultRepo.config = decodeURIComponent(command.split('=').pop())
         }
         tick++;
     }
