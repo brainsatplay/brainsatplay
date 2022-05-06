@@ -97,7 +97,7 @@ Browser bundling simply breaks projects down into plain js format, usable e.g. i
 
 This includes support for setting module global names as well as specifying specific class names or functions, variables, etc you want to expose via the `globalThis:string` and `globals:{'entrypoint.js':['ClassToSetOnglobalThis']}` settings. 
 
-The `init:{'entrypoint.js':function(bundle){}}` setting lets you specify scripts to append to bundles e.g. to initialize bundled class instances with default settings. It's painless! Currently these extra settings only applies to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'.
+The `init:{'entrypoint.js':function(bundle){}}` setting lets you specify scripts to append to bundles e.g. to initialize bundled class instances with default settings. It's painless! Currently these extra settings only apply to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'.
 
 ### ESM Bundling
 
