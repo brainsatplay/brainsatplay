@@ -104,7 +104,7 @@ We recommend these as your package.json settings with tinybuild and to use the c
 then `npm install` in the directory with this file.
 
 - Hot reloading is accomplished with `nodemon` and `ws`
-- Concurrent python and node is accompished with `concurrent`
+- Concurrent python and node is accompished with `concurrently`
 - PWA bundling is accomplished with `workbox-cli` installed optionall via `npm run pwa`
 
 ## Build & Run Development Server
