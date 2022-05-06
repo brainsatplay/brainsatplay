@@ -1,5 +1,5 @@
 // ./builder.config.js
-const builder = require('build-dev')
+import builder from 'build-dev'
 
 function run([type]) {
     switch (type) {

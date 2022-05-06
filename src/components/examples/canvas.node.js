@@ -1,9 +1,8 @@
 
 import {addCustomElement} from 'fragelement';
 
-import {NodeDiv} from '../graph.node'
-
-let component = require('./canvas.node.html');
+import {NodeDiv} from '../graph.node.js'
+import component from './canvas.node.html'
 if(typeof component !== 'string') component = component.default;
 
 
