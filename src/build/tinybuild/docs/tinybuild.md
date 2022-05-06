@@ -47,7 +47,7 @@ Create a package.json if you don't have one. You an use these scripts to run the
         "nodemon": "^2.0.15",
         "concurrently": "^7.1.0"
     },
-//-------------OR (delete one)----------------//
+//-------------OR (delete above if using source)----------------//
     "devDependencies": {
         "concurrently": "^7.1.0",
         "esbuild": "^0.14.38",
