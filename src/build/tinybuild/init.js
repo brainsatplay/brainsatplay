@@ -23,8 +23,8 @@ let defaultRepo = {
     `,
     config:{
         bundler:{
-            entryPoints: [entryPoint],
-            outfile: 'dist/'+entryPoint.slice(0,entryPoint.lastIndexOf('.')),
+            entryPoints: [this.entryPoint],
+            outfile: 'dist/'+this.entryPoint.slice(0,this.entryPoint.lastIndexOf('.')),
             bundleBrowser: true, //plain js format
             bundleESM: false, //.esm format
             bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
