@@ -113,5 +113,5 @@ The function
 ```js
 packager(config)
 ``` 
-simply combines the [bundle()] and [serve()] functions and settings objects to run sequentially using a combined object labeled as above. We provide `defaultBundler` and `defaultServer` for quick setup. 
+simply combines the [bundle()] and [serve()] functions and settings objects to run sequentially using a combined object labeled as above. We provide `defaultBundler` and `defaultServer` for quick setup (or `defaultConfig` for combined). 
 

@@ -1,4 +1,4 @@
-import {bundle} from '../bundlify.js'
+import {bundle} from '../tinybuild.js'
 
 bundle({
   entryPoints: ['app.js'],
