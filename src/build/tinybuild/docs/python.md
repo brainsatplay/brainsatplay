@@ -14,6 +14,7 @@ Code: [`tinybuild/python`](../python)
 production = False ### For serving HTTPS, use False for HTTP and hot reloading quart (only if this file changes)
 host = 'localhost' ## e.g. mywebsite.com
 port = 7000
+startpage = 'index.html'
 base_dir = '../../' ## Example serves both templates and static files from the base dir
 debug = False
 
