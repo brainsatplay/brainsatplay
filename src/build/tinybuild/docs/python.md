@@ -1,6 +1,6 @@
 ## [Python](https://www.python.org/) server with [Quart](https://pgjones.gitlab.io/quart/) asyncio + Threading, serving the webapp, and websockets, sse demos.
 
-We've provided some boilerplate to spin up a Python server that can communicate with the node server or directly to the browser. It can also serve the built files and website, serve a custom REST api with direct python integration. 
+We've provided some boilerplate to spin up a Python server that can communicate with the node server or directly to the browser. It can also serve the built files and website, serve a custom REST api with direct python integration, and otherwise demonstrates a high performance python server skeleton.
 
 We included presets to use Quart's https production server (via [hypercorn](https://pgjones.gitlab.io/hypercorn/)) as long as an ssl certificate is provided. See the top of the [`server.py`](../python/server.py) file for server settings which are configured manually.
 
