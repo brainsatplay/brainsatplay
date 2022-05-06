@@ -1,6 +1,6 @@
 ## Base node server
 
-To run: `node node_server/serve.js`
+To run: `node node_server/server.js` with an index.html file in your main folder.
 
 Adjust the server settings easily in server_settings.js. 
 Change host, port, start and error pages, http or https (plus ssl cert).
