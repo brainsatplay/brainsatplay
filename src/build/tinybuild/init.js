@@ -46,22 +46,24 @@ process.argv.forEach((val, idx, array) => {
     // core=false/true
     // script=``   //no spaces
     // config={} //no spaces
+    
+    let command = val;
 
     if(argIdx && tick < 5){ //after 5 args we probably aren't on these args anymore
-        if(val.includes('dir')) {
-            defaultRepo.dirName = val.split('=').pop()
+        if(command.includes('dir')) {
+            defaultRepo.dirName = command.split('=').pop()
         }
-        if(val.includes('entry')) {
-            defaultRepo.entryPoint = val.split('=').pop()
+        if(command.includes('entry')) {
+            defaultRepo.entryPoint = command.split('=').pop()
         }
-        if(val.includes('core')) {
-            defaultRepo.includeCore = val.split('=').pop()
+        if(command.includes('core')) {
+            defaultRepo.includeCore = command.split('=').pop()
         }
-        if(val.includes('script')) {
-            defaultRepo.initScript = val.split('=').pop()
+        if(command.includes('script')) {
+            defaultRepo.initScript = command.split('=').pop()
         }
-        if(val.includes('config')) {
-            defaultRepo.config = val.split('=').pop()
+        if(command.includes('config')) {
+            defaultRepo.config = command.split('=').pop()
         }
         tick++;
     }
