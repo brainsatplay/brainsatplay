@@ -52,25 +52,27 @@ defaultRepo = {
 
 ### Command line settings
 
-You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo()`
+You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo(dirName='example',entryPoint='index.js',initScript='some stringified script',config={...bundlerConfig},includeCore=boolean)`
+
+Like so `node tinybuild/init.js dir=myApp core=true` to make a directory called myApp that includes the source code and a default package.json and index.js and tinybuild.js bundle+serve file.
 
 ```js
 // e.g. via command line: 'node tinybuild/init.js dir=myApp core=true'
-if(command.includes('dir')) {
-            defaultRepo.dirName = command.split('=').pop()
-        }
-        if(command.includes('entry')) {
-            defaultRepo.entryPoint = command.split('=').pop()
-        }
-        if(command.includes('core')) {
-            defaultRepo.includeCore = command.split('=').pop()
-        }
-        if(command.includes('script')) {
-            defaultRepo.initScript = command.split('=').pop()
-        }
-        if(command.includes('config')) {
-            defaultRepo.config = command.split('=').pop()
-        }
+    if(command.includes('dir')) {
+        defaultRepo.dirName = command.split('=').pop()
+    }
+    if(command.includes('entry')) {
+        defaultRepo.entryPoint = command.split('=').pop()
+    }
+    if(command.includes('core')) {
+        defaultRepo.includeCore = command.split('=').pop()
+    }
+    if(command.includes('script')) {
+        defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
+    }
+    if(command.includes('config')) {
+        defaultRepo.config = decodeURIComponent(command.split('=').pop())
+    }
 ```
 
 
