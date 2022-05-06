@@ -5,10 +5,6 @@ esbuild is an ultra lightweight and fast bundler (based in Rust) used in NodeJS 
 
 esbuild supports the full spectrum of javascript bundling needs we've encountered so far and we have documented and abstracted its typical features fairly well with our settings. See their website for more information. 
 
-Our presets will let you quickly bundle apps, browser and node modules, generate types, create "executable" html files from entry points, "webpacked" globals and init scripts, and more with esbuild (minification, sourcemaps, js or browser version targeting, etc.), all with just one input object!
-
-The other half of our preset tools in tinybuild include a boilerplate node development server with optional https, hot reloading, pwa support, python server interoperation examples, and websocket presets so it can work as a quick and dirty production server as well.
-
 Code: [`tinybuild/esbuild`](../esbuild)
 
 ## Bundling
@@ -34,8 +30,9 @@ bundle({
 })
 ```
 
-These settings will 
+Our presets will let you quickly bundle apps, browser and node modules, generate types, create "executable" html files from entry points, "webpacked" globals and init scripts, and more with esbuild (minification, sourcemaps, js or browser version targeting, etc.), all with just one input object!
 
+The other half of our preset tools in tinybuild include a boilerplate node development server with optional https, hot reloading, pwa support, python server interoperation examples, and websocket presets so it can work as a quick and dirty production server as well.
 
 ## Bundler settings
 
