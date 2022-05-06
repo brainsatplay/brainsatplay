@@ -13,6 +13,66 @@ esbuild supports the full spectrum of javascript bundling needs and we have docu
 
 The node server is no-frills with websocket based hot reloading and basic examples of python backend communication and relaying. It's small and fast and meets our most common development server needs without giant dependencies.
 
+## init
+
+The fastest way to create a tinybuild app with your own settings is to run `node tinybuild/init.js` either after installing tinybuild from npm or cloning the source to your project folder.  It runs with these default settings
+
+```js
+defaultRepo = {
+    dirName:'example',    
+    entryPoint:'index.js', //your head js file
+    initScript:`
+        /* 
+            esbuild + nodejs (with asyncio python) development/production server. 
+            Begin your javascript application here. This file serves as a simplified entry point to your app, 
+            all other scripts you want to build can stem from here if you don't want to define more entryPoints 
+            and an outdir in the bundler settings.
+        */
+        document.body.style.backgroundColor = '#101010'; //page color
+        document.body.style.color = 'white'; //text color
+        let div = document.createElement('div');
+        div.innerHTML = 'Hello World!';
+        document.body.appendChild(div);
+        alert('tinybuild successful!');
+    `,
+    config:{
+        bundler:{
+            entryPoints: [entryPoint],
+            outfile: 'dist/'+entryPoint.slice(0,entryPoint.lastIndexOf('.')),
+            bundleBrowser: true, //plain js format
+            bundleESM: false, //.esm format
+            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+            bundleHTML: true
+        },
+        server:server.defaultServer
+    }, //can set the config here
+    includeCore:true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
+}
+```
+
+### Command line settings
+
+You can customize default repo settings above via command line if you don't want to create your own init file to run `initRepo()`
+
+```js
+// e.g. via command line: 'node tinybuild/init.js dir=myApp core=true'
+if(command.includes('dir')) {
+            defaultRepo.dirName = command.split('=').pop()
+        }
+        if(command.includes('entry')) {
+            defaultRepo.entryPoint = command.split('=').pop()
+        }
+        if(command.includes('core')) {
+            defaultRepo.includeCore = command.split('=').pop()
+        }
+        if(command.includes('script')) {
+            defaultRepo.initScript = command.split('=').pop()
+        }
+        if(command.includes('config')) {
+            defaultRepo.config = command.split('=').pop()
+        }
+```
+
 
 ## tinybuild quick start:
 Create a package.json if you don't have one. You an use these scripts to run the server.
