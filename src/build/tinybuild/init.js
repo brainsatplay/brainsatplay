@@ -28,7 +28,7 @@ let defaultRepo = {
             bundleBrowser: true, //plain js format
             bundleESM: false, //.esm format
             bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-            bundleHTML: true
+            bundleHTML: true  //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
         },
         server:server.defaultServer
     }, //can set the config here
