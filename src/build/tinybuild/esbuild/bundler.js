@@ -364,7 +364,7 @@ export async function bundleCommonJS(config) {
 
 ///bundle .d.ts and .iife.js files
 export async function bundleTypes(config) {
-  console.time(`\n Built .d.ts files (${i})`);
+  console.time(`\n Built .d.ts files`);
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
@@ -403,7 +403,7 @@ export async function bundleTypes(config) {
         cfg.outdir.map(v => fs.unlink(v,()=>{}));
       }
     }
-    console.timeEnd(`\n Built .d.ts files (${i})`);
+    console.timeEnd(`\n Built .d.ts files`);
   });
 }
 
