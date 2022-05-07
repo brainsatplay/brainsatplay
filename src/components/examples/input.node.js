@@ -2,7 +2,7 @@
 
 import {NodeDiv} from '../graph.node.js'
 
-import component from './input.node.html'
+let component = require('./input.node.html');
 if(typeof component !== 'string') component = component.default;
 
 //See: https://github.com/brainsatplay/domelement

@@ -3,7 +3,7 @@ import {addCustomElement} from 'fragelement';
 
 import {NodeDiv} from '../graph.node.js'
 
-import component from './circlecanvas.node.html'
+let component = require('./circlecanvas.node.html');
 if(typeof component !== 'string') component = component.default;
 
 

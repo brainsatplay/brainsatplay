@@ -3,7 +3,7 @@ import {DOMElement} from 'fragelement';
 
 import {AcyclicGraph} from '../core/Graph.ts'
 
-import component from './acyclic.graph.html'
+let component = require('./acyclic.graph.html')
 if(typeof component !== 'string') component = component.default;
 
 

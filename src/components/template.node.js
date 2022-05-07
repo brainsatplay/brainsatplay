@@ -1,7 +1,7 @@
 
 import {NodeDiv} from './graph.node.js'
 
-import component from './template.node.html'
+let component = require('./template.node.html');
 if(typeof component !== 'string') component = component.default;
 
 
