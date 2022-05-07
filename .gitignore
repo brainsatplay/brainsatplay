@@ -4,6 +4,9 @@ node_modules
 *.key
 *.lock
 *.log
+**/.temp
+
+src/visualscript/examples/**
 
 lib
 lib-esm
