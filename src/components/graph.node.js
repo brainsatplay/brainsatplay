@@ -1,9 +1,9 @@
 
 import {DOMElement} from 'fragelement';
 
-import {Graph} from '../core/index'
+import {Graph} from '../core/Graph.ts'
+import component from './graph.node.html'
 
-let component = require('./graph.node.html');
 if(typeof component !== 'string') component = component.default;
 
 //See: https://github.com/brainsatplay/domelement

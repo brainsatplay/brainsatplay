@@ -1,6 +1,6 @@
-import {NodeDiv} from '../graph.node'
+import {NodeDiv} from '../graph.node.js'
 
-let component = require('./place.node.html');
+import component from './place.node.html'
 if(typeof component !== 'string') component = component.default;
 
 // /r/place ripoff

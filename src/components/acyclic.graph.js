@@ -1,9 +1,9 @@
 
 import {DOMElement} from 'fragelement';
 
-import {AcyclicGraph} from '../core/index'
+import {AcyclicGraph} from '../core/Graph.ts'
 
-let component = require('./acyclic.graph.html');
+import component from './acyclic.graph.html'
 if(typeof component !== 'string') component = component.default;
 
 

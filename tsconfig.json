@@ -1,12 +1,12 @@
-{
+{{
   "compilerOptions": {
       /* -- Basic Options -- */
-      "target": "esnext", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */
+      "target": "es2020", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'es2020'. */
       "rootDir": "./", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
       "outDir": "dist/", /* Redirect output structure to the directory. */
-      "module": "esnext", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
+      "module": "es2020", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
       "declaration": true, /* Generates corresponding '.d.ts' file. */
-      "lib": ["webworker", "es5", "dom", "scripthost"],
+      "lib": ["webworker", "es2020", "dom", "scripthost"],
       "importHelpers": true, /* Import emit helpers from 'tslib'. */
     //   "noEmitHelpers": true,
       "pretty": true, /* Stylize errors and messages using color and context (experimental). */
@@ -31,7 +31,7 @@
       // "strictNullChecks": true, /* Enable strict null checks. */
       // "strictPropertyInitialization": true, /* Ensure non-undefined class properties are initialized in the constructor. */
       "esModuleInterop": true,
-
+      
       /* -- Module Resolution Options -- */
       "moduleResolution": "node",
       "typeRoots": [
@@ -48,5 +48,6 @@
       "**/tests/**",
       "**/dist/**",
   ],
-  "include": ["src", "dist/backend_server"],
+  "include": ["src"],
+}
 }
