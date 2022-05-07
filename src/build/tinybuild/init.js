@@ -37,7 +37,9 @@ let defaultRepo = {
 
 let argIdx = null;
 let tick = 0;
-let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
+const __filename = fileURLToPath(import.meta.url); //ES syntax
+var fileName = path.basename(__filename);
+
 process.argv.forEach((val, idx, array) => {
     //idx = 0: 'node'
     //idx = 1: 'tinybuild/init.js
