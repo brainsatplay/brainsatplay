@@ -77,7 +77,7 @@ We recommend these as your package.json settings with tinybuild and to use the c
     "dependencies": {
     },
     "devDependencies":{
-        "tinybuild": "~0.0.14",
+        "tinybuild": "~0.0.15",
         "nodemon": "^2.0.15",
         "concurrently": "^7.1.0"
     },

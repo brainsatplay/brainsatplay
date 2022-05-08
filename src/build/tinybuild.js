@@ -239,81 +239,81 @@ if(Object.keys(tinybuild).length > 0) {
 
 
     if(fs.existsSync(scriptsrc)) {
-        exec('node '+scriptsrc,(err,stdout,stderr) => {});
+        exec("nodemon --exec \"node "+scriptsrc+"\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
     }
     else {
 
-    if(!fs.existsSync('package.json')) {
-        fs.writeFileSync('package.json',
-        `{
-            "name": "tinybuild",
-            "version": "0.0.0",
-            "description": "Barebones esbuild and test node server implementation. For building",
-            "main": "index.js",
-            "type":"module",
-            "scripts": {
-                "start": "npm run startdev",
-                "build": "node tinybuild.js",
-                "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-                "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-                "python": "python python/server.py",
-                "pip": "pip install quart && pip install websockets",
-                "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-            },
-            "keywords": [
-                "esbuild"
-            ],
-            "author": "Joshua Brewster",
-            "license": "AGPL-3.0-or-later",
-            "dependencies": {
-            },
-            "devDependencies": {
-                "tinybuild": "~0.0.14",
-                "concurrently": "^7.1.0",
-                "nodemon": "^2.0.15"
-            },
-            "nodemonConfig": {
-                "env": {
-                    "NODEMON": true
+        if(!fs.existsSync('package.json')) {
+            fs.writeFileSync('package.json',
+            `{
+                "name": "tinybuild",
+                "version": "0.0.0",
+                "description": "Barebones esbuild and test node server implementation. For building",
+                "main": "index.js",
+                "type":"module",
+                "scripts": {
+                    "start": "npm run startdev",
+                    "build": "node tinybuild.js",
+                    "init": "node tinybuild/init.js",
+                    "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
+                    "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+                    "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+                    "python": "python python/server.py",
+                    "pip": "pip install quart && pip install websockets",
+                    "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
                 },
-                "ignore": [
-                    "dist/"
-                ]
-            }
-        }`);
+                "keywords": [
+                    "esbuild"
+                ],
+                "author": "Joshua Brewster",
+                "license": "AGPL-3.0-or-later",
+                "dependencies": {
+                },
+                "devDependencies": {
+                    "tinybuild": "~0.0.15",
+                    "concurrently": "^7.1.0",
+                    "nodemon": "^2.0.15"
+                },
+                "nodemonConfig": {
+                    "env": {
+                        "NODEMON": true
+                    },
+                    "ignore": [
+                        "dist/"
+                    ]
+                }
+            }`);
 
-        execSync('npm i');
-    }
-
-
-    //first check if the index.js exists, if not make them.
-    if(!fs.existsSync('index.js')) {
-        fs.writeFileSync('index.js','console.log("Hello World!");')
-    }
-
-    if(!fs.existsSync('tinybuild.js')) { //we need
-        fs.writeFileSync('tinybuild.js',
-        `
-        import { packager, defaultServer } from "tinybuild";
-        let config = {
-            bundler:{
-                entryPoints: ['index.js'], //entry file, relative to this file 
-                outfile: 'dist/index', //exit file
-                //outdir:[] 
-                bundleBrowser: true, //plain js format
-                bundleESM: false, //.esm format
-                bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-                bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-            },
-            server:defaultServer
+            execSync('npm i');
         }
 
-        //bundle and serve
-        packager(config);
-        `);
-    }
+
+        //first check if the index.js exists, if not make them.
+        if(!fs.existsSync('index.js')) {
+            fs.writeFileSync('index.js','console.log("Hello World!");')
+        }
+
+        if(!fs.existsSync('tinybuild.js')) { //we need
+            fs.writeFileSync('tinybuild.js',
+            `
+            import { packager, defaultServer } from "tinybuild";
+            let config = {
+                bundler:{
+                    entryPoints: ['index.js'], //entry file, relative to this file 
+                    outfile: 'dist/index', //exit file
+                    //outdir:[] 
+                    bundleBrowser: true, //plain js format
+                    bundleESM: false, //.esm format
+                    bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+                    bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+                },
+                server:defaultServer
+            }
+
+            //bundle and serve
+            packager(config);
+            `);
+        }
 
         exec("nodemon --exec \"node "+scriptsrc+"\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
     }
