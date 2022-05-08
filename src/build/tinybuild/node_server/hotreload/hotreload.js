@@ -16,7 +16,7 @@ export class HotReload {
     this.url = `${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`;
 
     this.wss.on('error',(err)=>{
-      console.error('python wss error:',err);
+      console.error('hotreload wss error:',err);
     })
 
     this.wss.on('connection', (ws) => {
@@ -25,7 +25,7 @@ export class HotReload {
       if(cfg.debug) console.log('New Connection to Hot Reload socket!');
     
       ws.on('message', function message(data) {
-          console.log('received: %s', data); //log messages from clients
+          console.log('received: %s', data); //log messages from client
       });
     
       ws.send(`${this.url}: pong!`);

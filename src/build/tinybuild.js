@@ -37,14 +37,21 @@ import nodemon from 'nodemon';
 
 
 //check global module path for node_modules folder
-const __filename = fileURLToPath(import.meta.url);
 let argIdx = null;
 let tick = 0;
 var fileName;
-if(typeof __filename =='undefined') 
-    fileName = path.basename(fileURLToPath(import.meta.url));
-else
+
+if(typeof __filename =='undefined') {
+    globalThis['__filename'] = import.meta.url;
+    let dirname = fileURLToPath(import.meta.url);
+    dirname = dirname.split('\\');
+    dirname.pop();
+    globalThis['__dirname'] = dirname.join('/');
+
+    fileName = path.basename(globalThis['__filename']);
+} else {
     fileName = path.basename(__filename);
+}
 //let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
 
 let mode = 'default' //python, dev
@@ -177,10 +184,56 @@ function copyFolderRecursiveSync( source, target ) {
 }
 
 
-let scriptsrc = process.cwd()+'/';
+let scriptsrc = process.cwd()+'\\';
 if(tinybuildCfg.path) scriptsrc += tinybuildCfg.path;
 else scriptsrc += 'tinybuild.js';
 
+
+//BUG
+function runNodemon(scriptsrc=scriptsrc) {
+    process.env.NODEMON = true;
+
+    console.log("nodemon watching for changes...");
+    let NODEMON_PROCESS = nodemon(`--ignore ${process.cwd()}/dist/ --ignore ${process.cwd()}/node_modules/ --ignore ${process.cwd()}/.temp/ --exec 'node ${scriptsrc}' -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv`);
+    NODEMON_PROCESS.on('restart',()=>{console.log('nodemon restarted')})
+    NODEMON_PROCESS.on('start',()=>{console.log('nodemon started')})
+    //NODEMON_PROCESS.on('exit',()=>{console.log('nodemon exited'); process.exit()})
+    NODEMON_PROCESS.on('crash',()=>{console.log('nodemon CRASHED'); process.exit()})
+    NODEMON_PROCESS.on('log',(msg)=>{console.log('nodemon: ', msg.message)});
+    // // let process = spawn("nodemon", [`--exec \"node ${scriptsrc}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+    
+    // console.log(NODEMON_PROCESS.config);
+    if(NODEMON_PROCESS.stdout) NODEMON_PROCESS.stdout.on('data',(data)=>{
+        console.log('nodemon: ',data.toString());
+    });
+
+    if(NODEMON_PROCESS.stderr) NODEMON_PROCESS.stderr.on('data',(data)=>{
+        console.log('nodemon error: ',data.message.toString());
+    });
+
+    return NODEMON_PROCESS;
+}
+
+
+
+
+function checkNodeModules() {
+        
+    if(!fs.existsSync(process.cwd()+'/node_modules')) {
+        console.log('Installing node modules...')
+        if(process.argv.includes('yarn')) execSync(`yarn`); //install the node modules in the global repo
+        else execSync(`npm i`); //install the node modules in the global repo
+        console.log('Installed node modules!')
+    }
+}
+
+function checkCoreExists() {
+    if(!fs.existsSync(process.cwd()+'/tinybuild')) {
+        if(fs.existsSync('node_modules/tinybuild')) {
+            copyFolderRecursiveSync('node_modules/tinybuild','tinybuild');
+        }
+    }
+}
 
 function checkBoilerPlate() {
     if(!fs.existsSync('package.json')) {
@@ -210,29 +263,39 @@ function checkBoilerPlate() {
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild": "~0.1.0",
-                "concurrently": "^7.1.0",
-                "nodemon": "^2.0.15"
             },
             "nodemonConfig": {
                 "env": {
                     "NODEMON": true
                 },
                 "ignore": [
-                    "dist/"
+                    "dist/",
+                    ".temp/"
                 ]
             }
         }`);
 
-        console.log("Installing node modules...");
+        //console.log("Installing node modules...");
         
-        if(process.argv.includes('yarn')) execSync('yarn')
-        else execSync('npm i');
+        // if(process.argv.includes('yarn')) execSync('yarn')
+        // else execSync('npm i');
 
-        console.log("Installed node modules!");
+        //console.log("Installed node modules!");
         
     }
 
+    let distpath = 'dist/index.js';
+    if(!fs.existsSync('index.html')) { //the python server needs the index.html
+        fs.writeFileSync('index.html',`
+            <!DOCTYPE html>
+            <head>
+            </head>
+            <body>  
+            <script src="${distpath}">
+            </script>
+            </body>
+        `)
+    }
 
     //first check if the index.js exists, if not make them.
     if(!fs.existsSync('index.js')) {
@@ -263,15 +326,18 @@ function checkBoilerPlate() {
 }
 
 
+if(!fs.existsSync('node_modules/tinybuild')) { 
+    execSync('npm link tinybuild',(err)=>{console.log(err)});
+}
+
 if(Object.keys(tinybuildCfg).length > 0) {
 
     if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
-
         if(!fs.existsSync(scriptsrc)) {
             fs.writeFileSync(scriptsrc,
             `
-            import { packager, defaultServer } from "./tinybuild/packager.js";
+            import { packager, defaultServer } from "tinybuild";
             let config = {
                 bundler:{
                     entryPoints: ['index.js'], //entry file, relative to this file 
@@ -290,18 +356,12 @@ if(Object.keys(tinybuildCfg).length > 0) {
             `);
         }
 
-
         exec('node '+ scriptsrc,(err,stdout,stderr) => {});
 
     }
     else if (tinybuildCfg.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
         //check if python server.py folder exists, copy if not
-        if(!fs.existsSync('python')) {
-            if(!fs.existsSync('tinybuild') && fs.existsSync('node_modules/tinybuild')) {
-                copyFolderRecursiveSync('node_modules/tinybuild/python','python');
-            }
-            else if (fs.existsSync('tinybuild')) copyFolderRecursiveSync('tinybuild/python','python');
-        }
+        checkCoreExists();
 
         let distpath = 'dist/index.js';
         if(tinybuildCfg.config?.outfile) distpath = tinybuildCfg.config.outfile + '.js';
@@ -314,54 +374,22 @@ if(Object.keys(tinybuildCfg).length > 0) {
             distpath = 'dist/'+entry;
         }
 
-
-        if(!fs.existsSync('index.html')) { //the python server needs the index.html
-            fs.writeFileSync('index.html',`
-                <!DOCTYPE html>
-                <head>
-                </head>
-                <body>  
-                <script src="${distpath}">
-                </script>
-                </body>
-            `)
-        }
-
-
         spawn('python',['python/server.py']);
 
         checkBoilerPlate()
 
         console.log("nodemon watching for changes...")
-        nodemon({
-            ignore:'dist/',
-            exec:'node '+scriptsrc, 
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-            env:{NODEMON:true}
-            
-        });
-
+        runNodemon(scriptsrc);
 
     }
     else if (tinybuildCfg.mode === 'dev') { //run a local dev server copy
         //check if dev server folder exists, copy if not
-        if(!fs.existsSync('node_server')) {
-            if(!fs.existsSync('tinybuild') && fs.existsSync('node_modules/tinybuild')) {
-                copyFolderRecursiveSync('node_modules/tinybuild/node_server','node_server');
-            }
-            else if (fs.existsSync('tinybuild')) copyFolderRecursiveSync('tinybuild/node_server','node_server');
-        }    
-        
+        checkCoreExists();
+        checkNodeModules();
         checkBoilerPlate();
 
         console.log("nodemon watching for changes...")
-        nodemon({
-            ignore:'dist/',
-            exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-            env:{NODEMON:true}
-            
-        });
+        runNodemon(scriptsrc);
     }
     else if (tinybuildCfg.bundle) {
         if(tinybuildCfg.config?.bundler) packager({bundler:config.bundler});
@@ -378,35 +406,23 @@ if(Object.keys(tinybuildCfg).length > 0) {
 
 
     if(fs.existsSync(scriptsrc)) {
-        console.log("nodemon watching for changes...");
-        nodemon({
-            ignore:'dist/',
-            exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-            env:{NODEMON:true}
-            
-        });//.on('log',(msg)=>{console.log(msg);})
+
+        runNodemon(scriptsrc);
+        //execSync('nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/')
+        //let NODEMON_PROCESS = nodemon("-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/ --exec node "+scriptsrc+" --watch "+process.cwd()+"");
+        // let NODEMON_PROCESS = spawn(
+        //     'nodemon',['--exec', '\'node '+scriptsrc+'\'','-e', 'ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv','--ignore', 'dist/','--ignore', '.temp/'],
+        //     {stdio: ['pipe', 'pipe', 'pipe', 'ipc']});
 
 
-        // let process = spawn("nodemon", [`--exec \"node ${scriptsrc}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
-    
-        // process.stdout.on('data',(data)=>{
-        //     console.log(data.toString());
-        // });
+     
     }
     else {
 
         checkBoilerPlate();
 
-        console.log("nodemon watching for changes...")
-        nodemon({
-            ignore:'dist/',
-            exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-            env:{NODEMON:true}
-            
-        });
+        console.log("nodemon watching for changes...", process.cwd())
+        runNodemon(scriptsrc);
     }
 }
-
 

@@ -138,7 +138,6 @@ Create a package.json if you don't have one. You an use these scripts to run the
     "dependencies": {
     },
     "devDependencies":{
-        "tinybuild": "~0.1.0",
         "nodemon": "^2.0.15",
         "concurrently": "^7.1.0"
     },

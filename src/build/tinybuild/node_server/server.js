@@ -22,7 +22,34 @@ export const defaultServer = {
     errpage: 'packager/node_server/other/404.html', //default error page, etc.
     certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
     keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+    //SERVER
+    //SOCKETS
 }
+
+let SERVERCONFIG = {};
+
+
+function exitHandler(options, exitCode) {
+
+    if(typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
+        if(SERVERCONFIG.SOCKETS.py_client.ws?.readyState === 1) {
+            SERVERCONFIG.SOCKETS.py_client.ws.send('kill');
+        }
+    }
+
+    if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
+    if (options.exit) process.exit();
+}
+
+//do something when app is closing
+process.on('exit', exitHandler.bind(null,{cleanup:true}));
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+
+
+
+
 
 
 //when a request is made to the server from a user, what should we do with it?
@@ -173,7 +200,7 @@ export const serve = (cfg=defaultServer) => {
     console.time(`Node server started!`);
 
     cfg = Object.assign({}, cfg) // Make modules editable
-
+    SERVERCONFIG = cfg;
     // Create classes to pass
 
     let sockets = {}; //socket server tools
@@ -241,24 +268,6 @@ export const serve = (cfg=defaultServer) => {
     }
 
 
-
-    function exitHandler(options, exitCode) {
-
-        if(typeof sockets.py_client != 'undefined') {
-            if(sockets.py_client.ws.readyState === 1) {
-                sockets.py_client.ws.send('kill');
-            }
-        }
-
-        if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
-        if (options.exit) process.exit();
-    }
-
-    //do something when app is closing
-    process.on('exit', exitHandler.bind(null,{cleanup:true}));
-
-    //catches ctrl+c event
-    process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
     cfg.SOCKETS = sockets;
 
