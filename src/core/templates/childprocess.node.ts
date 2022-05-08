@@ -20,6 +20,7 @@ export class ChildProcess extends Graph {
     PROCESS;
     CONTROLLER = new AbortController();
     dir=(process as any).cwd();
+    debug = true;
 
     constructor(
         properties:ChildProcessProperties={command:'echo', 
@@ -37,8 +38,15 @@ export class ChildProcess extends Graph {
 
         if(!properties.operator) {
             this.operator = (self=this,origin=this, ...args) => {
-                console.log('Child process "',this.command,this.args.join(' '),'" returned: ', args.toString());
-                return args;
+                if(origin) {
+                   //the operator needs this stuff unless you just use the commands in the class directly, but this works in the node hierarchy
+                   this.send({args});
+                 
+                }
+                else {
+                    if(this.debug) console.log('Child process "',this.command,this.args.join(' '),'" returned: ', args.toString()); //debug
+                    return args;
+                }
             }
         }
 
@@ -51,7 +59,7 @@ export class ChildProcess extends Graph {
             this.PROCESS = fork(properties.command,properties.args,properties.options); //contains .send()
         }
         else this.PROCESS = spawn(properties.command,properties.args,properties.options);
-
+    
         this.PROCESS.stdout.on('data', (data) => {
             this.run(data); //execute this node with the outputted data from the process
         });
@@ -72,7 +80,7 @@ export class ChildProcess extends Graph {
 
     }
 
-    message(data:any) { //send data to node processes with IPC channels 
+    send(data:any) { //send data to node processes with IPC channels 
             if(this.options.cmd === 'node') {
                 this.PROCESS.send(data);
             }

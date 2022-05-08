@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 
 //initialize a project repo with a simplified packager set up for you.
 // If you set includeCore to true then the new repo can be used as a template for creating more repos with standalone tinybuild files
@@ -69,9 +70,9 @@ export async function initRepo(
                 "start": "npm run startdev",
                 "build": "node tinybuild.js",
                 "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
+                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
                 "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
                 "python": "python python/server.py",
                 "pip": "pip install quart && pip install websockets",
                 "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
@@ -84,16 +85,16 @@ export async function initRepo(
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild: "~0.0.13",
+                "tinybuild": "~0.0.14",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15"
             },
             "nodemonConfig": {
                 "env": {
-                "NODEMON": true
+                    "NODEMON": true
                 },
                 "ignore": [
-                "dist/"
+                    "dist/"
                 ]
             }
         }
@@ -133,7 +134,7 @@ export async function initRepo(
                     if ( fs.lstatSync( curSource ).isDirectory() ) {
                         copyFolderRecursiveSync( curSource, targetFolder );
                     } else {
-                        copyFileSync( curSource, targetFolder );
+                        fs.copyFileSync( curSource, targetFolder );
                     }
                 } );
             }
@@ -167,9 +168,9 @@ export async function initRepo(
                 "start": "npm run startdev",
                 "build": "node tinybuild.js",
                 "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
+                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
                 "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
                 "python": "python python/server.py",
                 "pip": "pip install quart && pip install websockets",
                 "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
@@ -202,15 +203,15 @@ export async function initRepo(
 
         fs.writeFileSync(dirName+'/.gitignore',
         `
-        dist
-        **/node_modules/**
-        **/*.pem
-        **/*.pfxs
-        **/*.key
-        **/*.lock
-        **/package-lock.json
-        **/*.key
-        **/*.log
+            dist
+            **/node_modules/**
+            **/*.pem
+            **/*.pfxs
+            **/*.key
+            **/*.lock
+            **/package-lock.json
+            **/*.key
+            **/*.log
         `
         )
 

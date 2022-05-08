@@ -221,7 +221,7 @@ export class Graph extends BaseProcess {
     }
     
     // I/O scheme for this node in the graph
-    operator(self=this, origin=this, ...args){
+    operator(self=this, origin, ...args){
         return args as any;
     }
     

@@ -2,10 +2,6 @@
 //const globalExternals = require('@fal-works/esbuild-plugin-global-externals');
 
 
-
-console.time('esbuild');
-console.log('esbuild starting!');
-
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
 import {dtsPlugin} from 'esbuild-plugin-d.ts'
@@ -59,6 +55,10 @@ export const defaultBundler = {
 
 export async function bundle(configs) {
 
+
+  console.time('esbuild');
+  console.log('esbuild starting!');
+  
   if (!Array.isArray(configs)) configs = [configs];
 
 

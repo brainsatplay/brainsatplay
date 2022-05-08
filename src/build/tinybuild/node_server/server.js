@@ -8,8 +8,6 @@ import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
 
-console.time(`node server started!`);
-
 export const defaultServer = {
     debug:false, //print debog messages?
     protocol:'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
@@ -163,7 +161,7 @@ function onUpgrade(request, socket, head, cfg, sockets) { //https://github.com/w
 //runs when the server starts successfully.
 function onStarted(cfg) {      
     
-    console.timeEnd(`node server started!`);
+    console.timeEnd(`Node server started!`);
     console.log(`Server running at 
         ${cfg.protocol}://${cfg.host}:${cfg.port}/`
     );
@@ -172,6 +170,7 @@ function onStarted(cfg) {
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
 export const serve = (cfg=defaultServer) => {
 
+    console.time(`Node server started!`);
 
     cfg = Object.assign({}, cfg) // Make modules editable
 
