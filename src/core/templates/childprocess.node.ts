@@ -38,11 +38,11 @@ export class ChildProcess extends Graph {
 
         if(!properties.operator) {
             this.operator = (self=this,origin=this, ...args) => {
-                if(origin) {
-                   //the operator needs this stuff unless you just use the commands in the class directly, but this works in the node hierarchy
-                   this.send({args});
-                 
-                }
+                if(origin?.tag !== self.tag) {
+                    //the operator needs this stuff unless you just use the commands in the class directly, but this works in the node hierarchy
+                         this.send({args});
+                  
+                 }
                 else {
                     if(this.debug) console.log('Child process "',this.command,this.args.join(' '),'" returned: ', args.toString()); //debug
                     return args;
