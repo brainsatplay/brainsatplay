@@ -1,16 +1,18 @@
-import { packager, defaultServer } from "../tinybuild.js";
 
-let config = {
-    bundler:{
-        entryPoints: ['app.js'],
-        outfile: 'dist/app',
-        bundleBrowser: true, //plain js format
-        bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        bundleHTML: true  //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
-      },
-    server:defaultServer
-}
+    import { packager, defaultServer } from "tinybuild";
+    let config = {
+        bundler:{
+            entryPoints: ['index.js'], //entry file, relative to this file 
+            outfile: 'dist/index', //exit file
+            //outdir:[] 
+            bundleBrowser: true, //plain js format
+            bundleESM: false, //.esm format
+            bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+            bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+        },
+        server:defaultServer
+    }
 
-//bundle and serve
-packager(config);
+    //bundle and serve
+    packager(config);
+    

@@ -32,6 +32,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {fileURLToPath} from 'url';
 import {exec, execSync, spawn} from 'child_process';
+import nodemon from 'nodemon';
 
 
 let argIdx = null;
@@ -224,7 +225,13 @@ if(Object.keys(tinybuild).length > 0) {
             `);
         }
 
-        exec("nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv")
+        console.log("nodemon watching for changes...")
+        nodemon({
+            ignore:'dist/',
+            exec:'node tinybuild.js',
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            
+        });
     }
     else if (tinybuild.bundle) {
         packager({bundler:defaultBundler});
@@ -239,7 +246,20 @@ if(Object.keys(tinybuild).length > 0) {
 
 
     if(fs.existsSync(scriptsrc)) {
-        exec("nodemon --exec \"node "+scriptsrc+"\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+        console.log("nodemon watching for changes...")
+        nodemon({
+            ignore:'dist/',
+            exec:'node '+scriptsrc,
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            
+        });//.on('log',(msg)=>{console.log(msg);})
+
+
+        // let process = spawn("nodemon", [`--exec \"node ${scriptsrc}\"`, "-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"]); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+    
+        // process.stdout.on('data',(data)=>{
+        //     console.log(data.toString());
+        // });
     }
     else {
 
@@ -270,7 +290,7 @@ if(Object.keys(tinybuild).length > 0) {
                 "dependencies": {
                 },
                 "devDependencies": {
-                    "tinybuild": "~0.0.15",
+                    "tinybuild": "~0.0.16",
                     "concurrently": "^7.1.0",
                     "nodemon": "^2.0.15"
                 },
@@ -315,7 +335,13 @@ if(Object.keys(tinybuild).length > 0) {
             `);
         }
 
-        exec("nodemon --exec \"node "+scriptsrc+"\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"); //should just watch the directory and otherwise restart this script and run the packager here for even smaller footprint
+        console.log("nodemon watching for changes...")
+        nodemon({
+            ignore:'dist/',
+            exec:'node '+scriptsrc,
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            
+        });
     }
 }
 
