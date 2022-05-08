@@ -1,9 +1,12 @@
 {
   "name": "tinybuild",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type":"module",
+  "bin": {
+    "tinybuild": "tinybuild.js"
+  },
   "scripts": {
     "start": "npm run startdev",
     "build": "cd example && node tinybuild.js",
@@ -22,6 +25,7 @@
   "license": "AGPL-3.0-or-later",
   "dependencies": {
   },
+  
   "devDependencies": {
     "concurrently": "^7.1.0",
     "esbuild": "^0.14.38",

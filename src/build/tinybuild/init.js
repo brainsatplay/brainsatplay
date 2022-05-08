@@ -65,7 +65,7 @@ process.argv.forEach((val, idx, array) => {
             defaultRepo.initScript = decodeURIComponent(command.split('=').pop())
         }
         if(command.includes('config')) {
-            defaultRepo.config = decodeURIComponent(command.split('=').pop())
+            defaultRepo.config = JSON.parse(decodeURIComponent(command.split('=').pop()))
         }
         tick++;
     }
