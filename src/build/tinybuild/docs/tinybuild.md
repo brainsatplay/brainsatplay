@@ -15,7 +15,6 @@ The node server is no-frills with websocket based hot reloading and basic exampl
 
 ## global install
 
-
 `npm i -g tinybuild`
 
 then from an empty project folder, initialize a default app with:
