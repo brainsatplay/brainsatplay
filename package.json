@@ -18,6 +18,7 @@
     "killall-node": "killall node",
     "killall-node:windows": "taskkill /F /IM node.exe",
     "cli": "npm i -g ./src/cli",
+    "tinybuild": "npm i -g ./src/build",
     "ui": "cd src/visualscript && yarn start"
   },
   "repository": {
