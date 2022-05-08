@@ -36,7 +36,7 @@ export class ChildProcess extends Graph {
 
         if(!properties.operator) {
             this.operator = (self=this,origin=this, ...args) => {
-                console.log('Child process "',this.dir,this.args.join(' '),'" returned: ', args.toString());
+                console.log('Child process "',this.command,this.args.join(' '),'" returned: ', args.toString());
                 return args;
             }
         }
