@@ -10,7 +10,7 @@ type OperatorType = ( //can be async
     self:Graph,  //'this' node
     origin:Graph, //origin node
     ...input:any //input arguments, e.g. output from another node
-)=>any
+)=>any|void
 
 //properties input on Graph or add, or for children
 export type GraphProperties = {
@@ -190,8 +190,6 @@ export class Graph extends BaseProcess {
 
     attributes = new Set()
     nodes = new Map();
-    ANIMATE = 'animate'; //operator is running on the animation loop (cmd = 'animate')
-    LOOP = 'loop'; //operator is running on a setTimeout loop (cmd = 'loop')
     isLooping = false;
     isAnimating = false;
     looper = undefined; //loop function, uses operator if undefined (with cmd 'loop');
@@ -223,12 +221,12 @@ export class Graph extends BaseProcess {
     }
     
     // I/O scheme for this node in the graph
-    private operator(self=this, origin=this, ...args){
-        return args;
+    operator(self=this, origin=this, ...args){
+        return args as any;
     }
     
     //run the operator
-    private runOp(
+    runOp(
         node=this,
         origin=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args

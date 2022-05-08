@@ -24,7 +24,8 @@ import {bundle} from '../build/tinybuild.js'
 bundle({
     globalThis: 'brainsatplay',
     bundleESM:true,
-    bundleTypes:true
+    bundleTypes:true,
+    external:['node-fetch','child_process']
     //globals:{
     //    [entryPoints[0]]:['Graph','Router','AcyclicGraph]
     //}
