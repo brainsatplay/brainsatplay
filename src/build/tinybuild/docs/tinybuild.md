@@ -13,13 +13,47 @@ esbuild supports the full spectrum of javascript bundling needs and we have docu
 
 The node server is no-frills with websocket based hot reloading and basic examples of python backend communication and relaying. It's small and fast and meets our most common development server needs without giant dependencies.
 
+## global install
+
+
+`npm i -g tinybuild`
+
+then from an empty project folder, initialize a default app with:
+
+`tinybuild`
+
+Type
+
+`tinybuild help` for accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.js` config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
+
+tinybuild commands:
+
+global command:
+- `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
+
+local command:
+- `node path/to/tinybuild.js` -- will use the current working directory as reference to run this packager config
+
+arguments (applies to both):
+- `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
+- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified (and URI-encoded if there are spaces) object
+- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and (URI-encoded if there are spaces) object
+- `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
+- `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
+- `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
+- `init` -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
+- `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
+- `entry=index.js` --name the entry point file you want to create, defaults to index.js
+- `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+- `config={"server":{},"bundler":{}}` -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+
 ## init
 
-The fastest way to create a tinybuild app with your own settings is to run `node tinybuild/init.js` either after installing tinybuild from npm or cloning the source to your project folder.  It runs with these default settings
+A more detailed way to create an app is to use `initRepo` in `node tinybuild/init.js`, you can apply all of these settings through the main `tinybuild` command by passing the arguments in the help command. 
 
 ```js
 defaultRepo = {
-    dirName:'example',    
+    dirName:`example',    
     entryPoint:'index.js', //your head js file
     initScript:`
         /* 
