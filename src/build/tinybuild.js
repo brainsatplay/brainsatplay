@@ -178,7 +178,7 @@ function checkBoilerPlate() {
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild": "~0.0.16",
+                "tinybuild": "~0.0.17",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15"
             },
@@ -272,7 +272,8 @@ if(Object.keys(tinybuild).length > 0) {
         nodemon({
             ignore:'dist/',
             exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+            env:{NODEMON:true}
             
         });
 
@@ -293,7 +294,8 @@ if(Object.keys(tinybuild).length > 0) {
         nodemon({
             ignore:'dist/',
             exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+            env:{NODEMON:true}
             
         });
     }
@@ -314,7 +316,8 @@ if(Object.keys(tinybuild).length > 0) {
         nodemon({
             ignore:'dist/',
             exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+            env:{NODEMON:true}
             
         });//.on('log',(msg)=>{console.log(msg);})
 
@@ -333,7 +336,8 @@ if(Object.keys(tinybuild).length > 0) {
         nodemon({
             ignore:'dist/',
             exec:'node '+scriptsrc,
-            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv"
+            e:"ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+            env:{NODEMON:true}
             
         });
     }

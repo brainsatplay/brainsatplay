@@ -105,7 +105,7 @@ Create a package.json if you don't have one. You an use these scripts to run the
     "dependencies": {
     },
     "devDependencies":{
-        "tinybuild": "~0.0.16",
+        "tinybuild": "~0.0.17",
         "nodemon": "^2.0.15",
         "concurrently": "^7.1.0"
     },
