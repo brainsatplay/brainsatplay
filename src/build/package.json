@@ -1,12 +1,13 @@
 {
   "name": "tinybuild",
-  "version": "0.0.18",
+  "version": "0.1.0",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type":"module",
   "bin": {
-    "tinybuild": "tinybuild.js"
+    "tinybuild": "tinybuild/bin/global.js"
   },
+  "preferGlobal": true,
   "scripts": {
     "start": "npm run startdev",
     "build": "cd example && node tinybuild.js",

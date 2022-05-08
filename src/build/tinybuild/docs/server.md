@@ -53,7 +53,7 @@ Then via command line: `node server.js`
 We recommend these as your package.json settings with tinybuild and to use the concurrent + development server features, choose the devDependencies tag based on if you are using source or the libraries and follow the rest of the instructions to set up the tinybuild.js entry point.
 ```json
 {
-    "name": "tinybuild",
+    "name": "tinybuildapp",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -77,7 +77,7 @@ We recommend these as your package.json settings with tinybuild and to use the c
     "dependencies": {
     },
     "devDependencies":{
-        "tinybuild": "~0.0.18",
+        "tinybuild": "~0.1.0",
         "nodemon": "^2.0.15",
         "concurrently": "^7.1.0"
     },

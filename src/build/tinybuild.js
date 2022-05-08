@@ -26,6 +26,7 @@ import { packager, defaultBundler, defaultServer } from "./tinybuild/packager.js
 
 
 
+
 // TINYBUILD SCRIPTS
 
 import * as fs from 'fs';
@@ -35,13 +36,18 @@ import {exec, execSync, spawn} from 'child_process';
 import nodemon from 'nodemon';
 
 
+//check global module path for node_modules folder
+const __filename = fileURLToPath(import.meta.url);
 let argIdx = null;
 let tick = 0;
-const __filename = fileURLToPath(import.meta.url);
-var fileName = path.basename(__filename);
+var fileName;
+if(typeof __filename =='undefined') 
+    fileName = path.basename(fileURLToPath(import.meta.url));
+else
+    fileName = path.basename(__filename);
 //let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
 
-let mode = 'default' //python
+let mode = 'default' //python, dev
 
 let tinybuildCfg = {}
 
@@ -58,6 +64,32 @@ process.argv.forEach((val, idx, array) => {
     let command = val;
 
     if(argIdx && tick < 5){ //after 5 args we probably aren't on these args anymore
+        if(command.includes('help')) {
+            mode = 'help';
+            console.log(
+                `
+                tinybuild commands:
+
+                global command:
+                'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
+                
+                local command:
+                'node path/to/tinybuild.js' -- will use the current working directory as reference to run this packager config
+                
+                arguments (applies to both):
+                'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
+                'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
+                'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
+                'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). Use 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild')
+                'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
+                'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
+                'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
+                'entry=index.js' --name the entry point file you want to create, defaults to index.js
+                'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+                'config={"server":{},"bundler":{}} -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+                `
+            )
+        }
         if(command.includes('mode=')) {
             mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
             tinybuildCfg.mode = mode;
@@ -154,7 +186,7 @@ function checkBoilerPlate() {
     if(!fs.existsSync('package.json')) {
         fs.writeFileSync('package.json',
         `{
-            "name": "tinybuild",
+            "name": "tinybuildapp",
             "version": "0.0.0",
             "description": "Barebones esbuild and test node server implementation. For building",
             "main": "index.js",
@@ -178,7 +210,7 @@ function checkBoilerPlate() {
             "dependencies": {
             },
             "devDependencies": {
-                "tinybuild": "~0.0.18",
+                "tinybuild": "~0.1.0",
                 "concurrently": "^7.1.0",
                 "nodemon": "^2.0.15"
             },
@@ -192,7 +224,13 @@ function checkBoilerPlate() {
             }
         }`);
 
-        execSync('npm i');
+        console.log("Installing node modules...");
+        
+        if(process.argv.includes('yarn')) execSync('yarn')
+        else execSync('npm i');
+
+        console.log("Installed node modules!");
+        
     }
 
 
@@ -336,7 +374,7 @@ if(Object.keys(tinybuildCfg).length > 0) {
 
 
 
-} else {
+} else if(mode !== 'help') {
 
 
     if(fs.existsSync(scriptsrc)) {

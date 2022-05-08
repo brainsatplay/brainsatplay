@@ -37,8 +37,11 @@ let defaultRepo = {
 
 let argIdx = null;
 let tick = 0;
-const __filename = fileURLToPath(import.meta.url); //ES syntax
-var fileName = path.basename(__filename);
+var fileName;
+if(typeof __filename =='undefined') 
+    fileName = path.basename(fileURLToPath(import.meta.url));
+else
+    fileName = path.basename(__filename);
 
 process.argv.forEach((val, idx, array) => {
     //idx = 0: 'node'
