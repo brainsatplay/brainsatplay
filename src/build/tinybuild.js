@@ -291,7 +291,7 @@ packager(config);
 }
 
 
-function runTinybuild() {
+async function runTinybuild() {
 
     console.time('🚀 Starting tinybuild...');
 
@@ -314,16 +314,30 @@ function runTinybuild() {
 
     let mode = 'default' //python, dev
 
+    // Get CLI Arguments
+    const cliArgs = parseArgs(process.argv)
+
+    // Load Config
     let tinybuildCfg = {}
+    try {
+        tinybuildCfg = (await import(path.join(process.cwd(), cliArgs.config ?? 'tinybuild.config.js'))).default
+        console.log('Found tinybuild.config.js file! Still not using though...')
+    } catch (e){ 
+        if (e.code) console.log('No tinybuild.config.js file')
+        else console.log(e)
+        console.log('Defaulting to `node tinybuild.js` command.')
+    }
+
+    
+
+    // console.log(tinybuildCfg)
 
     let argIdx = null;
     let tick = 0;
     var fileName;
 
-    tinybuildCfg = parseArgs(process.argv);
+    let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
 
-    let scriptsrc = path.join(process.cwd(), (tinybuildCfg.path) ? tinybuildCfg.path : 'tinybuild.js')
-    
     //scenarios:
     /*     
         "start": "npm run startdev",
@@ -352,9 +366,9 @@ function runTinybuild() {
         execSync('npm link tinybuild',(err)=>{console.log(err)});
     }
 
-    if(Object.keys(tinybuildCfg).length > 0) {
+    if(Object.keys(cliArgs).length > 0) {
 
-        if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
+        if(cliArgs.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
             if(!fs.existsSync(scriptsrc)) {
                 fs.writeFileSync(scriptsrc,
@@ -371,9 +385,9 @@ let config = {
         bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
     },
     server:{
-        host:'${tinybuildCfg.host}',
-        port:'${tinybuildCfg.port}',
-        protocol:'${tinybuildCfg.protocol}'
+        host:'${cliArgs.host}',
+        port:'${cliArgs.port}',
+        protocol:'${cliArgs.protocol}'
     }
 }
 
@@ -382,17 +396,17 @@ packager(config);
 `);
             }
 
+            console.log("EXECUGIN")
             exec('node '+ scriptsrc,(err,stdout,stderr) => {});
-
         }
-        else if (tinybuildCfg.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
+        else if (cliArgs.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
             //check if python server.py folder exists, copy if not
             checkCoreExists();
 
             let distpath = 'dist/index.js';
-            if(tinybuildCfg.config?.outfile) distpath = tinybuildCfg.config.outfile + '.js';
-            else if (tinybuildCfg.config?.entryPoint) {
-                let entry = tinybuildCfg.config.entryPoint.split('.');
+            if(tinybuildCfg.outfile) distpath = tinybuildCfg.outfile + '.js';
+            else if (tinybuildCfg.entryPoint) {
+                let entry = tinybuildCfg.entryPoint.split('.');
                 entry.pop();
                 entry.join('.');
                 entry.split('/');
@@ -408,7 +422,7 @@ packager(config);
             SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
 
         }
-        else if (tinybuildCfg.mode === 'dev') { //run a local dev server copy
+        else if (cliArgs.mode === 'dev') { //run a local dev server copy
             //check if dev server folder exists, copy if not
             checkCoreExists();
             checkNodeModules();
@@ -417,12 +431,12 @@ packager(config);
             console.log("nodemon watching for changes...")
             SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
         }
-        else if (tinybuildCfg.bundle) {
-            if(tinybuildCfg.config?.bundler) packager({bundler:config.bundler});
+        else if (cliArgs.bundle) {
+            if(tinybuildCfg.bundler) packager({bundler:tinybuildCfg.bundler});
             else packager({bundler:defaultBundler});
         }
-        else if (tinybuildCfg.serve) {
-            if(tinybuildCfg.config?.server) packager({server:config.server});
+        else if (cliArgs.serve) {
+            if(tinybuildCfg.server) packager({server:tinybuildCfg.server});
             else packager({server:defaultServer});
         }
 

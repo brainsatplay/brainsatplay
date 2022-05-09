@@ -4,6 +4,7 @@
   "description": "A framework for visual reactive programming on the browser",
   "author": "Garrett Flynn <garrettmflynn@gmail.com>",
   "license": "AGPL-3.0-or-later",
+  "type":"module",
   "main": "./dist/index.js",
   "module": "./dist/index.esm.js",
   "types": "./dist/src/index.d.ts",
