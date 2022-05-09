@@ -11,7 +11,7 @@ export const defaultConfig = {
 }
 
 export async function packager(config=defaultConfig) {
-    console.time('App packaged!');
+    console.time('🎂🎆 App packaged!');
 
     let packaged = {}
 
@@ -33,7 +33,7 @@ export async function packager(config=defaultConfig) {
             packaged.server = await server.serve(config.server);
         }
     }
-    console.timeEnd('App packaged!');
+    console.timeEnd('🎂🎆 App packaged!');
 
     return packaged;
 }

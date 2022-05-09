@@ -19,10 +19,10 @@ let mainpath = dirName.join('/');
 //console.log(globalpath,fs.existsSync(mainpath+'/node_modules'));
 
 if(!fs.existsSync(mainpath+'/node_modules')) {
-    console.log('Installing node modules for tinybuild!')
+    console.log('🍏🐢 Installing node modules for tinybuild!');
     if(process.argv.includes('yarn'))  execSync(`cd ${mainpath} && yarn && cd ${process.cwd()}`); //install the node modules in the global repo
     else execSync(`cd ${mainpath} && npm i && cd ${process.cwd()}`); //install the node modules in the global repo
-    console.log('Installed node modules for tinybuild!')
+    console.log('Installed node modules for tinybuild! 🐢💚');
 }
 
 //console.log(process.argv);

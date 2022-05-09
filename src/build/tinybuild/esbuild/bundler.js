@@ -56,8 +56,8 @@ export const defaultBundler = {
 export async function bundle(configs) {
 
 
-  console.time('esbuild');
-  console.log('esbuild starting!');
+  console.time('✨ esbuild');
+  console.log('✨ esbuild starting! ✨');
   
   if (!Array.isArray(configs)) configs = [configs];
 
@@ -107,8 +107,8 @@ export async function bundle(configs) {
   }))
 
 
-  console.log('esbuild completed!')
-  console.timeEnd('esbuild');
+  console.log('✨ esbuild completed! ✨')
+  console.timeEnd('✨ esbuild');
   //process.exit(0); // Manually make process exit
 }
 
@@ -134,7 +134,7 @@ export function bundleHTML(fromJSPath) {
 
 //bundle browser-exectuable js with optional globals and init functions (e.g. to set window variables)
 export async function bundleBrowser(config) {
-  console.time('\n Built UMD-like .js file(s) for browser');
+  console.time('\n ☄️ Built UMD-like .js file(s) for browser');
 
   const tempDir = `.temp`;
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -243,7 +243,7 @@ export async function bundleBrowser(config) {
   });
 
   return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n Built UMD-like .js file(s) for browser');
+    console.timeEnd('\n ☄️ Built UMD-like .js file(s) for browser');
 
     if(config.bundleHTML) { //bundle the outfile into a boilerplate html
 
@@ -262,7 +262,7 @@ export async function bundleBrowser(config) {
 
 //bundle .esm.js
 export async function bundleESM(config) {
-  console.time('\n Built .esm.js file(s)')
+  console.time('\n 🌌 Built .esm.js file(s)')
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
@@ -290,13 +290,13 @@ export async function bundleESM(config) {
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n Built .esm.js file(s)');
+    console.timeEnd('\n 🌌 Built .esm.js file(s)');
   });
 }
 
 //bundle node defaults
 export async function bundleNode(config) {
-  console.time('\n Built node .js file(s)');
+  console.time('\n ☀️ Built node .js file(s)');
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
@@ -325,13 +325,13 @@ export async function bundleNode(config) {
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n Built node .js file(s)');
+    console.timeEnd('\n ☀️ Built node .js file(s)');
   });
 }
 
 //bundle commonjs
 export async function bundleCommonJS(config) {
-  console.time('\n Built .cjs.js');
+  console.time('\n 🌙 Built .cjs.js');
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
@@ -358,13 +358,13 @@ export async function bundleCommonJS(config) {
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n Built .cjs.js');
+    console.timeEnd('\n 🌙 Built .cjs.js');
   });
 }
 
 ///bundle .d.ts and .iife.js files
 export async function bundleTypes(config) {
-  console.time(`\n Built .d.ts files`);
+  console.time(`\n 🪐 Built .d.ts files`);
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
@@ -403,7 +403,7 @@ export async function bundleTypes(config) {
         cfg.outdir.map(v => fs.unlink(v,()=>{}));
       }
     }
-    console.timeEnd(`\n Built .d.ts files`);
+    console.timeEnd(`\n 🪐 Built .d.ts files`);
   });
 }
 

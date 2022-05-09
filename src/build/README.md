@@ -1,6 +1,10 @@
 # tinybuild
 Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env.  
 
+
+![tinybuild](tinybuild/docs/globaloutput.png)
+
+
 `npm i -g tinybuild`
 
 then from an empty project folder, initialize a default app with:

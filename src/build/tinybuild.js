@@ -287,7 +287,7 @@ packager(config);
 
 function runTinybuild() {
 
-    console.time('Starting tinybuild...');
+    console.time('🚀 Starting tinybuild...');
 
     //check global module path for node_modules folder
     let argIdx = null;
@@ -468,7 +468,7 @@ packager(config);
                 distpath = 'dist/'+entry;
             }
 
-            spawn('python',['python/server.py']);
+            spawn('python',['tinybuild/python/server.py']);
 
             checkBoilerPlate()
 
@@ -521,10 +521,10 @@ packager(config);
     }
 
 
-    if(!SERVER_PROCESS) console.timeEnd('Starting tinybuild...');
+    if(!SERVER_PROCESS) console.timeEnd('🚀 Starting tinybuild...');
     else {
         SERVER_PROCESS.process.on('spawn',()=>{
-            console.timeEnd('Starting tinybuild...');
+            console.timeEnd('🚀 Starting tinybuild...');
         })
     }
 }
