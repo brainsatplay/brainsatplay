@@ -193,8 +193,8 @@ function checkCoreExists() {
 }
 
 function checkBoilerPlate() {
-    if(!fs.existsSync('package.json')) {
-        fs.writeFileSync('package.json',
+    if(!fs.existsSync(process.cwd()+'/package.json')) {
+        fs.writeFileSync(process.cwd()+'/package.json',
         `{
             "name": "tinybuildapp",
             "version": "0.0.0",
@@ -244,8 +244,8 @@ function checkBoilerPlate() {
     }
 
     let distpath = 'dist/index.js';
-    if(!fs.existsSync('index.html')) { //the python server needs the index.html
-        fs.writeFileSync('index.html',`
+    if(!fs.existsSync(process.cwd()+'/index.html')) { //the python server needs the index.html
+        fs.writeFileSync(process.cwd()+'/index.html',`
             <!DOCTYPE html>
             <head>
             </head>
@@ -257,12 +257,12 @@ function checkBoilerPlate() {
     }
 
     //first check if the index.js exists, if not make them.
-    if(!fs.existsSync('index.js')) {
-        fs.writeFileSync('index.js','console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
+    if(!fs.existsSync(process.cwd()+'/index.js')) {
+        fs.writeFileSync(process.cwd()+'/index.js','console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
     }
 
-    if(!fs.existsSync('tinybuild.js')) {
-        fs.writeFileSync('tinybuild.js',
+    if(!fs.existsSync(process.cwd()+'/tinybuild.js')) {
+        fs.writeFileSync(process.cwd()+'/tinybuild.js',
         `
         import { packager, defaultServer } from "tinybuild";
         let config = {
@@ -419,7 +419,7 @@ function runTinybuild() {
 
     // with the extra settings we can apply them to the packager config
 
-    if(!fs.existsSync('node_modules/tinybuild')) { 
+    if(!fs.existsSync(process.cwd()+'/node_modules/tinybuild')) { 
         execSync('npm link tinybuild',(err)=>{console.log(err)});
     }
 
