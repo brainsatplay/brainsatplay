@@ -256,7 +256,7 @@ function checkBoilerPlate() {
 
     //first check if the index.js exists, if not make them.
     if(!fs.existsSync('index.js')) {
-        fs.writeFileSync('index.js','console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!);"')
+        fs.writeFileSync('index.js','console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
     }
 
     if(!fs.existsSync('tinybuild.js')) {
