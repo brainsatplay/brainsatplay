@@ -396,7 +396,6 @@ packager(config);
 `);
             }
 
-            console.log("EXECUGIN")
             exec('node '+ scriptsrc,(err,stdout,stderr) => {});
         }
         else if (cliArgs.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
