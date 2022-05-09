@@ -43,8 +43,7 @@ arguments (applies to both):
 - `startpage=index.html` - entry html page for the home '/' page, index.html by default
 - `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
 - `keypath=tinybuild/node_server/ssl/key.pem` - key file for https
-- `pwa=tinybuild/pwa/service-worker.js` - service worker for pwa, the server will install a manifest.json in the main folder if not found, https required
-
+- `pwa=tinybuild/pwa/workbox-config.js` - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
 
 
 
