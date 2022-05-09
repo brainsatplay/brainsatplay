@@ -300,6 +300,7 @@ function runTinybuild() {
         globalThis['__filename'] = import.meta.url;
         let dirname = fileURLToPath(import.meta.url);
         dirname = dirname.split('\\');
+        if(dirname.length === 1) dirname = dirname[0].split('/');
         dirname.pop();
         globalThis['__dirname'] = dirname.join('/');
 

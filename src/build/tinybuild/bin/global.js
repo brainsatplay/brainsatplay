@@ -6,20 +6,20 @@ import {fileURLToPath} from 'url';
 
 const thismodule = fileURLToPath(import.meta.url);
 
-let path = thismodule.split('\\');
-let globalpath = path.pop();
-globalpath = path.join('/');
+let dirName = thismodule.split('\\');
+if(dirName.length === 1) dirName = dirName[0].split('/');
+dirName.pop();
+let globalpath = dirName.join('/');
 
+dirName.pop();
+dirName.pop();
 
-path.pop();
-path.pop();
-let mainpath = path.join('/')
+let mainpath = dirName.join('/');
 
 //console.log(globalpath,fs.existsSync(mainpath+'/node_modules'));
 
-
 if(!fs.existsSync(mainpath+'/node_modules')) {
-    console.log('Installing node modules for tinybuild...')
+    console.log('Installing node modules for tinybuild!')
     if(process.argv.includes('yarn'))  execSync(`cd ${mainpath} && yarn && cd ${process.cwd()}`); //install the node modules in the global repo
     else execSync(`cd ${mainpath} && npm i && cd ${process.cwd()}`); //install the node modules in the global repo
     console.log('Installed node modules for tinybuild!')
