@@ -2,8 +2,8 @@
 import { packager, defaultServer } from "tinybuild";
 let config = {
     bundler:{
-        entryPoints: ['index.js'], //entry file, relative to this file 
-        outfile: 'dist/index', //exit file
+        entryPoints: ['app.js'], //entry file, relative to this file 
+        outfile: 'dist/app', //exit file
         //outdir:[] 
         bundleBrowser: true, //plain js format
         bundleESM: false, //.esm format

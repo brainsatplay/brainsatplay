@@ -1,11 +1,12 @@
 //tinybuid.js
 
 
-export * from './tinybuild/packager.js'
+export * from './src/packager.js'
+import path from 'path'
 
 //uncomment and run `node tinybuild.js`
-import { packager, defaultBundler, defaultServer } from "./tinybuild/packager.js";
-import { parseArgs } from './tinybuild/repo.js'
+import { packager, defaultBundler, defaultServer } from "./src/packager.js";
+import { parseArgs } from './src/repo.js'
 
 // let config = {
 //     bundler:{
@@ -32,7 +33,6 @@ import { parseArgs } from './tinybuild/repo.js'
 // TINYBUILD SCRIPTS
 
 import * as fs from 'fs';
-import * as path from 'path';
 import * as chokidar from 'chokidar';
 import {fileURLToPath} from 'url';
 import {exec, execSync, spawn} from 'child_process';
@@ -177,7 +177,7 @@ function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['js','ts
 
 function checkNodeModules() {
             
-    if(!fs.existsSync(process.cwd()+'/node_modules')) {
+    if(!fs.existsSync(path.join(process.cwd(), 'node_modules'))) {
         console.log('Installing node modules...')
         if(process.argv.includes('yarn')) execSync(`yarn`); //install the node modules in the global repo
         else execSync(`npm i`); //install the node modules in the global repo
@@ -186,16 +186,18 @@ function checkNodeModules() {
 }
 
 function checkCoreExists() {
-    if(!fs.existsSync(process.cwd()+'/tinybuild')) {
-        if(fs.existsSync('node_modules/tinybuild')) {
-            copyFolderRecursiveSync('node_modules/tinybuild','tinybuild');
+    if(!fs.existsSync(path.join(process.cwd(), 'tinybuild'))) {
+        const nodeMods = path.join('node_modules', 'tinybuild')
+        if(fs.existsSync(nodeMods)) {
+            copyFolderRecursiveSync(nodeMods,'tinybuild');
         }
     }
 }
 
 function checkBoilerPlate() {
-    if(!fs.existsSync(process.cwd()+'/package.json')) {
-        fs.writeFileSync(process.cwd()+'/package.json',
+    const packagePath = path.join(process.cwd(),'package.json')
+    if(!fs.existsSync(packagePath)) {
+        fs.writeFileSync(packagePath,
 `{
     "name": "tinybuildapp",
     "version": "0.0.0",
@@ -258,12 +260,15 @@ function checkBoilerPlate() {
     }
 
     //first check if the index.js exists, if not make them.
-    if(!fs.existsSync(process.cwd()+'/index.js')) {
-        fs.writeFileSync(process.cwd()+'/index.js','console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
+    const index = path.join(process.cwd(), 'index.js')
+    if(!fs.existsSync(index)) {
+        fs.writeFileSync(index,'console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
     }
 
-    if(!fs.existsSync(process.cwd()+'/tinybuild.js')) {
-        fs.writeFileSync(process.cwd()+'/tinybuild.js',
+    const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
+
+    if(!fs.existsSync(tinybuildPath)) {
+        fs.writeFileSync(tinybuildPath,
         `
 import { packager, defaultServer } from "tinybuild";
 let config = {
@@ -297,10 +302,9 @@ function runTinybuild() {
     if(typeof __filename =='undefined') {
         globalThis['__filename'] = import.meta.url;
         let dirname = fileURLToPath(import.meta.url);
-        dirname = dirname.split('\\');
-        if(dirname.length === 1) dirname = dirname[0].split('/');
+        dirname = dirname.split(path.sep);
         dirname.pop();
-        globalThis['__dirname'] = dirname.join('/');
+        globalThis['__dirname'] = dirname.join(path.sep);
 
         fileName = path.basename(globalThis['__filename']);
     } else {
@@ -318,11 +322,8 @@ function runTinybuild() {
 
     tinybuildCfg = parseArgs(process.argv);
 
-    let scriptsrc = process.cwd()+'\\';
-    if(tinybuildCfg.path) scriptsrc += tinybuildCfg.path;
-    else scriptsrc += 'tinybuild.js';
+    let scriptsrc = path.join(process.cwd(), (tinybuildCfg.path) ? tinybuildCfg.path : 'tinybuild.js')
     
-
     //scenarios:
     /*     
         "start": "npm run startdev",

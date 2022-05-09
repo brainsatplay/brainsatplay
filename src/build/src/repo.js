@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import path from 'path';
 
 //initialize a project repo with a simplified packager set up for you.
 // If you set includeCore to true then the new repo can be used as a template for creating more repos with standalone tinybuild files
@@ -44,9 +45,11 @@ alert('tinybuild successful!');
 
 
     //copy the bundler files
+    const tinybuildPath = path.join(dirName, 'tinybuild.js')
+
     if(!includeCore){
         //tinybuild.js file using the npm package 
-        fs.writeFileSync(dirName+'/tinybuild.js',
+        fs.writeFileSync(tinybuildPath,
         `
 //use command 'node tinybuild.js' to build and run after doing npm install!
 
@@ -138,9 +141,9 @@ packager(config);
             }
         }
 
-        copyFolderRecursiveSync('tinybuild',dirName+'/tinybuild');
+        copyFolderRecursiveSync('tinybuild',tinybuildPath);
 
-        fs.writeFileSync(dirName+'/tinybuild.js',`
+        fs.writeFileSync(tinybuildPath,`
 //create an init script (see example)
 //node init.js to run the packager function
 

@@ -14,7 +14,7 @@ export async function packager(config=defaultConfig) {
     console.time('🎂🎆 App packaged!');
 
     let packaged = {}
-
+    
     if(config.bundler) {
         packaged.bundles = await bundler.bundle(config.bundler);
     

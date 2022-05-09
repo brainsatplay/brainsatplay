@@ -5,7 +5,7 @@ Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle),
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
 
-`npm i -g tinybuild`
+`npm i -g`
 
 then from an empty project folder, initialize a default app with:
 

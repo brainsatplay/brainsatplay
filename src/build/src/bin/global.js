@@ -2,24 +2,25 @@
 //^^^ allows node execution of this file as a node process, else 'tinybuild' will just cd to this file
 import {execSync, fork} from 'child_process';
 import * as fs from 'fs';
+import path from 'path';
+
 import {fileURLToPath} from 'url';
 
 const thismodule = fileURLToPath(import.meta.url);
 
-let dirName = thismodule.split('\\');
-if(dirName.length === 1) dirName = dirName[0].split('/');
+let dirName = thismodule.split(path.sep);
 dirName.pop();
-let globalpath = dirName.join('/');
+let globalpath = dirName.join(path.sep);
 
 dirName.pop();
 dirName.pop();
 
-let mainpath = dirName.join('/');
+let mainpath = dirName.join(path.sep);
 
 //console.log(globalpath,fs.existsSync(mainpath+'/node_modules'));
 
 if(!fs.existsSync(mainpath+'/node_modules')) {
-    console.log('🍏🐢 Installing node modules for tinybuild!');
+    console.log('🍏🐢 Installing node modules for tinybuild! TEST');
     if(process.argv.includes('yarn'))  execSync(`cd ${mainpath} && yarn && cd ${process.cwd()}`); //install the node modules in the global repo
     else execSync(`cd ${mainpath} && npm i && cd ${process.cwd()}`); //install the node modules in the global repo
     console.log('Installed node modules for tinybuild! 🐢💚');

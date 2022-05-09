@@ -5,7 +5,7 @@
   "main": "tinybuild.js",
   "type":"module",
   "bin": {
-    "tinybuild": "tinybuild/bin/global.js"
+    "tinybuild": "src/bin/global.js"
   },
   "preferGlobal": true,
   "scripts": {
