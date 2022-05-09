@@ -17,11 +17,13 @@ let mainpath = path.join('/')
 
 //console.log(globalpath,fs.existsSync(mainpath+'/node_modules'));
 
-
 if(!fs.existsSync(mainpath+'/node_modules')) {
     console.log('Installing node modules for tinybuild...')
-    if(process.argv.includes('yarn'))  execSync(`cd ${mainpath} && yarn && cd ${process.cwd()}`); //install the node modules in the global repo
-    else execSync(`cd ${mainpath} && npm i && cd ${process.cwd()}`); //install the node modules in the global repo
+    const command = (process.argv.includes('yarn')) ? `cd ${mainpath} && yarn && cd ${process.cwd()}` : //install the node modules in the global repo
+        `cd ${mainpath} && npm i && cd ${process.cwd()}`; //install the node modules in the global repo
+    console.log('COMMAND', command)
+
+        execSync(command)
     console.log('Installed node modules for tinybuild!')
 }
 
