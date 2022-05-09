@@ -14,7 +14,7 @@ Type
 tinybuild commands:
 
 global command:
-- `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
+- `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders (minus node_modules because it slows down) for hot reloading.
 
 local command:
 - `node path/to/tinybuild.js` -- will use the current working directory as reference to run this packager config
