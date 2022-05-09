@@ -1,1 +1,0 @@
-console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");

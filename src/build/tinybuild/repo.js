@@ -57,7 +57,6 @@ export async function initRepo(
             packager(config);
         `);
     
-            
         //package.json, used to run npm install then npm start
         fs.writeFileSync(dirName+'/package.json',`
         {
