@@ -27,7 +27,20 @@ if(!fs.existsSync(mainpath+'/node_modules')) {
 
 //console.log(process.argv);
 
-let CHILDPROCESS = fork(mainpath+'/tinybuild.js', process.argv.splice(2), {cwd:process.cwd()});
+// function exitHandler(options, exitCode) {
+
+//     if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
+//     if (options.exit) process.exit();
+// }
+
+// //do something when app is closing
+// process.on('exit', exitHandler.bind(null,{cleanup:true}));
+
+// //catches ctrl+c event
+// process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+
+
+let CHILDPROCESS = fork(mainpath+'/tinybuild.js', [...process.argv.splice(2),'GLOBAL'], {cwd:process.cwd()});
 
 // CHILDPROCESS.on('error',(er)=>{console.error(er);});
 CHILDPROCESS.on('close',(er)=>{console.log("EXIT: ",er); process.exit()});
@@ -35,4 +48,6 @@ CHILDPROCESS.on('exit',(er)=>{console.log("EXIT: ",er); process.exit()});
 // CHILDPROCESS.on('crash',(er)=>{console.log('crash');});
 // if(CHILDPROCESS.stderr) CHILDPROCESS.stderr.on('data',(er)=>{console.error(er);});
 // if(CHILDPROCESS.stdout) CHILDPROCESS.stdout.on('data',(dat)=>{console.error(dat.toString());});
+
+
 

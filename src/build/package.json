@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.1.18",
+  "version": "0.2.2",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type":"module",
@@ -9,7 +9,7 @@
   },
   "preferGlobal": true,
   "scripts": {
-    "start": "npm run startdev",
+    "start": "node tinybuild.js",
     "build": "cd example && node tinybuild.js",
     "init": "node tinybuild/init.js",
     "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
@@ -32,7 +32,8 @@
     "esbuild": "^0.14.38",
     "esbuild-plugin-d.ts":"^1.1.0",
     "nodemon": "^2.0.15",
-    "ws": "^8.5.0"
+    "ws": "^8.5.0",
+    "chokidar":"~3.5.3"
   },
   "nodemonConfig": {
     "env": {

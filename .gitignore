@@ -28,3 +28,4 @@ pyodide.html
 # CLI
 **/test/**
 
+src/build/tinybuild/python/__pycache__/socketserver.cpython-310.pyc
