@@ -1,0 +1,128 @@
+* {
+    box-sizing: border-box;
+  }
+  
+    html, body {
+      margin: 0px;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+  
+    #overlay {
+      opacity: 0;
+      width: 100vw;
+      height: 100vh;
+      transition: 0.5s;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      font-size: 30px;
+      font-weight: bold;
+      /* background: black; */
+    }
+  
+    #overlay.open {
+      opacity: 1;
+      pointer-events: all;
+      backdrop-filter: blur(5px);
+    }
+  
+    .disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+  
+    #sidebar select, #sidebar input {
+      width: 200px;
+    }
+  
+    body {
+      display: grid;
+      grid-template-columns: 1fr 1fr 300px;
+      grid-template-rows: 75px 1fr 75px;
+      grid-template-areas: 
+              "nav nav nav"
+              "main main side"
+              "foot foot side";
+  
+      width: 100vw;
+      height: 100vh;
+    }
+  
+    nav, footer {
+      z-index: 2;
+      padding: 20px;
+      height: 75px;
+      background: black;
+      color: white;
+      font-weight: bold;
+      display:flex;
+      align-items: center;
+      /* justify-content: center; */
+    }
+  
+    nav {
+      grid-area: nav;
+    }
+  
+    section {
+      padding: 25px;
+    }
+  
+    video {
+      width: 100%;
+    }
+  
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      font-size: 70%;
+      font-weight: normal;
+      grid-area: footer;
+    }
+  
+    #main {
+      grid-area: main;
+      overflow: scroll;
+    }
+    
+    #analyses > div {
+      max-width: 400px;
+    }
+  
+    #videos {
+      width: 100%;
+    }
+  
+    #videos video {
+      max-width: 400px;
+    }
+    
+    #analyses {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  
+    .container {
+      background: rgb(237, 237, 237);
+      padding: 15px;
+      margin: 10px;
+      border-radius: 25px;
+    }
+  
+    #sidebar {
+      background: rgb(234, 234, 234);
+      padding: 25px;
+      grid-area: auto;
+      grid-area: side;
+      height: 100%;
+      width: 100%;
+      /* z-index:1; */
+    }
