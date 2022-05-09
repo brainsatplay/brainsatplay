@@ -5,7 +5,7 @@ export * from './src/packager.js'
 import path from 'path'
 
 //uncomment and run `node tinybuild.js`
-import { packager, defaultBundler, defaultServer } from "./src/packager.js";
+import { packager, defaultBundler, defaultServer, serve, bundle } from "./src/packager.js";
 import { parseArgs } from './src/repo.js'
 
 // let config = {
@@ -310,12 +310,13 @@ async function runTinybuild() {
     } else {
         fileName = path.basename(__filename);
     }
-    //let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
 
-    let mode = 'default' //python, dev
+    //let fileName = __filename.split('/'); fileName = fileName[fileName.length-1]; //try to account for command line position and if the commands are for the current file
 
     // Get CLI Arguments
     const cliArgs = parseArgs(process.argv)
+    let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
+    const hasScript= fs.existsSync(scriptsrc)
 
     // Load Config
     let tinybuildCfg = {}
@@ -328,6 +329,8 @@ async function runTinybuild() {
         console.log('Defaulting to `node tinybuild.js` command.')
     }
 
+    const hasConfig = Object.keys(tinybuildCfg).length > 0
+
     
 
     // console.log(tinybuildCfg)
@@ -335,8 +338,6 @@ async function runTinybuild() {
     let argIdx = null;
     let tick = 0;
     var fileName;
-
-    let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
 
     //scenarios:
     /*     
@@ -366,11 +367,38 @@ async function runTinybuild() {
         execSync('npm link tinybuild',(err)=>{console.log(err)});
     }
 
-    if(Object.keys(cliArgs).length > 0) {
+    // Option 0. Print Help Message
+    if (cliArgs.help) {
+        console.log(
+            `
+tinybuild commands:
 
+--------- GLOBAL ---------
+'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
+
+--------- ARGUMENTS ---------
+'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
+'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
+'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
+'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). Use 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild')
+'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
+'port=8080' -- node server port, 8080 by default
+'host=localhost' -- node server hostname, localhost by default
+'protocol=http' -- node server protocol, http or https
+'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
+'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
+'entry=index.js' --name the entry point file you want to create, defaults to index.js
+'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+'config={"server":{},"bundler":{}} -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+`
+        )
+    } 
+    
+    // Option 1. Run Granular Functions if Config Exists
+    else if(hasConfig) {
         if(cliArgs.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
-            if(!fs.existsSync(scriptsrc)) {
+            if(!hasScript) {
                 fs.writeFileSync(scriptsrc,
 `
 import { packager, defaultServer } from "tinybuild";
@@ -419,7 +447,6 @@ packager(config);
 
             console.log("nodemon watching for changes...")
             SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
-
         }
         else if (cliArgs.mode === 'dev') { //run a local dev server copy
             //check if dev server folder exists, copy if not
@@ -430,51 +457,48 @@ packager(config);
             console.log("nodemon watching for changes...")
             SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
         }
+
+        // Bundle Only
         else if (cliArgs.bundle) {
-            if(tinybuildCfg.bundler) packager({bundler:tinybuildCfg.bundler});
-            else packager({bundler:defaultBundler});
+            if(tinybuildCfg.bundler) bundle(tinybuildCfg.bundler);
+            else bundle(defaultBundler);
         }
+
+        // Serve Only
         else if (cliArgs.serve) {
-            if(tinybuildCfg.server) packager({server:tinybuildCfg.server});
-            else packager({server:defaultServer});
+            if(tinybuildCfg.server) serve(tinybuildCfg);
+            else serve(defaultConfig);
+        } 
+        
+        // Whole Packager
+        else {
+            if(tinybuildCfg.server) packager(tinybuildCfg);
+            else packager(defaultConfig);
         }
 
-
-
-    } else if(mode !== 'help') {
-
-
-        if(fs.existsSync(scriptsrc)) {
-
+    } 
+    
+    // Option 2. Run Script if Ecists
+    else if (hasScript) {
             SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
             //execSync('nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/')
             //let NODEMON_PROCESS = nodemon("-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/ --exec node "+scriptsrc+" --watch "+process.cwd()+"");
             // let NODEMON_PROCESS = spawn(
             //     'nodemon',['--exec', '\'node '+scriptsrc+'\'','-e', 'ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv','--ignore', 'dist/','--ignore', '.temp/'],
             //     {stdio: ['pipe', 'pipe', 'pipe', 'ipc']});
-
-
-        
-        }
-        else {
-
-            checkBoilerPlate();
-
-            console.log("nodemon watching for changes...", process.cwd())
-            SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
-        }
+    } 
+    
+    // Option 3. Generate Boiler (if necessary)
+    else {
+        checkBoilerPlate();
+        console.log("nodemon watching for changes...", process.cwd())
+        SERVER_PROCESS = runAndWatch(scriptsrc); //runNodemon(scriptsrc);
     }
 
 
     if(!SERVER_PROCESS) console.timeEnd('🚀 Starting tinybuild...');
-    else {
-        SERVER_PROCESS.process.on('spawn',()=>{
-            console.timeEnd('🚀 Starting tinybuild...');
-        })
-    }
+    else SERVER_PROCESS.process.on('spawn', () => console.timeEnd('🚀 Starting tinybuild...'))
 }
 
-if(process.argv.includes('GLOBAL')) {
-    runTinybuild();
-}
+if(process.argv.includes('GLOBAL')) runTinybuild();
 

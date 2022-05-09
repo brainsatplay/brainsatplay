@@ -248,7 +248,7 @@ export function parseArgs(args=process.argv) {
             // if(argIdx){ //after 5 args we probably aren't on these args anymore
                 const argVal = getArgVal(command); //extra modes are 'python' and 'dev'. 
                 if(command.includes('help')) {
-                    mode = 'help';
+                    tinybuildCfg.help = true
                 }
                 if(command.includes('mode=')) {
                     if (argVal) tinybuildCfg.mode = argVal;

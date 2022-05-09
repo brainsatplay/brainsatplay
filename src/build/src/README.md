@@ -25,8 +25,8 @@ local command:
 
 arguments (applies to both):
 - `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified (and URI-encoded if there are spaces) object
-- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and (URI-encoded if there are spaces) object
+- `bundle` -- runs the esbuild bundler, can specify config with `config=./tinybuild.config.js` to link to a specific config file.
+- `serve` -- runs the node development server, can specify config with `config=./tinybuild.config.js` to link to a specific config file.
 - `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
 - `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
@@ -34,7 +34,7 @@ arguments (applies to both):
 - `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-- `config={"server":{},"bundler":{}}` -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+- `config=./tinybuild.config.js` -- link to a specific config file.
 - `host=localhost` - host name for the server, localhost by default
 - `port=8080` - port for the server, 8080 by default
 - `protocol=http` - http or https? You need ssl cert and key to run https
