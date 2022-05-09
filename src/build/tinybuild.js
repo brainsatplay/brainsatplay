@@ -195,42 +195,42 @@ function checkCoreExists() {
 function checkBoilerPlate() {
     if(!fs.existsSync(process.cwd()+'/package.json')) {
         fs.writeFileSync(process.cwd()+'/package.json',
-        `{
-            "name": "tinybuildapp",
-            "version": "0.0.0",
-            "description": "Barebones esbuild and test node server implementation. For building",
-            "main": "index.js",
-            "type":"module",
-            "scripts": {
-                "start": "npm run startdev",
-                "build": "node tinybuild.js",
-                "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-                "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-                "python": "python python/server.py",
-                "pip": "pip install quart && pip install websockets",
-                "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-            },
-            "keywords": [
-                "esbuild"
-            ],
-            "author": "Joshua Brewster",
-            "license": "AGPL-3.0-or-later",
-            "dependencies": {
-            },
-            "devDependencies": {
-            },
-            "nodemonConfig": {
-                "env": {
-                    "NODEMON": true
-                },
-                "ignore": [
-                    "dist/",
-                    ".temp/"
-                ]
-            }
-        }`);
+`{
+    "name": "tinybuildapp",
+    "version": "0.0.0",
+    "description": "Barebones esbuild and test node server implementation. For building",
+    "main": "index.js",
+    "type":"module",
+    "scripts": {
+        "start": "npm run startdev",
+        "build": "node tinybuild.js",
+        "init": "node tinybuild/init.js",
+        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
+        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+        "python": "python python/server.py",
+        "pip": "pip install quart && pip install websockets",
+        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+    },
+    "keywords": [
+        "esbuild"
+    ],
+    "author": "Joshua Brewster",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+    },
+    "devDependencies": {
+    },
+    "nodemonConfig": {
+        "env": {
+            "NODEMON": true
+        },
+        "ignore": [
+            "dist/",
+            ".temp/"
+        ]
+    }
+}`);
 
         //console.log("Installing node modules...");
         
@@ -246,13 +246,13 @@ function checkBoilerPlate() {
     let distpath = 'dist/index.js';
     if(!fs.existsSync(process.cwd()+'/index.html')) { //the python server needs the index.html
         fs.writeFileSync(process.cwd()+'/index.html',`
-            <!DOCTYPE html>
-            <head>
-            </head>
-            <body>  
-            <script src="${distpath}">
-            </script>
-            </body>
+<!DOCTYPE html>
+    <head>
+    </head>
+    <body>  
+        <script src="${distpath}">
+    </script>
+</body>
         `)
     }
 
@@ -264,22 +264,22 @@ function checkBoilerPlate() {
     if(!fs.existsSync(process.cwd()+'/tinybuild.js')) {
         fs.writeFileSync(process.cwd()+'/tinybuild.js',
         `
-        import { packager, defaultServer } from "tinybuild";
-        let config = {
-            bundler:{
-                entryPoints: ['index.js'], //entry file, relative to this file 
-                outfile: 'dist/index', //exit file
-                //outdir:[] 
-                bundleBrowser: true, //plain js format
-                bundleESM: false, //.esm format
-                bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-                bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-            },
-            server:defaultServer
-        }
+import { packager, defaultServer } from "tinybuild";
+let config = {
+    bundler:{
+        entryPoints: ['index.js'], //entry file, relative to this file 
+        outfile: 'dist/index', //exit file
+        //outdir:[] 
+        bundleBrowser: true, //plain js format
+        bundleESM: false, //.esm format
+        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+    },
+    server:defaultServer
+}
 
-        //bundle and serve
-        packager(config);
+//bundle and serve
+packager(config);
         `);
     }
 }
@@ -330,27 +330,27 @@ function runTinybuild() {
             if(command.includes('help')) {
                 mode = 'help';
                 console.log(
-                    `
-                    tinybuild commands:
+`
+tinybuild commands:
 
-                    global command:
-                    'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
-                    
-                    local command:
-                    'node path/to/tinybuild.js' -- will use the current working directory as reference to run this packager config
-                    
-                    arguments (applies to both):
-                    'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
-                    'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
-                    'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
-                    'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). Use 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild')
-                    'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
-                    'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-                    'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
-                    'entry=index.js' --name the entry point file you want to create, defaults to index.js
-                    'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-                    'config={"server":{},"bundler":{}} -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
-                    `
+global command:
+'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
+
+local command:
+'node path/to/tinybuild.js' -- will use the current working directory as reference to run this packager config
+
+arguments (applies to both):
+'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
+'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
+'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
+'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). Use 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild')
+'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
+'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
+'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
+'entry=index.js' --name the entry point file you want to create, defaults to index.js
+'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+'config={"server":{},"bundler":{}} -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+`
                 )
             }
             if(command.includes('mode=')) {
@@ -430,24 +430,24 @@ function runTinybuild() {
 
             if(!fs.existsSync(scriptsrc)) {
                 fs.writeFileSync(scriptsrc,
-                `
-                import { packager, defaultServer } from "tinybuild";
-                let config = {
-                    bundler:{
-                        entryPoints: ['index.js'], //entry file, relative to this file 
-                        outfile: 'dist/index', //exit file
-                        //outdir:[] 
-                        bundleBrowser: true, //plain js format
-                        bundleESM: false, //.esm format
-                        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-                        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-                    },
-                    server:defaultServer
-                }
+`
+import { packager, defaultServer } from "tinybuild";
+let config = {
+    bundler:{
+        entryPoints: ['index.js'], //entry file, relative to this file 
+        outfile: 'dist/index', //exit file
+        //outdir:[] 
+        bundleBrowser: true, //plain js format
+        bundleESM: false, //.esm format
+        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+    },
+    server:defaultServer
+}
 
-                //bundle and serve
-                packager(config);
-                `);
+//bundle and serve
+packager(config);
+`);
             }
 
             exec('node '+ scriptsrc,(err,stdout,stderr) => {});

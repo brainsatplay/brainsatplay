@@ -6,20 +6,20 @@ export async function initRepo(
     dirName='example',    
     entryPoint='index.js', //your head js file
     initScript=`
-        /* 
-            esbuild + nodejs (with asyncio python) development/production server. 
-            Begin your javascript application here. This file serves as a simplified entry point to your app, 
-            all other scripts you want to build can stem from here if you don't want to define more entryPoints 
-            and an outdir in the bundler settings.
-        */
+/* 
+    esbuild + nodejs (with asyncio python) development/production server. 
+    Begin your javascript application here. This file serves as a simplified entry point to your app, 
+    all other scripts you want to build can stem from here if you don't want to define more entryPoints 
+    and an outdir in the bundler settings.
+*/
 
-        document.body.style.backgroundColor = '#101010'; //page color
-        document.body.style.color = 'white'; //text color
-        let div = document.createElement('div');
-        div.innerHTML = 'Hello World!';
-        document.body.appendChild(div);
+document.body.style.backgroundColor = '#101010'; //page color
+document.body.style.color = 'white'; //text color
+let div = document.createElement('div');
+div.innerHTML = 'Hello World!';
+document.body.appendChild(div);
 
-        alert('tinybuild successful!');
+alert('tinybuild successful!');
     `,
     config={
         bundler:{
@@ -48,52 +48,52 @@ export async function initRepo(
         //tinybuild.js file using the npm package 
         fs.writeFileSync(dirName+'/tinybuild.js',
         `
-            //use command 'node tinybuild.js' to build and run after doing npm install!
+//use command 'node tinybuild.js' to build and run after doing npm install!
 
-            import {packager, defaultServer, initRepo} from 'tinybuild'
-            let config = ${JSON.stringify(config)};
-            
-            //bundle and serve
-            packager(config);
+import {packager, defaultServer, initRepo} from 'tinybuild'
+let config = ${JSON.stringify(config)};
+
+//bundle and serve
+packager(config);
         `);
     
         //package.json, used to run npm install then npm start
         fs.writeFileSync(dirName+'/package.json',`
-        {
-            "name": "tinybuild",
-            "version": "0.0.0",
-            "description": "Barebones esbuild and test node server implementation. For building",
-            "main": "index.js",
-            "type":"module",
-            "scripts": {
-                "start": "npm run startdev",
-                "build": "node tinybuild.js",
-                "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-                "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-                "python": "python python/server.py",
-                "pip": "pip install quart && pip install websockets",
-                "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-            },
-            "keywords": [
-                "esbuild"
-            ],
-            "author": "Joshua Brewster",
-            "license": "AGPL-3.0-or-later",
-            "dependencies": {
-            },
-            "devDependencies": {
-            },
-            "nodemonConfig": {
-                "env": {
-                    "NODEMON": true
-                },
-                "ignore": [
-                    "dist/"
-                ]
-            }
-        }
+{
+    "name": "tinybuild",
+    "version": "0.0.0",
+    "description": "Barebones esbuild and test node server implementation. For building",
+    "main": "index.js",
+    "type":"module",
+    "scripts": {
+        "start": "npm run startdev",
+        "build": "node tinybuild.js",
+        "init": "node tinybuild/init.js",
+        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
+        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+        "python": "python python/server.py",
+        "pip": "pip install quart && pip install websockets",
+        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+    },
+    "keywords": [
+        "esbuild"
+    ],
+    "author": "Joshua Brewster",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+    },
+    "devDependencies": {
+    },
+    "nodemonConfig": {
+        "env": {
+            "NODEMON": true
+        },
+        "ignore": [
+            "dist/"
+        ]
+    }
+}
         `);
 
 
@@ -106,11 +106,13 @@ export async function initRepo(
 
         //index.html file
         fs.writeFileSync(dirName+'/index.html',
-        `<!DOCTYPE html>
-        <head></head>
-        <body>
-            <script src='${outfile}.js'></script>
-        </body>`);
+        `
+<!DOCTYPE html>
+<head></head>
+<body>
+    <script src='${outfile}.js'></script>
+</body>
+        `);
 
         //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
         function copyFolderRecursiveSync( source, target ) {
@@ -139,76 +141,76 @@ export async function initRepo(
         copyFolderRecursiveSync('tinybuild',dirName+'/tinybuild');
 
         fs.writeFileSync(dirName+'/tinybuild.js',`
-            //create an init script (see example)
-            //node init.js to run the packager function
-            
-            export * from './tinybuild/packager'
-            import { packager, defaultServer } from './tinybuild/packager'
-        
-            let config = ${JSON.stringify(config)};
-            
-            //bundle and serve
-            packager(config);
+//create an init script (see example)
+//node init.js to run the packager function
+
+export * from './tinybuild/packager'
+import { packager, defaultServer } from './tinybuild/packager'
+
+let config = ${JSON.stringify(config)};
+
+//bundle and serve
+packager(config);
         `);
 
             
         //package.json, used to run npm install then npm start
         fs.writeFileSync(dirName+'/package.json',`
-        {
-            "name": "tinybuild",
-            "version": "0.0.0",
-            "description": "Barebones esbuild and test node server implementation. For building",
-            "main": "index.js",
-            "type":"module",
-            "scripts": {
-                "start": "npm run startdev",
-                "build": "node tinybuild.js",
-                "init": "node tinybuild/init.js",
-                "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
-                "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
-                "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
-                "python": "python python/server.py",
-                "pip": "pip install quart && pip install websockets",
-                "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
-            },
-            "keywords": [
-                "esbuild"
-            ],
-            "author": "Joshua Brewster",
-            "license": "AGPL-3.0-or-later",
-            "dependencies": {
-            },
-            "devDependencies": {
-                "concurrently": "^7.1.0",
-                "esbuild": "^0.14.38",
-                "esbuild-plugin-d.ts":"^1.1.0",
-                "nodemon": "^2.0.15",
-                "ws": "^8.5.0"
-            },
-            "nodemonConfig": {
-                "env": {
-                "NODEMON": true
-                },
-                "ignore": [
-                "dist/"
-                ]
-            }
-        }
+{
+    "name": "tinybuild",
+    "version": "0.0.0",
+    "description": "Barebones esbuild and test node server implementation. For building",
+    "main": "index.js",
+    "type":"module",
+    "scripts": {
+        "start": "npm run startdev",
+        "build": "node tinybuild.js",
+        "init": "node tinybuild/init.js",
+        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
+        "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
+        "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
+        "python": "python python/server.py",
+        "pip": "pip install quart && pip install websockets",
+        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+    },
+    "keywords": [
+        "esbuild"
+    ],
+    "author": "Joshua Brewster",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+    },
+    "devDependencies": {
+        "concurrently": "^7.1.0",
+        "esbuild": "^0.14.38",
+        "esbuild-plugin-d.ts":"^1.1.0",
+        "nodemon": "^2.0.15",
+        "ws": "^8.5.0"
+    },
+    "nodemonConfig": {
+        "env": {
+        "NODEMON": true
+        },
+        "ignore": [
+        "dist/"
+        ]
+    }
+}
         `);
 
 
         fs.writeFileSync(dirName+'/.gitignore',
-        `
-            dist
-            **/node_modules/**
-            **/*.pem
-            **/*.pfxs
-            **/*.key
-            **/*.lock
-            **/package-lock.json
-            **/*.key
-            **/*.log
-        `
+`
+dist
+**/node_modules/**
+**/*.pem
+**/*.pfxs
+**/*.key
+**/*.lock
+**/package-lock.json
+**/*.key
+**/*.log
+`
         )
 
     }
