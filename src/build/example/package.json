@@ -26,11 +26,11 @@
             },
             "nodemonConfig": {
                 "env": {
-                  "NODEMON": true
+                    "NODEMON": true
                 },
                 "ignore": [
-                  "dist/",
-                  ".temp/"
+                    "dist/",
+                    ".temp/"
                 ]
             }
         }

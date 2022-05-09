@@ -238,6 +238,8 @@ function checkBoilerPlate() {
         // else execSync('npm i');
 
         //console.log("Installed node modules!");
+
+        execSync('npm link tinybuild');
         
     }
 
