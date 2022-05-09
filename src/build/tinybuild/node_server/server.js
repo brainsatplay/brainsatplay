@@ -7,6 +7,7 @@ import * as path from 'path'
 import {HotReload, addHotReloadClient} from './hotreload/hotreload.js'
 
 import { PythonRelay, PythonClient } from './relay/python_relay.js';
+import { parseArgs } from '../repo.js'
 
 export const defaultServer = {
     debug:false, //print debog messages?
@@ -28,6 +29,8 @@ export const defaultServer = {
 
 let SERVERCONFIG = {};
 
+let foundArgs;
+if(process.argv) foundArgs = parseArgs(process.argv);
 
 function exitHandler(options, exitCode) {
 
@@ -195,7 +198,18 @@ export const serve = (cfg=defaultServer) => {
 
     console.time(`🐱 Node server started!`);
 
-    cfg = Object.assign({}, cfg) // Make modules editable
+
+    let obj = Object.assign({}, defaultServer); // Make modules editable
+    for(const prop in cfg) {
+        if(cfg[prop] === undefined) delete cfg[prop];
+    }
+    cfg = Object.assign(obj,cfg); //overwrite non-default values
+
+    let foundArgs;
+    if(process.argv) parseArgs(process.argv);
+    if(foundArgs) {
+        cfg = Object.assign(cfg,foundArgs);
+    }
     SERVERCONFIG = cfg;
     // Create classes to pass
 

@@ -5,6 +5,7 @@ export * from './tinybuild/packager.js'
 
 //uncomment and run `node tinybuild.js`
 import { packager, defaultBundler, defaultServer } from "./tinybuild/packager.js";
+import { parseArgs } from './tinybuild/repo.js'
 
 // let config = {
 //     bundler:{
@@ -102,7 +103,7 @@ function runNodemon(script) {
 }
 
 //run a script and watch the directory for changes
-function runAndWatch(script,ignore=['dist','temp'], extensions=['js','ts','css','html','jpg','png','txt','csv','xls']) {    
+function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['js','ts','css','html','jpg','png','txt','csv','xls']) {    
     process.env.NODEMON = true;
 
     const watcher = chokidar.watch(process.cwd(),{
@@ -113,7 +114,7 @@ function runAndWatch(script,ignore=['dist','temp'], extensions=['js','ts','css',
         binaryInterval:200
     });
 
-    let SERVER_PROCESS = {process:spawn('node',[script])}
+    let SERVER_PROCESS = {process:spawn('node',[script,...args])}
     let p = SERVER_PROCESS.process;
 
     if(p.stderr) p.stderr.on('data',(dat) => {
@@ -148,7 +149,7 @@ function runAndWatch(script,ignore=['dist','temp'], extensions=['js','ts','css',
 
             console.log('change detected at', path,'... Restarting...');
             p.on('close', (code,signal) => {
-                SERVER_PROCESS.process = spawn('node',[script]);
+                SERVER_PROCESS.process = spawn('node',[script,...args]);
                 p = SERVER_PROCESS.process;
 
                 if(p.stderr) p.stderr.on('data',(dat) => {
@@ -290,9 +291,6 @@ function runTinybuild() {
     console.time('🚀 Starting tinybuild...');
 
     //check global module path for node_modules folder
-    let argIdx = null;
-    let tick = 0;
-    var fileName;
 
     let SERVER_PROCESS;
     
@@ -314,82 +312,11 @@ function runTinybuild() {
 
     let tinybuildCfg = {}
 
+    let argIdx = null;
+    let tick = 0;
+    var fileName;
 
-    process.argv.forEach((val, idx, array) => {
-        //idx = 0: 'node'
-        //idx = 1: 'tinybuild/init.js
-        // dir='example'
-        // entry='index.js'
-        // core=false/true
-        // script=``   //no spaces
-        // config={} //no spaces
-        
-        let command = val;
-
-        if(argIdx){ //after 5 args we probably aren't on these args anymore
-            if(command.includes('help')) {
-                mode = 'help';
-                console.log(
-`
-tinybuild commands:
-
-global command:
-'tinybuild' -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve on nodemon for hot reloading.
-
-local command:
-'node path/to/tinybuild.js' -- will use the current working directory as reference to run this packager config
-
-arguments (applies to both):
-'start' -- runs the equivalent of 'node tinybuild.js' in the current working directory.
-'bundle' -- runs the esbuild bundler, can specify config with 'config={"bundler":{}}' via a jsonified (and URI-encoded if there are spaces) object
-'serve' -- runs the node development server, can specify config with 'config={"server":{}}' via a jsonified object and (URI-encoded if there are spaces) object
-'mode=python' -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). Use 'mode=dev' for the dev server mode (used by default if you just type 'tinybuild')
-'path=custom.js' -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
-'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
-'entry=index.js' --name the entry point file you want to create, defaults to index.js
-'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-'config={"server":{},"bundler":{}} -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
-`
-                )
-            }
-            if(command.includes('mode=')) {
-                mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
-                tinybuildCfg.mode = mode;
-            }
-            if(command.includes('start')) {
-                tinybuildCfg.start = true; //starts the entrypoint with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
-            }
-            if(command.includes('bundle')) {
-                tinybuildCfg.bundle = true; //bundle the local app?
-            }
-            if(command.includes('serve')) {
-                tinybuildCfg.serve = true; //serve the local (assumed built) dist?
-            }
-            if(command.includes('path')) { //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-                tinybuildCfg.path = command.split('=').pop()
-            }
-            if(command.includes('init')) {
-                tinybuildCfg.init = true; //initialize a repo with the below settings?
-            }
-            if(command.includes('entry')) {
-                tinybuildCfg.entryPoint = command.split('=').pop() //entry point script name to be created
-            }
-            if(command.includes('core')) {
-                tinybuildCfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
-            }
-            if(command.includes('script')) {
-                tinybuildCfg.initScript = decodeURIComponent(command.split('=').pop()) //encoded URI string of a javascript file
-            }
-            if(command.includes('config')) {
-                tinybuildCfg.config = JSON.parse(decodeURIComponent(command.split('=').pop())) //encoded URI string of a packager config.
-            }
-            tick++;
-        }
-        if(val === fileName) argIdx = true;
-
-    });
-
+    tinybuildCfg = parseArgs(process.argv);
 
     let scriptsrc = process.cwd()+'\\';
     if(tinybuildCfg.path) scriptsrc += tinybuildCfg.path;
@@ -442,7 +369,11 @@ let config = {
         bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
         bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
     },
-    server:defaultServer
+    server:{
+        host:'${tinybuildCfg.host}',
+        port:'${tinybuildCfg.port}',
+        protocol:'${tinybuildCfg.protocol}'
+    }
 }
 
 //bundle and serve

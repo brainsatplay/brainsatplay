@@ -27,6 +27,8 @@ Type
 
 tinybuild commands:
 
+tinybuild commands:
+
 global command:
 - `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders in the working directory (minus node_modules because it slows down) for hot reloading.
 
@@ -45,6 +47,16 @@ arguments (applies to both):
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
 - `config={"server":{},"bundler":{}}` -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+- `host=localhost` - host name for the server, localhost by default
+- `port=8080` - port for the server, 8080 by default
+- `protocol=http` - http or https? You need ssl cert and key to run https
+- `python=7000` - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use `mode=python`
+- `hotrelaod=5000` - hotreload port for the node server, 5000 by default
+- `startpage=index.html` - entry html page for the home '/' page, index.html by default
+- `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
+- `keypath=tinybuild/node_server/ssl/key.pem` - key file for https
+- `pwa=tinybuild/pwa/service-worker.js` - service worker for pwa, the server will install a manifest.json in the main folder if not found, https required
+
 
 ## init
 
