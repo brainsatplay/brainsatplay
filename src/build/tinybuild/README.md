@@ -11,6 +11,12 @@ then from an empty project folder, initialize a default app with:
 
 `tinybuild`
 
+## [Quickstart](docs/tinybuild.md)
+## [esbuild app and library bundling](docs/esbuild.md)
+## [Node development/production server](docs/server.md)
+## [Python development/production server](docs/python.md)
+
+
 Type
 
 `tinybuild help` for accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.js` config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
@@ -60,13 +66,6 @@ Server arguments:
 - `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-
-
-
-## [Quickstart](tinybuild/docs/tinybuild.md)
-## [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-## [Node development/production server](tinybuild/docs/server.md)
-## [Python development/production server](tinybuild/docs/python.md)
 
 ### Other notes:
 

@@ -4,12 +4,18 @@ Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle),
 
 ![tinybuild](tinybuild/docs/globalOutput.png)
 
-
 `npm i -g tinybuild`. If using this source, `npm i -g`
 
 then from an empty project folder, initialize a default app with:
 
 `tinybuild`
+
+
+## [Quickstart](tinybuild/docs/tinybuild.md)
+## [esbuild app and library bundling](tinybuild/docs/esbuild.md)
+## [Node development/production server](tinybuild/docs/server.md)
+## [Python development/production server](tinybuild/docs/python.md)
+
 
 Type
 
@@ -62,10 +68,6 @@ Server arguments:
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
 
 
-## [Quickstart](tinybuild/docs/tinybuild.md)
-## [esbuild app and library bundling](tinybuild/docs/esbuild.md)
-## [Node development/production server](tinybuild/docs/server.md)
-## [Python development/production server](tinybuild/docs/python.md)
 
 ### Other notes:
 
