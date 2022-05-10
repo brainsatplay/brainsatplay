@@ -5,7 +5,7 @@ export * from './tinybuild/packager.js'
 import path from 'path'
 
 //uncomment and run `node tinybuild.js`
-import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange } from './tinybuild/repo.js'
+import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
 
 // let config = {
 //     bundler:{
@@ -167,24 +167,15 @@ packager(config);
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
         }
         else if (tinybuildCfg.bundle) {
-            if(tinybuildCfg.bundler) {
-                let cfgstring = encodeURIComponent(JSON.stringify(tinybuildCfg.bundler));
-                runOnChange('node',[tinybuildCfg.path, `config=${cfgstring}`]) //uses linked global repository
-            } else {
-                runOnChange('node',[tinybuildCfg.path, ...cmdargs])
-            }
+            tinybuildCfg.server = null;
+            runOnChange('node',[tinybuildCfg.path, `config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
         }
         else if (tinybuildCfg.serve) {
-            if(tinybuildCfg.server) {
-                let cfgstring = encodeURIComponent(JSON.stringify(tinybuildCfg.server));
-                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${cfgstring}`]);
-            }
-            else {
-                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs);
-            }
+            tinybuildCfg.bundler = null;
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
 
     } else if (mode !== 'help') {
@@ -203,7 +194,7 @@ packager(config);
 
             checkBoilerPlate();
 
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path); //runNodemon(tinybuildCfg.path);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,[`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`]); //runNodemon(tinybuildCfg.path);
         }
     }
 

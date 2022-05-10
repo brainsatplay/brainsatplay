@@ -22,21 +22,21 @@ export async function packager(config=defaultConfig) {
     
     if(config.bundler) {
         packaged.bundles = await bundler.bundle(config.bundler);
-    
-        if(config.server) { //now serve the default server
-            if(config.bundler.bundleHTML) { //serve the bundled app page 
-                
-                let outfile = config.bundler.outfile;
-                if(!outfile) outfile = config.bundler.outdir[0];
+    }
+    if(config.server) { //now serve the default server
+        if(config.bundler.bundleHTML) { //serve the bundled app page 
+            
+            let outfile = config.bundler.outfile;
+            if(!outfile && config.bundler.outdir) outfile = config.bundler.outdir[0];
+            if(!outfile) outfile = 'dist/index' //defaults
 
-                let path = outfile+'.build.html';
+            let path = outfile+'.build.html';
 
-                console.log('Default HTML app bundled: ', path);
-                            
-                config.server.startpage = path;
-            }
-            packaged.server = await server.serve(config.server);
+            console.log('Default HTML app bundled: ', path);
+                        
+            config.server.startpage = path;
         }
+        packaged.server = await server.serve(config.server);
     }
     console.timeEnd('🎂🎆 App packaged!');
 
