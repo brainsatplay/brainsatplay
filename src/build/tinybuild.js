@@ -178,6 +178,8 @@ packager(config);
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
+            checkBoilerPlate();
+            
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
 
@@ -196,7 +198,6 @@ packager(config);
         else {
 
             checkBoilerPlate();
-
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,[`config=${(JSON.stringify(tinybuildCfg))}`]); //runNodemon(tinybuildCfg.path);
         }
     }
