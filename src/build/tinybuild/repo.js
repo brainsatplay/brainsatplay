@@ -656,6 +656,7 @@ Server arguments:
 - 'script=console.log("Hello%20World!")' -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
 `
                     )
+                    process.exit();
                 }
                 if(command.includes('mode=')) {
                     tinybuildCfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
