@@ -606,7 +606,7 @@ export function parseArgs(args=process.argv) {
     
             if(argIdx){ //after 5 args we probably aren't on these args anymore
                 if(command.includes('help')) {
-                    mode = 'help';
+                    tinybuildCfg.mode = 'help';
                     console.log(
 `
 tinybuild commands:
@@ -658,8 +658,7 @@ Server arguments:
                     )
                 }
                 if(command.includes('mode=')) {
-                    mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
-                    tinybuildCfg.mode = mode;
+                    tinybuildCfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
                 }
                 if(command.includes('GLOBAL')) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
                     tinybuildCfg.path = command.split('=').pop()
