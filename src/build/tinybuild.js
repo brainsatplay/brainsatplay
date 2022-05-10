@@ -108,7 +108,7 @@ export function runTinybuild(args) {
         execSync('npm link tinybuild',(err)=>{console.log(err)});
     }
 
-    if(Object.keys(tinybuildCfg).length > 2 || Object.keys(tinybuildCfg?.bundler).length > 0 || Object.keys(tinybuildCfg?.server).length > 0 ) {
+    if(mode !== 'help') {
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
@@ -183,24 +183,7 @@ packager(config);
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
 
-    } else if (mode !== 'help') {
-
-
-        if(fs.existsSync(tinybuildCfg.path)) {
-
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
-            //execSync('nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/')
-            //let NODEMON_PROCESS = nodemon("-e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv --ignore dist/ --ignore .temp/ --exec node "+tinybuildCfg.path+" --watch "+process.cwd()+"");
-            // let NODEMON_PROCESS = spawn(
-            //     'nodemon',['--exec', '\'node '+tinybuildCfg.path+'\'','-e', 'ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv','--ignore', 'dist/','--ignore', '.temp/'],
-            //     {stdio: ['pipe', 'pipe', 'pipe', 'ipc']});
-        }
-        else {
-
-            checkBoilerPlate();
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,[`config=${(JSON.stringify(tinybuildCfg))}`]); //runNodemon(tinybuildCfg.path);
-        }
-    }
+    } 
 
 
     if(!SERVER_PROCESS) console.timeEnd('🚀 Starting tinybuild...');
