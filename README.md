@@ -4,6 +4,7 @@
 ### Supporting Projects
 - [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
 - [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
+- [**tinybuild**](https://github.com/brainsatplay/brainsatplay/tree/main/src/build) combines ultra fast and lightweight esbuild, hot reloading node and python (optional), and quick config/setup via boilerplate.
 
 ### Features
 🧩 **Composable:** Assemble native and custom components to satisfy your specific requirements.
