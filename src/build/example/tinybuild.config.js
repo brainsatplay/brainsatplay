@@ -1,3 +1,4 @@
+
 //import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
 let entryPoints = ['index.js']
@@ -26,8 +27,6 @@ const config = {
         errpage: 'packager/node_server/other/404.html', //default error page, etc.
         certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-        //SERVER
-        //SOCKETS
     }
 }
 

@@ -55,6 +55,8 @@ process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 //pass string argument array or pass a config object
 export function runTinybuild(args) {
 
+    console.time('🚀 Starting tinybuild...');
+
     //console.log(args)
     let tinybuildCfg = {}
     let cmdargs = [];
@@ -63,9 +65,7 @@ export function runTinybuild(args) {
         cmdargs = args;
         tinybuildCfg = parseArgs(args);
     } //to pass to the restart scripts
-    if (typeof args === 'object') tinybuildCfg = args;
-    console.time('🚀 Starting tinybuild...');
-
+    else if (typeof args === 'object') tinybuildCfg = args;
     //check global module path for node_modules folder
 
     let SERVER_PROCESS;
@@ -74,9 +74,11 @@ export function runTinybuild(args) {
 
     // Get CLI Arguments
     const cliArgs = parseArgs(process.argv)
-    let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
-    const hasScript= fs.existsSync(scriptsrc)
+    // let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
+    // const hasScript= fs.existsSync(scriptsrc)
 
+    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL && fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')))  tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
+    if(!tinybuildCfg.path && fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) tinybuildCfg.path = path.join(process.cwd(),'tinybuild.js')
     if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
 

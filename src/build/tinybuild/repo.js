@@ -219,7 +219,7 @@ export function checkCoreExists() {
     }
 }
 
-//tinybuild config 
+//tinybuild config for use with 'tinybuild' command
 export function checkConfig() {
     let cfgpath =  path.join(process.cwd(),'tinybuild.config.js');
     if(!fs.existsSync(cfgpath)) {
@@ -253,8 +253,6 @@ const config = {
         errpage: 'packager/node_server/other/404.html', //default error page, etc.
         certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
         keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-        //SERVER
-        //SOCKETS
     }
 }
 
@@ -264,6 +262,7 @@ export default config;
 
 }
 
+//'tinybuild' will trigger this script otherwise if it exists
 export function checkBuildScript() {
     const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
 
@@ -291,7 +290,7 @@ packager(config);
     }
 }
 
-export function checkBoilerPlate(useConfig=false) {
+export function checkBoilerPlate(useConfig=true) {
     const packagePath = path.join(process.cwd(),'package.json')
     if(!fs.existsSync(packagePath)) {
         fs.writeFileSync(packagePath,
@@ -347,12 +346,14 @@ export function checkBoilerPlate(useConfig=false) {
     if(!fs.existsSync(process.cwd()+'/index.html')) { //the python server needs the index.html
         fs.writeFileSync(process.cwd()+'/index.html',`
 <!DOCTYPE html>
+<html>
     <head>
     </head>
     <body>  
         <script src="${distpath}">
-    </script>
-</body>
+        </script>
+    </body>
+</html>
         `)
     }
 
@@ -482,10 +483,12 @@ packager(config);
         fs.writeFileSync(path.join(dirName,'/index.html'),
         `
 <!DOCTYPE html>
-<head></head>
-<body>
-    <script src='${outfile}.js'></script>
-</body>
+<html>
+    <head></head>
+    <body>
+        <script src='${outfile}.js'></script>
+    </body>
+</html>
         `);
 
         copyFolderRecursiveSync('tinybuild',tinybuildPath);
@@ -662,7 +665,7 @@ Server arguments:
                     tinybuildCfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
                 }
                 if(command.includes('GLOBAL')) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
-                    tinybuildCfg.path = command.split('=').pop()
+                    tinybuildCfg.GLOBAL = command.split('=').pop()
                 }
                 if(command.includes('start')) {
                     tinybuildCfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
