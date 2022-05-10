@@ -2,26 +2,63 @@
 Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env.  
 
 
+### [Quickstart](docs/tinybuild.md)
+### [esbuild app and library bundling](docs/esbuild.md)
+### [Node development/production server](docs/server.md)
+### [Python development/production server](docs/python.md)
+
+
 ![tinybuild](docs/globalOutput.png)
 
-
-`npm i -g tinybuild`
+`npm i -g tinybuild`. If using this source, `npm i -g`
 
 then from an empty project folder, initialize a default app with:
 
 `tinybuild`
 
-## [Quickstart](docs/tinybuild.md)
-## [esbuild app and library bundling](docs/esbuild.md)
-## [Node development/production server](docs/server.md)
-## [Python development/production server](docs/python.md)
+Or first create a tinybuild.config.js like so:
+```js
+//import {defaultBundler, defaultServer, packager} from 'tinybuild'
 
+let entryPoints = ['index.js']
 
-Type
+const config = {
+    bundler: {
+        entryPoints: entryPoints,
+        outfile: 'dist/index',
+        bundleBrowser: true, //plain js format
+        bundleESM: false, //.esm format
+        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+        bundleNode: false, // bundle a package with platform:node and separate externals
+        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+    },
+    server: { //defaultServer
+        debug:false, //print debog messages?
+        protocol:'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
+        host: 'localhost', //'localhost' or '127.0.0.1' etc.
+        port: 8080, //e.g. port 80, 443, 8000
+        startpage: 'index.html',  //home page
+        socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
+        hotreload: 5000, //hotreload websocket server port
+        pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
+        python: false,//7000,  //quart server port (configured via the python server script file still)
+        python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
+        errpage: 'packager/node_server/other/404.html', //default error page, etc.
+        certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
+        keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+        //SERVER
+        //SOCKETS
+    }
+}
 
-`tinybuild help` for accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.js` config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
+export default config;
+```
 
-tinybuild commands:
+Then run `tinybuild`.
+
+### tinybuild commands:
+
+`tinybuild help` lists accepted arguments, see the boilerplate created in the new repo for more. The `tinybuild` command will use your edited `tinybuild.js` config file after initialization so you can use it generically, else see the created `package.json` for more local commands.
 
 global command:
 - `tinybuild` -- runs the boilerplate tinybuild bundler + server settings in the current working directory. It will create missing index.js, package.json (with auto npm/yarn install), and tinybuild.js, and serve with watched folders in the working directory (minus node_modules because it slows down) for hot reloading.
@@ -31,8 +68,8 @@ local command:
 
 tinybuild arguments (applies to packager or tinybuild commands):
 - `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `bundle` -- runs the esbuild bundler, can specify config with `config=./tinybuild.config.js` to link to a specific config file.
-- `serve` -- runs the node development server, can specify config with `config=./tinybuild.config.js` to link to a specific config file.
+- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified (and URI-encoded if there are spaces) object
+- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and (URI-encoded if there are spaces) object
 - `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
 - `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
@@ -66,6 +103,10 @@ Server arguments:
 - `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js
 - `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
+
+
+
+
 
 ### Other notes:
 
