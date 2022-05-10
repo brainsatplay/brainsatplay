@@ -29,15 +29,6 @@ tinybuild arguments (applies to packager or tinybuild commands):
 - `serve` -- runs the node development server, can specify config with `config=./tinybuild.config.js` to link to a specific config file.
 - `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
-<<<<<<< Updated upstream:src/build/src/README.md
-- `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)
-- `init` -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
-- `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
-- `entry=index.js` --name the entry point file you want to create, defaults to index.js
-- `script=console.log("Hello%20World!")` -- pass a jsonified and URI-encoded (for spaces etc.) javascript string, defaults to a console.log of Hello World!
-- `config=./tinybuild.config.js` -- link to a specific config file.
-- `host=localhost` - host name for the server, localhost by default
-=======
 - `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
 
 esbuild arguments:
@@ -56,7 +47,6 @@ esbuild arguments:
 
 Server arguments:
 - `host=localhost` -- set the hostname for the server, localhost by default. You can set it to your server url or IP address when serving. Generally use port 80 when serving.
->>>>>>> Stashed changes:src/build/tinybuild/README.md
 - `port=8080` - port for the server, 8080 by default
 - `protocol=http` - http or https? You need ssl cert and key to run https
 - `python=7000` - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use `mode=python`
