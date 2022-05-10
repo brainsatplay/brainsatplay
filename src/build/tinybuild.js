@@ -168,10 +168,12 @@ packager(config);
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
         }
         else if (tinybuildCfg.bundle) {
+            delete tinybuildCfg.serve; //don't use either arg to run both
             tinybuildCfg.server = null;
             runOnChange('node',[tinybuildCfg.path, `config=${(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
         }
         else if (tinybuildCfg.serve) {
+            delete tinybuildCfg.bundle; //don't use either arg to run both
             tinybuildCfg.bundler = null;
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
