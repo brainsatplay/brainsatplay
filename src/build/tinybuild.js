@@ -108,7 +108,7 @@ export function runTinybuild(args) {
         execSync('npm link tinybuild',(err)=>{console.log(err)});
     }
 
-    if(mode !== 'help') {
+    if(tinybuildCfg.mode !== 'help') {
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
