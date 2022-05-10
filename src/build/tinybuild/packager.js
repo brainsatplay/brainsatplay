@@ -26,10 +26,10 @@ export async function packager(config=defaultConfig) {
 
     let packaged = {}
     
-    if(config.bundler) {
+    if(config.bundler && !config.serve) {
         packaged.bundles = await bundler.bundle(config.bundler);
     }
-    if(config.server) { //now serve the default server
+    if(config.server && !config.bundle) { //now serve the default server
         if(config.bundler.bundleHTML) { //serve the bundled app page 
             
             let outfile = config.bundler.outfile;
