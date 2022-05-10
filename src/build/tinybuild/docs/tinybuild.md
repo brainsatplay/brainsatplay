@@ -65,7 +65,7 @@ Server arguments:
 - `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
 - `keypath=tinybuild/node_server/ssl/key.pem` - key file for https
 - `pwa=tinybuild/pwa/workbox-config.js` - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
-- `config={"server":{},"bundler":{}}` -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+- `config="{"server":{},"bundler":{}}"` -- pass a jsonified config object for the packager. See the bundler and server settings in the docs.
 - `init` -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
 - `core=true` -- include the tinybuild source in the new repository with an appropriate package.json
 - `entry=index.js` --name the entry point file you want to create, defaults to index.js

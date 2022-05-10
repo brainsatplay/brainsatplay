@@ -15,8 +15,14 @@ export async function packager(config=defaultConfig) {
     console.time('🎂🎆 App packaged!');
 
     if(process?.argv) { //add any command line arguments
-        Object.assign(config,parseArgs(process.argv))
+        let parsed = parseArgs(process.argv);
+        //console.log('args: ', process.argv);
+        //console.log('parsed args: ', parsed);
+        if(parsed?.bundler) Object.assign(config.bundler,parsed.bundler);
+        if(parsed?.server) Object.assign(config.server,parsed.server);
     }
+    
+    //console.log('using config: ',config);
 
     let packaged = {}
     

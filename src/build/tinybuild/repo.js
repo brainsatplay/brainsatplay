@@ -581,8 +581,8 @@ export function parseArgs(args=process.argv) {
     let fileName;
 
     if(typeof __filename =='undefined') {
-        globalThis['__filename'] = import.meta.url;
-        let dirname = fileURLToPath(import.meta.url);
+        globalThis['__filename'] = args[1];
+        let dirname = args[1];
         dirname = dirname.split(path.sep);
         dirname.pop();
         globalThis['__dirname'] = dirname.join(path.sep);
@@ -649,7 +649,7 @@ Server arguments:
 - 'certpath=tinybuild/node_server/ssl/cert.pem' - cert file for https 
 - 'keypath=tinybuild/node_server/ssl/key.pem' - key file for https
 - 'pwa=tinybuild/pwa/workbox-config.js' - service worker config for pwa using workbox-cli (installed separately via package.json), the server will install a manifest.json in the main folder if not found, https required
-- 'config={"server":{},"bundler":{}}' -- pass a jsonified and URI-encoded (for spaces etc.) config object for the packager. See the bundler and server settings in the docs.
+- 'config="{"server":{},"bundler":{}}"' -- pass a jsonified config object for the packager. See the bundler and server settings in the docs.
 - 'init' -- initialize a folder as a new tinybuild repository with the necessary files, you can include the source using the below command
 - 'core=true' -- include the tinybuild source in the new repository with an appropriate package.json
 - 'entry=index.js' --name the entry point file you want to create, defaults to index.js
@@ -756,14 +756,18 @@ Server arguments:
                     tinybuildCfg.bundler.minify = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('script')) {
-                    tinybuildCfg.initScript = decodeURIComponent(command.split('=').pop()) //encoded URI string of a javascript file
+                    let parsed = decodeURIComponent(command.slice(command.indexOf('=')+1));
+                    //console.log('script parsed: ', parsed);
+                    tinybuildCfg.initScript = parsed; //encoded URI string of a javascript file
                 }
                 if(command.includes('config')) {
-                    Object.assign(tinybuildCfg,JSON.parse(decodeURIComponent(command.split('=').pop()))) //encoded URI string of a packager config.
+                    let parsed = JSON.parse(command.split('=').pop());
+                    //console.log('config parsed: ', parsed);
+                    Object.assign(tinybuildCfg, parsed); //encoded URI string of a packager config.
                 }
                 tick++;
             }
-            if(v === fileName) argIdx = true;
+            if(v.includes(fileName)) argIdx = true;
     
     })
 

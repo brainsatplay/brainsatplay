@@ -55,6 +55,7 @@ process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 //pass string argument array or pass a config object
 export function runTinybuild(args) {
 
+    //console.log(args)
     let tinybuildCfg = {}
     let cmdargs = [];
 
@@ -168,14 +169,14 @@ packager(config);
         }
         else if (tinybuildCfg.bundle) {
             tinybuildCfg.server = null;
-            runOnChange('node',[tinybuildCfg.path, `config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
+            runOnChange('node',[tinybuildCfg.path, `config=${(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
         }
         else if (tinybuildCfg.serve) {
             tinybuildCfg.bundler = null;
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
 
     } else if (mode !== 'help') {
@@ -194,7 +195,7 @@ packager(config);
 
             checkBoilerPlate();
 
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,[`config=${encodeURIComponent(JSON.stringify(tinybuildCfg))}`]); //runNodemon(tinybuildCfg.path);
+            SERVER_PROCESS = runAndWatch(tinybuildCfg.path,[`config=${(JSON.stringify(tinybuildCfg))}`]); //runNodemon(tinybuildCfg.path);
         }
     }
 
@@ -209,14 +210,17 @@ packager(config);
     return SERVER_PROCESS;
 }
 
-if(process.argv.find((a) => {
+
+let GLOBALPATH = process.argv.find((a) => {
     if(a.includes('GLOBAL')) return true;
-})) {
+});
+
+if(GLOBALPATH) {
     if(fs.existsSync(path.join(process.cwd(),'tinybuild.config.js'))) {
         import('file:///'+process.cwd()+'/tinybuild.config.js').then((m) => {
             if(typeof m.default?.bundler || typeof mv.default.server) {
                 console.log('Using local tinybuild.config.js')
-                runTinybuild(m.default);
+                runTinybuild(Object.assign({GLOBAL:GLOBALPATH.split('=').pop()},m.default));
             } else {
                 runTinybuild(process.argv);
             }
@@ -224,4 +228,3 @@ if(process.argv.find((a) => {
     }   
     else runTinybuild(process.argv);
 }
-
