@@ -1,6 +1,10 @@
 # tinybuild
 Minimal [esbuild](https://esbuild.github.io/getting-started/#your-first-bundle), [Nodejs](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Node_server_without_framework), and [Python Quart](https://pgjones.gitlab.io/quart/) concurrent build and test env.  
 
+![tinybuild-status](https://img.shields.io/npm/v/tinybuild.svg) 
+![tinybuild-downloads](https://img.shields.io/npm/dt/tinybuild.svg)
+![tinybuild-l](https://img.shields.io/npm/l/tinybuild)
+
 
 ### [Quickstart](tinybuild/docs/tinybuild.md)
 ### [esbuild app and library bundling](tinybuild/docs/esbuild.md)
