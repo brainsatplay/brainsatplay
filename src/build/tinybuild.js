@@ -178,7 +178,9 @@ packager(config);
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
         else {
-            checkBoilerPlate();
+
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')))
+                checkBoilerPlate(); //install boilerplate if repo lacks package.json
             
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
         }
