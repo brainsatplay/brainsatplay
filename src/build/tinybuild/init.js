@@ -4,7 +4,7 @@ import { initRepo } from "./repo";
 
 let defaultRepo = {
     dirName:'example',    
-    entryPoint:'index.js', //your head js file
+    entryPoints:'index.js', //your head js file
     initScript:`
 /* 
     esbuild + nodejs (with asyncio python) development/production server. 
@@ -23,8 +23,8 @@ alert('tinybuild successful!');
     `,
     config:{
         bundler:{
-            entryPoints: [this.entryPoint],
-            outfile: 'dist/'+this.entryPoint.slice(0,this.entryPoint.lastIndexOf('.')),
+            entryPoints: [this.entryPoints],
+            outfile: 'dist/'+this.entryPoints.slice(0,this.entryPoints.lastIndexOf('.')),
             bundleBrowser: true, //plain js format
             bundleESM: false, //.esm format
             bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
@@ -59,7 +59,7 @@ process.argv.forEach((val, idx, array) => {
             defaultRepo.dirName = command.split('=').pop()
         }
         if(command.includes('entry')) {
-            defaultRepo.entryPoint = command.split('=').pop()
+            defaultRepo.entryPoints = command.split('=').pop()
         }
         if(command.includes('core')) {
             defaultRepo.includeCore = command.split('=').pop()
@@ -79,7 +79,7 @@ process.argv.forEach((val, idx, array) => {
 
 initRepo(
     defaultRepo.dirName,    
-    defaultRepo.entryPoint, //your head js file
+    defaultRepo.entryPoints, //your head js file
     defaultRepo.initScript,
     defaultRepo.config, //can set the config here
     defaultRepo.includeCore, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js

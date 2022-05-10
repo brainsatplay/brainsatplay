@@ -40,7 +40,7 @@ function exitHandler(options, exitCode) {
         }
     }
 
-    if (exitCode || exitCode === 0) console.log('EXIT CODE: ',exitCode);
+    if (exitCode || exitCode === 0) console.log('SERVER EXITED WITH CODE: ',exitCode);
     if (options.exit) process.exit();
 }
 
@@ -73,7 +73,7 @@ function onRequest(request, response, cfg) {
 
                         
                         //add hot reload if specified
-                        if(process.env.NODEMON && requestURL.endsWith('.html') && cfg.hotreload) {
+                        if(process.env.HOTRELOAD && requestURL.endsWith('.html') && cfg.hotreload) {
                             content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
                         }
 
@@ -107,7 +107,7 @@ function onRequest(request, response, cfg) {
                 if(requestURL.endsWith('.html')) {
 
                     //inject hot reload if specified
-                    if(process.env.NODEMON && cfg.hotreload) {
+                    if(process.env.HOTRELOAD && cfg.hotreload) {
                         content = addHotReloadClient(content,`${cfg.socket_protocol}://${cfg.host}:${cfg.port}/hotreload`);
                     }
                     

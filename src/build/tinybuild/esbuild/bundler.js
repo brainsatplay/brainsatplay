@@ -15,7 +15,7 @@ export const defaultBundler = {
   bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
   bundleCommonJS:false, //cjs format outputted as .cjs.js
   bundleHTML:false,   //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
-  entryPoints:['index.ts'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
+  entryPoints:['index.js'], //entry point file(s). These can include .js, .mjs, .ts, .jsx, .tsx, or other javascript files. Make sure your entry point is a ts file if you want to generate types
   outfile:'dist/index',     //exit point file, will append .js as well as indicators like .esm.js, .node.js for other build flags
   //outdir:[]               //exit point files, define for multiple bundle files
   bundle:true,
@@ -71,6 +71,7 @@ export async function bundle(configs) {
     // TODO: In the future, we should use this format (similar to Rollup) for the bundle() function
 
     // ------------------ END PROVISIONAL CODE ------------------
+    if(config.entryPoints && !Array.isArray(config.entryPoints)) config.entryPoints = [config.entryPoints]; 
     if(config.input)
       config.entryPoints = Array.isArray(config.index) ? config.input : [config.input]
     

@@ -19,8 +19,8 @@ let mainpath = dirName.join(path.sep);
 
 //console.log(globalpath,fs.existsSync(mainpath+'/node_modules'));
 
-if(!fs.existsSync(mainpath+'/node_modules')) {
-    console.log('🍏🐢 Installing node modules for tinybuild! TEST');
+if(!fs.existsSync(path.join(mainpath,'node_modules'))) {
+    console.log('🍏🐢 Installing node modules for tinybuild!');
     if(process.argv.includes('yarn'))  execSync(`cd ${mainpath} && yarn && cd ${process.cwd()}`); //install the node modules in the global repo
     else execSync(`cd ${mainpath} && npm i && cd ${process.cwd()}`); //install the node modules in the global repo
     console.log('Installed node modules for tinybuild! 🐢💚');
@@ -41,11 +41,11 @@ if(!fs.existsSync(mainpath+'/node_modules')) {
 // process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 
-let CHILDPROCESS = fork(mainpath+'/tinybuild.js', [...process.argv.splice(2),'GLOBAL'], {cwd:process.cwd()});
+let CHILDPROCESS = fork(path.join(mainpath,'tinybuild.js'), [...process.argv.splice(2),'GLOBAL='+globalpath], {cwd:process.cwd()});
 
 // CHILDPROCESS.on('error',(er)=>{console.error(er);});
-CHILDPROCESS.on('close',(er)=>{console.log("EXIT: ",er); process.exit()});
-CHILDPROCESS.on('exit',(er)=>{console.log("EXIT: ",er); process.exit()});
+CHILDPROCESS.on('close',(er)=>{console.log("TINYBUILD EXIT CODE: ",er); process.exit()});
+CHILDPROCESS.on('exit',(er)=>{console.log("TINYBUILD EXIT CODE: ",er); process.exit()});
 // CHILDPROCESS.on('crash',(er)=>{console.log('crash');});
 // if(CHILDPROCESS.stderr) CHILDPROCESS.stderr.on('data',(er)=>{console.error(er);});
 // if(CHILDPROCESS.stdout) CHILDPROCESS.stdout.on('data',(dat)=>{console.error(dat.toString());});
