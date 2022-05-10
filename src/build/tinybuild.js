@@ -114,26 +114,8 @@ export function runTinybuild(args) {
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
-            if(!fs.existsSync(tinybuildCfg.path)) {
-                fs.writeFileSync(tinybuildCfg.path,
-`
-import { packager, defaultServer } from "tinybuild";
-let config = {
-    bundler:{
-        entryPoints: ['index.js'], //entry file, relative to this file 
-        outfile: 'dist/index', //exit file
-        //outdir:[] 
-        bundleBrowser: true, //plain js format
-        bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-    },
-    server:${JSON.stringify(tinybuildCfg.server)}
-}
-
-//bundle and serve
-packager(config);
-`);
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path))) {
+                checkBoilerPlate();
             }
 
             exec('node '+ tinybuildCfg.path,(err,stdout,stderr) => {});
@@ -141,7 +123,10 @@ packager(config);
         }
         else if (cliArgs.mode === 'python') { //make sure your node_server config includes a python port otherwise it will serve the index.html and dist
             //check if python server.py folder exists, copy if not
-            checkCoreExists();
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild'))) {
+                checkCoreExists();
+                checkBoilerPlate();
+            }
 
             let distpath = 'dist/index.js';
             if(tinybuildCfg.bundler?.outfile) distpath = tinybuildCfg.bundler.outfile + '.js';
@@ -156,16 +141,20 @@ packager(config);
 
             spawn('python',['tinybuild/python/server.py']); //this can exit independently or the node server will send a kill signal
 
-            checkBoilerPlate()
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)))
+                checkBoilerPlate()
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
 
         }
         else if (cliArgs.mode === 'dev') { //run a local dev server copy
             //check if dev server folder exists, copy if not
-            checkCoreExists();
-            checkNodeModules();
-            checkBoilerPlate();
+        
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild'))) {
+                checkCoreExists();
+                checkNodeModules();
+                checkBoilerPlate();
+            }
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
         }
@@ -181,7 +170,7 @@ packager(config);
         }
         else {
 
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')))
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)))
                 checkBoilerPlate(); //install boilerplate if repo lacks package.json
             
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
