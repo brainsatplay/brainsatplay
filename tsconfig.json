@@ -48,5 +48,5 @@
       "**/tests/**",
       "**/dist/**",
   ],
-  "include": ["src"],
+  "include": ["src", "examples/intensities"],
 }

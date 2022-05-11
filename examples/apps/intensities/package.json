@@ -1,0 +1,8 @@
+{
+  "name": "intensities",
+  "type":"module",
+  "scripts": {
+    "start": "node tinybuild.js"
+  },
+  "license": "AGPL-3.0-or-later"
+}
