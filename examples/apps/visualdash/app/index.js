@@ -1,9 +1,9 @@
 
 //alert('Hello World!');
 
-import * as visualscript from '../../../src/visualscript/src/index'
+import * as visualscript from '../../../../src/visualscript/src/index'
 console.log('window.visualscript:', visualscript);
-import './styles.css'
+// import './styles.css'
 import AudioManager from './AudioManager'
 
 // const elm = new visualscript.Button({content: 'Test'})

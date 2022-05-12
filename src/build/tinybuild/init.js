@@ -76,7 +76,6 @@ process.argv.forEach((val, idx, array) => {
 
 });
 
-
 initRepo(
     defaultRepo.dirName,    
     defaultRepo.entryPoints, //your head js file

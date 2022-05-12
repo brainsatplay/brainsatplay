@@ -15,7 +15,7 @@ export type NavProps = {
     options: ElementType[]
   }
   secondary: ElementType[];
-  brand: ElementType; // URL or string
+  brand: Partial<ElementType>; // URL or string
   color?: string;
 }
 
@@ -27,17 +27,24 @@ export class Nav extends LitElement {
     
     :host {
       font-family: sans-serif;
+      z-index: 2;
+      background: black;
+      color: white;
+      display:flex;
+      align-items: center;
+      width: 100%;
     }
 
     header {
       width: 100%;
-      position: absolute; 
-      top: 0;
-      left: 0;
     }
 
     :host * {
       box-sizing: border-box;
+    }
+    
+    h1 {
+      margin: 0;
     }
 
     nav {
@@ -59,10 +66,13 @@ export class Nav extends LitElement {
       justify-content: space-between;
       font-size: 80%;
     }
+    #primary > * {
+      flex-grow: 1;
+    }
+
 
     #primary > div {
       height: 100%;
-      width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -144,7 +154,7 @@ export class Nav extends LitElement {
       return {
         primary: {
           type: Object,
-          reflect: true,
+          // reflect: true,
         },
         secondary: {
           type: Array,
@@ -166,23 +176,24 @@ export class Nav extends LitElement {
     color: NavProps['color']
     brand: NavProps['brand']
 
-    constructor(props: NavProps = {brand: {
-      content: 'My Brand',
-    }, primary: {menu: [], options: []}, secondary: []}) {
+    constructor(props: NavProps = {brand: {}, primary: {menu: [], options: []}, secondary: []}) {
       super();
+
+      console.log('Primary', props.primary)
 
       this.primary = props.primary ?? {menu: [], options: []}
       this.secondary = props.secondary ?? []
       this.color = props.color ?? 'blue'
       this.brand = props.brand ?? {content: 'My Brand'}
+      console.log('Primary', this.primary)
 
     }
     
-    willUpdate(_:any) {
-      // console.log(changedProps)
-      // if (changedProps.has('type')) {
-
-      // }
+    willUpdate(changedProps:any) {
+      console.log(changedProps)
+      if (changedProps.has('primary')) {
+        console.log('New Primary Value', this.primary)
+      }
     }
 
     getElement = (o: ElementType) => {
@@ -199,13 +210,15 @@ export class Nav extends LitElement {
   
     render() {
 
-
+      console.log('Primary', this.primary)
+      console.log('secondary', this.secondary)
+      console.log('brand', this.brand)
 
       return html`
       <header>
       ${(this.secondary.length > 0) ? html`<nav id="secondary">${this.secondary?.map(o => this.getElement(o))}</nav>` : ``}
       <nav id="primary">
-      ${ html`<a class="brand" target=${(this.brand.external) ? "_blank" : "_self"} href=${this.brand.link}>${(/(jpg|gif|png|JPG|GIF|PNG|JPEG|jpeg)$/.test(this.brand.content)) ? html`<img src="${this.brand.content}"></img>` : html`<h1>${this.brand.content.toUpperCase()}</h1>`}</a>`}
+      ${ html`<a class="brand" target=${(this.brand.external) ? "_blank" : "_self"} href=${this.brand.link}>${(this.brand.content) ? ( (/(jpg|gif|png|JPG|GIF|PNG|JPEG|jpeg)$/.test(this.brand.content)) ? html`<img src="${this.brand.content}"></img>` : html`<h1>${this.brand.content}</h1><slot></slot>` ) : html`<h1><slot></slot></h1>`}</a>`}
         <div>
           <div id="options">
           ${this.primary.options?.map(o => this.getElement(o))}
