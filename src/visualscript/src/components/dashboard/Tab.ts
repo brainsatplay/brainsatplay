@@ -2,10 +2,12 @@
 import { LitElement, html, css } from 'lit';
 
 export type TabProps = {
-
+  label?: string;
 }
 
 export class Tab extends LitElement {
+
+  label: TabProps['label']
 
   static get styles() {
     return css`
@@ -27,20 +29,23 @@ export class Tab extends LitElement {
     
     static get properties() {
       return {
-        
+        label : {
+          type: String
+        }
       };
     }
 
 
-    constructor(props: TabProps = {target: {}, header: 'Object'}) {
+    constructor(props: TabProps = {}) {
       super();
 
+      console.log('props', props)
+      this.label = props.label
     }
     
     render() {
 
       return html`
-
       <section><slot></slot></section>
     `
     }
