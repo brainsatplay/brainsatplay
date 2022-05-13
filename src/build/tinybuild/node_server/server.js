@@ -32,24 +32,7 @@ let SERVERCONFIG = {};
 let foundArgs;
 if(process.argv) foundArgs = parseArgs(process.argv);
 
-function exitHandler(options, exitCode) {
 
-    if(typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
-        if(SERVERCONFIG.SOCKETS.py_client.ws?.readyState === 1) {
-            SERVERCONFIG.SOCKETS.py_client.ws.send('kill');
-        }
-    }
-
-    if (exitCode || exitCode === 0) console.log('SERVER EXITED WITH CODE: ',exitCode);
-    if (options.exit) process.exit();
-}
-
-//do something when app is closing
-process.on('exit', exitHandler.bind(null,{cleanup:true}));
-process.on(2, exitHandler.bind(null,{cleanup:true, exit:true}));
-
-//catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 //when a request is made to the server from a user, what should we do with it?
 function onRequest(request, response, cfg) {
@@ -195,6 +178,25 @@ function onStarted(cfg) {
 
 // create the http/https server. For hosted servers, use the IP and open ports. Default html port is 80 or sometimes 443
 export const serve = (cfg=defaultServer) => {
+
+    function exitHandler(options, exitCode) {
+
+        if(typeof SERVERCONFIG.SOCKETS?.py_client != 'undefined') {
+            if(SERVERCONFIG.SOCKETS.py_client.ws?.readyState === 1) {
+                SERVERCONFIG.SOCKETS.py_client.ws.send('kill');
+            }
+        }
+    
+        if (exitCode || exitCode === 0) console.log('SERVER EXITED WITH CODE: ',exitCode);
+        if (options.exit) process.exit();
+    }
+    
+    //do something when app is closing
+    process.on('exit', exitHandler.bind(null,{cleanup:true}));
+    process.on(2, exitHandler.bind(null,{cleanup:true, exit:true}));
+    
+    //catches ctrl+c event
+    process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
     console.time(`🐱 Node server started!`);
 
