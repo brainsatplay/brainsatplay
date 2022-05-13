@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import path from 'path';
 import * as chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
-import {fileURLToPath} from 'url';
+import { defaultServer } from './node_server/server.js';
 
 
 //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
@@ -220,79 +220,83 @@ export function checkCoreExists() {
 }
 
 //tinybuild config for use with 'tinybuild' command
-export function checkConfig() {
-    let cfgpath =  path.join(process.cwd(),'tinybuild.config.js');
-    if(!fs.existsSync(cfgpath)) {
+export async function createConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
+    let config = await checkConfig(cfgpath)
+
+    // Create Configuration File
+    if(!config) {
+
+
+        console.log('Creating tinybuild.config.js file')
+
+       config = {
+            bundler: {
+                entryPoints: ['index.js'],
+                outfile: 'dist/index',
+                bundleBrowser: true, //plain js format
+                bundleESM: false, //.esm format
+                bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+                bundleNode: false, // bundle a package with platform:node and separate externals
+                bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+            },
+            server: defaultServer
+        }
+
+        
         fs.writeFileSync(cfgpath,
-`
-//import {defaultBundler, defaultServer, packager} from 'tinybuild'
-
-let entryPoints = ['index.js']
-
-const config = {
-    bundler: {
-        entryPoints: entryPoints,
-        outfile: 'dist/index',
-        bundleBrowser: true, //plain js format
-        bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        bundleNode: false, // bundle a package with platform:node and separate externals
-        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-    },
-    server: { //defaultServer
-        debug:false, //print debog messages?
-        protocol:'http', //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
-        host: 'localhost', //'localhost' or '127.0.0.1' etc.
-        port: 8080, //e.g. port 80, 443, 8000
-        startpage: 'index.html',  //home page
-        socket_protocol: 'ws', //frontend socket protocol, wss for served, ws for localhost
-        hotreload: 5000, //hotreload websocket server port
-        pwa:'dist/service-worker.js', //pwa mode? Injects service worker registry code in (see pwa README.md)
-        python: false,//7000,  //quart server port (configured via the python server script file still)
-        python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: 'packager/node_server/other/404.html', //default error page, etc.
-        certpath:'packager/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'packager/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
-    }
-}
+        `const config = ${JSON.stringify(config, null, 2)}
 
 export default config;
-`)
+        `)
     }
 
+    return config
+}
+export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
+    const needsConfig = !fs.existsSync(cfgpath)
+
+    // Create Configuration File
+    if(needsConfig) return false
+    else return (await import(cfgpath)).default
 }
 
 //'tinybuild' will trigger this script otherwise if it exists
-export function checkBuildScript() {
+export async function checkBuildScript() {
+    let config = await checkConfig()
+    if (!config) config = await createConfig()
+
     const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
-
-    if(!fs.existsSync(tinybuildPath)) {
+    if(needsScript) {
         fs.writeFileSync(tinybuildPath,
-`
-import { packager, defaultServer } from "tinybuild";
-let config = {
-    bundler:{
-        entryPoints: ['index.js'], //entry file, relative to this file 
-        outfile: 'dist/index', //exit file
-        //outdir:[] 
-        bundleBrowser: true, //plain js format
-        bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
-        bundeNode: false, // bundle a package with platform:node and separate externals
-        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
-    },
-    server:defaultServer
-}
-
-//bundle and serve
-packager(config);
-`);
+        `
+        import { packager } from "tinybuild";
+        import config from './tinybuild.config.js'
+        packager(config); // bundle and serve
+        `);
     }
+    return config
 }
 
-export function checkBoilerPlate(useConfig=true) {
+
+// NOTE: At a minimum, boilerplate includes a (1) a script / config , (1) a package.json and (3) an index.html file.
+// If these files exist, none of the others are created.
+// IMPORTANT: Using the tinybuild.config.js file at process.cwd() OR a generated one.
+export async function checkBoilerPlate(onlyConfig=true) {
+    const config = await ((onlyConfig) ? createConfig() : checkBuildScript());
     const packagePath = path.join(process.cwd(),'package.json')
-    if(!fs.existsSync(packagePath)) {
+    const htmlPath = process.cwd()+'/index.html'
+
+    const entryFile = config.bundler.entryPoints[0]
+    const entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
+
+    const needPackage = !fs.existsSync(packagePath)
+    const needHTML = !fs.existsSync(htmlPath)
+    const needEntry = !fs.existsSync(entryFilePath)
+
+
+    if(needPackage) {
+
+        console.log('Creating package.json')
         fs.writeFileSync(packagePath,
 `{
     "name": "tinybuildapp",
@@ -342,31 +346,32 @@ export function checkBoilerPlate(useConfig=true) {
         
     }
 
-    let distpath = 'dist/index.js';
-    if(!fs.existsSync(process.cwd()+'/index.html')) { //the python server needs the index.html
-        fs.writeFileSync(process.cwd()+'/index.html',`
+    // Auto-assign distpath
+    if(needHTML) { //the python server needs the index.html
+
+        console.log('Creating index.html')
+
+        fs.writeFileSync(htmlPath,`
 <!DOCTYPE html>
 <html>
     <head>
     </head>
     <body>  
-        <script src="${distpath}">
+        <script src="${(config.bundler.outfile.includes('.js')) ? config.bundler.outfile : `${config.bundler.outfile}.js`}">
         </script>
     </body>
 </html>
         `)
     }
 
-    //first check if the index.js exists, if not make them.
-    const index = path.join(process.cwd(), 'index.js')
-    if(!fs.existsSync(index)) {
-        fs.writeFileSync(index,'console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
-    }
 
-    if(useConfig) {
-        checkConfig();
-    } else {
-        checkBuildScript();
+    // First check if all the other boilerplate has been made on this run
+    if(config && needPackage && needHTML) {
+
+        console.log('Creating entry file: ', entryFile)
+
+        // Make index.js if it doesn't exist
+        if (needEntry) fs.writeFileSync(entryFilePath,'console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
     }
 }
 
@@ -407,7 +412,10 @@ alert('tinybuild successful!');
     includeCore=true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
     ) {
 
+        console.log('ACTUAL INIT REPO')
+
     if(!fs.existsSync(dirName)) fs.mkdirSync(dirName); //will be made in the folder calling the init script
+
 
     fs.writeFileSync(dirName+'/'+entryPoints,
         // app initial entry point

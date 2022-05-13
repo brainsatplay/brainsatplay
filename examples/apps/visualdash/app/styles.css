@@ -1,0 +1,34 @@
+
+html, body {
+margin: 0;
+width: 100vw;
+height: 100vh;
+}
+
+section {
+padding: 25px;
+}
+
+#analyses > div {
+max-width: 400px;
+}
+
+#videos {
+width: 100%;
+}
+
+#videos video {
+max-width: 400px;
+}
+
+#analyses {
+display: flex;
+flex-wrap: wrap;
+}
+
+.container {
+background: rgb(237, 237, 237);
+padding: 15px;
+margin: 10px;
+border-radius: 25px;
+}

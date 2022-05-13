@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Intensities | Visualscript Demo</title>
+  <script src="dist/index.js" defer=true></script>
+  <link rel="stylesheet" href="./app/styles.css">
+</head>
+
+<body>
+  <visualscript-dashboard>
+    <visualscript-nav>Intensity</visualscript-nav>
+    <!-- <visualscript-nav 
+    
+    primary='{"menu": [
+      {"content": "Products"},
+      {"content": "Solutions"},
+      {"content": "Services"},
+      {"content": "Resources"},
+      {"content": "Ethos"}
+  
+    ],
+    "options": [
+      {"content": "Contact"},
+      {"content": "Login"}
+    ]}'
+    
+    secondary = '[{"content":"Platform","link":"https://app.brainsatplay.com","external":true},{"content":"Studio","link":"https://app.brainsatplay.com/#studio","external":true},{"content":"Developers","link":"https://docs.brainsatplay.com","external":true},{"content":"Community","link":"https://discord.gg/tQ8P79tw8j","external":true},{"content":"Contribute","type":"button","link":"https://github.com/brainsatplay","external":true}]'
+  
+    brand='{"content": "Brains@Play", "link": "https://brainsatplay.com", "external": true}'
+  ></visualscript-nav> -->
+  <visualscript-sidebar>
+    <h3>Controls</h3>
+    <h4>Real-Time Data</h4>
+    <button id="start">Start Data Acquisition</button>
+
+    <h5>Audio Input</h5>
+    <select id="in"></select>
+
+    <h5>Audio Output</h5>
+    <select id="out"></select>
+
+    <h5>Video Input</h5>
+    <select id="video"></select>
+
+    <h4>Upload Files</h4>
+    <fieldset>
+      <input type="file" id="files" accept="audio/*, video/*" />
+    </fieldset>
+  </visualscript-sidebar>
+
+  <visualscript-main>
+    <visualscript-tab label="Videos">
+      <div id="videos"></div>
+    </visualscript-tab>
+    <visualscript-tab label="Analyses">
+      <div id="analyses"></div>
+    </visualscript-tab>
+  </visualscript-main>
+
+  <visualscript-footer>Garrett Flynn and Lisa Müller-Trede | 2022</visualscript-footer>
+  </visualscript-dashboard>
+
+
+</body>
+
+<script type="module">
+
+// console.log(JSON.stringify({}))
+
+</script>
+
+</html>
