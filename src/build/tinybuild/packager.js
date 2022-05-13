@@ -12,7 +12,7 @@ export const defaultConfig = {
 }
 
 export async function packager(config=defaultConfig) {
-    console.time('🎂🎆 App packaged!');
+    console.time('🎂🎆 Packager finished!');
 
     if(process?.argv) { //add any command line arguments
         let parsed = parseArgs(process.argv);
@@ -55,7 +55,7 @@ export async function packager(config=defaultConfig) {
     if(config.server) { //now serve the default server
         packaged.server = await server.serve(config.server);
     }
-    console.timeEnd('🎂🎆 App packaged!');
+    console.timeEnd('🎂🎆 Packager finished!');
 
     return packaged;
 }
