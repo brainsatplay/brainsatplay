@@ -14,12 +14,13 @@ export class Footer extends LitElement {
       padding: 25px;
       background: black;
       color: white;
-      font-weight: bold;
       display:flex;
       align-items: center;
       width: 100%;
       font-size: 70%;
       box-sizing: border-box;
+      z-index: 100;
+      grid-area: foot;
     }
 
     :host * {
@@ -32,14 +33,12 @@ export class Footer extends LitElement {
     
     static get properties() {
       return {
-        
       };
     }
 
 
-    constructor(props: FooterProps = {target: {}, header: 'Object'}) {
+    constructor(props: FooterProps = {}) {
       super();
-
     }
     
     render() {

@@ -1,6 +1,6 @@
 
 import { LitElement, html, css } from 'lit';
-import "../general/Nav"
+import "../general/Overlay"
 
 export type DashboardProps = {
   target: {[x:string]: any}
@@ -40,55 +40,6 @@ export class Dashboard extends LitElement {
       width: 100%;
       height: 100%;
     }
-
-    ::slotted(*:nth-child(1)) { 
-      grid-area: nav;
-    }
-
-    ::slotted(*:nth-child(2)) { 
-      grid-area: side;
-    }
-
-    ::slotted(*:nth-child(3)) { 
-      grid-area: main;
-      overflow: scroll;
-    }
-
-    ::slotted(*:nth-child(4)) { 
-      font-size: 70%;
-      font-weight: normal;
-      grid-area: foot;
-    }
-
-    ::slotted(*:nth-child(1)),  ::slotted(*:nth-child(4)) {
-      z-index: 2;
-    }
-
-    #overlay {
-      opacity: 0;
-      width: 100vw;
-      height: 100vh;
-      transition: 0.5s;
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1;
-      font-size: 30px;
-      font-weight: bold;
-      /* background: black; */
-    }
-  
-    #overlay.open {
-      opacity: 1;
-      pointer-events: all;
-      backdrop-filter: blur(5px);
-    }
-  
-
     `;
   }
     
@@ -178,7 +129,6 @@ export class Dashboard extends LitElement {
     render() {
 
       return html`
-      <div id="overlay"></div>
       <slot>
       </slot>
     `

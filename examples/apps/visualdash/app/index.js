@@ -23,7 +23,7 @@ import AudioManager from './AudioManager'
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
 
-  var overlay = document.getElementById('overlay');
+  var overlay = document.querySelector('visualscript-overlay');
 
   let frequencyBinCount = Math.pow(2,11);
   let minFreq = 7000
@@ -56,15 +56,15 @@ import AudioManager from './AudioManager'
       if (deviceInfo.kind === 'audioinput') {
         option.text = deviceInfo.label ||
           'Microphone ' + (audioInputSelect.length + 1);
-        audioInputSelect.appendChild(option);
+        audioInputSelect.add(option);
       } else if (deviceInfo.kind === 'audiooutput') {
         option.text = deviceInfo.label || 'Speaker ' +
           (audioOutputSelect.length + 1);
-        audioOutputSelect.appendChild(option);
+        audioOutputSelect.add(option);
       } else if (deviceInfo.kind === 'videoinput') {
         option.text = deviceInfo.label || 'Camera ' +
           (videoSelect.length + 1);
-        videoSelect.appendChild(option);
+        videoSelect.add(option);
       }
     }
   }
@@ -162,14 +162,14 @@ import AudioManager from './AudioManager'
 
 
       overlay.innerHTML = 'Decoding audio data from file...'
-      overlay.classList.add('open')
+      overlay.open = true
       audioManager.context.decodeAudioData(ev.target.result, (data) => {
 
           overlay.innerHTML = 'Audio decoded! Analysing audio data...'
           // Preanalyze Audio
           audioManager.fft(data, null, (ev) => {
               overlay.innerHTML = 'Analysis complete!'
-              overlay.classList.remove('open')
+              overlay.open = false
               // Play Audio
               const source = audioManager.context.createBufferSource();
               source.buffer = data;

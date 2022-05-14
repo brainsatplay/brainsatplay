@@ -8,7 +8,7 @@ export type MainProps = {
 
 export class Main extends LitElement {
 
-  tabs: any[];
+  tabs: Tab[];
 
   static get styles() {
     return css`
@@ -17,6 +17,8 @@ export class Main extends LitElement {
       width: 100%;
       height: 100%;
       box-sizing: border-box;
+      grid-area: main;
+      overflow: scroll;
     }
 
     :host * {
@@ -31,6 +33,7 @@ export class Main extends LitElement {
       overflow-x: scroll;
       display: flex;
       align-items: center;
+      position: relative;
     }
 
     .tab {
@@ -42,6 +45,8 @@ export class Main extends LitElement {
       font-size: 80%;
       background: rgb(50,50,50);
       cursor: pointer;
+      min-width: 100px;
+      flex-grow: 1;
     }
 
     .tab:hover {
@@ -50,6 +55,29 @@ export class Main extends LitElement {
 
     .tab:active {
       background: rgb(75,75,75);
+    }
+
+    /* Tab Scrollbar */
+    #tabs::-webkit-scrollbar {
+      height: 2px;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    #tabs::-webkit-scrollbar-track {
+      background: transparent;
+      width: 25px;
+    }
+
+    #tabs::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 10px;
+    }
+
+    /* Handle on hover */
+    #tabs:hover::-webkit-scrollbar-thumb {
+      background: rgb(80, 236, 233);
     }
     `;
   }
@@ -75,14 +103,19 @@ export class Main extends LitElement {
 
       }}>${tab.label ?? `Tab ${i}`}</button>`
     }
-    
-    render() {
 
+    getTabs = () => {
       this.tabs = []
       for(var i=0; i<this.children.length; i++){        
         const child = this.children[i]
         if (child instanceof Tab) this.tabs.push(child)
       }
+      return this.tabs
+    }
+    
+    render() {
+
+      this.getTabs()
 
       return html`
       <div id="tabs">

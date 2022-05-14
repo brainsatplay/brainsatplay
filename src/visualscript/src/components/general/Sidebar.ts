@@ -14,6 +14,7 @@ export class Sidebar extends LitElement {
     :host {
       background: rgb(234, 234, 234);
       padding: 25px;
+      grid-area: side;
     }
 
     select, input {

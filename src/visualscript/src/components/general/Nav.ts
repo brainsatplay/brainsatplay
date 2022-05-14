@@ -33,6 +33,8 @@ export class Nav extends LitElement {
       display:flex;
       align-items: center;
       width: 100%;
+      grid-area: nav;
+      z-index: 100;
     }
 
     header {
@@ -66,12 +68,13 @@ export class Nav extends LitElement {
       justify-content: space-between;
       font-size: 80%;
     }
+
     #primary > * {
       flex-grow: 1;
+      display: flex;
     }
 
-
-    #primary > div {
+    #primary > div:lastchild {
       height: 100%;
       display: flex;
       align-items: center;
@@ -218,7 +221,7 @@ export class Nav extends LitElement {
       <header>
       ${(this.secondary.length > 0) ? html`<nav id="secondary">${this.secondary?.map(o => this.getElement(o))}</nav>` : ``}
       <nav id="primary">
-      ${ html`<a class="brand" target=${(this.brand.external) ? "_blank" : "_self"} href=${this.brand.link}>${(this.brand.content) ? ( (/(jpg|gif|png|JPG|GIF|PNG|JPEG|jpeg)$/.test(this.brand.content)) ? html`<img src="${this.brand.content}"></img>` : html`<h1>${this.brand.content}</h1><slot></slot>` ) : html`<h1><slot></slot></h1>`}</a>`}
+      ${ html`<div><a class="brand" target=${(this.brand.external) ? "_blank" : "_self"} href=${this.brand.link}>${(this.brand.content) ? ( (/(jpg|gif|png|JPG|GIF|PNG|JPEG|jpeg)$/.test(this.brand.content)) ? html`<img src="${this.brand.content}"></img>` : html`<h1>${this.brand.content}</h1><slot></slot>` ) : html`<h1><slot></slot></h1>`}</a></div>`}
         <div>
           <div id="options">
           ${this.primary.options?.map(o => this.getElement(o))}

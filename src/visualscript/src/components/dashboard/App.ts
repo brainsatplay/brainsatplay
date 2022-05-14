@@ -1,22 +1,26 @@
 
 import { LitElement, html, css } from 'lit';
 
-export type TabProps = {
-  label?: string;
+// ---------------- SPECIFICATION ----------------
+// 1. Display the application metadata
+// 2. Click into and instantiate the application
+// 3. Leave the application
+
+export type AppProps = {
+  name?: string;
 }
 
-export class Tab extends LitElement {
+export class App extends LitElement {
 
-  label: TabProps['label']
+  name: AppProps['name']
 
   static get styles() {
+    
     return css`
 
     :host {
       width: 100%;
       height: 100%;
-      box-sizing: border-box;
-      background:gray;
     }
 
     :host * {
@@ -29,24 +33,27 @@ export class Tab extends LitElement {
     
     static get properties() {
       return {
-        label : {
+        name : {
           type: String
         }
       };
     }
 
 
-    constructor(props: TabProps = {}) {
+    constructor(props: AppProps = {}) {
       super();
-      this.label = props.label
+
+      this.name = props.name
     }
-    
+
+
+
     render() {
 
       return html`
-      <section><slot></slot></section>
+        <slot></slot>
     `
     }
   }
   
-  customElements.define('visualscript-tab', Tab);
+  customElements.define('visualscript-app', App);
