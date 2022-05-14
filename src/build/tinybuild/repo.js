@@ -341,10 +341,9 @@ export async function checkBoilerPlate(onlyConfig=true) {
         // else execSync('npm i');
 
         //console.log("Installed node modules!");
-
-        execSync('npm link tinybuild');
         
     }
+
 
     // Auto-assign distpath
     if(needHTML) { //the python server needs the index.html
