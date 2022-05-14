@@ -5,6 +5,7 @@ export * from './tinybuild/packager.js'
 import path from 'path'
 
 //uncomment and run `node tinybuild.js`
+import {packager} from './tinybuild/packager.js'
 import { checkBoilerPlate, checkCoreExists, checkNodeModules, runAndWatch, runOnChange, parseArgs } from './tinybuild/repo.js'
 
 // let config = {
@@ -106,8 +107,8 @@ export async function runTinybuild(args) {
 
     // with the extra settings we can apply them to the packager config
 
-    if(!fs.existsSync(path.join(process.cwd(),'node_modules','tinybuild'))) { 
-        // execSync('npm link tinybuild',(err)=>{console.log(err)});
+    if(!fs.existsSync(path.join(process.cwd(),'node_modules','tinybuild')) && !fs.existsSync(path.join(process.cwd(),'tinybuild'))) { 
+        execSync('npm link tinybuild');
     }
 
     if(cliArgs.mode !== 'help') {
@@ -173,7 +174,8 @@ export async function runTinybuild(args) {
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)))
                 await checkBoilerPlate(); //install boilerplate if repo lacks package.json
             
-            SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            if(tinybuildCfg.server !== false) SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            else packager(tinybuildCfg); //else just run the bundler and quit
         }
 
     } 
