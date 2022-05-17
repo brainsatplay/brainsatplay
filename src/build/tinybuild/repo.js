@@ -363,9 +363,7 @@ export async function checkBoilerPlate(onlyConfig=true) {
         `)
     }
 
-
-    // First check if all the other boilerplate has been made on this run
-    if(config && needPackage && needHTML) {
+    if(needEntry) {
 
         console.log('Creating entry file: ', entryFile)
 
