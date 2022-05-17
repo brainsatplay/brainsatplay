@@ -11,7 +11,38 @@
 </head>
 
 <body>
+  <visualscript-app name="Intensity">
+    <visualscript-dashboard>
+    <visualscript-sidebar>
+      <h4>Real-Time Data</h4>
+        <visualscript-button id="start" size="small">Start Data Acquisition</visualscript-button>
+
+        <h5>Audio Input</h5>
+        <visualscript-select id="in"></visualscript-select>
+
+        <h5>Audio Output</h5>
+        <visualscript-select id="out"></visualscript-select>
+
+        <h5>Video Input</h5>
+        <visualscript-select id="video"></visualscript-select>
+
+        <h4>Recorded Files</h4>
+        <fieldset>
+          <input type="file" id="files" accept="audio/*, video/*" />
+      </fieldset>
+    </visualscript-sidebar>
+  
+    <visualscript-main>
+      <section>
+        <div id="videos"></div>
+        <div id="analyses"></div>
+      </section>
+    </visualscript-main>
+    </visualscript-dashboard>
+  </visualscript-app>
+
   <visualscript-overlay></visualscript-overlay>
+
   <visualscript-dashboard>
     <visualscript-nav>Visualscript</visualscript-nav>
     <!-- <visualscript-nav 
@@ -35,45 +66,21 @@
   ></visualscript-nav> -->
   <visualscript-sidebar>
     <h3>Controls</h3>
-    <h4>Real-Time Data</h4>
-    <visualscript-button id="start">Start Data Acquisition</visualscript-button>
-
-    <h5>Audio Input</h5>
-    <visualscript-select id="in"></visualscript-select>
-
-    <h5>Audio Output</h5>
-    <visualscript-select id="out"></visualscript-select>
-
-    <h5>Video Input</h5>
-    <visualscript-select id="video"></visualscript-select>
-
-    <h4>Upload Files</h4>
-    <fieldset>
-      <input type="file" id="files" accept="audio/*, video/*" />
-    </fieldset>
+    Coming soon...
   </visualscript-sidebar>
 
   <visualscript-main>
-
     <!-- Brains@Play Platform Homepage -->
-    <visualscript-tab label="Apps">
+    <!-- <visualscript-tab label="Apps">
       <visualscript-gallery>
         <visualscript-app name="My App">
         <p>This is mine.</p>
-      </visualscript-app>
+        </visualscript-app>
       <visualscript-app name="My Second App">
         <p>This is mine too!</p>
       </visualscript-app>
     </visualscript-gallery>
-    </visualscript-tab>
-
-    <!-- Intensities Demo -->
-    <visualscript-tab label="Videos">
-      <div id="videos"></div>
-    </visualscript-tab>
-    <visualscript-tab label="Analyses">
-      <div id="analyses"></div>
-    </visualscript-tab>
+    </visualscript-tab> -->
   </visualscript-main>
 
   <visualscript-footer>Garrett Flynn | 2022</visualscript-footer>

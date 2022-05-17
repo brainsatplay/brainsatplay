@@ -1,25 +1,38 @@
 
 import { LitElement, html, css } from 'lit';
 import "../general/Overlay"
+import { Main } from './Main';
+import { Nav, Footer, Sidebar } from '../general';
+import { Tab } from './Tab';
+import { App } from './App';
 
 export type DashboardProps = {
-  target: {[x:string]: any}
-  header?: string
-  footer?: string
-  sidebar?: string
-  main?: string
-  mode?: string
+  open?: boolean
+  closeHandler?: Function,
+  global?: boolean
 }
 
 export class Dashboard extends LitElement {
 
   static get styles() {
     return css`
-
     
     :host {
       width: 100%;
       height: 100%;
+    }
+
+
+    :host([global]) slot {
+      position: absolute;
+      top: 0;
+      left; 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    :host([open]) #close {
+      display: block;
     }
 
     :host * {
@@ -40,45 +53,74 @@ export class Dashboard extends LitElement {
       width: 100%;
       height: 100%;
     }
+
+    :host([open]) slot {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #close {
+      position: absolute; 
+      top: 22px;
+      right: 22px;
+      z-index: 101;
+      display: none;
+    }
+
+    #dashboard-toggle {
+      position: absolute; 
+      top: 0px;
+      right: 22px;
+      z-index: 1000;
+      background: black;
+      color: white;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 80%;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+
+    }
+
+    :host([open]) #dashboard-toggle {
+      display: none;
+    }
     `;
   }
     
     static get properties() {
       return {
-        target: {
-          type: Object,
+        open: {
+          type: Boolean,
           reflect: true,
         },
-        header: {
-          type: String,
+        closeHandler: {
+          type: Function,
           reflect: true,
         },
-        mode: {
-          type: String,
+        global: {
+          type: Boolean,
           reflect: true,
         },
       };
     }
 
-    target: DashboardProps['target']
-    header: DashboardProps['header']
-    footer: DashboardProps['footer']
-    sidebar: DashboardProps['sidebar']
-    main: DashboardProps['main']
+    open: DashboardProps['open']
+    closeHandler: DashboardProps['closeHandler']
+    global: DashboardProps['global']
 
-    history: any[] = []
-    mode: string
+    main: Main
+    nav: Nav
+    footer: Footer
+    sidebar: Sidebar
 
-    constructor(props: DashboardProps = {target: {}, header: 'Object'}) {
+    toggle = () => this.open = !this.open
+
+    constructor(props: DashboardProps = {}) {
       super();
 
-      this.target = props.target ?? {}
-      this.header = props.header ?? 'Object'
-      this.mode = props.mode ?? 'view'
-      this.footer = props.footer ?? ''
-      this.sidebar = props.sidebar ?? ''
-      this.main = props.main ?? ''
-
+      this.open = props.open ?? true;
+      this.closeHandler = props.closeHandler ?? (() => {});
     }
     
     willUpdate(changedProps:any) {
@@ -88,47 +130,42 @@ export class Dashboard extends LitElement {
       }
     }
 
-    getActions = (key:string, o:any) => {
-
-      let actions;
-
-      if (typeof o[key] === 'object') {
-        actions = html`<brainsatplay-button primary=true size="small" @click="${() => {
-          this.history.push({parent: o, key: this.header})
-          this.target = o[key]
-          this.header = key
-          this.mode = (Array.isArray(o[key])) ? 'plot' : 'view'
-      }}">${Array.isArray(o[key]) ? html`Plot` : html`View`}</brainsatplay-button>`
-      }
-
-      return html`
-      <div class="actions">
-            ${actions}
-      </div>
-      `
-    }
-
-
-    getElement = (key:string, o: any) => {
-
-        
-        return html`
-        <div class="attribute separate">
-        <div>
-          <span class="name">${key}</span><br>
-          <span class="value">${(
-            typeof o[key] === 'object' 
-            ? (Object.keys(o[key]).length ? o[key].constructor.name : html`Empty ${o[key].constructor.name}`)
-            : o[key])}</span>
-        </div>
-          ${this.getActions(key, o)}
-        </div>`
-
-    }
   
     render() {
 
+      // Add Global Class
+      if (this.global) this.classList.add('global')
+      else  this.classList.remove('global')
+
+      // Add Open Class
+      if (this.open) this.classList.add('open')
+      else {
+        this.classList.remove('open')
+        this.dispatchEvent(new CustomEvent('close'))
+      }
+      
+      this.main = this.querySelector('visualscript-main')
+      this.footer = this.querySelector('visualscript-footer')
+      this.nav = this.querySelector('visualscript-nav')
+      this.sidebar = this.querySelector('visualscript-sidebar')
+
       return html`
+      ${this.global ? html`<div id="dashboard-toggle" @click=${() => {
+        this.open = true
+        // Get Apps
+          const apps = document.querySelectorAll('visualscript-app')
+          for(var i=0; i< apps.length; i++){ 
+            const app = apps[i] as App       
+            const appTab = new Tab({label: app.name})    
+            appTab.appendChild(app)
+            this.main.insertAdjacentElement('afterbegin', appTab)
+            this.addEventListener('close', () => {
+              app.parent.appendChild(app) // Replace App element
+            })
+        }
+        this.main.render()
+      }}>Open Dashboard</div>`: ''}
+      ${this.global ? html`<visualscript-button id='close' secondary size="extra-small" backgroundColor="white"; @click=${() => this.open=false}>Close</visualscript-button>` : ``}
       <slot>
       </slot>
     `
@@ -139,11 +176,11 @@ export class Dashboard extends LitElement {
   //   <div>
   //   <div class="header separate">
   //     <span>${this.header}</span>
-  //     ${ (this.history.length > 0) ? html`<brainsatplay-button size="extra-small" @click="${() => {
+  //     ${ (this.history.length > 0) ? html`<visualscript-button size="extra-small" @click="${() => {
   //         const historyItem = this.history.pop()
   //         this.header = historyItem.key
   //         this.target = historyItem.parent
-  //     }}">Go Back</brainsatplay-button>` : ``}
+  //     }}">Go Back</visualscript-button>` : ``}
   //   </div>
   //   <div class="container">
   //         ${(

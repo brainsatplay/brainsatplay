@@ -40,7 +40,6 @@ export class Select extends LitElement {
     }
 
     add = (option:Option) => {
-      console.log('ADDING')
       this.options = [...this.options, option]
       this.render()
     }

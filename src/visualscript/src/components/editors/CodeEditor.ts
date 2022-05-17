@@ -150,9 +150,9 @@ export class CodeEditor extends LitElement {
 
       return html`
       <div class="actions">
-            ${controls.map((name,i) => html`<brainsatplay-button  size="small" @click="${() => {
+            ${controls.map((name,i) => html`<visualscript-button  size="small" @click="${() => {
               console.log('Clicked', name, i)
-          }}">${name}</brainsatplay-button>`)}
+          }}">${name}</visualscript-button>`)}
       </div>
       `
     }

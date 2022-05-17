@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import './Button'
 
 export interface ModalProps {
   open?: boolean;
@@ -27,6 +28,7 @@ export class Modal extends LitElement {
 
   :host {
     font-family: sans-serif;
+    z-index: 101;
   }
   
   :host * {
@@ -89,14 +91,14 @@ export class Modal extends LitElement {
   align-items: center;
   justify-content: space-between;
   flex-direction: column;
-}
-
-.modal-content.closed {
+  pointer-events: none;
+  z-index: 102;
   opacity: 0;
 }
 
 .modal-content.open {
   opacity: 1;
+  pointer-events: all;
 }
 
     `;
@@ -109,7 +111,7 @@ export class Modal extends LitElement {
           reflect: true
         },
          header:  {
-          type: String,
+          type: Object,
           reflect: true
         },
          footer:  {
@@ -146,12 +148,11 @@ export class Modal extends LitElement {
 
     render() {
 
-
       return html`
-      <div class="modal-content ${this.open ? 'open' : 'closed'}">
+      <div class="modal-content ${this.open ? 'open' : ''}">
         ${(this.header) ? html`<div class="modal-header">
           <span>${this.header}</span>
-          <brainsatplay-button secondary size="extra-small" class="close" @click="${this.toggle}">Close</brainsatplay-button>
+          <visualscript-button secondary size="extra-small" @click="${this.toggle}">Close</visualscript-button>
         </div>` : ''}
         <div class="modal-body">
           <slot>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas fringilla dolor vitae hendrerit feugiat. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Integer ultricies arcu nec nibh commodo aliquam at in felis. Mauris lorem dui, porttitor et lectus vel, ornare sodales risus. Sed eu rhoncus ex. Donec tristique nibh lacus, sed dictum lacus lacinia eu. Nunc imperdiet a ante et feugiat. Praesent euismod tortor lacus, et euismod turpis mollis vitae. Etiam sagittis vehicula pulvinar. Aliquam id tincidunt tortor, sed feugiat nulla. Donec sollicitudin tincidunt viverra. Nunc condimentum molestie massa a feugiat. Nam mattis bibendum sodales. Nulla at maximus arcu, quis tempus lacus.
@@ -169,6 +170,7 @@ Phasellus sodales eros at erat elementum, a semper ligula facilisis. Class apten
           <span>${this.footer}</span>
         </div>` : ''}
       </div>
+      <visualscript-overlay .open=${this.open}></visualscript-overlay>
     `
     }
   }
