@@ -486,7 +486,7 @@ packager(config);
         "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
         "python": "python python/server.py",
         "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+        "pwa": "npm i -g workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
     },
     "keywords": [
         "esbuild"
@@ -562,7 +562,7 @@ packager(config);
         "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
         "python": "python python/server.py",
         "pip": "pip install quart && pip install websockets",
-        "pwa": "npm i workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
+        "pwa": "npm i -g workbox-cli && workbox generateSW node_server/pwa/workbox-config.js && npm run build && npm start"
     },
     "keywords": [
         "esbuild"

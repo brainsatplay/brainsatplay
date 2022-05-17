@@ -116,15 +116,12 @@ function onRequest(request, response, cfg) {
                             }
                             content = `${content.toString()}\n\n
                                 <script>
-                                    console.log('Using PWA!');  
-                                    if(typeof process !== 'undefined') { //node environment variable in served code        
-                                        // Check that service workers are supported
-                                        if (process.env.NODE_ENV === 'production' && "serviceWorker" in navigator) addEventListener('load', () => {
-                                            navigator.serviceWorker
-                                            .register("${cfg.pwa}")
-                                            .catch((err) => console.log("Service worker registration failed", err));
-                                        });
-                                    }
+                                    // Check that service workers are supported
+                                    if ("serviceWorker" in navigator) addEventListener('load', () => {
+                                        navigator.serviceWorker
+                                        .register("${cfg.pwa}")
+                                        .catch((err) => console.log("Service worker registration failed", err));
+                                    });
                                 </script>`;
                         }
                     }

@@ -15,14 +15,14 @@ Code to paste or inject into html pages (our server does this if you specify the
 ```html
 
 <script> //Service workers for pwa test.  `npm run pwa`
-    if(typeof process !== 'undefined') { //node environment variable in served code        
-        // Check that service workers are supported
-        if (process.env.NODE_ENV === 'production' && "serviceWorker" in navigator) addEventListener('load', () => {
-            navigator.serviceWorker
-            .register("dist/service-worker.js")
-            .catch((err) => console.log("Service worker registration failed", err));
-        });
-    }
+  
+    // Check that service workers are supported
+    if ("serviceWorker" in navigator) addEventListener('load', () => {
+        navigator.serviceWorker
+        .register("dist/service-worker.js")
+        .catch((err) => console.log("Service worker registration failed", err));
+    });
+    
 </script>
 
 ```
