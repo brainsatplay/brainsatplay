@@ -219,17 +219,70 @@ export function checkCoreExists() {
     }
 }
 
-//tinybuild config for use with 'tinybuild' command
-export async function createConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
-    let config = await checkConfig(cfgpath)
+
+export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
+    let cfgexists = fs.existsSync(cfgpath)
 
     // Create Configuration File
-    if(!config) {
+    if(cfgexists) return false;
+    else {
+
+        let template = `
+        const config = {
+            "bundler": {
+              "entryPoints": [
+                "src/app.js"
+              ],
+              "outfile": "dist/index",
+              "bundleBrowser": true,
+              "bundleESM": false,
+              "bundleTypes": false,
+              "bundleNode": false,
+              "bundleHTML": true
+            },
+            "server": {
+              "debug": false,
+              "protocol": "http",
+              "host": "localhost",
+              "port": 8080,
+              "startpage": "index.html",
+              "socket_protocol": "ws",
+              "hotreload": 5000,
+              "pwa": "dist/service-worker.js",
+              "python": false,
+              "python_node": 7001,
+              "errpage": "packager/node_server/other/404.html",
+              "certpath": "packager/node_server/ssl/cert.pem",
+              "keypath": "packager/node_server/ssl/key.pem"
+            }
+          }
+
+        `;
+
+        if(fs.existsSync(path.join(process.cwd(),'package.json'))) {
+            let contents = fs.readFileSync(path.join(process.cwd(),'package.json'));
+            if(!contents.includes('"module"')) template += 'module.exports = config; //export default config; //es6' //es5
+
+        } else template += 'export default config; //module.exports = config; //es5' //es6
 
 
-        console.log('Creating tinybuild.config.js file')
+        fs.writeFileSync(cfgpath,template);
 
-       config = {
+        return true;
+    }
+}
+
+//'tinybuild' will trigger this script otherwise if it exists
+export async function checkBuildScript() {
+
+    const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
+
+    if(!fs.existsSync(tinybuildPath)) {
+        fs.writeFileSync(tinybuildPath,
+        `
+        import { packager } from "tinybuild";
+        
+        let config = {
             bundler: {
                 entryPoints: ['index.js'],
                 outfile: 'dist/index',
@@ -242,39 +295,12 @@ export async function createConfig(cfgpath = path.join(process.cwd(),'tinybuild.
             server: defaultServer
         }
 
-        
-        fs.writeFileSync(cfgpath,
-        `const config = ${JSON.stringify(config, null, 2)}
 
-export default config;
-        `)
-    }
-
-    return config
-}
-export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.config.js')) {
-    const needsConfig = !fs.existsSync(cfgpath)
-
-    // Create Configuration File
-    if(needsConfig) return false
-    else return (await import(cfgpath)).default
-}
-
-//'tinybuild' will trigger this script otherwise if it exists
-export async function checkBuildScript() {
-    let config = await checkConfig()
-    if (!config) config = await createConfig()
-
-    const tinybuildPath = path.join(process.cwd(), 'tinybuild.js')
-    if(needsScript) {
-        fs.writeFileSync(tinybuildPath,
-        `
-        import { packager } from "tinybuild";
-        import config from './tinybuild.config.js'
         packager(config); // bundle and serve
         `);
+        return true;
     }
-    return config
+    return false;
 }
 
 
@@ -282,11 +308,18 @@ export async function checkBuildScript() {
 // If these files exist, none of the others are created.
 // IMPORTANT: Using the tinybuild.config.js file at process.cwd() OR a generated one.
 export async function checkBoilerPlate(onlyConfig=true) {
-    const config = await ((onlyConfig) ? createConfig() : checkBuildScript());
+    //const config = await ((onlyConfig) ? createConfig() : checkBuildScript()); //this is borderline unreadable, also the import thing doesnt work unless the package is type:module, this builds on es5 packages now
+    
+    let config; 
+    if(!onlyConfig) {
+        checkBuildScript();
+    }
+    checkConfig();
+    
     const packagePath = path.join(process.cwd(),'package.json')
     const htmlPath = process.cwd()+'/index.html'
 
-    const entryFile = config.bundler.entryPoints[0]
+    const entryFile = 'index.js';
     const entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
 
     const needPackage = !fs.existsSync(packagePath)
