@@ -141,6 +141,7 @@ function onRequest(request, response, cfg) {
                                 )
                             }
                             content = `${content.toString()}\n\n
+                                <link rel="manifest" href="manifest.webmanifest">
                                 <script>
                                     // Check that service workers are supported
 
@@ -191,7 +192,7 @@ function onRequest(request, response, cfg) {
                                     }
 
                                     if ("serviceWorker" in navigator) addEventListener('load', () => {
-                                        if(isLocalHost) {
+                                        if(isLocalhost) {
                                             // Add some additional logging to localhost, pointing developers to the
                                             
                                             // Check if the service worker can be found. If it can't reload the page.

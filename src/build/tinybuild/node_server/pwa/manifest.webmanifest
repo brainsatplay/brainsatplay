@@ -9,5 +9,10 @@
     "lang": "en-US",
     "permissions": [
       "storage"
-    ]
+    ],
+    "icons":[{
+      "src": "/node_server/pwa/square.png",
+      "type": "image/png",
+      "sizes": "256x256"
+    }]
   }
