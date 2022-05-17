@@ -124,12 +124,12 @@ export class ObjectEditor extends LitElement {
       let actions;
 
       if (typeof o[key] === 'object') {
-        actions = html`<brainsatplay-button primary=true size="small" @click="${() => {
+        actions = html`<visualscript-button primary=true size="small" @click="${() => {
           this.history.push({parent: o, key: this.header})
           this.target = o[key]
           this.header = key
           this.mode = (Array.isArray(o[key])) ? 'plot' : 'view'
-      }}">${Array.isArray(o[key]) ? html`Plot` : html`View`}</brainsatplay-button>`
+      }}">${Array.isArray(o[key]) ? html`Plot` : html`View`}</visualscript-button>`
       }
 
       return html`
@@ -163,11 +163,11 @@ export class ObjectEditor extends LitElement {
       <div>
         <div class="header separate">
           <span>${this.header}</span>
-          ${ (this.history.length > 0) ? html`<brainsatplay-button size="extra-small" @click="${() => {
+          ${ (this.history.length > 0) ? html`<visualscript-button size="extra-small" @click="${() => {
               const historyItem = this.history.pop()
               this.header = historyItem.key
               this.target = historyItem.parent
-          }}">Go Back</brainsatplay-button>` : ``}
+          }}">Go Back</visualscript-button>` : ``}
         </div>
         <div class="container">
               ${(

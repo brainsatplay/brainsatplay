@@ -51,7 +51,7 @@ export class Overlay extends LitElement {
     render() {
 
       return html`
-      <div ?open=${this.open}>
+      <div ?open=${this.open ? true : false}>
         <slot></slot>
       </div>
     `

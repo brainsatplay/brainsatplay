@@ -57,6 +57,10 @@ export class Main extends LitElement {
       background: rgb(75,75,75);
     }
 
+    .tab.selected {
+      background: rgb(60,60,60);
+    }
+
     /* Tab Scrollbar */
     #tabs::-webkit-scrollbar {
       height: 2px;
@@ -84,7 +88,10 @@ export class Main extends LitElement {
     
     static get properties() {
       return {
-        
+        tabs: {
+          type: Object,
+          // reflect: true
+        }
       };
     }
 
@@ -94,9 +101,11 @@ export class Main extends LitElement {
 
     addTab = (tab,i) => {
       if (i !== 0) tab.style.display = 'none' // Hide tabs other than the first
-      return html`<button class="tab" @click=${() => {
+      return html`<button class="tab" @click=${(ev) => {
 
-        // Toggle between Tabs
+        const tabs = this.shadowRoot.querySelector('#tabs')
+        tabs.querySelectorAll('button').forEach(t => t.classList.remove('selected'))
+        ev.target.classList.add('selected')
         if (tab.style.display === 'none') {
           this.tabs.forEach(t => (t != tab) ? t.style.display = 'none' : t.style.display = '') // hide other tabs
         }
@@ -114,13 +123,12 @@ export class Main extends LitElement {
     }
     
     render() {
-
       this.getTabs()
-
+      const tabMap = this.tabs.map(this.addTab)
       return html`
-      <div id="tabs">
-        ${this.tabs.map(this.addTab)}
-      </div>
+      ${( this.tabs.length > 0) ? html`<div id="tabs">
+        ${tabMap}
+      </div>` : ''}
       <section>
         <slot></slot>
       </section>

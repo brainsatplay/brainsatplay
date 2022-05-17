@@ -1,5 +1,7 @@
 
 import { LitElement, html, css } from 'lit';
+import { Dashboard } from './Dashboard';
+import { Tab } from './Tab';
 
 // ---------------- SPECIFICATION ----------------
 // 1. Display the application metadata
@@ -12,7 +14,9 @@ export type AppProps = {
 
 export class App extends LitElement {
 
-  name: AppProps['name']
+  name: AppProps['name'];
+  dashboard: Dashboard;
+  parent: Node;
 
   static get styles() {
     
@@ -28,6 +32,8 @@ export class App extends LitElement {
       box-sizing: border-box;
       font-color: #424242;
     }
+
+
     `;
   }
     
@@ -44,11 +50,22 @@ export class App extends LitElement {
       super();
 
       this.name = props.name
+      this.parent = this.parentNode // Grab original parent
+
     }
 
 
 
     render() {
+
+      if (!parent) this.parent = this.parentNode // Grab original parent
+
+      // Allow dashboards inside apps!
+      let dashboards = document.querySelectorAll('visualscript-dashboard')
+      this.dashboard = (Array.from(dashboards).find(o => o.parentNode === document.body) as Dashboard) ?? new Dashboard() // Find global dashboard
+
+        this.dashboard.global = true
+        this.dashboard.open = false
 
       return html`
         <slot></slot>
