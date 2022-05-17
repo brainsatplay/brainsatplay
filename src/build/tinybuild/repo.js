@@ -389,7 +389,7 @@ export async function checkBoilerPlate(onlyConfig=true) {
     <head>
     </head>
     <body>  
-        <script src="${(config.bundler.outfile.includes('.js')) ? config.bundler.outfile : `${config.bundler.outfile}.js`}">
+        <script src="dist/${entryFile}">
         </script>
     </body>
 </html>
