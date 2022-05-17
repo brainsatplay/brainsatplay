@@ -130,7 +130,7 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
     process.env.HOTRELOAD = true; //enables the hot reloading port
 
     const watcher = chokidar.watch(process.cwd(),{
-        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?$/, // ignore node_modules
+        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?$/, // ignore node_modules
         persistent: true,
         ignoreInitial:true,
         interval:100,
