@@ -18,7 +18,7 @@ const isLocalhost = Boolean(
 );
 
 export function register(config) {
-    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         const swUrl = "dist/service-worker.js";
   

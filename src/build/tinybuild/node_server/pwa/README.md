@@ -3,12 +3,6 @@
 
 ### Compile & inject:
 
-Required dependency:
-`npm i workbox-cli`
-
-Compile:
-`workbox generateSW node_server/pwa/workbox-config.js`
-
 Copy manifest.webmanifest to main folder of your app and customize.
 
 Code to paste or inject into html pages (our server does this if you specify the service-worker path in the server_settings.js file):
@@ -19,7 +13,7 @@ Code to paste or inject into html pages (our server does this if you specify the
     // Check that service workers are supported
     if ("serviceWorker" in navigator) addEventListener('load', () => {
         navigator.serviceWorker
-        .register("dist/service-worker.js")
+        .register("node_server/pwa/sw.js")
         .catch((err) => console.log("Service worker registration failed", err));
     });
     

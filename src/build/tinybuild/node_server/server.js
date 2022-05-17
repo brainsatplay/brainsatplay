@@ -114,13 +114,123 @@ function onRequest(request, response, cfg) {
                                 }`
                                 )
                             }
+                            if(!fs.existsSync(cfg.pwa)) { //lets create a default webmanifest on the local server if none found
+                                fs.writeFileSync(cfg.pwa,
+                                `//https://github.com/ibrahima92/pwa-with-vanilla-js
+                                const assets = [
+                                  "/",
+                                  "/index.html",
+                                  "/dist/index.js"
+                                ];
+                                
+                                self.addEventListener("install", installEvent => {
+                                  installEvent.waitUntil(
+                                    caches.open(staticDevCoffee).then(cache => {
+                                      cache.addAll(assets);
+                                    })
+                                  );
+                                });
+                                
+                                self.addEventListener("fetch", fetchEvent => {
+                                  fetchEvent.respondWith(
+                                    caches.match(fetchEvent.request).then(res => {
+                                      return res || fetch(fetchEvent.request);
+                                    })
+                                  );
+                                });`
+                                )
+                            }
                             content = `${content.toString()}\n\n
                                 <script>
                                     // Check that service workers are supported
-                                    if ("serviceWorker" in navigator) addEventListener('load', () => {
+
+                                    const isLocalhost = Boolean(
+                                        window.location.hostname === 'localhost' ||
+                                          // [::1] is the IPv6 localhost address.
+                                          window.location.hostname === '[::1]' ||
+                                          // 127.0.0.1/8 is considered localhost for IPv4.
+                                          window.location.hostname.match(
+                                            /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+                                          )
+                                    );
+
+                                    function registerSW() {
                                         navigator.serviceWorker
                                         .register("${cfg.pwa}")
-                                        .catch((err) => console.log("Service worker registration failed", err));
+                                        .then(registration => {
+                                            registration.onupdatefound = () => {
+                                              const installingWorker = registration.installing;
+                                              if (installingWorker == null) {
+                                                return;
+                                              }
+                                              installingWorker.onstatechange = () => {
+                                                if (installingWorker.state === 'installed') {
+                                                  if (navigator.serviceWorker.controller) {
+                                                    // At this point, the updated pre-cached content has been fetched,
+                                                    // but the previous service worker will still serve the older
+                                                    // content until all client tabs are closed.
+                                                    console.log(
+                                                      'New content is available and will be used when all ' +
+                                                        'tabs for this page are closed. See https://bit.ly/CRA-PWA.'
+                                                    );
+                                      
+                                                  } else {
+                                                    // At this point, everything has been pre-cached.
+                                                    // It's the perfect time to display a
+                                                    // "Content is cached for offline use." message.
+                                                    console.log('Content is cached for offline use.');
+                                      
+                                                  }
+                                                }
+                                              };
+                                            };
+                                        })
+                                        .catch(error => {
+                                        console.error('Error during service worker registration:', error);
+                                        });
+                                    }
+
+                                    if ("serviceWorker" in navigator) addEventListener('load', () => {
+                                        if(isLocalHost) {
+                                            // Add some additional logging to localhost, pointing developers to the
+                                            
+                                            // Check if the service worker can be found. If it can't reload the page.
+                                            fetch("${cfg.pwa}")
+                                            .then(response => {
+                                                // Ensure service worker exists, and that we really are getting a JS file.
+                                                const contentType = response.headers.get('content-type');
+                                                if (
+                                                response.status === 404 ||
+                                                (contentType != null && contentType.indexOf('javascript') === -1)
+                                                ) {
+                                                // No service worker found. Probably a different app. Reload the page.
+                                                navigator.serviceWorker.ready.then(registration => {
+                                                    registration.unregister().then(() => {
+                                                    window.location.reload();
+                                                    });
+                                                });
+                                                } else {
+                                                // Service worker found. Proceed as normal.
+                                                    registerSW();
+                                                }
+                                            })
+                                            .catch(() => {
+                                                console.log(
+                                                'No internet connection found. App is running in offline mode.'
+                                                );
+                                            });
+                                            
+                                            // service worker/PWA documentation.
+                                            navigator.serviceWorker.ready.then(() => {
+                                                console.log('This web app is being served cache-first by a service worker.');
+                                            });
+                                        }
+                                        else {
+                                            registerSW();
+                                        } 
+                                        
+                                        
+                                        
                                     });
                                 </script>`;
                         }

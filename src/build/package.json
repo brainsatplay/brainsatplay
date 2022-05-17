@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type":"module",
@@ -16,8 +16,7 @@
     "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
     "startdev": "nodemon --exec \"cd example && node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
     "python": "python tinybuild/python/server.py",
-    "pip": "pip install quart && pip install websockets",
-    "pwa": "npm i -g workbox-cli && workbox generateSW tinybuild/node_server/pwa/workbox-config.js && npm run build && npm start"
+    "pip": "pip install quart && pip install websockets"
   },
   "keywords": [
     "esbuild"

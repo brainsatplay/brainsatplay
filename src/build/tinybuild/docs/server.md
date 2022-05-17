@@ -158,11 +158,53 @@ The nodemon dev server adds basic frontend hot reloading via websocket and clien
 
 To test:
 
-`npm run pwa` 
+Create a manifest.json and a template serviceworker file like so (tinybuild server will write these for you) 
 
-This installs workbox-cli, generates the service worker, bundles and then starts the application. Run once if you don't need to modify the service-worker further.
+```json
+{
+    "short_name": "PWA",
+    "name": "PWA",
+    "start_url": ".",
+    "display": "standalone",
+    "theme_color": "#000000",
+    "background_color": "#ffffff",
+    "description": "PWA Test",
+    "lang": "en-US",
+    "permissions": [
+      "storage"
+    ]
+  }
+```
 
-> 1 additional dependency: `workbox-cli`
+```js
+//sw.js
+
+//https://github.com/ibrahima92/pwa-with-vanilla-js
+const assets = [
+  "/",
+  "/index.html",
+  "/dist/index.js"
+];
+
+self.addEventListener("install", installEvent => {
+  installEvent.waitUntil(
+    caches.open(staticDevCoffee).then(cache => {
+      cache.addAll(assets);
+    })
+  );
+});
+
+self.addEventListener("fetch", fetchEvent => {
+  fetchEvent.respondWith(
+    caches.match(fetchEvent.request).then(res => {
+      return res || fetch(fetchEvent.request);
+    })
+  );
+});
+
+```
+
+And run the server with https.
 
 ### Other notes:
 
