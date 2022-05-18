@@ -5,6 +5,8 @@
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
 import {dtsPlugin} from 'esbuild-plugin-d.ts'
+import {streamingImportsPlugin} from './streamingImportsPlugin.js'
+
 import fs from 'fs'
 
 export const defaultBundler = {
@@ -22,6 +24,8 @@ export const defaultBundler = {
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
   sourcemap: false,
+  plugins:[streamingImportsPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
   loader: {
@@ -52,6 +56,7 @@ export const defaultBundler = {
   //globals:{[this.entryPoints[0]]:['Graph']}
   //init:{[this.entryPoints[0]:function(bundle) { console.log('prepackaged bundle script!', bundle); }]}
 }
+
 
 export async function bundle(configs) {
 
@@ -389,6 +394,7 @@ export async function bundleTypes(config) {
     cfg.outdir = cfg.outdir.map(v => v+'.iife.js');
   }
   cfg.plugins = [
+    streamingImportsPlugin,
     dtsPlugin()
   ];
 
