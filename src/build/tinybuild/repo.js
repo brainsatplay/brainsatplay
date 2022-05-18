@@ -177,8 +177,8 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
 
                 if(p.stderr) p.stderr.on('data',(dat) => {
                     let er = dat.toString();
+                    if(!p.killed && er.includes('build')) p.kill();
                     console.error(er);
-                    if(er.includes('build')) p.kill();
                 });
     
                 if(p.stdout) p.stdout.on('data',(dat) => {
