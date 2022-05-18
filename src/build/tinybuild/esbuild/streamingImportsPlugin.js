@@ -9,15 +9,15 @@ export const streamingImportsPlugin = {
     // Handle all import/require paths starting with "http://" or "https://"
     build.onResolve({ filter: /^https?:\/\// }, async (args) => {
       if(args.kind?.includes('import') || args.kind?.includes('require')) {
-        let cachepath = path.join(process.cwd(),'_cache',path.basename(args.path));
+        let cachepath = path.join(process.cwd(),'node_modules','.cache',path.basename(args.path));
         //request http/s resource
         //write file to cache
         //resolve new path to local cache for bundler to target 
         //this.httpGet(args.path);
 
         if(!fs.existsSync(cachepath)) {
-          if(!fs.existsSync('_cache')) fs.mkdirSync('_cache');
-          console.time('esbuild cached http import at ' + cachepath);
+          if(!fs.existsSync(path.join('node_modules','.cache'))) fs.mkdirSync(path.join('node_modules','.cache'));
+          console.time('esbuild cached streamed http(s) import at ' + cachepath);
           let text = await (await httpGet(args.path)).toString('utf-8');
           fs.writeFileSync(cachepath, text); //cache cdn imports etc.
         
@@ -29,7 +29,7 @@ export const streamingImportsPlugin = {
         //   }
         // })
         // console.log(text.split('\n'));
-          console.timeEnd('esbuild cached http import at ' + cachepath);
+          console.timeEnd('esbuild cached streamed http(s) import at ' + cachepath);
         }
 
         return { path:path.join(cachepath) }
