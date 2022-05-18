@@ -13,7 +13,6 @@ export const streamingImportsPlugin = {
         //request http/s resource
         //write file to cache
         //resolve new path to local cache for bundler to target 
-        //this.httpGet(args.path);
 
         if(!fs.existsSync(cachepath)) {
           if(!fs.existsSync(path.join('node_modules','.cache'))) fs.mkdirSync(path.join('node_modules','.cache'));
