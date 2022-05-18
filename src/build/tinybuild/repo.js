@@ -177,7 +177,6 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
 
                 if(p.stderr) p.stderr.on('data',(dat) => {
                     let er = dat.toString();
-                    if(er.includes('esbuild')) p.kill();
                     console.error(er);
                 });
     
@@ -190,7 +189,8 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
                     console.log('message from server:', msg);
                 })
             }
-            p.on('close', onclose)
+            p.on('close', onclose);
+            p.on('exit',p.kill()); //?
         
 
             if(!p.killed) p.kill();
