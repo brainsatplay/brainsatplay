@@ -171,7 +171,7 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
         if(!skip) {
 
             console.log('change detected at', path,'\n...Restarting...');
-            p.on('close', (code,signal) => {
+            const onclose = (code,signal) => {
                 SERVER_PROCESS.process = spawn('node',[script,...args]);
                 p = SERVER_PROCESS.process;
 
@@ -186,10 +186,12 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
                 p.on('message', (msg) => {
                     console.log('message from server:', msg);
                 })
-            })
+            }
+            p.on('close', onclose)
         
 
             if(!p.killed) p.kill();
+            else onclose();
 
         }
         
