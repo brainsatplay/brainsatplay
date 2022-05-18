@@ -190,7 +190,7 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
                 })
             }
             p.on('close', onclose);
-            p.on('exit',p.kill()); //?
+            p.on('exit',p.kill); //?
         
 
             if(!p.killed) p.kill();
