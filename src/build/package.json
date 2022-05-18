@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.3.50",
+  "version": "0.3.51",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type": "module",
@@ -25,10 +25,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "chokidar": "~3.5.3",
-    "concurrently": "^7.1.0",
     "esbuild": "^0.14.38",
     "esbuild-plugin-d.ts": "^1.1.0",
-    "nodemon": "^2.0.15",
     "ws": "^8.5.0"
   },
   "nodemonConfig": {
