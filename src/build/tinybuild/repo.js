@@ -176,11 +176,14 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
                 p = SERVER_PROCESS.process;
 
                 if(p.stderr) p.stderr.on('data',(dat) => {
-                    console.error(dat.toString());
+                    let er = dat.toString();
+                    if(er.includes('esbuild')) p.kill();
+                    console.error(er);
                 });
     
                 if(p.stdout) p.stdout.on('data',(dat) => {
-                    console.log(dat.toString());
+                    let str = dat.toString();
+                    console.log(str);
                 })
     
                 p.on('message', (msg) => {

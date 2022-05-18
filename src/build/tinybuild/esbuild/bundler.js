@@ -258,7 +258,7 @@ export async function bundleBrowser(config) {
     //clean temp files we wrote extra code to
     fs.rm(tempDir,{ recursive: true }, () => {})
 
-  });
+  }).catch((er)=>{console.error('Exited with error:',er); process.exit();});
 }
 
 //bundle .esm.js
@@ -292,7 +292,7 @@ export async function bundleESM(config) {
 
   return await esbuild.build(cfg).then(()=>{
     console.timeEnd('\n 🌌 Built .esm.js file(s)');
-  });
+  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
 }
 
 //bundle node defaults
@@ -327,7 +327,7 @@ export async function bundleNode(config) {
 
   return await esbuild.build(cfg).then(()=>{
     console.timeEnd('\n ☀️ Built node .js file(s)');
-  });
+  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
 }
 
 //bundle commonjs
@@ -360,7 +360,7 @@ export async function bundleCommonJS(config) {
 
   return await esbuild.build(cfg).then(()=>{
     console.timeEnd('\n 🌙 Built .cjs.js');
-  });
+  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
 }
 
 ///bundle .d.ts and .iife.js files
@@ -405,7 +405,7 @@ export async function bundleTypes(config) {
       }
     }
     console.timeEnd(`\n 🪐 Built .d.ts files`);
-  });
+  }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
 }
 
 
