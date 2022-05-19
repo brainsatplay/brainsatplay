@@ -244,7 +244,7 @@ export async function checkConfig(cfgpath = path.join(process.cwd(),'tinybuild.c
               bundleESM: false, //create esm module js files
               bundleTypes: false, //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
               bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
-              bundleHTML: true //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe!
+              bundleHTML: false //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
             },
             server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
               debug: false,
