@@ -56,7 +56,12 @@ export async function runNodemon(script) {
 }
 
 //spawns a child process when a change is detected in the working repository, e.g. a one-shot bundler script
-export function runOnChange(command, args=[], ignore=['dist','temp'], extensions=['js','ts','css','html','jpg','png','txt','csv','xls']) { 
+export function runOnChange(
+    command, 
+    args=[], 
+    ignore=['dist','temp'], 
+    extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
+) { 
     const watcher = chokidar.watch(process.cwd(),{
         ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?$/, // ignore node_modules
         persistent: true,
@@ -126,7 +131,13 @@ export function runOnChange(command, args=[], ignore=['dist','temp'], extensions
 }
 
 //run a script and watch the directory for changes then restart the script
-export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['js','ts','css','html','jpg','png','txt','csv','xls']) {    
+export function runAndWatch(
+    script,
+    args=[],
+    ignore=['dist','temp'], 
+    extensions=['js','ts','css','html','jpg','png','txt','csv','xls'],
+    restartDelay=50
+) {    
     process.env.HOTRELOAD = true; //enables the hot reloading port
 
     const watcher = chokidar.watch(process.cwd(),{
@@ -162,9 +173,9 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
         if(!skip) {
             let extension = path.split('.').pop();
             extensions.forEach((ex) => {
-            if(extension.includes(ex)) {
-                skip = false;
-            }
+                if(extension.includes(ex)) {
+                    skip = false;
+                }
             })
         }
 
@@ -172,23 +183,32 @@ export function runAndWatch(script,args=[],ignore=['dist','temp'], extensions=['
 
             console.log('change detected at', path,'\n...Restarting...');
             const onclose = (code,signal) => {
-                SERVER_PROCESS.process = spawn('node',[script,...args]);
-                p = SERVER_PROCESS.process;
-
-                if(p.stderr) p.stderr.on('data',(dat) => {
-                    let er = dat.toString();
-                    if(!p.killed && er.includes('build')) p.kill();
-                    console.error(er);
-                });
+                let respawn = () => {
+                    SERVER_PROCESS.process = spawn('node',[script,...args]);
+                    p = SERVER_PROCESS.process;
     
-                if(p.stdout) p.stdout.on('data',(dat) => {
-                    let str = dat.toString();
-                    console.log(str);
-                })
-    
-                p.on('message', (msg) => {
-                    console.log('message from server:', msg);
-                })
+                    if(p.stderr) p.stderr.on('data',(dat) => {
+                        let er = dat.toString();
+                        if(!p.killed && er.includes('build')) p.kill();
+                        console.error(er);
+                    });
+        
+                    if(p.stdout) p.stdout.on('data',(dat) => {
+                        let str = dat.toString();
+                        console.log(str);
+                    })
+        
+                    p.on('message', (msg) => {
+                        console.log('message from server:', msg);
+                    })
+                }
+                if(restartDelay) {
+                    setTimeout(()=>{
+                        respawn();
+                    },
+                    restartDelay);
+                }
+                else respawn();
             }
             p.on('close', onclose);
         
@@ -217,7 +237,7 @@ export function checkNodeModules() {
 
 export function checkCoreExists() {
     if(!fs.existsSync(path.join(process.cwd(), 'tinybuild'))) {
-        const nodeMods = path.join('node_modules', 'tinybuild')
+        const nodeMods = path.join('node_modules', 'tinybuild','tinybuild');
         if(fs.existsSync(nodeMods)) {
             copyFolderRecursiveSync(nodeMods,'tinybuild');
         }
@@ -541,8 +561,8 @@ packager(config);
 //create an init script (see example)
 //node init.js to run the packager function
 
-export * from './tinybuild/packager'
-import { packager, defaultServer } from './tinybuild/packager'
+export * from './tinybuild/packager.js'
+import { packager, defaultServer } from './tinybuild/packager.js'
 
 let config = ${JSON.stringify(config)};
 
