@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Visualscript Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
   <script src="dist/index.js" defer=true></script>
   <link rel="stylesheet" href="./app/styles.css">
 </head>
@@ -36,7 +37,7 @@
     </visualscript-sidebar>
   
     <visualscript-main>
-      <section>
+      <section id="data">
         <div id="videos"></div>
         <div id="analyses"></div>
       </section>
@@ -49,7 +50,9 @@
   <visualscript-dashboard>
     <visualscript-nav>Visualscript</visualscript-nav>
   <visualscript-sidebar></visualscript-sidebar>
-  <visualscript-main id="main"></visualscript-main>
+  <visualscript-main id="main">
+    <visualscript-tab id="design" name="Model Design"></visualscript-tab>
+  </visualscript-main>
   <visualscript-footer>Garrett Flynn | 2022</visualscript-footer>
   </visualscript-dashboard>
 

@@ -16,6 +16,7 @@ export type ControlProps = {
 export type TabProps = {
   name?: string;
   controls?: ControlProps[],
+  type?: 'app' | 'tab'
   on?: (ev: Event)=> any,
   off?: (ev: Event)=> any
 }
@@ -46,6 +47,7 @@ export class Tab extends LitElement {
   controls: TabProps['controls'] = []
   on: TabProps['on'] = () => {}
   off: TabProps['off'] = () => {}
+  type: TabProps['type'] = 'tab'
   controlPanel: HTMLDivElement
   dashboard: Dashboard;
   toggle: TabToggle
@@ -93,7 +95,6 @@ export class Tab extends LitElement {
 
       // Create a toggle
       this.toggle = new TabToggle(this)
-      console.log('NEw Tab', this, this.toggle)
 
       this.dashboard.addEventListener('close', (ev) => {
         this.off(ev)

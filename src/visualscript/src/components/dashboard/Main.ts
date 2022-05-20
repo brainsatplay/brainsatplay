@@ -77,8 +77,6 @@ export class Main extends LitElement {
         return t.toggle
       })
 
-      console.log(toggles, toggles.map(t => t.parentNode))
-
       return html`
       <visualscript-tab-bar style="${toggles.length < 1 ? 'display: none;' : ''}">${toggles}</visualscript-tab-bar>
       <slot></slot>

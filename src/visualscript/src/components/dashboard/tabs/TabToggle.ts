@@ -47,6 +47,10 @@ export class TabToggle extends LitElement {
         height: 100%;
     }
 
+    button > span {
+      font-size: 60%;
+    }
+
     button:hover {
         background: rgb(230,230,230);
       }
@@ -96,7 +100,6 @@ export class TabToggle extends LitElement {
     
     render() {
 
-      console.log('RENDERING', this.to, this.to.name)
       return html`
       <button class="${(this.selected) ? 'selected' : ''}"  @click=${(ev) => {
 
@@ -106,15 +109,10 @@ export class TabToggle extends LitElement {
         const tabs = this.to.dashboard.main.shadowRoot.querySelector('visualscript-tab-bar')
 
         if (tabs){
-          console.log(this.to.toggle)
-
-          console.log('This Toggle', this.to.name, this.to.toggle)
           this.to.toggle.shadowRoot.querySelector('button').classList.add('selected')
-          console.log(this.to.dashboard.main.tabs, tabs.querySelectorAll('visualscript-tab-toggle') )
           if (this.to.style.display === 'none') {
             this.to.dashboard.main.tabs.forEach(t => {
               if (t != this.to) { 
-                console.log('Other Toggle',t.name, t.toggle)
                 t.toggle.shadowRoot.querySelector('button').classList.remove('selected')
                 t.style.display = 'none' 
                 t.off(ev)
@@ -136,7 +134,7 @@ export class TabToggle extends LitElement {
           }
         }
 
-      }}>${this.to.name ?? `Tab`}</button>
+      }}>${this.to.name ?? `Tab`} <span>${this.to.type}</span></button>
     `
     }
   }

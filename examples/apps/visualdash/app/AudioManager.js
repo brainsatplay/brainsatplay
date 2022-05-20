@@ -119,7 +119,7 @@ export default class AudioManager {
         
         source.start();
         ctx.startRendering()
-            .then(renderedBuffer => console.log('renderedBuffer', renderedBuffer))
+            // .then(renderedBuffer => console.log('renderedBuffer', renderedBuffer))
             .catch((err) => console.log('Rendering failed: ' + err));
     }
 

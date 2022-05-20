@@ -2,15 +2,11 @@
 //alert('Hello World!');
 
 import * as visualscript from '../../../../src/visualscript/src/index'
-console.log('window.visualscript:', visualscript);
-// import './styles.css'
 import AudioManager from './AudioManager'
-
-  // import * as visualscript from "./dist/index.esm.js"
-//   import * as visualscript from "https://cdn.jsdelivr.net/npm/brainsatplay-components@latest/dist/index.esm.js"
 
   // Bypass the usual requirement for user action
   const app = document.getElementById('app')
+  const dataContainer = document.getElementById('data')
   const start = document.getElementById('start')
   const audioInputSelect = document.getElementById('in')
   const audioOutputSelect = document.getElementById('out')
@@ -19,33 +15,6 @@ import AudioManager from './AudioManager'
   var main = document.getElementById('main');
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
-
-  var test = document.getElementById('test');
-  let iter = 0
-  test.onclick = () => {
-    const tab = new visualscript.Tab({name: 'Just  Test ' + iter})
-    iter++
-    // tab.controls = [
-    //   {
-    //     label: 'colorscale', 
-    //     type: 'select', 
-    //     value: interactive.colorscale,
-    //     options: interactive.colorscales, 
-    //     onChange: (ev) => {
-    //       interactive.colorscale = ev.target.value
-    //   }
-    // }, 
-    //   {
-    //       label: 'Button Test', 
-    //       type: 'button', 
-    //       onClick: () => {
-    //       console.log('CLICKED HERE!')
-    //     }
-    //   }
-    // ]
-    
-    app.dashboard.main.appendChild(tab)
-  }
 
   var overlay = document.querySelector('visualscript-overlay')
   var overlayDiv = document.createElement('div')
@@ -208,11 +177,15 @@ import AudioManager from './AudioManager'
           audioManager.fft(data, null, (fft) => {
 
               const interactive = new visualscript.streams.data.InteractiveSpectrogram({
-                data: fft.slice(0,5000)
+                data: fft.slice(0,5000),
+                Plotly
               })
 
-              const tab = new visualscript.Tab()
-              tab.name = 'Interactive Spectrogram'
+              const tab = document.getElementById('design')
+
+
+              // const tab = new visualscript.Tab()
+              // tab.name = 'Interactive Spectrogram'
               tab.controls = [
                 {
                   label: 'colorscale', 
@@ -233,8 +206,6 @@ import AudioManager from './AudioManager'
               ]
               
               tab.insertAdjacentElement('beforeend', interactive)
-              main.insertAdjacentElement('beforeend', tab)
-              main.render()
             
               overlayDiv.innerHTML = 'Analysis complete!'
               overlay.open = false
@@ -264,5 +235,3 @@ import AudioManager from './AudioManager'
     reader.readAsArrayBuffer(file);
   })
 }
-
-

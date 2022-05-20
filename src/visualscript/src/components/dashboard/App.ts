@@ -14,6 +14,7 @@ export type AppProps = TabProps & {
 export class App extends Tab {
 
   name: AppProps['name'];
+  // type: AppProps['type'] = 'app';
   parent: Node;
   
     static get properties() {
@@ -30,7 +31,6 @@ export class App extends Tab {
           if (props.on instanceof Function) props.on(ev)
         },
         off: (ev) => {
-          console.log('OFF APP!')
           this.parent.appendChild(this) // Replace App element
           if (props.off instanceof Function) props.off(ev)
         }
@@ -39,6 +39,7 @@ export class App extends Tab {
       super(tabProps);
 
       this.name = props.name
+      this.type = 'app'
       this.parent = this.parentNode // Grab original parent
     }
 

@@ -132,7 +132,7 @@ export class Select extends LitElement {
     
     .selectCustom-options {
       position: absolute;
-      top: calc(3.8rem + 0.8rem);
+      top: calc(2.8rem + 0.8rem);
       left: 0;
       width: 100%;
       border: 1px solid #6f6f6f;

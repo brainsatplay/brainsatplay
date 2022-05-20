@@ -42,6 +42,11 @@ The entire `visualscript` framework is based on nested **Processes**.
 *Coming soon...*
 
 
+## Known Bugs
+- Adding a Tab (insantiated as a class) to Main will not register on the TabBar
+    - There seems to be no `#shadow-root` contained in the Tab.
+
+
 ## Roadmap
 1. Control Panel
     - Device Connection / Management + Playground

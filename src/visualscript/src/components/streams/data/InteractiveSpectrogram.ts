@@ -1,11 +1,11 @@
 import {LitElement, css, } from 'lit';
-import '../../../../libraries/plotly/plotly.min.js'
 
 export type InteractiveSpectrogramProps = {
   max?: number;
   backgroundColor?: string;
   data?: any[]
-  colorscale?: 'Hot' | 'Cold' | 'YlGnBu' | 'YlOrRd' | 'RdBu' | 'Portland' | 'Picnic' | 'Jet' | 'Greys' | 'Greens' | 'Electric' | 'Earth' | 'Bluered' | 'Blackbody' | string[][]
+  colorscale?: 'Hot' | 'Cold' | 'YlGnBu' | 'YlOrRd' | 'RdBu' | 'Portland' | 'Picnic' | 'Jet' | 'Greys' | 'Greens' | 'Electric' | 'Earth' | 'Bluered' | 'Blackbody' | string[][],
+  Plotly?: any
 }
 
 export class InteractiveSpectrogram extends LitElement {
@@ -44,8 +44,9 @@ export class InteractiveSpectrogram extends LitElement {
     plotData: any[] = []
     windowSize = 300
     binWidth = 256
+    Plotly: InteractiveSpectrogramProps['Plotly']
 
-    constructor(props: InteractiveSpectrogramProps = {}) {
+    constructor(props: InteractiveSpectrogramProps={}) {
       super();
 
       // this.div.style.width = '500px'
@@ -67,7 +68,11 @@ export class InteractiveSpectrogram extends LitElement {
         responsive: true
       }
 
-      Plotly.newPlot(this.div, this.plotData, config);
+
+      if (props.Plotly){
+        this.Plotly = props.Plotly
+        this.Plotly.newPlot(this.div, this.plotData, config);
+      } else console.warn('<interactive-spectrogram>: Plotly instance not provided...')
 
     }
 
@@ -80,7 +85,7 @@ export class InteractiveSpectrogram extends LitElement {
   willUpdate(changedProps:any) {
     if (changedProps.has('colorscale')) {
       if (!Array.isArray(this.colorscale) && !this.colorscales.includes(this.colorscale)) this.colorscale = 'Electric'
-        Plotly.restyle(this.div, 'colorscale', this.colorscale);
+      this.Plotly.restyle(this.div, 'colorscale', this.colorscale);
     }
   }
 
