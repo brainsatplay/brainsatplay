@@ -6,5 +6,8 @@ export * from './Sidebar'
 export * from './Footer'
 export * from './Overlay'
 
+export * from './Search'
+
+
 
 
