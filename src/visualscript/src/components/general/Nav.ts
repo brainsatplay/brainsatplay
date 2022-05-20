@@ -182,20 +182,17 @@ export class Nav extends LitElement {
     constructor(props: NavProps = {brand: {}, primary: {menu: [], options: []}, secondary: []}) {
       super();
 
-      console.log('Primary', props.primary)
 
       this.primary = props.primary ?? {menu: [], options: []}
       this.secondary = props.secondary ?? []
       this.color = props.color ?? 'blue'
       this.brand = props.brand ?? {content: 'My Brand'}
-      console.log('Primary', this.primary)
-
     }
     
     willUpdate(changedProps:any) {
-      console.log(changedProps)
+      // console.log(changedProps)
       if (changedProps.has('primary')) {
-        console.log('New Primary Value', this.primary)
+        // console.log('New Primary Value', this.primary)
       }
     }
 
@@ -213,9 +210,9 @@ export class Nav extends LitElement {
   
     render() {
 
-      console.log('Primary', this.primary)
-      console.log('secondary', this.secondary)
-      console.log('brand', this.brand)
+      // console.log('Primary', this.primary)
+      // console.log('secondary', this.secondary)
+      // console.log('brand', this.brand)
 
       return html`
       <header>

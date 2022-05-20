@@ -84,6 +84,10 @@ export class TimeSeries extends LitElement {
       }
     }
 
+    updateData = (data) => {
+      this.data = data
+    }
+
     // Only run when changed
     init = () => {
         const length = this.data.length
@@ -93,6 +97,12 @@ export class TimeSeries extends LitElement {
         this.spss = Array.from({ length }, _ => this.sps)
         this.buffers = Array.from({ length }, _ => [])
         this.util.initPlot(length, this.spss, this.seconds, nPointsRenderedPerSec);
+    }
+
+    clear = () => {
+      this.util.plot.clear()
+      this.buffers = []
+      this.data = []
     }
 
 

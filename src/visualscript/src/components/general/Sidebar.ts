@@ -13,7 +13,6 @@ export class Sidebar extends LitElement {
     
     :host {
       background: rgb(234, 234, 234);
-      padding: 25px;
       grid-area: side;
     }
 
@@ -32,6 +31,7 @@ export class Sidebar extends LitElement {
 
     constructor(props: SidebarProps = {}) {
       super();
+
     }
     
 
@@ -39,9 +39,10 @@ export class Sidebar extends LitElement {
     render() {
 
       return html`
-
-      <slot></slot>
-    `
+        <div style="${this.children?.length ? 'padding: 25px' : ''}">
+          <slot></slot>
+        </div>
+      `
     }
   }
   

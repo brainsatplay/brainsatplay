@@ -20,6 +20,7 @@ export class Dashboard extends LitElement {
     :host {
       width: 100%;
       height: 100%;
+      background: white;
     }
 
 
@@ -123,12 +124,6 @@ export class Dashboard extends LitElement {
       this.closeHandler = props.closeHandler ?? (() => {});
     }
     
-    willUpdate(changedProps:any) {
-      // console.log(changedProps)
-      if (changedProps.has('target')) {
-
-      }
-    }
 
   
     render() {
@@ -156,12 +151,15 @@ export class Dashboard extends LitElement {
           const apps = document.querySelectorAll('visualscript-app')
           for(var i=0; i< apps.length; i++){ 
             const app = apps[i] as App       
-            const appTab = new Tab({label: app.name})    
+            let appTab = this.main.tabs.get(app.name)
+            if (!this.main.tabs.has(app.name)) {
+              appTab = new Tab({label: app.name})    
+              this.main.insertAdjacentElement('afterbegin', appTab)
+              this.addEventListener('close', () => {
+                app.parent.appendChild(app) // Replace App element
+              })
+            }
             appTab.appendChild(app)
-            this.main.insertAdjacentElement('afterbegin', appTab)
-            this.addEventListener('close', () => {
-              app.parent.appendChild(app) // Replace App element
-            })
         }
         this.main.render()
       }}>Open Dashboard</div>`: ''}

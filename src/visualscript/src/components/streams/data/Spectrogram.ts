@@ -89,6 +89,12 @@ export class Spectrogram extends LitElement {
 
     // }
 
+
+    // Helper to Update Data
+    updateData = (data) => {
+      this.data = data
+    }
+
     onresize = () => {
 
       const width = (this.canvas.parentNode as HTMLElement)?.clientWidth

@@ -8,7 +8,7 @@ export type MainProps = {
 
 export class Main extends LitElement {
 
-  tabs: Tab[];
+  tabs: Map<string, Tab>;
 
   static get styles() {
     return css`
@@ -33,7 +33,11 @@ export class Main extends LitElement {
       overflow-x: scroll;
       display: flex;
       align-items: center;
-      position: relative;
+      position: sticky;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 10;
     }
 
     .tab {
@@ -101,8 +105,9 @@ export class Main extends LitElement {
 
     addTab = (tab,i) => {
       if (i !== 0) tab.style.display = 'none' // Hide tabs other than the first
-      return html`<button class="tab" @click=${(ev) => {
+      return html`<button class="tab ${(i === 0) ? 'selected' : ''}"  @click=${(ev) => {
 
+        // Show Correct Tab
         const tabs = this.shadowRoot.querySelector('#tabs')
         tabs.querySelectorAll('button').forEach(t => t.classList.remove('selected'))
         ev.target.classList.add('selected')
@@ -110,23 +115,37 @@ export class Main extends LitElement {
           this.tabs.forEach(t => (t != tab) ? t.style.display = 'none' : t.style.display = '') // hide other tabs
         }
 
+        // Swap Sidebar Content
+        const dashboard = this.parentNode 
+        if (dashboard){
+          const sidebar = dashboard.querySelector('visualscript-sidebar')
+          if (sidebar) {
+            for (let i = 0; i < sidebar.children.length; i++) {
+              sidebar.removeChild(sidebar.children[i])
+            }
+            sidebar.insertAdjacentElement('beforeend', tab.controlPanel)
+          }
+        }
+        
+
       }}>${tab.label ?? `Tab ${i}`}</button>`
     }
 
     getTabs = () => {
-      this.tabs = []
+      this.tabs = new Map()
       for(var i=0; i<this.children.length; i++){        
         const child = this.children[i]
-        if (child instanceof Tab) this.tabs.push(child)
+        if (child instanceof Tab) this.tabs.set(child.label, child)
       }
       return this.tabs
     }
     
     render() {
       this.getTabs()
-      const tabMap = this.tabs.map(this.addTab)
+      const tabMap = Array.from(this.tabs.values()).map(this.addTab)
+
       return html`
-      ${( this.tabs.length > 0) ? html`<div id="tabs">
+      ${( this.tabs.size > 0) ? html`<div id="tabs">
         ${tabMap}
       </div>` : ''}
       <section>

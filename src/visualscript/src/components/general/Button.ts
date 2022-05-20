@@ -17,7 +17,7 @@ export interface ButtonProps {
   /**
    * Optional click handler
    */
-  onClick?: () => void;
+  onClick?: (ev: Event)=> any;
 }
 
 export class Button extends LitElement {

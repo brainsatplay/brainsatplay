@@ -6,10 +6,6 @@ console.log('window.visualscript:', visualscript);
 // import './styles.css'
 import AudioManager from './AudioManager'
 
-// const elm = new visualscript.Button({content: 'Test'})
-// document.body.insertAdjacentElement('afterbegin',elm);
-
-
   // import * as visualscript from "./dist/index.esm.js"
 //   import * as visualscript from "https://cdn.jsdelivr.net/npm/brainsatplay-components@latest/dist/index.esm.js"
 
@@ -23,7 +19,19 @@ import AudioManager from './AudioManager'
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
 
-  var overlay = document.querySelector('visualscript-overlay');
+  var overlay = document.querySelector('visualscript-overlay')
+  var overlayDiv = document.createElement('div')
+  overlay.insertAdjacentElement('beforeend', overlayDiv)
+  overlayDiv.style =  `
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    font-size:170%;
+    font-weight: bold;
+    font-family: sans-serif;
+  `
 
   let frequencyBinCount = Math.pow(2,11);
   let minFreq = 7000
@@ -93,6 +101,7 @@ import AudioManager from './AudioManager'
             container,
             video: o.video,
             stream: o.stream,
+            // spectrogram: new visualscript.streams.data.InteractiveSpectrogram(),
             spectrogram: new visualscript.streams.data.Spectrogram(),
             // timeseries: new visualscript.streams.data.TimeSeries(),
         }
@@ -161,14 +170,45 @@ import AudioManager from './AudioManager'
     reader.onload = (ev) => {
 
 
-      overlay.innerHTML = 'Decoding audio data from file...'
+      overlayDiv.innerHTML = 'Decoding audio data from file...'
       overlay.open = true
       audioManager.context.decodeAudioData(ev.target.result, (data) => {
 
-          overlay.innerHTML = 'Audio decoded! Analysing audio data...'
+        overlayDiv.innerHTML = 'Audio decoded! Analysing audio data...'
           // Preanalyze Audio
-          audioManager.fft(data, null, (ev) => {
-              overlay.innerHTML = 'Analysis complete!'
+          audioManager.fft(data, null, (fft) => {
+
+              const interactive = new visualscript.streams.data.InteractiveSpectrogram({
+                data: fft.slice(0,5000)
+              })
+
+              const tab = new visualscript.Tab()
+              tab.label = 'Interactive Spectrogram'
+              tab.controls = [
+                {
+                  label: 'colorscale', 
+                  type: 'select', 
+                  value: interactive.colorscale,
+                  options: interactive.colorscales, 
+                  onChange: (ev) => {
+                    interactive.colorscale = ev.target.value
+                }
+              }, 
+                {
+                    label: 'Button Test', 
+                    type: 'button', 
+                    onClick: () => {
+                    console.log('CLICKED HERE!')
+                  }
+                }
+              ]
+
+              
+              tab.insertAdjacentElement('beforeend', interactive)
+              main.insertAdjacentElement('beforeend', tab)
+              main.render()
+            
+              overlayDiv.innerHTML = 'Analysis complete!'
               overlay.open = false
               // Play Audio
               const source = audioManager.context.createBufferSource();
