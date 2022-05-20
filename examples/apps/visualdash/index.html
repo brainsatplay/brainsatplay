@@ -11,11 +11,14 @@
 </head>
 
 <body>
-  <visualscript-app name="Intensity">
+  <visualscript-app id="app" name="Intensity">
     <visualscript-dashboard>
     <visualscript-sidebar>
+
+      <visualscript-button id="test" primary size="small">Add Tab</visualscript-button>
+
       <h4>Real-Time Data</h4>
-        <visualscript-button id="start" size="small">Start Data Acquisition</visualscript-button>
+        <visualscript-button id="start" primary size="small">Start Data Acquisition</visualscript-button>
 
         <h5>Audio Input</h5>
         <visualscript-select id="in"></visualscript-select>
@@ -27,9 +30,9 @@
         <visualscript-select id="video"></visualscript-select>
 
         <h4>Recorded Files</h4>
-        <fieldset>
-          <input type="file" id="files" accept="audio/*, video/*" />
-      </fieldset>
+        <!-- <fieldset> -->
+          <visualscript-file id="files" accept="audio/*, video/*"></visualscript-file>
+      <!-- </fieldset> -->
     </visualscript-sidebar>
   
     <visualscript-main>
@@ -69,16 +72,15 @@
 
   <visualscript-main id="main">
     <!-- Brains@Play Platform Homepage -->
-    <!-- <visualscript-tab label="Apps">
-      <visualscript-gallery>
-        <visualscript-app name="My App">
-        <p>This is mine.</p>
-        </visualscript-app>
-      <visualscript-app name="My Second App">
-        <p>This is mine too!</p>
-      </visualscript-app>
-    </visualscript-gallery>
-    </visualscript-tab> -->
+    <visualscript-tab name="Tab 1">
+      This is a tab
+    </visualscript-tab>
+    <visualscript-tab name="Tab 2">
+      This is a tab too!
+    </visualscript-tab>
+    <visualscript-app name="App">
+      This is an app!
+    </visualscript-app>
   </visualscript-main>
 
   <visualscript-footer>Garrett Flynn | 2022</visualscript-footer>

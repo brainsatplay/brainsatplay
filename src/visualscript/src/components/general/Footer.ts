@@ -12,8 +12,9 @@ export class Footer extends LitElement {
 
     :host {
       padding: 25px;
-      background: black;
-      color: white;
+      border-top: 1px solid rgb(180,180,180);
+      background: white;
+      color: black;
       display:flex;
       align-items: center;
       width: 100%;
@@ -24,9 +25,18 @@ export class Footer extends LitElement {
     }
 
     :host * {
-      font-family: sans-serif;
       box-sizing: border-box;
-      font-color: #424242;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        background: #060606;
+        color: white;
+      }
+
+      a {
+        color: white;
+      }
     }
     `;
   }

@@ -83,7 +83,7 @@ export class Gallery extends LitElement {
       //     this.things.forEach(t => (t != thing) ? t.style.display = 'none' : t.style.display = '') // hide other tabs
       //   }
 
-      // }}>${thing.label ?? `Tab ${i}`}</button>`
+      // }}>${thing.name ?? `Tab ${i}`}</button>`
 
       thing.style.display = 'none' // Hide thing content
 

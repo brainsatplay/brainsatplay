@@ -12,12 +12,22 @@ export class Sidebar extends LitElement {
 
     
     :host {
-      background: rgb(234, 234, 234);
+      color: black;
+      background: rgb(240, 240, 240);
       grid-area: side;
+      overflow-x: hidden; 
+      overflow-y: scroll;
     }
 
     select, input {
       width: 200px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        color: white;
+        background: rgb(25, 25, 25);
+      }
     }
 
     `;

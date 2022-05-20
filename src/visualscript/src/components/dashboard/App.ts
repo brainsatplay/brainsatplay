@@ -1,57 +1,45 @@
 
-import { LitElement, html, css } from 'lit';
-import { Dashboard } from './Dashboard';
-import { Tab } from './Tab';
+import { html, css } from 'lit';
+import { Tab, TabProps, TabPropsLit } from './tabs/Tab';
 
 // ---------------- SPECIFICATION ----------------
 // 1. Display the application metadata
 // 2. Click into and instantiate the application
 // 3. Leave the application
 
-export type AppProps = {
-  name?: string;
+export type AppProps = TabProps & {
+  // name?: string;
 }
 
-export class App extends LitElement {
+export class App extends Tab {
 
   name: AppProps['name'];
-  dashboard: Dashboard;
   parent: Node;
-
-  static get styles() {
-    
-    return css`
-
-    :host {
-      width: 100%;
-      height: 100%;
-    }
-
-    :host * {
-      font-family: sans-serif;
-      box-sizing: border-box;
-      font-color: #424242;
-    }
-
-
-    `;
-  }
-    
+  
     static get properties() {
-      return {
-        name : {
-          type: String
-        }
-      };
+      return Object.assign({
+
+      }, TabPropsLit);
     }
 
 
     constructor(props: AppProps = {}) {
-      super();
+      const tabProps = (Object.assign({
+        on: (ev) => {
+          this.dashboard.main.appendChild(this)
+          if (props.on instanceof Function) props.on(ev)
+        },
+        off: (ev) => {
+          console.log('OFF APP!')
+          this.parent.appendChild(this) // Replace App element
+          if (props.off instanceof Function) props.off(ev)
+        }
+      }, props) as AppProps)
+      tabProps.name = props.name
+      super(tabProps);
 
       this.name = props.name
       this.parent = this.parentNode // Grab original parent
-
     }
 
 
@@ -60,16 +48,9 @@ export class App extends LitElement {
 
       if (!parent) this.parent = this.parentNode // Grab original parent
 
-      // Allow dashboards inside apps!
-      let dashboards = document.querySelectorAll('visualscript-dashboard')
-      this.dashboard = (Array.from(dashboards).find(o => o.parentNode === document.body) as Dashboard) ?? new Dashboard() // Find global dashboard
-
-        this.dashboard.global = true
-        this.dashboard.open = false
-
       return html`
         <slot></slot>
-    `
+      `
     }
   }
   

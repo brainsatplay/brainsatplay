@@ -10,6 +10,7 @@ import AudioManager from './AudioManager'
 //   import * as visualscript from "https://cdn.jsdelivr.net/npm/brainsatplay-components@latest/dist/index.esm.js"
 
   // Bypass the usual requirement for user action
+  const app = document.getElementById('app')
   const start = document.getElementById('start')
   const audioInputSelect = document.getElementById('in')
   const audioOutputSelect = document.getElementById('out')
@@ -18,6 +19,33 @@ import AudioManager from './AudioManager'
   var main = document.getElementById('main');
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
+
+  var test = document.getElementById('test');
+  let iter = 0
+  test.onclick = () => {
+    const tab = new visualscript.Tab({name: 'Just  Test ' + iter})
+    iter++
+    // tab.controls = [
+    //   {
+    //     label: 'colorscale', 
+    //     type: 'select', 
+    //     value: interactive.colorscale,
+    //     options: interactive.colorscales, 
+    //     onChange: (ev) => {
+    //       interactive.colorscale = ev.target.value
+    //   }
+    // }, 
+    //   {
+    //       label: 'Button Test', 
+    //       type: 'button', 
+    //       onClick: () => {
+    //       console.log('CLICKED HERE!')
+    //     }
+    //   }
+    // ]
+    
+    app.dashboard.main.appendChild(tab)
+  }
 
   var overlay = document.querySelector('visualscript-overlay')
   var overlayDiv = document.createElement('div')
@@ -114,10 +142,11 @@ import AudioManager from './AudioManager'
 
   let count = 0
 
-  fileInput.onchange = async (ev) => {
+  fileInput.onChange = async (ev) => {
     audioManager.initializeContext()
     count = 0 // Reset count with new file...
-    for (let file of fileInput.files) {
+
+    for (let file of ev.target.files) {
       const type = file.type.split('/')[0]
       let source, video;
 
@@ -183,7 +212,7 @@ import AudioManager from './AudioManager'
               })
 
               const tab = new visualscript.Tab()
-              tab.label = 'Interactive Spectrogram'
+              tab.name = 'Interactive Spectrogram'
               tab.controls = [
                 {
                   label: 'colorscale', 
@@ -202,7 +231,6 @@ import AudioManager from './AudioManager'
                   }
                 }
               ]
-
               
               tab.insertAdjacentElement('beforeend', interactive)
               main.insertAdjacentElement('beforeend', tab)

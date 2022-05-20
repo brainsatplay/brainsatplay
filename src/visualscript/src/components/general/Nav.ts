@@ -26,10 +26,10 @@ export class Nav extends LitElement {
 
     
     :host {
-      font-family: sans-serif;
       z-index: 2;
-      background: black;
-      color: white;
+      border-bottom: 1px solid rgb(180,180,180);
+      background: white;
+      color: black;
       display:flex;
       align-items: center;
       width: 100%;
@@ -50,14 +50,11 @@ export class Nav extends LitElement {
     }
 
     nav {
-      color: white;
       width: 100%;
       padding:  0px 25px;
       display: flex;
       align-items: center;
-      background: #060606;
     }
-
 
     #primary {
       position: sticky; 
@@ -97,7 +94,7 @@ export class Nav extends LitElement {
     }
 
     a{
-      color: white;
+      color: black;
       text-decoration: none;
     }
 
@@ -127,7 +124,6 @@ export class Nav extends LitElement {
 
     button {
       border: 1px solid white;
-      color: white;
       border-radius: 3px;
       background: transparent;
       padding: 5px 10px;
@@ -147,6 +143,17 @@ export class Nav extends LitElement {
     @media only screen and (max-width: 800px) {
       #primary #menu {
         display: none;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        background: #060606;
+        color: white;
+      }
+
+      a {
+        color: white;
       }
     }
 

@@ -26,7 +26,7 @@ export class Button extends LitElement {
     return css`
 
     .storybook-button {
-      font-family: sans-serif;
+      
       font-weight: 700;
       border: 0;
       border-radius: 1em;
@@ -59,6 +59,15 @@ export class Button extends LitElement {
     .storybook-button--large {
       font-size: 16px;
       padding: 12px 24px;
+    }
+
+
+    @media (prefers-color-scheme: dark) {
+      .storybook-button--secondary {
+        color: #cccccc;
+        background-color: transparent;
+        box-shadow: rgba(255, 255, 255, 0.50) 0px 0px 0px 1px inset;
+      }
     }
 
     `;
