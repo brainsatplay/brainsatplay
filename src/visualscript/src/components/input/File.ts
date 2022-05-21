@@ -38,7 +38,8 @@ export class File extends LitElement {
       background-color: #1ea7fd;
       width: 100%;
       cursor: pointer;    
-      white-space: nowrap;
+      /* white-space: nowrap; */
+      font-weight: bold;
     }
 
     .hide {

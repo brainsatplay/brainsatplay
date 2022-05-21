@@ -22,7 +22,8 @@ export class Main extends LitElement {
       height: 100%;
       box-sizing: border-box;
       grid-area: main;
-      overflow: scroll;
+      overflow-x: hidden;
+      overflow-y: scroll;
       background: inherit;
       color: inherit;
     }

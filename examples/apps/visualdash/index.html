@@ -6,41 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Visualscript Dashboard</title>
-  <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
-  <script src="dist/index.js" defer=true></script>
   <link rel="stylesheet" href="./app/styles.css">
+  <script src="https://cdn.plot.ly/plotly-2.12.1.min.js"></script>
 </head>
 
 <body>
   <visualscript-app id="app" name="Intensity">
     <visualscript-dashboard>
     <visualscript-sidebar>
-
-      <!-- <visualscript-button id="test" primary size="small">Add Tab</visualscript-button> -->
-
-      <h4>Real-Time Data</h4>
-        <visualscript-button id="start" primary size="small">Start Data Acquisition</visualscript-button>
-
-        <h5>Audio Input</h5>
-        <visualscript-select id="in"></visualscript-select>
-
-        <h5>Audio Output</h5>
-        <visualscript-select id="out"></visualscript-select>
-
-        <h5>Video Input</h5>
-        <visualscript-select id="video"></visualscript-select>
-
-        <h4>Recorded Files</h4>
+        <div>
+          <visualscript-control id="in" type="select" label="Audio Input" persist></visualscript-control>
+          <visualscript-control id="out" type="select" label="Audio Output" persist></visualscript-control>
+          <visualscript-control id="video" type="select" label="Video Input" persist></visualscript-control>
+        </div>
         <!-- <fieldset> -->
-          <visualscript-file id="files" accept="audio/*, video/*"></visualscript-file>
       <!-- </fieldset> -->
     </visualscript-sidebar>
   
-    <visualscript-main>
-      <section id="data">
-        <div id="videos"></div>
-        <div id="analyses"></div>
-      </section>
+    <visualscript-main style="display: flex; align-items: center; justify-content: center;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; padding: 50px; justify-content: center; max-width: 80vw;">
+        <!-- <visualscript-control id="start" type="button" primary size="small" label="Audio + Video Data">Start Data Acquisition</visualscript-control> -->
+        <visualscript-control id="start" type="button" primary size="small" label="Record your Data" park>Start</visualscript-control>
+        <p><strong>OR</strong></p>
+        <visualscript-control id="files" type="file"  accept="audio/*, video/*" label="Load a File" park></visualscript-control>
+      </div>
     </visualscript-main>
     </visualscript-dashboard>
   </visualscript-app>
@@ -51,18 +40,27 @@
     <visualscript-nav>Visualscript</visualscript-nav>
   <visualscript-sidebar></visualscript-sidebar>
   <visualscript-main id="main">
-    <visualscript-tab id="design" name="Model Design"></visualscript-tab>
+
+    <visualscript-tab id="realtime" name="Stream Analysis">
+      <br>
+      <strong>Note:</strong> Will have streaming data if you start anything
+      <section id="data">
+        <div id="videos"></div>
+        <div id="analyses"></div>
+      </section>
+    </visualscript-tab>
+
+    <visualscript-tab id="design" name="Model Design">
+      <br>
+      <strong>Note:</strong> .mp3 files only
+      <visualscript-control type="switch" label="Test Switch" persist></visualscript-control>
+      <visualscript-control type="range" label="Test Range" persist></visualscript-control>
+      <visualscript-control type="input" label="Test Input" persist></visualscript-control>
+    </visualscript-tab>
+
   </visualscript-main>
-  <visualscript-footer>Garrett Flynn | 2022</visualscript-footer>
+  <visualscript-footer>Garrett Flynn and Lisa Müller-Trede | 2022</visualscript-footer>
   </visualscript-dashboard>
-
-
 </body>
-
-<script type="module">
-
-// console.log(JSON.stringify({}))
-
-</script>
-
+<script src="dist/index.js" defer=true></script>
 </html>

@@ -24,7 +24,7 @@ width: 100%;
 }
 
 #videos video {
-max-width: 400px;
+max-width: clamp(0px, 400px, 100%);
 }
 
 #analyses {

@@ -1,7 +1,12 @@
 
 import { LitElement, html, css } from 'lit';
+import { PersistableProps, getPersistent, setPersistent } from './persistable';
+
 
 export type SelectProps = {
+  label?: string;
+  persist?: boolean;
+
   options?: (string | Option)[]
   value?: Option['value']
   onChange?: (ev: Event)=> any
@@ -27,6 +32,10 @@ Features to make the selectCustom work for mouse users.
 */
 
 export class Select extends LitElement {
+
+  label: SelectProps['label'];
+  persist: SelectProps['persist'] = false
+
 
   optionChecked:String = "";
   optionHoveredIndex:number = -1;
@@ -74,7 +83,7 @@ export class Select extends LitElement {
     .selectNative:focus,
     .selectCustom.isActive .selectCustom-trigger {
       outline: none;
-      box-shadow: white 0 0 0 0.2rem, #6f6f6f 0 0 0 0.4rem;
+      box-shadow: white 0 0 5px 2px;
     }
     
 
@@ -104,7 +113,7 @@ export class Select extends LitElement {
     }
     
     .selectCustom-trigger  > div {
-      overflow: hidden;
+      overflow: scroll;
       white-space: nowrap;
     }
 
@@ -177,6 +186,9 @@ export class Select extends LitElement {
       left: 0.8rem;
     }
 
+
+    /* This makes the Custom Select work... 
+      Issues: Doesn't work inside of another component (e.g. Control), it clicks on that instead
     @media (hover: hover) {
       
       .selectCustom {
@@ -187,6 +199,7 @@ export class Select extends LitElement {
         display: none;
       }
     }
+    */
 
     @media (prefers-color-scheme: dark) {
       .selectCustom {
@@ -202,20 +215,12 @@ export class Select extends LitElement {
   }
     
     static get properties() {
-      return {
+      return Object.assign({
         options: {
           type: Array,
           reflect: true
-        },
-        value: {
-          type: String,
-           reflect: true
-        },
-        onChange: {
-            type: Function,
-           reflect: true
         }
-      };
+      }, PersistableProps)
     }
 
     add = (option:Option) => {
@@ -238,7 +243,7 @@ export class Select extends LitElement {
       }
     
       // Add related event listeners
-      document.addEventListener("click", this.watchClickOutside);
+      // document.addEventListener("click", this.watchClickOutside);
       document.addEventListener("keydown", this.supportKeyboardNavigation);
     }
 
@@ -250,7 +255,7 @@ export class Select extends LitElement {
       this.updateCustomSelectHovered(-1);
     
       // Remove related event listeners
-      document.removeEventListener("click", this.watchClickOutside);
+      // document.removeEventListener("click", this.watchClickOutside);
       document.removeEventListener("keydown", this.supportKeyboardNavigation);
     }
  
@@ -258,8 +263,10 @@ export class Select extends LitElement {
     constructor(props: SelectProps = {}) {
       super();
       this.options = props.options ?? []
-      this.value = props.value
       if (props.onChange) this.onChange = props.onChange
+      if (props.label) this.label = props.label
+      if (props.persist) this.persist = props.persist
+      this.value = getPersistent(props)
     }
 
     updateCustomSelectHovered = (newIndex) => {
@@ -280,32 +287,34 @@ export class Select extends LitElement {
     
     updateCustomSelectChecked = (value, text?) => {
 
-
-      if (!text) text = this.elements.elSelectCustomOpts.querySelectorAll(
-        `[data-value="${value}"]`
-      )[0].textContent;
-    
-      const prevValue = this.optionChecked;
-    
-      const elPrevOption = this.elements.elSelectCustomOpts.querySelector(
-        `[data-value="${prevValue}"`
-      );
-      const elOption = this.elements.elSelectCustomOpts.querySelector(`[data-value="${value}"`);
-    
-      if (elPrevOption) {
-        elPrevOption.classList.remove("isActive");
+      if (this.elements) {
+        if (!text) text = this.elements.elSelectCustomOpts.querySelectorAll(
+          `[data-value="${value}"]`
+        )[0]?.textContent;
+      
+        const prevValue = this.optionChecked;
+      
+        const elPrevOption = this.elements.elSelectCustomOpts.querySelector(
+          `[data-value="${prevValue}"`
+        );
+        const elOption = this.elements.elSelectCustomOpts.querySelector(`[data-value="${value}"`);
+      
+        if (elPrevOption) {
+          elPrevOption.classList.remove("isActive");
+        }
+      
+        if (elOption) {
+          elOption.classList.add("isActive");
+        }
+      
+        const elSelectCustomBox = this.elements.elSelectCustom.children[0].children[0];
+        elSelectCustomBox.textContent = text;
+        this.optionChecked = value;
       }
-    
-      if (elOption) {
-        elOption.classList.add("isActive");
-      }
-    
-      const elSelectCustomBox = this.elements.elSelectCustom.children[0].children[0];
-      elSelectCustomBox.textContent = text;
-      this.optionChecked = value;
     }
     
     watchClickOutside = (e) => {
+
       const didClickedOutside = !this.contains(e.target);
 
       if (didClickedOutside) {
@@ -351,6 +360,8 @@ export class Select extends LitElement {
     }
 
     willUpdate(changedProps:any) {
+      if (changedProps.has('value')) setPersistent(this)
+
       if (changedProps.has('options')) {
         const firstOption = ((this.options[0] as Option)?.value ?? this.options[0] as string)
         this.value = this.value ?? firstOption
@@ -358,8 +369,6 @@ export class Select extends LitElement {
     }
 
     updated(changedProperties) {
-      if (this.value) this.updateCustomSelectChecked(this.value);
-
 
       const elSelectNative = this.shadowRoot.querySelectorAll(".js-selectNative")[0] as HTMLSelectElement
       const elSelectCustom = this.shadowRoot.querySelectorAll(".js-selectCustom")[0] as HTMLElement
@@ -373,6 +382,9 @@ export class Select extends LitElement {
         elSelectCustomOpts,
         customOptsList,
       }
+
+
+      if (this.value) this.updateCustomSelectChecked(this.value);
        
     }
     
@@ -381,7 +393,7 @@ export class Select extends LitElement {
 
       return html`
       <div id=container>
-      <select class="selectNative js-selectNative" aria-labelledby="jobLabel" 
+      <select class="selectNative js-selectNative" aria-labelledby="${this.label}Label" 
       @change=${(e) => {
 
           // Update selectCustom value when selectNative is changed.
