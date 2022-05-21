@@ -264,8 +264,13 @@ const config = {
         bundleESM: false, //create esm module js files
         bundleTypes: false, //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
         bundleNode: false, //create node platform plain js build, specify platform:'node' to do the rest of the files 
-        bundleHTML: false //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
-    },
+        bundleHTML: false, //wrap the first entry point file as a plain js script in a boilerplate html file, frontend scripts can be run standalone like a .exe! Server serves this as start page if set to true.
+        minify: true,
+        sourcemap: false
+        //globalThis:null //'mymodule'
+        //globals:{'index.js':['Graph']}
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
+     },
     server: {  //node server settings, set false to skip server step or add serve:true to config object to only serve (alt methods)
         debug: false,
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
@@ -281,7 +286,7 @@ const config = {
         certpath: "packager/node_server/ssl/cert.pem", //if using https, this is required. See cert.pfx.md for instructions
         keypath: "packager/node_server/ssl/key.pem" //if using https, this is required. See cert.pfx.md for instructions
     }
-    }
+}
 
 `;
 
@@ -316,7 +321,12 @@ let config = {
         bundleESM: false, //.esm format
         bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
         bundleNode: false, // bundle a package with platform:node and separate externals
-        bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+        bundleHTML: true, //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
+        minify: true,
+        sourcemap: false
+        //globalThis:null //'mymodule'
+        //globals:{'index.js':['Graph']}
+        //init:{'index.js':function(bundle) { console.log('prepackaged bundle script!', bundle); }}      
     },
     server: defaultServer
 }

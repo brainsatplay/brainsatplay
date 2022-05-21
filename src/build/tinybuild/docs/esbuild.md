@@ -102,7 +102,7 @@ ESM bundles are for enabling the `import`/`export` syntax either in es6 or later
 
 ### Types Bundling
 
-As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. 
+As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. You also need a tsconfig in your project root. 
 
 These function sort of like header files in strongly-typed C, which show you all of the functions/classes/variables/etc. and their expected input/output formats (including detailed formatting for objects or array types) in each respective script file. Nice for reference, VSCode otherwise does this on-the-fly even in .js files when working.
 
@@ -123,6 +123,10 @@ This is an extension to the browser bundler (including the global installs) that
 If your script entry point is to your app, then this can automatically be served, and if the app does not require served files etc. then it essentially serves like a built .exe file. 
 
 You may also use it if you want to write quick library or frontend tests with init scripts and test serving scripts to execute in-browser. Currently this test setting only applies to the browser bundle, which you could override to format for esm via .outputs.browser.format = 'esm' or .outputs.browser.platform = 'node'. 
+
+### Worker bundling
+
+We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in it somewhere then it will bundle and inject the correct code so your browser or node env can find it when served. I'm not very clever with regex but its a little better than the example I ripped off, and it works yay!
 
 ### External
 
