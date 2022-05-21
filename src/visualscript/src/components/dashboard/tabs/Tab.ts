@@ -76,7 +76,6 @@ export class Tab extends LitElement {
       if (props.controls) this.controls = props.controls // Will also check for controls in the <slot> later
       if (props.on) this.on = props.on
       if (props.off) this.off = props.off
-      if (props.lock) this.lock = props.lock
 
       // Allow dashboards inside apps!
       let dashboards = document.body.querySelectorAll('visualscript-dashboard')
