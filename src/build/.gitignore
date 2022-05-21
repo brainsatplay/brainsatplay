@@ -10,4 +10,4 @@ src
 **/package-lock.json
 **/*.key
 **/*.log
-**/*.png
+#**/*.png
