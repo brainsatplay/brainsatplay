@@ -30,9 +30,9 @@ export class Search extends LitElement {
     }
 
     :host * {
-      font-family: sans-serif;
+      
       box-sizing: border-box;
-      font-color: #424242;
+      
     }
 
     button {

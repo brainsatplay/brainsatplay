@@ -20,7 +20,7 @@ export class Loader extends LitElement {
     return css`
     
     :host {
-      font-family: sans-serif;
+      
     }
 
     #container {  

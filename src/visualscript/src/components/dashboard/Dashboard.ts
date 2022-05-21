@@ -3,7 +3,7 @@ import { LitElement, html, css } from 'lit';
 import "../general/Overlay"
 import { Main } from './Main';
 import { Nav, Footer, Sidebar } from '../general';
-import { Tab } from './Tab';
+import { Tab } from './tabs/Tab';
 import { App } from './App';
 
 export type DashboardProps = {
@@ -36,9 +36,14 @@ export class Dashboard extends LitElement {
     }
 
     :host * {
-      font-family: sans-serif;
+      
       box-sizing: border-box;
-      font-color: #424242;
+      
+    }
+
+    :host, slot {
+      background: white;
+      color: black;
     }
 
     slot {
@@ -72,18 +77,34 @@ export class Dashboard extends LitElement {
       top: 0px;
       right: 22px;
       z-index: 1000;
-      background: black;
-      color: white;
-      padding: 10px 20px;
+      color: black;
+      border: 1px solid black;
+      border-top: none;
+      padding: 10px 15px;
       cursor: pointer;
-      font-size: 80%;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-
+      font-size: 70%;
+      font-weight: bold;
+      border-bottom-left-radius: 7px;
+      border-bottom-right-radius: 7px;
+      box-shadow: 0 1px 5px 0 rgb(0 0 0 / 20%);
     }
 
     :host([open]) #dashboard-toggle {
       display: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host, slot {
+        color: white;
+        background: black;
+      }
+
+      #dashboard-toggle { 
+        border: 1px solid white;
+        border-top: none;
+        color: white;
+        box-shadow: 0 1px 5px 0 rgb(255 255 255 / 20%);
+      }
     }
     `;
   }
@@ -108,6 +129,7 @@ export class Dashboard extends LitElement {
     open: DashboardProps['open']
     closeHandler: DashboardProps['closeHandler']
     global: DashboardProps['global']
+    apps: Map<string, App> = new Map()
 
     main: Main
     nav: Nav
@@ -123,12 +145,6 @@ export class Dashboard extends LitElement {
       this.closeHandler = props.closeHandler ?? (() => {});
     }
     
-    willUpdate(changedProps:any) {
-      // console.log(changedProps)
-      if (changedProps.has('target')) {
-
-      }
-    }
 
   
     render() {
@@ -136,6 +152,15 @@ export class Dashboard extends LitElement {
       // Add Global Class
       if (this.global) this.classList.add('global')
       else  this.classList.remove('global')
+
+
+      if (this.global){
+        const apps = document.querySelectorAll('visualscript-app')
+        for(var i=0; i < apps.length; i++){   
+          const app = apps[i] as App    
+          if (!this.apps.has(app.name)) this.apps.set(app.name, app)
+        }
+      }
 
       // Add Open Class
       if (this.open) this.classList.add('open')
@@ -151,21 +176,13 @@ export class Dashboard extends LitElement {
 
       return html`
       ${this.global ? html`<div id="dashboard-toggle" @click=${() => {
-        this.open = true
-        // Get Apps
-          const apps = document.querySelectorAll('visualscript-app')
-          for(var i=0; i< apps.length; i++){ 
-            const app = apps[i] as App       
-            const appTab = new Tab({label: app.name})    
-            appTab.appendChild(app)
-            this.main.insertAdjacentElement('afterbegin', appTab)
-            this.addEventListener('close', () => {
-              app.parent.appendChild(app) // Replace App element
-            })
-        }
-        this.main.render()
-      }}>Open Dashboard</div>`: ''}
-      ${this.global ? html`<visualscript-button id='close' secondary size="extra-small" backgroundColor="white"; @click=${() => this.open=false}>Close</visualscript-button>` : ``}
+          this.open = true
+          const selectedApp = this.apps.values().next().value
+
+          // Always open the app first!
+          selectedApp.toggle.shadowRoot.querySelector('button').click()
+      }}>Edit</div>`: ''}
+      ${this.global ? html`<visualscript-button id='close' secondary size="small" @click=${() => this.open=false}>Close</visualscript-button>` : ``}
       <slot>
       </slot>
     `

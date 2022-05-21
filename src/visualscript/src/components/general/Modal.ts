@@ -27,13 +27,13 @@ export class Modal extends LitElement {
 /* Modal Header */
 
   :host {
-    font-family: sans-serif;
+    
     z-index: 101;
   }
   
   :host * {
     box-sizing: border-box;
-    font-color: #424242;
+    
   }
 
 .modal-header {
@@ -73,7 +73,7 @@ export class Modal extends LitElement {
 
 /* Modal Content */
 .modal-content {
-  font-family: sans-serif;
+  
   position: absolute;
   bottom: 50%;
   left: 50%;

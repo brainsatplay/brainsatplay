@@ -2,18 +2,11 @@
 //alert('Hello World!');
 
 import * as visualscript from '../../../../src/visualscript/src/index'
-console.log('window.visualscript:', visualscript);
-// import './styles.css'
 import AudioManager from './AudioManager'
 
-// const elm = new visualscript.Button({content: 'Test'})
-// document.body.insertAdjacentElement('afterbegin',elm);
-
-
-  // import * as visualscript from "./dist/index.esm.js"
-//   import * as visualscript from "https://cdn.jsdelivr.net/npm/brainsatplay-components@latest/dist/index.esm.js"
-
   // Bypass the usual requirement for user action
+  const app = document.getElementById('app')
+  const dataContainer = document.getElementById('data')
   const start = document.getElementById('start')
   const audioInputSelect = document.getElementById('in')
   const audioOutputSelect = document.getElementById('out')
@@ -23,7 +16,19 @@ import AudioManager from './AudioManager'
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
 
-  var overlay = document.querySelector('visualscript-overlay');
+  var overlay = document.querySelector('visualscript-overlay')
+  var overlayDiv = document.createElement('div')
+  overlay.insertAdjacentElement('beforeend', overlayDiv)
+  overlayDiv.style =  `
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    font-size:170%;
+    font-weight: bold;
+    font-family: sans-serif;
+  `
 
   let frequencyBinCount = Math.pow(2,11);
   let minFreq = 7000
@@ -93,6 +98,7 @@ import AudioManager from './AudioManager'
             container,
             video: o.video,
             stream: o.stream,
+            // spectrogram: new visualscript.streams.data.InteractiveSpectrogram(),
             spectrogram: new visualscript.streams.data.Spectrogram(),
             // timeseries: new visualscript.streams.data.TimeSeries(),
         }
@@ -105,10 +111,11 @@ import AudioManager from './AudioManager'
 
   let count = 0
 
-  fileInput.onchange = async (ev) => {
+  fileInput.onChange = async (ev) => {
     audioManager.initializeContext()
     count = 0 // Reset count with new file...
-    for (let file of fileInput.files) {
+
+    for (let file of ev.target.files) {
       const type = file.type.split('/')[0]
       let source, video;
 
@@ -161,14 +168,46 @@ import AudioManager from './AudioManager'
     reader.onload = (ev) => {
 
 
-      overlay.innerHTML = 'Decoding audio data from file...'
+      overlayDiv.innerHTML = 'Decoding audio data from file...'
       overlay.open = true
       audioManager.context.decodeAudioData(ev.target.result, (data) => {
 
-          overlay.innerHTML = 'Audio decoded! Analysing audio data...'
+        overlayDiv.innerHTML = 'Audio decoded! Analysing audio data...'
           // Preanalyze Audio
-          audioManager.fft(data, null, (ev) => {
-              overlay.innerHTML = 'Analysis complete!'
+          audioManager.fft(data, null, (fft) => {
+
+              const interactive = new visualscript.streams.data.InteractiveSpectrogram({
+                data: fft.slice(0,5000),
+                Plotly
+              })
+
+              const tab = document.getElementById('design')
+
+
+              // const tab = new visualscript.Tab()
+              // tab.name = 'Interactive Spectrogram'
+              tab.controls = [
+                {
+                  label: 'colorscale', 
+                  type: 'select', 
+                  value: interactive.colorscale,
+                  options: interactive.colorscales, 
+                  onChange: (ev) => {
+                    interactive.colorscale = ev.target.value
+                }
+              }, 
+                {
+                    label: 'Button Test', 
+                    type: 'button', 
+                    onClick: () => {
+                    console.log('CLICKED HERE!')
+                  }
+                }
+              ]
+              
+              tab.insertAdjacentElement('beforeend', interactive)
+            
+              overlayDiv.innerHTML = 'Analysis complete!'
               overlay.open = false
               // Play Audio
               const source = audioManager.context.createBufferSource();
@@ -196,5 +235,3 @@ import AudioManager from './AudioManager'
     reader.readAsArrayBuffer(file);
   })
 }
-
-

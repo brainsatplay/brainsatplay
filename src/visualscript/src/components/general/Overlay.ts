@@ -20,6 +20,8 @@ export class Overlay extends LitElement {
       left: 0;
       pointer-events: none;
       z-index: 50;
+      color: black;
+      background: rgb(255,255, 255, 0.7);
     }
     
 
@@ -28,6 +30,14 @@ export class Overlay extends LitElement {
       pointer-events: all;
       backdrop-filter: blur(3px);
     }
+
+    @media (prefers-color-scheme: dark) {
+      div {
+        color: white;
+        background: rgb(0,0,0, 0.5);
+      }
+    }
+
     `;
   }
     

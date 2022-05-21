@@ -14,11 +14,11 @@ export class ObjectEditor extends LitElement {
 
     
     :host {
-      font-family: sans-serif;
+      
     }
     :host * {
       box-sizing: border-box;
-      font-color: #424242;
+      
     }
 
     :host > * {

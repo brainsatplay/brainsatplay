@@ -1,5 +1,27 @@
 // Note: Inspired by the Red Hat website https://www.redhat.com/en
 
+
+// ---------------- EXAMPLE ---------------- 
+// <visualscript-nav 
+// primary='{"menu": [
+//   {"content": "Products"},
+//   {"content": "Solutions"},
+//   {"content": "Services"},
+//   {"content": "Resources"},
+//   {"content": "Ethos"}
+
+// ],
+// "options": [
+//   {"content": "Contact"},
+//   {"content": "Login"}
+// ]}'
+
+// secondary = '[{"content":"Platform","link":"https://app.brainsatplay.com","external":true},{"content":"Studio","link":"https://app.brainsatplay.com/#studio","external":true},{"content":"Developers","link":"https://docs.brainsatplay.com","external":true},{"content":"Community","link":"https://discord.gg/tQ8P79tw8j","external":true},{"content":"Contribute","type":"button","link":"https://github.com/brainsatplay","external":true}]'
+
+// brand='{"content": "Brains@Play", "link": "https://brainsatplay.com", "external": true}'
+// ></visualscript-nav>
+
+
 import { LitElement, html, css } from 'lit';
 
 type ElementType = {
@@ -26,10 +48,10 @@ export class Nav extends LitElement {
 
     
     :host {
-      font-family: sans-serif;
       z-index: 2;
-      background: black;
-      color: white;
+      border-bottom: 1px solid rgb(180,180,180);
+      background: white;
+      color: black;
       display:flex;
       align-items: center;
       width: 100%;
@@ -50,14 +72,11 @@ export class Nav extends LitElement {
     }
 
     nav {
-      color: white;
       width: 100%;
       padding:  0px 25px;
       display: flex;
       align-items: center;
-      background: #060606;
     }
-
 
     #primary {
       position: sticky; 
@@ -97,7 +116,7 @@ export class Nav extends LitElement {
     }
 
     a{
-      color: white;
+      color: black;
       text-decoration: none;
     }
 
@@ -127,7 +146,6 @@ export class Nav extends LitElement {
 
     button {
       border: 1px solid white;
-      color: white;
       border-radius: 3px;
       background: transparent;
       padding: 5px 10px;
@@ -147,6 +165,17 @@ export class Nav extends LitElement {
     @media only screen and (max-width: 800px) {
       #primary #menu {
         display: none;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        background: #060606;
+        color: white;
+      }
+
+      a {
+        color: white;
       }
     }
 
@@ -182,20 +211,17 @@ export class Nav extends LitElement {
     constructor(props: NavProps = {brand: {}, primary: {menu: [], options: []}, secondary: []}) {
       super();
 
-      console.log('Primary', props.primary)
 
       this.primary = props.primary ?? {menu: [], options: []}
       this.secondary = props.secondary ?? []
       this.color = props.color ?? 'blue'
       this.brand = props.brand ?? {content: 'My Brand'}
-      console.log('Primary', this.primary)
-
     }
     
     willUpdate(changedProps:any) {
-      console.log(changedProps)
+      // console.log(changedProps)
       if (changedProps.has('primary')) {
-        console.log('New Primary Value', this.primary)
+        // console.log('New Primary Value', this.primary)
       }
     }
 
@@ -213,9 +239,9 @@ export class Nav extends LitElement {
   
     render() {
 
-      console.log('Primary', this.primary)
-      console.log('secondary', this.secondary)
-      console.log('brand', this.brand)
+      // console.log('Primary', this.primary)
+      // console.log('secondary', this.secondary)
+      // console.log('brand', this.brand)
 
       return html`
       <header>

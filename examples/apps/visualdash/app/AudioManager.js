@@ -119,7 +119,7 @@ export default class AudioManager {
         
         source.start();
         ctx.startRendering()
-            .then(renderedBuffer => console.log('renderedBuffer', renderedBuffer))
+            // .then(renderedBuffer => console.log('renderedBuffer', renderedBuffer))
             .catch((err) => console.log('Rendering failed: ' + err));
     }
 
@@ -144,7 +144,7 @@ export default class AudioManager {
             splitter.connect(analyser, i) // Connect Analyser to Channel i
             analyser.connect(gainNode);
             gainNode.connect(merger, 0, i) // Merge split inputs
-            this.addAnalysis(analyser, 'fft', o.spectrogram, 'data') // Start analysis
+            this.addAnalysis(analyser, 'fft', o.spectrogram) // Start analysis
           }
   
           const difference = (arr1, arr2) => {
@@ -187,7 +187,7 @@ export default class AudioManager {
           thisGain.connect(this.out) // Output to the speakers
           if (this.canListen) thisGain.gain.value = 1
           else thisGain.gain.value = 0 // Force Off Volume
-            this.addAnalysis(this.analyser, 'fft', o.spectrogram, 'data') // Start analysis
+            this.addAnalysis(this.analyser, 'fft', o.spectrogram) // Start analysis
         }
   
         if (video){
@@ -199,7 +199,7 @@ export default class AudioManager {
         if (src.start instanceof Function) src.start()
     }
 
-    addAnalysis = (analyser, type, outputObj, key) => {
+    addAnalysis = (analyser, type, outputObj) => {
         // Analyze the Data
         // let volumeCallback = null;
         // let volumeInterval = null;
@@ -214,8 +214,10 @@ export default class AudioManager {
                 getData = () => {
                     analyser.getByteFrequencyData(frequencies);
                     const freqArr = Array.from(frequencies)
-                    outputObj[key] = freqArr
-          
+
+                    outputObj.updateData(freqArr)
+                    // outputObj.data = freqArr
+
                     return {
                       frequencies: freqArr
                     }
@@ -227,7 +229,9 @@ export default class AudioManager {
                 getData = () => {
                     analyser.getByteTimeDomainData(raw)
                   const arr = Array.from(raw)
-                  outputObj[key] = [arr]
+                  outputObj.updateData([arr])
+                  // outputObj.data = [arr]
+
 
                   return {
                     timeseries: arr, 

@@ -3,8 +3,14 @@ html, body {
 margin: 0;
 width: 100vw;
 height: 100vh;
+overflow: hidden;
 }
 
+:root {
+    color-scheme: light dark;
+    font-family: sans-serif;
+}
+  
 section {
 padding: 25px;
 }
@@ -31,4 +37,5 @@ background: rgb(237, 237, 237);
 padding: 15px;
 margin: 10px;
 border-radius: 25px;
+color: black;
 }

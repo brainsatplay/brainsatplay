@@ -20,7 +20,7 @@ export class CodeEditor extends LitElement {
 
     
     :host {
-      font-family: sans-serif;
+      
       width: 100%; 
       height: 100%; 
       z-index: 100000; 
@@ -29,7 +29,7 @@ export class CodeEditor extends LitElement {
 
     :host * {
       box-sizing: border-box;
-      font-color: #424242;
+      
     }
 
     :host > * {

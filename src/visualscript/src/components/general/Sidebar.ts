@@ -12,13 +12,22 @@ export class Sidebar extends LitElement {
 
     
     :host {
-      background: rgb(234, 234, 234);
-      padding: 25px;
+      color: black;
+      background: rgb(240, 240, 240);
       grid-area: side;
+      overflow-x: hidden; 
+      overflow-y: scroll;
     }
 
     select, input {
       width: 200px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :host {
+        color: white;
+        background: rgb(25, 25, 25);
+      }
     }
 
     `;
@@ -32,6 +41,7 @@ export class Sidebar extends LitElement {
 
     constructor(props: SidebarProps = {}) {
       super();
+
     }
     
 
@@ -39,9 +49,10 @@ export class Sidebar extends LitElement {
     render() {
 
       return html`
-
-      <slot></slot>
-    `
+        <div style="${this.children?.length ? 'padding: 25px' : ''}">
+          <slot></slot>
+        </div>
+      `
     }
   }
   

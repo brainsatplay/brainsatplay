@@ -1,6 +1,10 @@
 
 import { LitElement, html, css } from 'lit';
-import { Tab } from './Tab';
+import { Tab } from './tabs/Tab';
+import { Dashboard } from './Dashboard';
+import './App';
+import './tabs/TabToggle';
+import './tabs/TabBar';
 
 export type MainProps = {
 
@@ -8,7 +12,7 @@ export type MainProps = {
 
 export class Main extends LitElement {
 
-  tabs: Tab[];
+  tabs: Map<string, Tab> = new Map();
 
   static get styles() {
     return css`
@@ -19,69 +23,14 @@ export class Main extends LitElement {
       box-sizing: border-box;
       grid-area: main;
       overflow: scroll;
+      background: inherit;
+      color: inherit;
     }
 
     :host * {
-      font-family: sans-serif;
+      
       box-sizing: border-box;
-      font-color: #424242;
-    }
-
-    #tabs {
-      background: rgb(25,25,25);
-      overflow-y: hidden;
-      overflow-x: scroll;
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-
-    .tab {
-      color: white;
-      border: 0px;
-      border-right: 1px solid rgb(25,25,25);
-      padding: 6px 20px;
-      text-align: center;
-      font-size: 80%;
-      background: rgb(50,50,50);
-      cursor: pointer;
-      min-width: 100px;
-      flex-grow: 1;
-    }
-
-    .tab:hover {
-      background: rgb(60,60,60);
-    }
-
-    .tab:active {
-      background: rgb(75,75,75);
-    }
-
-    .tab.selected {
-      background: rgb(60,60,60);
-    }
-
-    /* Tab Scrollbar */
-    #tabs::-webkit-scrollbar {
-      height: 2px;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-    }
-
-    #tabs::-webkit-scrollbar-track {
-      background: transparent;
-      width: 25px;
-    }
-
-    #tabs::-webkit-scrollbar-thumb {
-      background: transparent;
-      border-radius: 10px;
-    }
-
-    /* Handle on hover */
-    #tabs:hover::-webkit-scrollbar-thumb {
-      background: rgb(80, 236, 233);
+      
     }
     `;
   }
@@ -99,39 +48,38 @@ export class Main extends LitElement {
       super();
     }
 
-    addTab = (tab,i) => {
-      if (i !== 0) tab.style.display = 'none' // Hide tabs other than the first
-      return html`<button class="tab" @click=${(ev) => {
-
-        const tabs = this.shadowRoot.querySelector('#tabs')
-        tabs.querySelectorAll('button').forEach(t => t.classList.remove('selected'))
-        ev.target.classList.add('selected')
-        if (tab.style.display === 'none') {
-          this.tabs.forEach(t => (t != tab) ? t.style.display = 'none' : t.style.display = '') // hide other tabs
-        }
-
-      }}>${tab.label ?? `Tab ${i}`}</button>`
-    }
-
     getTabs = () => {
-      this.tabs = []
+      const tabs = []
+
+      // Apps (only for global Main)
+      if ((this.parentNode as Dashboard)?.global){
+        const apps = document.querySelectorAll('visualscript-app')
+        for(var i=0; i < apps.length; i++){        
+          if (!tabs.includes(apps[i])) tabs.push(apps[i])
+        }
+      }
+
+      // Tabs
       for(var i=0; i<this.children.length; i++){        
         const child = this.children[i]
-        if (child instanceof Tab) this.tabs.push(child)
+        if (child instanceof Tab) tabs.push(child)
       }
-      return this.tabs
+
+      tabs.forEach(tab => this.tabs.set(tab.name, tab))      
+
+      return tabs
     }
     
     render() {
-      this.getTabs()
-      const tabMap = this.tabs.map(this.addTab)
+      const tabs = this.getTabs()
+      const toggles = tabs.map((t,i) => {
+        if (i !== 0) t.style.display = 'none' // Hide tabs other than the first
+        return t.toggle
+      })
+
       return html`
-      ${( this.tabs.length > 0) ? html`<div id="tabs">
-        ${tabMap}
-      </div>` : ''}
-      <section>
-        <slot></slot>
-      </section>
+      <visualscript-tab-bar style="${toggles.length < 1 ? 'display: none;' : ''}">${toggles}</visualscript-tab-bar>
+      <slot></slot>
     `
     }
   }
