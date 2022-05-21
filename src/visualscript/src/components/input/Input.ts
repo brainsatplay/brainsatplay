@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit-element";
 import { classMap } from "lit-html/directives/class-map.js";
+import { getPersistent, setPersistent, PersistableProps } from './persistable';
 
 export interface InputProps {
     value?: string;
@@ -7,36 +8,45 @@ export interface InputProps {
     disabled?: boolean;
     type?: string;
     label?: string;
+    persist?: boolean;
   }
 
-class Input extends LitElement {
+export class Input extends LitElement {
 
     value: InputProps['value']
     outline: InputProps['outline']
     disabled: InputProps['disabled']
     type: InputProps['type']
     label: InputProps['label']
+    persist: InputProps['persist']
 
     // properties getter
     static get properties() {
-        return {
-            type: { type: String },
-            label: { type: String },
-            value: { type: String },
-            disabled: { type: Boolean },
-            outline: { type: Boolean }
-        };
+        return Object.assign(PersistableProps, {
+            disabled: { type: Boolean, reflect: true },
+            outline: { type: Boolean, reflect: true }
+        });
     }
     constructor(props:InputProps = {}) {
         super();
-        // initialize the properties
         this.value = props.value ?? "";
         this.outline = props.outline ?? false;
-        this.disabled = props.outline ?? false;
+        this.disabled = props.disabled ?? false;
+        this.label = props.label;
+        this.persist = props.persist;
+        this.value = getPersistent(props)
     }
-    //
+
+    willUpdate(changedProps:any) {
+      if (changedProps.has('value')) setPersistent(this)
+    }
+
     static get styles() {
         return css`
+
+        :host {
+            width: 100%;
+        }
 *{
 box-sizing: border-box;
 }
@@ -54,7 +64,6 @@ font-size: 1rem;
 left: 0;
 top: 50%;
 transform: translateY(-50%);
-background-color:  #fff;
 color: gray;
 padding: 0 0.3rem;
 margin: 0 0.5rem;
@@ -68,7 +77,6 @@ outline: none;
 border: none;
 border-radius: 0px;
 padding: 1rem 0.6rem;
-color:  #333333;
 transition: 0.1s ease-out;
 border-bottom: 1px solid  #333333;
 background: transparent;
@@ -76,6 +84,9 @@ cursor: text;
 margin-left: auto;
 width: 95%;
 margin-right: auto;
+}
+input::placeholder {
+    color: transparent;
 }
 input:focus{
 border-color:  #b949d5;
@@ -97,9 +108,16 @@ padding-left: 0px;
 input:disabled,  input:disabled ~ .label {
 opacity: 0.5;
 }
+
+@media (prefers-color-scheme: dark) {
+    label {
+      color: rgb(120,120,120);
+    }
+  }
 `;
     }
     render() {
+
         return html`
             <div class="form-group">
                 <input
@@ -107,9 +125,13 @@ opacity: 0.5;
                             outline: this.outline
                         })}
                 type="${this.type}"
-                placeholder=" "
+                placeholder="${this.label}"
                 .value=${this.value}
                 ?disabled="${this.disabled}"
+
+                @change=${(ev) => {
+                    this.value = ev.target.value
+                }}
                 />
                 <label>${this.label}</label>
             </div>

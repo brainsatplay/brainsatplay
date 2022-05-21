@@ -8,6 +8,9 @@ export type InteractiveSpectrogramProps = {
   Plotly?: any
 }
 
+
+const colorscales = ['Hot' , 'Cold' , 'YlGnBu' , 'YlOrRd' , 'RdBu' , 'Portland' , 'Picnic' , 'Jet' , 'Greys' , 'Greens' , 'Electric' , 'Earth' , 'Bluered' , 'Blackbody']
+
 export class InteractiveSpectrogram extends LitElement {
 
     static get styles() {
@@ -37,7 +40,7 @@ export class InteractiveSpectrogram extends LitElement {
       };
     }
 
-    colorscales = ['Hot' , 'Cold' , 'YlGnBu' , 'YlOrRd' , 'RdBu' , 'Portland' , 'Picnic' , 'Jet' , 'Greys' , 'Greens' , 'Electric' , 'Earth' , 'Bluered' , 'Blackbody']
+    static colorscales = colorscales
     colorscale: InteractiveSpectrogramProps['colorscale'] = 'Electric'
     div: HTMLDivElement = document.createElement('div');
     data: any[] = [];
@@ -45,6 +48,7 @@ export class InteractiveSpectrogram extends LitElement {
     windowSize = 300
     binWidth = 256
     Plotly: InteractiveSpectrogramProps['Plotly']
+    colorscales = colorscales
 
     constructor(props: InteractiveSpectrogramProps={}) {
       super();
@@ -84,6 +88,8 @@ export class InteractiveSpectrogram extends LitElement {
 
   willUpdate(changedProps:any) {
     if (changedProps.has('colorscale')) {
+
+      console.log('NewVAl', changedProps, this.colorscale, this.colorscales)
       if (!Array.isArray(this.colorscale) && !this.colorscales.includes(this.colorscale)) this.colorscale = 'Electric'
       this.Plotly.restyle(this.div, 'colorscale', this.colorscale);
     }

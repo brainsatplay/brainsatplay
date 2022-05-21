@@ -27,7 +27,6 @@ export class TabBar extends LitElement {
       overflow-y: hidden;
       overflow-x: scroll;
       display: flex;
-      align-items: center;
       position: sticky;
       width: 100%;
       top: 0;
@@ -44,8 +43,7 @@ export class TabBar extends LitElement {
     }
 
     :host::-webkit-scrollbar-track {
-      background: whitesmoke;
-      width: 25px;
+      background: transparent;
     }
 
     :host::-webkit-scrollbar-thumb {
@@ -53,14 +51,18 @@ export class TabBar extends LitElement {
     }
 
     /* Handle on hover */
-    :host:hover::-webkit-scrollbar-thumb {
-      background: rgb(80, 236, 233);
+    :host(:hover)::-webkit-scrollbar-thumb {
+      background: rgb(118, 222, 255);
     }
 
       @media (prefers-color-scheme: dark) {
 
         :host {
           background: rgb(25,25,25);
+        }
+
+        :host(:hover)::-webkit-scrollbar-thumb {
+          background: rgb(240, 240, 240);
         }
 
       }

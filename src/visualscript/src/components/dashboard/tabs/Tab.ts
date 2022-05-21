@@ -1,17 +1,8 @@
 
 import { LitElement, html, css } from 'lit';
-import { Select } from '../../input/Select';
-import { Button } from '../../general/Button';
 import { Dashboard } from '../Dashboard';
 import { TabToggle } from './TabToggle';
-
-export type ControlProps = {
-  name: string
-  type: 'select' | 'button' | string
-  options?: string[],
-  onChange?: (ev: Event)=> any,
-  onClick?: (ev: Event)=> any
-}
+import { Control, ControlProps } from '../Control';
 
 export type TabProps = {
   name?: string;
@@ -82,9 +73,10 @@ export class Tab extends LitElement {
     constructor(props: TabProps = {}) {
       super();
       if (props.name) this.name = props.name
-      if (props.controls) this.controls = props.controls
+      if (props.controls) this.controls = props.controls // Will also check for controls in the <slot> later
       if (props.on) this.on = props.on
       if (props.off) this.off = props.off
+      if (props.lock) this.lock = props.lock
 
       // Allow dashboards inside apps!
       let dashboards = document.body.querySelectorAll('visualscript-dashboard')
@@ -106,12 +98,22 @@ export class Tab extends LitElement {
       if (changedProps.has('controls')) {
         this.controlPanel = document.createElement('div')
         this.controls.forEach(o => {
-          let element;
-          if (o.type === 'select') element = new Select(o)
-          if (o.type === 'button') element = new Button(o)
-          this.controlPanel.insertAdjacentElement('beforeend',element)
+          this.addControl(new Control(o))
         })
+
       }
+    }
+
+    addControl = (instance: Control) => {
+      this.controlPanel.appendChild(instance)
+    }
+
+    updated = () => {
+      const controls = this.querySelectorAll('visualscript-control')
+      controls.forEach((control: Control) => {
+        if (this.type === 'app')  control.park = true // Park all controls within an app
+        else if (!control.park) this.addControl(control)
+      })
     }
     
     render() {

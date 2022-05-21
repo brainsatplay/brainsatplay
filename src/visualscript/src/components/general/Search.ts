@@ -1,7 +1,7 @@
 
 import { LitElement, html, css } from 'lit';
 import { Modal } from './Modal';
-import './Input'
+import '../input/Input'
 import './Button'
 
 type Item = {

@@ -2,14 +2,15 @@
 import { LitElement, html, css } from 'lit';
 import "../general/Overlay"
 import { Main } from './Main';
-import { Nav, Footer, Sidebar } from '../general';
-import { Tab } from './tabs/Tab';
+import { Sidebar } from '../dashboard';
+import { Nav, Footer } from '../general';
 import { App } from './App';
 
 export type DashboardProps = {
   open?: boolean
   closeHandler?: Function,
   global?: boolean
+  toggle?: HTMLElement | string
 }
 
 export class Dashboard extends LitElement {
@@ -48,7 +49,7 @@ export class Dashboard extends LitElement {
 
     slot {
       display: grid;
-      grid-template-columns: 1fr fit-content(300px);
+      grid-template-columns: 1fr fit-content(100%);
       grid-template-rows: fit-content(75px) 1fr fit-content(75px);
       grid-template-areas: 
               "nav nav"
@@ -73,6 +74,7 @@ export class Dashboard extends LitElement {
     }
 
     #dashboard-toggle {
+      background: white;
       position: absolute; 
       top: 0px;
       right: 22px;
@@ -104,6 +106,7 @@ export class Dashboard extends LitElement {
         border-top: none;
         color: white;
         box-shadow: 0 1px 5px 0 rgb(255 255 255 / 20%);
+        background: black;
       }
     }
     `;
@@ -135,14 +138,14 @@ export class Dashboard extends LitElement {
     nav: Nav
     footer: Footer
     sidebar: Sidebar
-
-    toggle = () => this.open = !this.open
+    toggle: HTMLElement
 
     constructor(props: DashboardProps = {}) {
       super();
 
       this.open = props.open ?? true;
       this.closeHandler = props.closeHandler ?? (() => {});
+      this.toggle = (typeof props.toggle === 'string') ? document.getElementById(props.toggle) : props.toggle
     }
     
 
@@ -174,14 +177,18 @@ export class Dashboard extends LitElement {
       this.nav = this.querySelector('visualscript-nav')
       this.sidebar = this.querySelector('visualscript-sidebar')
 
-      return html`
-      ${this.global ? html`<div id="dashboard-toggle" @click=${() => {
-          this.open = true
-          const selectedApp = this.apps.values().next().value
+      const onclick = () => {
+        this.open = true
+        const selectedApp = this.apps.values().next().value
 
-          // Always open the app first!
-          selectedApp.toggle.shadowRoot.querySelector('button').click()
-      }}>Edit</div>`: ''}
+        // Always open the app first!
+        selectedApp.toggle.shadowRoot.querySelector('button').click()
+    }
+
+    if (this.toggle) this.toggle.onclick = onclick
+
+      return html`
+      ${(this.global && !this.toggle) ? html`<div id="dashboard-toggle" @click=${onclick}>Edit</div>`: ''}
       ${this.global ? html`<visualscript-button id='close' secondary size="small" @click=${() => this.open=false}>Close</visualscript-button>` : ``}
       <slot>
       </slot>

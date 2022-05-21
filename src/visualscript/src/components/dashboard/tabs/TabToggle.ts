@@ -1,6 +1,7 @@
 
 import { LitElement, html, css } from 'lit';
 import { Tab } from './Tab';
+import { Sidebar } from '..';
 
 // TODO: Remove long-winded references to the Global Main
 
@@ -123,14 +124,18 @@ export class TabToggle extends LitElement {
         } else console.warn('No TabBar instance in the global Main')
 
         // Swap Sidebar Content
-        const dashboard = this.parentNode 
+        const dashboard = this.to.dashboard 
+
         if (dashboard){
-          const sidebar = dashboard.querySelector('visualscript-sidebar')
+          const sidebar = dashboard.querySelector('visualscript-sidebar') as Sidebar
+          
           if (sidebar) {
             for (let i = 0; i < sidebar.children.length; i++) {
               sidebar.removeChild(sidebar.children[i])
             }
+
             sidebar.insertAdjacentElement('beforeend', this.to.controlPanel)
+            sidebar.render() // Force to recognize the new element
           }
         }
 

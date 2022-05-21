@@ -1,5 +1,5 @@
 export * from './Select'
 export * from './File'
-
-
-
+export * from './Switch'
+export * from './Range'
+export * from './Input'
