@@ -266,7 +266,8 @@ export class Select extends LitElement {
       if (props.onChange) this.onChange = props.onChange
       if (props.label) this.label = props.label
       if (props.persist) this.persist = props.persist
-      this.value = getPersistent(props)
+      const val =  getPersistent(props)
+      if (val) this.value = val
     }
 
     updateCustomSelectHovered = (newIndex) => {
