@@ -66,8 +66,15 @@ export async function runTinybuild(args) {
         cmdargs = args;
         tinybuildCfg = parseArgs(args);
     } //to pass to the restart scripts
-    else if (typeof args === 'object') tinybuildCfg = args;
+    else if (typeof args === 'object') {
+        tinybuildCfg = args;
+    }
     //check global module path for node_modules folder
+
+    if(tinybuildCfg.server?.watch) {
+        if(typeof tinybuildCfg.server.watch === 'string') cmdargs.push('watch='+tinybuildCfg.server.watch);
+        if(Array.isArray(tinybuildCfg.server.watch)) cmdargs.push('watch='+tinybuildCfg.server.watch.join(','));
+    }
 
     let SERVER_PROCESS;
 

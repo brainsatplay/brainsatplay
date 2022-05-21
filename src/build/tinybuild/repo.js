@@ -62,13 +62,28 @@ export function runOnChange(
     ignore=['dist','temp'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
 ) { 
-    const watcher = chokidar.watch(process.cwd(),{
-        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?$/, // ignore node_modules
-        persistent: true,
-        ignoreInitial:true,
-        interval:100,
-        binaryInterval:200
-    });
+
+    
+    let watchPaths = process.cwd();
+
+    if(args.includes('watch')) { //watch='../../otherlibraryfolder'
+        watchPaths = watch.split('=')[1];
+        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+        else {
+            watchPaths = watchPaths.split(',');
+            watchPaths = [process.cwd(),...watchPaths];
+        }
+    }
+
+    const watcher = chokidar.watch(
+        watchPaths,{
+            ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?$/, // ignore node_modules
+            persistent: true,
+            ignoreInitial:true,
+            interval:100,
+            binaryInterval:200
+        }
+    );
 
     watcher.on('change',(path,stats)=>{
         let skip = false;
@@ -140,7 +155,19 @@ export function runAndWatch(
 ) {    
     process.env.HOTRELOAD = true; //enables the hot reloading port
 
-    const watcher = chokidar.watch(process.cwd(),{
+    let watchPaths = process.cwd();
+
+    if(args.includes('watch')) { //watch='../../otherlibraryfolder'
+        watchPaths = watch.split('=')[1];
+        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+        else {
+            watchPaths = watchPaths.split(',');
+            watchPaths = [process.cwd(),...watchPaths];
+        }
+    }
+
+    const watcher = chokidar.watch(
+        watchPaths,{
         ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?$/, // ignore node_modules
         persistent: true,
         ignoreInitial:true,
@@ -279,6 +306,7 @@ const config = {
         startpage: "index.html", //home page
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port
+        //watch: ['../'], //watch additional directories other than the current working directory
         pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         python: false,//7000,  //quart server port (configured via the python server script file still)
         python_node: 7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
@@ -773,6 +801,9 @@ Server arguments:
                 }
                 if(command.includes('certpath')) {
                     tinybuildCfg.server.certpath = command.split('=').pop() //pwa service worker relative path
+                }
+                if(command.includes('watch')) {
+                    tinybuildCfg.server.watch = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('python')) {
                     tinybuildCfg.server.python = command.split('=').pop() //python port
