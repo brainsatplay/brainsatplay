@@ -25,7 +25,7 @@ export const defaultBundler = {
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
   sourcemap: false,
-  plugins:[streamingImportsPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  plugins:[streamingImportsPlugin,workerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
@@ -48,12 +48,7 @@ export const defaultBundler = {
       external:[] //externals for node environment builds
     },
     //commonjs:{}
-    browser:{
-      plugins:[
-        streamingImportsPlugin,
-        workerPlugin //worker plugin works on esm imported 'worker.js' ending files, or requires in node
-      ] 
-    }
+    //browser:{}
     //esm:{}
     //iife:{}
   },
