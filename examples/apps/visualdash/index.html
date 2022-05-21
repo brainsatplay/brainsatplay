@@ -13,7 +13,7 @@
 <body>
   <visualscript-app id="app" name="Intensity">
     <visualscript-dashboard>
-    <visualscript-sidebar>
+    <visualscript-sidebar closed>
         <div>
           <visualscript-control id="in" type="select" label="Audio Input" persist></visualscript-control>
           <visualscript-control id="out" type="select" label="Audio Output" persist></visualscript-control>
@@ -25,10 +25,8 @@
   
     <visualscript-main style="display: flex; align-items: center; justify-content: center;">
       <div style="display: flex; flex-wrap: wrap; align-items: center; padding: 50px; justify-content: center; max-width: 80vw;">
-        <!-- <visualscript-control id="start" type="button" primary size="small" label="Audio + Video Data">Start Data Acquisition</visualscript-control> -->
-        <visualscript-control id="start" type="button" primary size="small" label="Record your Data" park>Start</visualscript-control>
-        <p><strong>OR</strong></p>
-        <visualscript-control id="files" type="file"  accept="audio/*, video/*" label="Load a File" park></visualscript-control>
+          <visualscript-button id="start" primary size="large">Start Data Acquisition</visualscript-button>
+          <visualscript-audio-volume id="volume" backgroundColor="#49fb35" style="padding: 25px;"></visualscript-audio-volume>
       </div>
     </visualscript-main>
     </visualscript-dashboard>
@@ -42,8 +40,6 @@
   <visualscript-main id="main">
 
     <visualscript-tab id="realtime" name="Stream Analysis">
-      <br>
-      <strong>Note:</strong> Will have streaming data if you start anything
       <section id="data">
         <div id="videos"></div>
         <div id="analyses"></div>
@@ -51,11 +47,12 @@
     </visualscript-tab>
 
     <visualscript-tab id="design" name="Model Design">
-      <br>
-      <strong>Note:</strong> .mp3 files only
-      <visualscript-control type="switch" label="Test Switch" persist></visualscript-control>
-      <visualscript-control type="range" label="Test Range" persist></visualscript-control>
-      <visualscript-control type="input" label="Test Input" persist></visualscript-control>
+      <visualscript-control id="files" type="file"  accept="audio/*, video/*" label="Load a File" park></visualscript-control>
+      <visualscript-control type="switch" label="Combine" value=true persist></visualscript-control>
+      <visualscript-control type="range" label="Threshold" persist></visualscript-control>
+      <visualscript-control id="colorscale" type="select" label="Color Scale" persist></visualscript-control>
+      <visualscript-control type="input" label="Model File Name" persist></visualscript-control>
+      <visualscript-control type="button" label="Download Model" persist>Download</visualscript-control>
     </visualscript-tab>
 
   </visualscript-main>

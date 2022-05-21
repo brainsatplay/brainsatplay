@@ -34,7 +34,9 @@ export class Input extends LitElement {
         this.disabled = props.disabled ?? false;
         this.label = props.label;
         this.persist = props.persist;
-        this.value = getPersistent(props)
+
+        const val =  getPersistent(props)
+        if (val) this.value = val
     }
 
     willUpdate(changedProps:any) {
@@ -126,7 +128,7 @@ opacity: 0.5;
                         })}
                 type="${this.type}"
                 placeholder="${this.label}"
-                .value=${this.value}
+                .value=${(this.value != 'null' && this.value != 'undefined') ? this.value : ''}
                 ?disabled="${this.disabled}"
 
                 @change=${(ev) => {

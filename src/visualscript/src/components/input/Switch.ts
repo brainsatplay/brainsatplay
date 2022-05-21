@@ -100,7 +100,8 @@ export class Switch extends LitElement {
       if (props.persist) this.persist = props.persist
 
       // Inside Control
-      this.value = getPersistent(props)
+      const val =  getPersistent(props)
+      if (val) this.value = val
     }
 
     willUpdate(changedProps:any) {

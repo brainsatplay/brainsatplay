@@ -31,6 +31,7 @@ export class App extends Tab {
           if (props.on instanceof Function) props.on(ev)
         },
         off: (ev) => {
+          this.style.display = ''
           this.parent.appendChild(this) // Replace App element
           if (props.off instanceof Function) props.off(ev)
         }

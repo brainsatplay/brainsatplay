@@ -89,7 +89,6 @@ export class InteractiveSpectrogram extends LitElement {
   willUpdate(changedProps:any) {
     if (changedProps.has('colorscale')) {
 
-      console.log('NewVAl', changedProps, this.colorscale, this.colorscales)
       if (!Array.isArray(this.colorscale) && !this.colorscales.includes(this.colorscale)) this.colorscale = 'Electric'
       this.Plotly.restyle(this.div, 'colorscale', this.colorscale);
     }

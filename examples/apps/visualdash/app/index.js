@@ -16,16 +16,22 @@ import AudioManager from './AudioManager'
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
   const designTab = document.getElementById('design')
+  var main = document.getElementById('volume');
 
 
-  // Set Controls Early
-  designTab.controls = [
-    {
-      label: 'Color Scale', 
-      type: 'select', 
-      options: visualscript.streams.data.InteractiveSpectrogram.colorscales, 
-    }
-  ]
+  // Model Design Tab Initialization
+  const colorscaleControl = document.getElementById('colorscale')
+  colorscaleControl.options = visualscript.streams.data.InteractiveSpectrogram.colorscales
+  const interactive = new visualscript.streams.data.InteractiveSpectrogram({
+    Plotly
+  })
+  designTab.insertAdjacentElement('beforeend', interactive)
+  colorscale.value = interactive.colorscale
+  colorscale.onChange = (ev) => {
+    interactive.colorscale = ev.target.value
+  }
+
+
 
   var overlay = document.querySelector('visualscript-overlay')
   var overlayDiv = document.createElement('div')
@@ -51,7 +57,20 @@ import AudioManager from './AudioManager'
     minDecibels: -127,
     maxDecibels: 0,
     minFreq,
-    maxFreq
+    maxFreq,
+    onData: (o, i) => {
+
+      // Update Volume Readout ( first analysis only)
+      if (i === 0){
+        let volumeSum = 0;
+        for (const volume of o.frequencies)
+          volumeSum += volume;
+        const averageVolume = volumeSum / o.frequencies.length;
+        volume.volume = (averageVolume / (audioManager.info.maxDecibels - audioManager.info.minDecibels))
+      }
+    }
+
+
   }
 
   const audioManager = new AudioManager(audioInfo)
@@ -155,11 +174,10 @@ import AudioManager from './AudioManager'
     audioManager.initializeContext()
     audioManager.listen(false)
 
+
     navigator.mediaDevices.getUserMedia({
-      audio: {
-        deviceId: { exact: audioInputSelect.value }
-      }, 
-      video: { exact: videoSelect.value }
+      audio: { deviceId: { exact: audioInputSelect.element.value } }, 
+      video: { deviceId: { exact: videoSelect.element.value } }
     }).then((stream) => {
       const video = document.createElement('video')
       const microphone = audioManager.context.createMediaStreamSource(stream);
@@ -186,23 +204,8 @@ import AudioManager from './AudioManager'
         overlayDiv.innerHTML = 'Audio decoded! Analysing audio data...'
           // Preanalyze Audio
           audioManager.fft(data, null, (fft) => {
-
-              const interactive = new visualscript.streams.data.InteractiveSpectrogram({
-                data: fft.slice(0,5000),
-                Plotly
-              })
-
-              const thisControl = designTab.controls[0]
-              thisControl.value = interactive.colorscale
-              thisControl.onChange = (ev) => {
-                interactive.colorscale = ev.target.value
-              }
-
-              designTab.controls = [
-                thisControl,
-              ]
-
-              designTab.insertAdjacentElement('beforeend', interactive)
+            
+              interactive.data = fft.slice(0,5000),
             
               overlayDiv.innerHTML = 'Analysis complete!'
               overlay.open = false
