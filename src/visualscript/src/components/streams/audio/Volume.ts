@@ -11,6 +11,10 @@ export class Volume extends LitElement {
     static get styles() {
       return css`
 
+      :host {
+        width: 100%;
+      }
+
       #wrapper{
         width: 100%;
       }

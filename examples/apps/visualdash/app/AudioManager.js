@@ -1,3 +1,4 @@
+
 export default class AudioManager {
 
     get in () {
@@ -14,6 +15,7 @@ export default class AudioManager {
 
         this.analyses = {}
         this.integrations = {}
+        
     }
 
     analyse = () => {
@@ -144,7 +146,7 @@ export default class AudioManager {
             splitter.connect(analyser, i) // Connect Analyser to Channel i
             analyser.connect(gainNode);
             gainNode.connect(merger, 0, i) // Merge split inputs
-            this.addAnalysis(analyser, 'fft', o.spectrogram) // Start analysis
+            this.addAnalysis(analyser, 'fft', o.spectrogram, this.info.onData) // Start analysis
           }
   
           const difference = (arr1, arr2) => {
@@ -199,7 +201,9 @@ export default class AudioManager {
         if (src.start instanceof Function) src.start()
     }
 
-    addAnalysis = (analyser, type, outputObj) => {
+    addAnalysis = (analyser, type, outputObj, ondata=()=>{}) => {
+
+        const analysisIndex = Object.keys(this.analyses).length
         // Analyze the Data
         // let volumeCallback = null;
         // let volumeInterval = null;
@@ -217,10 +221,10 @@ export default class AudioManager {
 
                     outputObj.updateData(freqArr)
                     // outputObj.data = freqArr
+                    const data = {frequencies: freqArr}
+                    ondata(data, analysisIndex)
 
-                    return {
-                      frequencies: freqArr
-                    }
+                    return data
                   };
                 break;
 
@@ -231,17 +235,14 @@ export default class AudioManager {
                   const arr = Array.from(raw)
                   outputObj.updateData([arr])
                   // outputObj.data = [arr]
-
-
-                  return {
-                    timeseries: arr, 
-                  }
+                  const data = {timeseries: arr}
+                  ondata(data, analysisIndex)
+                  return data
                 };
                 break;
-                
         }
   
-        this.analyses[Object.keys(this.analyses).length] = {
+        this.analyses[analysisIndex] = {
           function: getData,
           output: null
         }

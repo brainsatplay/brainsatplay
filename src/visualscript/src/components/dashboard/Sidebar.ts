@@ -2,10 +2,15 @@
 import { LitElement, html, css } from 'lit';
 
 export type SidebarProps = {
-
+  closed?: boolean
 }
 
+
+const collapseThreshold = 600
+
 export class Sidebar extends LitElement {
+
+  closed: SidebarProps['closed']
 
   static get styles() {
     return css`
@@ -13,7 +18,7 @@ export class Sidebar extends LitElement {
     
     :host {
 
-      --collapse-width: 600px;
+      --collapse-width: ${collapseThreshold}px;
       --dark-color: rgb(25, 25, 25);
       --light-color: rgb(240, 240, 240);
 
@@ -105,7 +110,7 @@ export class Sidebar extends LitElement {
     }
 
     /* FLIP SIDEBAR SELECTED MEANING */
-    @media only screen and (max-width: 600px) {
+    @media only screen and (max-width: ${collapseThreshold}px) {
 
       :host > #main {
           width: 0px;
@@ -152,17 +157,26 @@ export class Sidebar extends LitElement {
     
     static get properties() {
       return {
-       
+        closed: {
+          type: Boolean,
+          reflect: true
+        }
       };
     }
 
     constructor(props: SidebarProps = {}) {
       super()
+
+      this.closed = props.closed
     }
 
   
     // NOTE: this.children.length is not updating when children are added (e.g. when switching to the default Dashbaord Tab)
     render() {
+
+      if (this.closed) {
+        if (window.innerWidth > collapseThreshold) this.classList.add('selected')
+      }
       return html`
         ${this.children?.length ? html`<button id=toggle @click=${() => {
           this.classList.toggle('selected')
