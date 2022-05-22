@@ -25,6 +25,8 @@ export const getPersistent = (props) => {
   if (props.value) return props.value
   else if (props.persist && props.label){
       const val = localStorage.getItem(props.label)
-    return val
+    if (val === 'null') return null
+    else if (val === 'undefined') return undefined
+    else return val
   }
 }

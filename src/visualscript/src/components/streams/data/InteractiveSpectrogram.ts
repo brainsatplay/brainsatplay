@@ -1,4 +1,5 @@
 import {LitElement, css, } from 'lit';
+import ResizeObserver from 'resize-observer-polyfill';
 
 export type InteractiveSpectrogramProps = {
   max?: number;
@@ -18,6 +19,11 @@ export class InteractiveSpectrogram extends LitElement {
 
       `;
     }
+
+    createRenderRoot() {
+      return this;
+    }
+    
     
     static get properties() {
       return {
@@ -45,6 +51,7 @@ export class InteractiveSpectrogram extends LitElement {
     div: HTMLDivElement = document.createElement('div');
     data: any[] = [];
     plotData: any[] = []
+    config: {[x:string]: any} = {}
     windowSize = 300
     binWidth = 256
     Plotly: InteractiveSpectrogramProps['Plotly']
@@ -53,8 +60,6 @@ export class InteractiveSpectrogram extends LitElement {
     constructor(props: InteractiveSpectrogramProps={}) {
       super();
 
-      // this.div.style.width = '500px'
-      // this.div.style.height = '300px'
       this.data = props.data ?? [[]]
       if (props.colorscale) this.colorscale = props.colorscale
 
@@ -68,17 +73,29 @@ export class InteractiveSpectrogram extends LitElement {
                 }
               ];
 
-      var config = {
-        responsive: true
+      this.config = {
+        responsive: true,
+        autosize: true // set autosize to rescale
       }
 
 
       if (props.Plotly){
         this.Plotly = props.Plotly
-        this.Plotly.newPlot(this.div, this.plotData, config);
+        this.Plotly.newPlot(this.div, this.plotData, this.config);
       } else console.warn('<interactive-spectrogram>: Plotly instance not provided...')
 
-    }
+      // window.addEventListener('resize', this.resize)
+
+      let observer = new ResizeObserver(() => this.resize());
+      observer.observe(this.div);
+  }
+
+  resize = () => {
+    this.Plotly.relayout(this.div, {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true
+    })
+  }
 
     transpose(a) {
       return Object.keys(a[0]).map(function(c) {
@@ -87,10 +104,15 @@ export class InteractiveSpectrogram extends LitElement {
   }
 
   willUpdate(changedProps:any) {
-    if (changedProps.has('colorscale')) {
 
+    if (changedProps.has('colorscale')) {
       if (!Array.isArray(this.colorscale) && !this.colorscales.includes(this.colorscale)) this.colorscale = 'Electric'
       this.Plotly.restyle(this.div, 'colorscale', this.colorscale);
+    }
+    
+    if (changedProps.has('data')) {
+      this.plotData[0].z = this.transpose(this.data)
+      this.Plotly.newPlot(this.div, this.plotData, this.config);
     }
   }
 

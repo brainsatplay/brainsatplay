@@ -19,8 +19,6 @@
           <visualscript-control id="out" type="select" label="Audio Output" persist></visualscript-control>
           <visualscript-control id="video" type="select" label="Video Input" persist></visualscript-control>
         </div>
-        <!-- <fieldset> -->
-      <!-- </fieldset> -->
     </visualscript-sidebar>
   
     <visualscript-main style="display: flex; align-items: center; justify-content: center;">
@@ -32,12 +30,12 @@
     </visualscript-dashboard>
   </visualscript-app>
 
-  <visualscript-overlay></visualscript-overlay>
 
   <visualscript-dashboard>
     <visualscript-nav>Visualscript</visualscript-nav>
   <visualscript-sidebar></visualscript-sidebar>
   <visualscript-main id="main">
+    <visualscript-overlay></visualscript-overlay>
 
     <visualscript-tab id="realtime" name="Stream Analysis">
       <section id="data">
@@ -47,9 +45,10 @@
     </visualscript-tab>
 
     <visualscript-tab id="design" name="Model Design">
-      <visualscript-control id="files" type="file"  accept="audio/*, video/*" label="Load a File" park></visualscript-control>
-      <visualscript-control type="switch" label="Combine" value=true persist></visualscript-control>
-      <visualscript-control type="range" label="Threshold" persist></visualscript-control>
+      <visualscript-control id="files" type="file"  accept="audio/*, video/*" label="Load a File"></visualscript-control>
+      <visualscript-control id="dataSelect" type="select" label="Data" persist></visualscript-control>
+      <visualscript-control id=threshold type="range" label="Threshold" persist></visualscript-control>
+      <visualscript-control id="transformation" type="select" label="Transformation" persist></visualscript-control>
       <visualscript-control id="colorscale" type="select" label="Color Scale" persist></visualscript-control>
       <visualscript-control type="input" label="Model File Name" persist></visualscript-control>
       <visualscript-control type="button" label="Download Model" persist>Download</visualscript-control>

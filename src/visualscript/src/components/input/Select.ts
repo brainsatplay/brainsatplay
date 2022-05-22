@@ -225,7 +225,6 @@ export class Select extends LitElement {
 
     add = (option:Option) => {
       this.options = [...this.options, option]
-      this.render()
     }
 
     openSelectCustom = () => {

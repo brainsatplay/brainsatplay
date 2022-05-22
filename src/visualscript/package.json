@@ -31,6 +31,7 @@
     "file-saver": "^2.0.5",
     "jszip": "^3.9.1",
     "lit": "^2.1.2",
+    "resize-observer-polyfill": "^1.5.1",
     "webgl-plot": "^0.7.0"
   },
   "devDependencies": {

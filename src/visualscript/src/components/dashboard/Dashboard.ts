@@ -19,15 +19,27 @@ export class Dashboard extends LitElement {
     return css`
     
     :host {
+      position: relative;
       width: 100%;
       height: 100%;
     }
 
+    
 
-    :host([global]) slot {
+    :host([global]) {
       position: absolute;
       top: 0;
-      left; 0;
+      left: 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    :host([open]) {
+      pointer-events: all;
+    }
+
+
+    :host([global]) slot {
       opacity: 0;
       pointer-events: none;
     }
@@ -42,7 +54,7 @@ export class Dashboard extends LitElement {
       
     }
 
-    :host, slot {
+    slot {
       background: white;
       color: black;
     }
@@ -76,6 +88,7 @@ export class Dashboard extends LitElement {
     #dashboard-toggle {
       background: white;
       position: absolute; 
+      pointer-events: all;
       top: 0px;
       right: 22px;
       z-index: 1000;
@@ -96,7 +109,7 @@ export class Dashboard extends LitElement {
     }
 
     @media (prefers-color-scheme: dark) {
-      :host, slot {
+      slot {
         color: white;
         background: black;
       }
@@ -177,7 +190,7 @@ export class Dashboard extends LitElement {
       this.nav = this.querySelector('visualscript-nav')
       this.sidebar = this.querySelector('visualscript-sidebar')
 
-      const onclick = () => {
+      const onClick = () => {
         this.open = true
         const selectedApp = this.apps.values().next().value
 
@@ -185,10 +198,10 @@ export class Dashboard extends LitElement {
         selectedApp.toggle.shadowRoot.querySelector('button').click()
     }
 
-    if (this.toggle) this.toggle.onclick = onclick
+    if (this.toggle) this.toggle.onclick = onClick
 
       return html`
-      ${(this.global && !this.toggle) ? html`<div id="dashboard-toggle" @click=${onclick}>Edit</div>`: ''}
+      ${(this.global && !this.toggle) ? html`<div id="dashboard-toggle" @click=${onClick}>Edit</div>`: ''}
       ${this.global ? html`<visualscript-button id='close' secondary size="small" @click=${() => this.open=false}>Close</visualscript-button>` : ``}
       <slot>
       </slot>

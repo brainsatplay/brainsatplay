@@ -1,8 +1,10 @@
 
 import { LitElement, html, css } from 'lit';
+import { Control } from './Control';
 
 export type SidebarProps = {
-  closed?: boolean
+  closed?: boolean,
+  content?: HTMLElement | ''
 }
 
 
@@ -11,6 +13,10 @@ const collapseThreshold = 600
 export class Sidebar extends LitElement {
 
   closed: SidebarProps['closed']
+  content: SidebarProps['content'] = ''
+  
+  interacted: boolean = false
+
 
   static get styles() {
     return css`
@@ -63,12 +69,12 @@ export class Sidebar extends LitElement {
       box-sizing: border-box;
     }
 
-    :host(.selected) > #main {
+    :host(.closed) > #main {
         width: 0px;
         overflow: hidden;
     }
 
-    :host(.selected) > #toggle {
+    :host(.closed) > #toggle {
       width: var(--final-toggle-width);
     }
 
@@ -76,11 +82,13 @@ export class Sidebar extends LitElement {
       background: var(--blue-spiral)
     }
 
+    .hidden {
+      display: none;
+    }
 
     #toggle {
       height: 100%;
       width: 10px;
-      display: block;
       background: rgb(25, 25, 25);
       cursor: pointer;
       background: var(--light-spiral);
@@ -97,6 +105,17 @@ export class Sidebar extends LitElement {
       height: 100%;
     }
 
+    @media only screen and (max-width: ${collapseThreshold}px) {
+      :host(.default) > #main {
+          width: 0px;
+          overflow: hidden;
+      }
+
+      :host(.default) > #toggle {
+        width: var(--final-toggle-width);
+      }
+    }
+
 
     #header {
       width: 100%;
@@ -107,31 +126,6 @@ export class Sidebar extends LitElement {
       position: sticky;
       left:0;
       top: 0;
-    }
-
-    /* FLIP SIDEBAR SELECTED MEANING */
-    @media only screen and (max-width: ${collapseThreshold}px) {
-
-      :host > #main {
-          width: 0px;
-          overflow: hidden;
-      }
-
-      :host(.selected) > #main {
-        width: auto;
-        overflow: auto;
-      }
-
-
-      :host(.selected) > #toggle {
-        width: 10px;
-      }
-      
-
-      :host > #toggle {
-        width: var(--final-toggle-width);
-      }
-
     }
 
     @media (prefers-color-scheme: dark) {
@@ -160,7 +154,11 @@ export class Sidebar extends LitElement {
         closed: {
           type: Boolean,
           reflect: true
-        }
+        },
+        content: {
+          type: Object,
+          reflect: true
+        },
       };
     }
 
@@ -168,23 +166,25 @@ export class Sidebar extends LitElement {
       super()
 
       this.closed = props.closed
+      this.classList.add('default')
     }
-
   
-    // NOTE: this.children.length is not updating when children are added (e.g. when switching to the default Dashbaord Tab)
     render() {
+      
+      const renderToggle = this.content || this.children?.length // Note: May also need to check the slot generally...
 
-      if (this.closed) {
-        if (window.innerWidth > collapseThreshold) this.classList.add('selected')
-      }
+      if (this.closed) this.classList.add('closed')
+
       return html`
-        ${this.children?.length ? html`<button id=toggle @click=${() => {
-          this.classList.toggle('selected')
-    }}></button>` : ''}
+        <button id=toggle class="${!!renderToggle ? '' : 'hidden'}" @click=${() => {
+              this.classList.remove('default') // Closed only added after user interaction
+              this.classList.toggle('closed') // Closed only added after user interaction
+        }}></button>
         <div id=main>
-        ${this.children?.length ? html`<h4 id=header>Controls</h4>` : ''}
+        ${!!renderToggle ? html`<h4 id=header>Controls</h4>` : ''}
           <div id=controls>
-            <slot></slot>
+          ${this.content}
+          <slot></slot>
           </div>
         </div>
       `

@@ -2,7 +2,10 @@
 //alert('Hello World!');
 
 import * as visualscript from '../../../../src/visualscript/src/index'
-import AudioManager from './AudioManager'
+
+
+import './controls'
+import * as controls from './controls'
 
   // Bypass the usual requirement for user action
   const app = document.getElementById('app')
@@ -15,65 +18,9 @@ import AudioManager from './AudioManager'
   var main = document.getElementById('main');
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
-  const designTab = document.getElementById('design')
   var main = document.getElementById('volume');
 
 
-  // Model Design Tab Initialization
-  const colorscaleControl = document.getElementById('colorscale')
-  colorscaleControl.options = visualscript.streams.data.InteractiveSpectrogram.colorscales
-  const interactive = new visualscript.streams.data.InteractiveSpectrogram({
-    Plotly
-  })
-  designTab.insertAdjacentElement('beforeend', interactive)
-  colorscale.value = interactive.colorscale
-  colorscale.onChange = (ev) => {
-    interactive.colorscale = ev.target.value
-  }
-
-
-
-  var overlay = document.querySelector('visualscript-overlay')
-  var overlayDiv = document.createElement('div')
-  overlay.insertAdjacentElement('beforeend', overlayDiv)
-  overlayDiv.style =  `
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items:center;
-    justify-content: center;
-    font-size:170%;
-    font-weight: bold;
-    font-family: sans-serif;
-  `
-
-  let frequencyBinCount = Math.pow(2,11);
-  let minFreq = 7000
-  let maxFreq = 0
-
-  const audioInfo = {
-    smoothingTimeConstant: 0.2,
-    fftSize: frequencyBinCount,
-    minDecibels: -127,
-    maxDecibels: 0,
-    minFreq,
-    maxFreq,
-    onData: (o, i) => {
-
-      // Update Volume Readout ( first analysis only)
-      if (i === 0){
-        let volumeSum = 0;
-        for (const volume of o.frequencies)
-          volumeSum += volume;
-        const averageVolume = volumeSum / o.frequencies.length;
-        volume.volume = (averageVolume / (audioManager.info.maxDecibels - audioManager.info.minDecibels))
-      }
-    }
-
-
-  }
-
-  const audioManager = new AudioManager(audioInfo)
 
   navigator.mediaDevices.enumerateDevices()
     .then(gotDevices)
@@ -142,7 +89,8 @@ import AudioManager from './AudioManager'
   let count = 0
 
   fileInput.onChange = async (ev) => {
-    audioManager.initializeContext()
+
+    controls.audio.initializeContext()
     count = 0 // Reset count with new file...
 
     for (let file of ev.target.files) {
@@ -152,13 +100,16 @@ import AudioManager from './AudioManager'
       if (type === 'video'){
           video = document.createElement('video')
           video.src = URL.createObjectURL(file)
-          source = audioManager.context.createMediaElementSource(video);
+          source = controls.audio.context.createMediaElementSource(video);
+          onAudio(file).then(res => {
+            console.log('Audio done')
+          })
       } else {
         source = await onAudio(file);
       }
 
       if (video) videos.insertAdjacentElement('beforeend', video)
-      audioManager.addSource(source, () => {
+      controls.audio.addSource(source, () => {
         const o = spawnStreamDisplay(count, {video})
         count++
         return o
@@ -171,8 +122,8 @@ import AudioManager from './AudioManager'
 
   start.onClick = () => {
 
-    audioManager.initializeContext()
-    audioManager.listen(false)
+    controls.audio.initializeContext()
+    controls.audio.listen(false)
 
 
     navigator.mediaDevices.getUserMedia({
@@ -180,9 +131,9 @@ import AudioManager from './AudioManager'
       video: { deviceId: { exact: videoSelect.element.value } }
     }).then((stream) => {
       const video = document.createElement('video')
-      const microphone = audioManager.context.createMediaStreamSource(stream);
+      const microphone = controls.audio.context.createMediaStreamSource(stream);
       videos.insertAdjacentElement('beforeend', video)
-      audioManager.addSource(microphone, () => {
+      controls.audio.addSource(microphone, () => {
         const o = spawnStreamDisplay(count, {video, stream})
         count++
         return o
@@ -191,28 +142,31 @@ import AudioManager from './AudioManager'
   }
 
   const onAudio =(file) => {
+
+    const type = file.type.split('/')[0]
   return new Promise((resolve, reject) => {
     let reader = new FileReader();
 
     reader.onload = (ev) => {
 
 
-      overlayDiv.innerHTML = 'Decoding audio data from file...'
-      overlay.open = true
-      audioManager.context.decodeAudioData(ev.target.result, (data) => {
+      controls.overlayDiv.innerHTML = `Decoding audio data from ${type} file...`
+      controls.overlay.open = true
+      controls.audio.context.decodeAudioData(ev.target.result, (data) => {
 
-        overlayDiv.innerHTML = 'Audio decoded! Analysing audio data...'
+        controls.overlayDiv.innerHTML = 'Audio decoded! Analysing audio data...'
           // Preanalyze Audio
-          audioManager.fft(data, null, (fft) => {
+          controls.audio.fft(data, null, async (o) => {
             
-              interactive.data = fft.slice(0,5000),
+              await controls.plotData(o)
             
-              overlayDiv.innerHTML = 'Analysis complete!'
-              overlay.open = false
-              // Play Audio
-              const source = audioManager.context.createBufferSource();
-              source.buffer = data;
-              resolve(source);
+              controls.overlay.open = false
+              
+              // if (type === 'audio'){
+                const source = controls.audio.context.createBufferSource(); // Get audio to play in the AudioContext
+                source.buffer = data;
+                resolve(source);
+              // } else resolve()
           })
       })
     };
