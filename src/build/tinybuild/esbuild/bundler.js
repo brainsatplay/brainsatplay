@@ -9,6 +9,7 @@ import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
 
 import fs from 'fs'
+import path from 'path'
 
 export const defaultBundler = {
   bundleBrowser:true, //create plain js build? Can include globals and init scripts
@@ -237,7 +238,7 @@ export async function bundleBrowser(config) {
       }
 
       if(propname) {    
-        const tempName = cwd + '/' + tempDir + '/temp_'+f
+        const tempName = cwd + '/' + tempDir + '/temp_'+f.split('/').pop();
         fs.writeFileSync( //lets make temp files to bundle our bundles (a wrapper) into globalThis properties (still import-friendly in esm!)
           tempName,
           bundleWrapper

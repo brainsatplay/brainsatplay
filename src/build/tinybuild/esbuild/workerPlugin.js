@@ -14,13 +14,11 @@ export const workerPlugin = {
                 // `)
                 // bundleWrapper = `
                 //     import * as bundle from '../${args.path}'
-
                 //     Object.assign(globalThis,bundle);
                 // `
-                
                 // fs.writeFileSync(path.join('.temp','workerwrapper.js'),bundleWrapper)
 
-                return { path: path.join(process.cwd(),args.path)};
+                return { path: path.join(args.resolveDir,args.path)};
             }
         });
 
