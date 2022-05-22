@@ -35,7 +35,7 @@ export const workerPlugin = {
                 await build({
                     entryPoints: [args.path],//[path.join(process.cwd(),'.temp','workerwrapper.js')],
                     outfile,
-                    minify: false,
+                    minify: true,
                     bundle: true,
                 });
 
