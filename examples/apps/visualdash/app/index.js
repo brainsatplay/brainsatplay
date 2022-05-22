@@ -3,32 +3,9 @@
 
 import * as visualscript from '../../../../src/visualscript/src/index'
 
-// export const spectrogram = new visualscript.streams.data.InteractiveSpectrogram({
-//   Plotly
-// })
-
-// const plotData = [
-//   {
-//     x: [1,2],
-//     z: [],
-//     showscale: true,
-//     colorscale: 'Electric',
-//     type: 'heatmap'
-//   }
-// ];
-
-// const config = {
-// responsive: true
-// }
-
-
-// Plotly.newPlot(document.body, plotData, config);
-
-// document.body.insertAdjacentElement('beforeend', spectrogram)
 
 import './controls'
 import * as controls from './controls'
-import transformations from "./transformations"
 
   // Bypass the usual requirement for user action
   const app = document.getElementById('app')

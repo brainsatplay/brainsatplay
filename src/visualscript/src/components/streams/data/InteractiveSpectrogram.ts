@@ -59,8 +59,6 @@ export class InteractiveSpectrogram extends LitElement {
     constructor(props: InteractiveSpectrogramProps={}) {
       super();
 
-      // this.div.style.width = '500px'
-      // this.div.style.height = '300px'
       this.data = props.data ?? [[]]
       if (props.colorscale) this.colorscale = props.colorscale
 
@@ -76,7 +74,7 @@ export class InteractiveSpectrogram extends LitElement {
 
       this.config = {
         responsive: true,
-        autosize: true
+        autosize: true // set autosize to rescale
       }
 
 
@@ -85,10 +83,15 @@ export class InteractiveSpectrogram extends LitElement {
         this.Plotly.newPlot(this.div, this.plotData, this.config);
       } else console.warn('<interactive-spectrogram>: Plotly instance not provided...')
 
-      window.addEventListener('resize', () => {
-        // this.Plotly.Plots.resize()
-      })
-    }
+      window.addEventListener('resize', this.resize)
+  }
+
+  resize = () => {
+    this.Plotly.relayout(this.div, {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true
+    })
+  }
 
     transpose(a) {
       return Object.keys(a[0]).map(function(c) {
@@ -107,6 +110,10 @@ export class InteractiveSpectrogram extends LitElement {
       this.plotData[0].z = this.transpose(this.data)
       this.Plotly.newPlot(this.div, this.plotData, this.config);
     }
+  }
+
+  updated = () => {
+    this.resize()
   }
 
   //   updateData = (newData) => {
