@@ -8,6 +8,8 @@ export type RangeProps = {
   label?: string;
   persist?: boolean;
   value?: number
+  min?: number
+  max?: number
   onChange?: (ev: Event)=> any
   onInput?: (ev: Event)=> any
 }
@@ -16,7 +18,10 @@ export class Range extends LitElement {
 
   label: RangeProps['label'];
   persist: RangeProps['persist'] = false
-  value: RangeProps['value']
+  value: RangeProps['value'] = 0
+  min: RangeProps['min'] = 0
+  max: RangeProps['max'] = 100
+
   onChange: RangeProps['onChange'] = () => {}
   onInput: RangeProps['onInput'] = () => {}
 
@@ -95,7 +100,16 @@ export class Range extends LitElement {
   }
     
     static get properties() {
-      return PersistableProps;
+      return Object.assign(PersistableProps, {
+        min: {
+          type: Number,
+          reflect: true
+        }, 
+        max: {
+          type: Number,
+          reflect: true
+        }
+      });
     }
 
     constructor(props: RangeProps = {}) {
@@ -103,7 +117,10 @@ export class Range extends LitElement {
       if (props.onChange) this.onChange = props.onChange
       if (props.label) this.label = props.label
       if (props.persist) this.persist = props.persist
-      const val =  getPersistent(props)
+      if (props.min) this.min = props.min
+      if (props.max) this.max = props.max
+
+      const val = getPersistent(props)
       if (val) this.value = val
     }
 
@@ -115,7 +132,7 @@ export class Range extends LitElement {
 
       return html`
       <div class="wrapper">
-        <input type="range" min="0" max="100" id="${this.label}" @change=${(ev) => {
+        <input type="range" min="${this.min}" max="${this.max}" id="${this.label}" @change=${(ev) => {
           this.value = ev.target.value
           this.onChange(ev)
         }} @input=${(ev) => {

@@ -18,6 +18,11 @@ export class InteractiveSpectrogram extends LitElement {
 
       `;
     }
+
+    createRenderRoot() {
+      return this;
+    }
+    
     
     static get properties() {
       return {
@@ -45,6 +50,7 @@ export class InteractiveSpectrogram extends LitElement {
     div: HTMLDivElement = document.createElement('div');
     data: any[] = [];
     plotData: any[] = []
+    config: {[x:string]: any} = {}
     windowSize = 300
     binWidth = 256
     Plotly: InteractiveSpectrogramProps['Plotly']
@@ -68,16 +74,20 @@ export class InteractiveSpectrogram extends LitElement {
                 }
               ];
 
-      var config = {
-        responsive: true
+      this.config = {
+        responsive: true,
+        autosize: true
       }
 
 
       if (props.Plotly){
         this.Plotly = props.Plotly
-        this.Plotly.newPlot(this.div, this.plotData, config);
+        this.Plotly.newPlot(this.div, this.plotData, this.config);
       } else console.warn('<interactive-spectrogram>: Plotly instance not provided...')
 
+      window.addEventListener('resize', () => {
+        // this.Plotly.Plots.resize()
+      })
     }
 
     transpose(a) {
@@ -87,10 +97,15 @@ export class InteractiveSpectrogram extends LitElement {
   }
 
   willUpdate(changedProps:any) {
-    if (changedProps.has('colorscale')) {
 
+    if (changedProps.has('colorscale')) {
       if (!Array.isArray(this.colorscale) && !this.colorscales.includes(this.colorscale)) this.colorscale = 'Electric'
       this.Plotly.restyle(this.div, 'colorscale', this.colorscale);
+    }
+    
+    if (changedProps.has('data')) {
+      this.plotData[0].z = this.transpose(this.data)
+      this.Plotly.newPlot(this.div, this.plotData, this.config);
     }
   }
 

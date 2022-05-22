@@ -96,7 +96,6 @@ export class TabToggle extends LitElement {
     constructor(tab: Tab) {
       super();
         this.to = tab
-        this.render()
     }
     
     render() {
@@ -111,8 +110,10 @@ export class TabToggle extends LitElement {
 
         if (tabs){
           this.to.toggle.shadowRoot.querySelector('button').classList.add('selected')
-          if (this.to.style.display === 'none') {
+
+          // if (this.to.style.display === 'none') {
             this.to.dashboard.main.tabs.forEach(t => {
+
               if (t != this.to) { 
                 t.toggle.shadowRoot.querySelector('button').classList.remove('selected')
                 t.style.display = 'none' 
@@ -120,7 +121,7 @@ export class TabToggle extends LitElement {
               } else { t.style.display = ''} // hide other tabs
 
             })
-          }
+          // }
         } else console.warn('No TabBar instance in the global Main')
 
         // Swap Sidebar Content
@@ -130,12 +131,7 @@ export class TabToggle extends LitElement {
           const sidebar = dashboard.querySelector('visualscript-sidebar') as Sidebar
           
           if (sidebar) {
-            for (let i = 0; i < sidebar.children.length; i++) {
-              sidebar.removeChild(sidebar.children[i])
-            }
-
-            sidebar.insertAdjacentElement('beforeend', this.to.controlPanel)
-            sidebar.render() // Force to recognize the new element
+            sidebar.content = (this.to.controlPanel.children.length) ? this.to.controlPanel : ''
           }
         }
 
