@@ -1,4 +1,5 @@
 import {LitElement, css, } from 'lit';
+import ResizeObserver from 'resize-observer-polyfill';
 
 export type InteractiveSpectrogramProps = {
   max?: number;
@@ -83,7 +84,10 @@ export class InteractiveSpectrogram extends LitElement {
         this.Plotly.newPlot(this.div, this.plotData, this.config);
       } else console.warn('<interactive-spectrogram>: Plotly instance not provided...')
 
-      window.addEventListener('resize', this.resize)
+      // window.addEventListener('resize', this.resize)
+
+      let observer = new ResizeObserver(() => this.resize());
+      observer.observe(this.div);
   }
 
   resize = () => {
@@ -110,10 +114,6 @@ export class InteractiveSpectrogram extends LitElement {
       this.plotData[0].z = this.transpose(this.data)
       this.Plotly.newPlot(this.div, this.plotData, this.config);
     }
-  }
-
-  updated = () => {
-    this.resize()
   }
 
   //   updateData = (newData) => {
