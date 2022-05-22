@@ -69,12 +69,12 @@ export class Sidebar extends LitElement {
       box-sizing: border-box;
     }
 
-    :host(.closed) > #main {
+    :host([closed]) > #main {
         width: 0px;
         overflow: hidden;
     }
 
-    :host(.closed) > #toggle {
+    :host([closed]) > #toggle {
       width: var(--final-toggle-width);
     }
 
@@ -173,12 +173,13 @@ export class Sidebar extends LitElement {
       
       const renderToggle = this.content || this.children?.length // Note: May also need to check the slot generally...
 
-      if (this.closed) this.classList.add('closed')
-
       return html`
         <button id=toggle class="${!!renderToggle ? '' : 'hidden'}" @click=${() => {
+              const wasDefault = this.classList.contains('default')
               this.classList.remove('default') // Closed only added after user interaction
-              this.classList.toggle('closed') // Closed only added after user interaction
+              if (window.innerWidth < collapseThreshold){
+                if (!wasDefault) this.closed = !this.closed // Closed only added after user interaction
+              } else this.closed = !this.closed // Closed only added after user interaction
         }}></button>
         <div id=main>
         ${!!renderToggle ? html`<h4 id=header>Controls</h4>` : ''}

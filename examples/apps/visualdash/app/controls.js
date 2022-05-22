@@ -112,9 +112,15 @@ dataSelect.onChange = (ev) => {
 
 
   // ---------------------- Audio ----------------------
+  const circles = document.getElementById('circles').children
+  const circleMultiplier = 5
+
+  const volume = document.getElementById('volume')
+
   let frequencyBinCount = Math.pow(2,11);
   let minFreq = 7000
   let maxFreq = 0
+  
 
   const audioInfo = {
     smoothingTimeConstant: 0.2,
@@ -126,13 +132,13 @@ dataSelect.onChange = (ev) => {
     onData: (o, i) => {
 
       // Update Volume Readout ( first analysis only)
-      if (i === 0){
         let volumeSum = 0;
-        for (const volume of o.frequencies)
-          volumeSum += volume;
+        for (const volume of o.frequencies) volumeSum += volume;
         const averageVolume = volumeSum / o.frequencies.length;
-        volume.volume = (averageVolume / (audio.info.maxDecibels - audio.info.minDecibels))
-      }
+        const volumeVal = (averageVolume / (audio.info.maxDecibels - audio.info.minDecibels))
+
+        if (volume) volume.volume = volumeVal
+        circles[i].children[0].style.width = `${circleMultiplier*100*volumeVal}%`
     }
   }
 
