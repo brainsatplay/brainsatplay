@@ -286,7 +286,7 @@ export async function bundleBrowser(config) {
     }
     
     //clean temp files we wrote extra code to
-    fs.rmdir(tempDir,{ recursive: true }, () => {})
+    fs.rm(tempDir,{ recursive: true })
 
   }).catch((er)=>{console.error('Exited with error:',er); process.exit();});
 }
