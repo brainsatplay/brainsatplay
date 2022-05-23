@@ -137,7 +137,7 @@ And esbuild will take care of it!
 
 We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in its path then it will bundle and inject the correct code so your browser or node server env can use it.
 
-This works by default in our preset to supply the replace the import with the worker as an object url ready to be loaded. If using the default URL instead by setting blobWorkers:false in the bundler plugin setting, the default worker import will be its expected node_modules package location on the server if installing a worker library via npm.
+This works by default in our preset to replace the import with the worker as an object url ready to be loaded. If using the default URL instead by setting blobWorkers:false in the bundler plugin setting, the default worker import will be its expected node_modules package location on the server if installing a worker library via npm.
 
 ### External
 
