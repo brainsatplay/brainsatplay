@@ -362,7 +362,7 @@ export async function bundleNode(config) {
 
 //bundle commonjs
 export async function bundleCommonJS(config) {
-  console.time('\n 🌙 Built .cjs.js');
+  console.time('\n 🌙 Built .cjs');
   
   if(!config.defaultConfig) config = Object.assign(JSON.parse(JSON.stringify(defaultBundler)),config); //add defaults 
 
