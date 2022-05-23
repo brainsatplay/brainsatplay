@@ -126,7 +126,7 @@ You may also use it if you want to write quick library or frontend tests with in
 
 ### Worker bundling
 
-We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in it somewhere then it will bundle and inject the correct code so your browser or node env can find it when served. I'm not very clever with regex but its a little better than the example I ripped off, and it works yay!
+We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in its path then it will bundle and inject the correct code so your browser or node env can use it.
 
 If you supply the plugin setting workerPlugin({blobWorkers:true}) you can bundle the worker in your script as an object url.
 
