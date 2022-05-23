@@ -120,22 +120,36 @@ export async function bundle(configs) {
   //process.exit(0); // Manually make process exit
 }
 
-export function bundleHTML(fromJSPath) {
+//run after bundling
+export function bundleHTML(fromJSPath, config) {
 
   let split = fromJSPath.split('.'); split.pop();
-  let path = split.join('.')+'.build.html';
+  let p = split.join('.')+'.build.html';
 
-  return fs.writeFileSync(path,
-    `
-      <!DOCTYPE html>
-      <head>
-      </head>
-      <body>  
-        <script>
-          ${fs.readFileSync(fromJSPath).toString()}
-        </script>
-      </body>
-    `
+  let template =     
+  `<!DOCTYPE html>
+  <head>
+`
+
+let outfile;
+if(config.outdir) outfile = config.outdir[0];
+else outfile = config.outfile;
+
+if(fs.existsSync(path.join(process.cwd(),outfile+'.css'))) {
+  template += `<link rel="stylesheet" href="${path.basename(outfile)}.css">` 
+}
+
+template += `</head>
+<body>  
+  <script>
+    ${fs.readFileSync(fromJSPath).toString()}
+  </script>
+</body>
+`
+
+  return fs.writeFileSync(
+    p,
+    template
   );
 }
 
@@ -258,7 +272,7 @@ export async function bundleBrowser(config) {
       let outfile = cfg.outfile;
       if(!outfile) outfile = cfg.outdir[0]
 
-      bundleHTML(outfile);
+      bundleHTML(outfile, config);
 
     }
     
