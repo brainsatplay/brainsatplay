@@ -130,8 +130,10 @@ You may also use it if you want to write quick library or frontend tests with in
 Import your workers like this 
 ```js
 import worker from 'worker.js'
+//export { worker } //you can re-export the bundled worker blob/path or use it in your app/library
 
 let w = new Worker(worker);
+
 ```
 And esbuild will take care of it!
 
