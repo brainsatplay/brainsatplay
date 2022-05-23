@@ -321,6 +321,7 @@ const config = {
         if(fs.existsSync(path.join(process.cwd(),'package.json'))) {
             let contents = fs.readFileSync(path.join(process.cwd(),'package.json'));
             if(!contents.includes('"module"')) template += 'module.exports = config; //export default config; //es6' //es5
+            else template += 'export default config; //module.exports = config; //es5' //es6
 
         } else template += 'export default config; //module.exports = config; //es5' //es6
 
