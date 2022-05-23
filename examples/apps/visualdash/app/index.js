@@ -8,17 +8,13 @@ import './controls'
 import * as controls from './controls'
 
   // Bypass the usual requirement for user action
-  const app = document.getElementById('app')
-  const dataContainer = document.getElementById('data')
   const start = document.getElementById('start')
   const audioInputSelect = document.getElementById('in')
   const audioOutputSelect = document.getElementById('out')
   const videoSelect = document.getElementById('video')
   var fileInput = document.getElementById('files');
-  var main = document.getElementById('main');
   var videos = document.getElementById('videos');
   var analysesDiv = document.getElementById('analyses');
-  var main = document.getElementById('volume');
 
 
 
@@ -121,6 +117,8 @@ import * as controls from './controls'
   }
 
   start.onClick = () => {
+
+    start.style.display = 'none'
 
     controls.audio.initializeContext()
     controls.audio.listen(false)

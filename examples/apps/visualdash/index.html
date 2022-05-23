@@ -13,7 +13,7 @@
 <body>
   <visualscript-app id="app" name="Intensity">
     <visualscript-dashboard>
-    <visualscript-sidebar closed>
+    <visualscript-sidebar>
         <div>
           <visualscript-control id="in" type="select" label="Audio Input" persist></visualscript-control>
           <visualscript-control id="out" type="select" label="Audio Output" persist></visualscript-control>
@@ -22,9 +22,13 @@
     </visualscript-sidebar>
   
     <visualscript-main style="display: flex; align-items: center; justify-content: center;">
+      <div id=circles>
+        <div><div></div></div>
+        <div><div></div></div>
+      </div>
       <div style="display: flex; flex-wrap: wrap; align-items: center; padding: 50px; justify-content: center; max-width: 80vw;">
           <visualscript-button id="start" primary size="large">Start Data Acquisition</visualscript-button>
-          <visualscript-audio-volume id="volume" backgroundColor="#49fb35" style="padding: 25px;"></visualscript-audio-volume>
+          <!-- <visualscript-audio-volume id="volume" backgroundColor="#49fb35" style="padding: 25px;"></visualscript-audio-volume> -->
       </div>
     </visualscript-main>
     </visualscript-dashboard>

@@ -15,6 +15,40 @@ section {
 padding: 25px;
 }
 
+
+#start {
+    z-index: 1;
+}
+
+#circles {
+    position: absolute; 
+    display: grid;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    grid-template-columns: repeat(2,1fr);
+    pointer-events: none;
+    z-index: 0;
+    column-gap: 20%;
+}
+
+#circles > div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#circles > div > div {
+    box-sizing: border-box;
+    width: 100%;
+    border: 2px solid white;
+    border-radius: 100%;
+    transition: 0.5s;
+    aspect-ratio: 1/1;
+}
+
 #analyses > div {
 max-width: 400px;
 }

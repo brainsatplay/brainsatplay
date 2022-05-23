@@ -26,6 +26,7 @@ export class Main extends LitElement {
       overflow-y: scroll;
       background: inherit;
       color: inherit;
+      position: relative;
     }
 
     :host * {
