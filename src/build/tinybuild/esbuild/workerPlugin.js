@@ -2,7 +2,8 @@
 
 import path from 'path';
 import fs from 'fs';
-import { build } from "esbuild";
+import pkg from 'esbuild';
+const { build } = pkg;
 
 export const workerPlugin = (config={blobWorkers:true}) => {
     return { //modified from https://github.com/evanw/esbuild/issues/312#issuecomment-698649833
