@@ -168,10 +168,12 @@ export async function bundleBrowser(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
   
   let cfg = Object.assign({},config);
-  if(config.outputs?.browser) {
-    Object.assign(cfg,config.outputs.browser);
-    if(config.outputs.browser.entryPoints) {
-      cfg.entryPoints = config.outputs.browser.entryPoints.map(v => `${cwd}/${v}`);
+  if(typeof config.bundleBrowser === 'object') modifier = config.bundleBrowser;
+  else if(config.outputs?.browser) modifier = config.outputs.browser;
+  if(modifier) {
+    Object.assign(cfg,modifier);
+    if(modifier.entryPoints) {
+      cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
   }
   cfg.logLevel = 'error';
@@ -188,10 +190,11 @@ export async function bundleBrowser(config) {
   
   // Globals   
   let temp_files = [...config.entryPoints];
-  if(config.browser?.entryPoints) {
-    temp_files = [...config.browser.entryPoints];
-    entryPoints = config.browser.entryPoints;
+  if(modifier?.entryPoints) {
+    temp_files = [...modifier.entryPoints];
+    entryPoints = modifier.entryPoints;
   }
+
   cfg.entryPoints = temp_files;
 
   entryPoints.forEach((f,i)=>{  
@@ -292,12 +295,13 @@ export async function bundleESM(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
 
   let cfg = Object.assign({}, config);
-  if(config.outputs?.esm) {
-    if(config.outputs.esm.entryPoints) {
-      cfg.entryPoints = config.outputs.esm.entryPoints.map(v => `${cwd}/${v}`);
-
+  if(typeof config.bundleESM === 'object') modifier = config.bundleESM;
+  else if(config.outputs?.esm) modifier = config.outputs.esm;
+  if(modifier) {
+    Object.assign(cfg,modifier);
+    if(modifier.entryPoints) {
+      cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
-    Object.assign(cfg,config.outputs.esm);
   }
   
   cfg.format = 'esm';
@@ -327,10 +331,12 @@ export async function bundleNode(config) {
 
   let cfg = Object.assign({},config);
   cfg.external = config.node_external;
-  if(config.outputs?.node) {
-    Object.assign(cfg,config.outputs.node);
-    if(config.outputs.node.entryPoints) {
-      cfg.entryPoints = config.outputs.node.entryPoints.map(v => `${cwd}/${v}`);
+  if(typeof config.bundleNode === 'object') modifier = config.bundleNode;
+  else if(config.outputs?.node) modifier = config.outputs.node;
+  if(modifier) {
+    Object.assign(cfg,modifier);
+    if(modifier.entryPoints) {
+      cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
   }
   cfg.platform = 'node';
@@ -361,10 +367,13 @@ export async function bundleCommonJS(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
 
   let cfg = Object.assign({},config);
-  if(config.outputs?.commonjs) {
-    Object.assign(cfg,config.outputs.commonjs);
-    if(config.outputs.commonjs.entryPoints) {
-      cfg.entryPoints = config.outputs.commonjs.entryPoints.map(v => `${cwd}/${v}`);
+  let modifier;
+  if(typeof config.bundleCommonJS === 'object') modifier = config.bundleCommonJS;
+  else if(config.outputs?.commonjs) modifier = config.outputs.commonjs;
+  if(modifier) {
+    Object.assign(cfg,modifier);
+    if(modifier.entryPoints) {
+      cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
   }
   cfg.logLevel = 'error';
@@ -394,10 +403,13 @@ export async function bundleTypes(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
 
   let cfg = Object.assign({},config);
-  if(config.outputs?.iife) {
-    Object.assign(cfg,config.outputs.iife);
-    if(config.outputs.iife.entryPoints) {
-      cfg.entryPoints = config.outputs.iife.entryPoints.map(v => `${cwd}/${v}`);
+  let modifier;
+  if(typeof config.bundleIIFE === 'object') modifier = config.bundleIIFE;
+  else if(config.outputs?.iife) modifier = config.outputs.iife;
+  if(modifier) {
+    Object.assign(cfg,modifier);
+    if(modifier.entryPoints) {
+      cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
   }
   cfg.logLevel = 'error';

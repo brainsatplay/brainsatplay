@@ -71,7 +71,7 @@ const bundlerSettings = {
     '.mp4': 'file',
     '.json': 'text',
   },
-  outputs:{ //overwrites main config settings for specific use cases
+  outputs:{ //overwrites main config settings for specific use cases, you can also set the bundleBrowser etc.. settings to these objects
     node:{ 
       external:[] //externals for node environment builds
     }
@@ -146,7 +146,7 @@ For modules including node libraries that are meant to interoperate with the bro
 
 ### Outputs
 
-To specify specific bundler settings (overwriting the main object), set e.g. settings.outputs.esm = { ...more_esbuild_settings }. Node by default has its own 'external' setting for example so it can include any node modules excluded for browser bundling otherwise.
+To specify specific bundler settings (overwriting the main object), set e.g. settings.bundleESM OR settings.outputs.esm = { ...more_esbuild_settings }. Node by default has its own 'external' setting for example so it can include any node modules excluded for browser bundling otherwise.
 
 ### And More!
 
