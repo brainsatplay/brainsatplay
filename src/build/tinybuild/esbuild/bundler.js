@@ -168,6 +168,7 @@ export async function bundleBrowser(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
   
   let cfg = Object.assign({},config);
+  let modifier;
   if(typeof config.bundleBrowser === 'object') modifier = config.bundleBrowser;
   else if(config.outputs?.browser) modifier = config.outputs.browser;
   if(modifier) {
@@ -295,6 +296,7 @@ export async function bundleESM(config) {
   if(!config.entryPoints[0]?.includes(cwd)) config.entryPoints = config.entryPoints.map(v => cwd+'/'+v) // Append file name to current dir to get it in node
 
   let cfg = Object.assign({}, config);
+  let modifier;
   if(typeof config.bundleESM === 'object') modifier = config.bundleESM;
   else if(config.outputs?.esm) modifier = config.outputs.esm;
   if(modifier) {
@@ -331,6 +333,7 @@ export async function bundleNode(config) {
 
   let cfg = Object.assign({},config);
   cfg.external = config.node_external;
+  let modifier;
   if(typeof config.bundleNode === 'object') modifier = config.bundleNode;
   else if(config.outputs?.node) modifier = config.outputs.node;
   if(modifier) {
