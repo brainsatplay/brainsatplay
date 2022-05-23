@@ -136,7 +136,7 @@ if(config.outdir) outfile = config.outdir[0];
 else outfile = config.outfile;
 
 if(fs.existsSync(path.join(process.cwd(),outfile+'.css'))) {
-  template += `<link rel="stylesheet" href="${path.basename(outfile)}.css">` 
+  template += `<style>${fs.readFileSync(path.join(process.cwd(),outfile+'.css')).toString()}</style>` 
 }
 
 template += `</head>
