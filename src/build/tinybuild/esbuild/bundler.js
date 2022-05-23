@@ -370,17 +370,17 @@ export async function bundleCommonJS(config) {
   cfg.logLevel = 'error';
   cfg.format = 'cjs';
   if(cfg.outfile) {
-    cfg.outfile += '.cjs.js';
+    cfg.outfile += '.cjs';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.cjs.js');
+    cfg.outdir = cfg.outdir.map(v => v+'.cjs');
   }
 
   cleanupConfig(cfg);
 
   return await esbuild.build(cfg).then(()=>{
-    console.timeEnd('\n 🌙 Built .cjs.js');
+    console.timeEnd('\n 🌙 Built .cjs');
   }).catch((er)=>{console.error('Exited with error:', er); process.exit();});
 }
 
