@@ -126,19 +126,18 @@ You may also use it if you want to write quick library or frontend tests with in
 
 ### Worker bundling
 
-We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in its path then it will bundle and inject the correct code so your browser or node env can use it.
 
-If you supply the plugin setting workerPlugin({blobWorkers:true}) you can bundle the worker in your script as an object url.
-
-In either case, import your worker like this:
-
+Import your workers like this 
 ```js
 import worker from 'worker.js'
 
 let w = new Worker(worker);
 ```
+And esbuild will take care of it!
 
-And esbuild will take care of it. This works by default in our preset to supply the replace the import with the worker as an object url ready to be loaded. If using the default URL instead, the default worker import will be its expected package location if installing a worker library via npm.
+We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in its path then it will bundle and inject the correct code so your browser or node server env can use it.
+
+This works by default in our preset to supply the replace the import with the worker as an object url ready to be loaded. If using the default URL instead by setting blobWorkers:false in the bundler plugin setting, the default worker import will be its expected node_modules package location on the server if installing a worker library via npm.
 
 ### External
 
