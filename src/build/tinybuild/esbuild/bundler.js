@@ -284,9 +284,10 @@ export async function bundleBrowser(config) {
       bundleHTML(outfile, config);
 
     }
-    
+  
     //clean temp files we wrote extra code to
-    fs.rm(tempDir,{ recursive: true })
+    if(fs.existsSync(tempDir)) fs.rmSync(tempDir,{ recursive: true })
+
 
   }).catch((er)=>{console.error('Exited with error:',er); process.exit();});
 }
