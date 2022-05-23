@@ -92,20 +92,20 @@ export async function bundle(configs) {
       config
     }
     
-    if(config.bundleBrowser == true){ // kinda UMD
+    if(config.bundleBrowser){ // kinda UMD
       bundles.browser = await bundleBrowser(config);
     }
     
     // console.log('CONFIG', config)
-    if(config.bundleESM == true) {
+    if(config.bundleESM) {
       bundles.esm = await bundleESM(config);
     }
 
-    if(config.bundleNode == true) {
+    if(config.bundleNode) {
       bundles.node = await bundleNode(config);
     }
     
-    if(config.bundleCommonJS == true) {
+    if(config.bundleCommonJS) {
       bundles.commonjs = await bundleCommonJS(config);
     }
 
