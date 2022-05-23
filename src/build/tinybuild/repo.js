@@ -751,6 +751,7 @@ Server arguments:
 - 'protocol=http' - http or https? You need ssl cert and key to run https
 - 'python=7000' - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use 'mode=python'
 - 'hotreload=5000' - hotreload port for the node server, 5000 by default
+- 'watch=../../path/to/other/src' - watch extra folders other than anything under the current working directory
 - 'startpage=index.html' - entry html page for the home '/' page, index.html by default
 - 'certpath=tinybuild/node_server/ssl/cert.pem' - cert file for https 
 - 'keypath=tinybuild/node_server/ssl/key.pem' - key file for https

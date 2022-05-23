@@ -68,6 +68,7 @@ export async function runTinybuild(args) {
     } //to pass to the restart scripts
     else if (typeof args === 'object') {
         tinybuildCfg = args;
+        cmdargs = process.argv;
     }
     //check global module path for node_modules folder
 
@@ -166,12 +167,12 @@ export async function runTinybuild(args) {
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
         }
-        else if (tinybuildCfg.bundle) {
-            delete tinybuildCfg.serve; //don't use either arg to run both
-            tinybuildCfg.server = null;
-            runOnChange('node',[tinybuildCfg.path, `config=${(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
-        }
-        else if (tinybuildCfg.serve) {
+        // else if (tinybuildCfg.bundle || cmdargs.includes('bundle')) {
+        //     delete tinybuildCfg.serve; //don't use either arg to run both
+        //     tinybuildCfg.server = null;
+        //     runOnChange('node',[tinybuildCfg.path, `config=${(JSON.stringify(tinybuildCfg))}`, ...cmdargs])
+        // }
+        else if (tinybuildCfg.serve || cmdargs.includes('serve')) {
             delete tinybuildCfg.bundle; //don't use either arg to run both
             tinybuildCfg.bundler = null;
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path,  [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
@@ -181,7 +182,7 @@ export async function runTinybuild(args) {
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')))
                 await checkBoilerPlate(); //install boilerplate if repo lacks package.json
             
-            if(tinybuildCfg.server && !tinybuildCfg.bundle) SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            if(tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
             else packager(tinybuildCfg); //else just run the bundler and quit
         }
 
@@ -204,9 +205,8 @@ let GLOBALPATH = process.argv.find((a) => {
 });
 
 if(GLOBALPATH) {
-    const configPath = path.join(process.cwd(), '/tinybuild.config.js')
-    if(fs.existsSync(configPath)) {
-        import(configPath).then((m) => {
+    if(fs.existsSync(path.join(process.cwd(),'tinybuild.config.js'))) {
+        import('file:///'+process.cwd()+'/tinybuild.config.js').then((m) => {
             if(typeof m.default?.bundler !== 'undefined' || typeof m.default?.server !== 'undefined' ) {
                 console.log('Using local tinybuild.config.js')
                 runTinybuild(Object.assign({GLOBAL:GLOBALPATH.split('=').pop()},m.default));
