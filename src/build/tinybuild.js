@@ -206,7 +206,7 @@ let GLOBALPATH = process.argv.find((a) => {
 if(GLOBALPATH) {
     if(fs.existsSync(path.join(process.cwd(),'tinybuild.config.js'))) {
         import('file:///'+process.cwd()+'/tinybuild.config.js').then((m) => {
-            if(typeof m.default?.bundler || typeof mv.default.server) {
+            if(typeof m.default?.bundler || typeof m.default.server) {
                 console.log('Using local tinybuild.config.js')
                 runTinybuild(Object.assign({GLOBAL:GLOBALPATH.split('=').pop()},m.default));
             } else {
