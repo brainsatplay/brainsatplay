@@ -1,6 +1,6 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import path from 'path';
-import * as chokidar from 'chokidar';
+import chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
 import { defaultServer } from './node_server/server.js';
 
