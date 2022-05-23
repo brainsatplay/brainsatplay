@@ -182,7 +182,10 @@ export async function runTinybuild(args) {
         else {
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
-                await checkBoilerPlate(); //install boilerplate if repo lacks package.json
+                {
+                    await checkBoilerPlate(); //install boilerplate if repo lacks package.json
+                    tinybuildCfg.path = path.join(process.cwd(),'tinybuild.config.js');
+                }
                 //console.log('spawning!!', tinybuildCfg)
             if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
                 SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
