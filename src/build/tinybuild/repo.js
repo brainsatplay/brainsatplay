@@ -773,10 +773,10 @@ Server arguments:
                 if(command.includes('start')) {
                     tinybuildCfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
                 }
-                if(command.includes('bundle=')) {
+                if(command.includes('bundle') && !command.includes('bundler')) {
                     tinybuildCfg.bundle = true; //bundle the local app?
                 }
-                if(command.includes('serve=')) {
+                if(command.includes('serve') && !command.includes('server')) {
                     tinybuildCfg.serve = true; //serve the local (assumed built) dist?
                 }
                 if(command.includes('path')) { //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
