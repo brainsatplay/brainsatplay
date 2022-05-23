@@ -128,6 +128,18 @@ You may also use it if you want to write quick library or frontend tests with in
 
 We added a simple plugin for unofficial worker support. Right now it requires you import a worker file that has a 'worker.js' in it somewhere then it will bundle and inject the correct code so your browser or node env can find it when served. I'm not very clever with regex but its a little better than the example I ripped off, and it works yay!
 
+If you supply the plugin setting workerPlugin({blobWorkers:true}) you can bundle the worker in your script as an object url.
+
+In either case, import your worker like this:
+
+```js
+import worker from 'worker.js'
+
+let w = new Worker(worker);
+```
+
+And esbuild will take care of it. This works by default in our preset to supply the replace the import with the expected worker url of the bundle where it will be in your node_modules when you install the worker package, or the blob.
+
 ### External
 
 For modules including node libraries that are meant to interoperate with the browser, make sure you exclude them in via the 'external' setting.

@@ -26,7 +26,7 @@ export const defaultBundler = {
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
   sourcemap: false,
-  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:false})], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true})], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
