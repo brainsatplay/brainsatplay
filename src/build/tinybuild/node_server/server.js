@@ -97,8 +97,8 @@ function onRequest(request, response, cfg) {
                     
                     //inject pwa code
                     if(cfg.pwa && cfg.protocol === 'https') {
-                        if(fs.existsSync(cfg.pwa)) {
-                            if(!fs.existsSync('manifest.webmanifest')) { //lets create a default webmanifest on the local server if none found
+                        if(fs.existsSync(path.join(process.cwd(),cfg.pwa))) {
+                            if(!fs.existsSync(path.join(process.cwd(),'manifest.webmanifest'))) { //lets create a default webmanifest on the local server if none found
                                 fs.writeFileSync('manifest.webmanifest',
                                 `{
                                     "short_name": "PWA",
@@ -115,8 +115,8 @@ function onRequest(request, response, cfg) {
                                 }`
                                 )
                             }
-                            if(!fs.existsSync(cfg.pwa)) { //lets create a default webmanifest on the local server if none found
-                                fs.writeFileSync(cfg.pwa,
+                            if(!fs.existsSync(path.join(process.cwd(),cfg.pwa))) { //lets create a default webmanifest on the local server if none found
+                                fs.writeFileSync(path.join(process.cwd(),cfg.pwa),
                                 `//https://github.com/ibrahima92/pwa-with-vanilla-js
                                 const assets = [
                                   "/",
@@ -141,7 +141,9 @@ function onRequest(request, response, cfg) {
                                 });`
                                 )
                             }
-                            content = `${content.toString()}\n\n
+                            let cstr = content;
+                            if(typeof cstr !== 'string') cstr = cstr.toString();
+                            content = `${cstr}\n\n
                                 <link rel="manifest" href="manifest.webmanifest">
                                 <script>
                                     // Check that service workers are supported
@@ -230,9 +232,6 @@ function onRequest(request, response, cfg) {
                                         else {
                                             registerSW();
                                         } 
-                                        
-                                        
-                                        
                                     });
                                 </script>`;
                         }

@@ -35,12 +35,14 @@ export class HotReload {
   }
 
   add = (content) => {
-    return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+HotReloadClient.toString()+`)('${this.url}')  </script>`;
+    if(typeof content !== 'string') content = content.toString();
+    return `${content}\n\n<script> console.log('Hot Reload port available at ${this.url}');  (`+HotReloadClient.toString()+`)('${this.url}')  </script>`;
   }
 }
 
 export function addHotReloadClient(content,socketUrl) {
-  return `${content.toString()}\n\n<script> console.log('Hot Reload port available at ${socketUrl}');  (`+HotReloadClient.toString()+`)('${socketUrl}')  </script>`;
+  if(typeof content !== 'string') content = content.toString();
+  return `${content}\n\n<script> console.log('Hot Reload port available at ${socketUrl}');  (`+HotReloadClient.toString()+`)('${socketUrl}')  </script>`;
 }
 
 //frontend js function to be stringified, injected, and executed in-browser
