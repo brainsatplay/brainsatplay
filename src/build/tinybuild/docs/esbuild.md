@@ -138,7 +138,7 @@ import worker from 'worker.js'
 let w = new Worker(worker);
 ```
 
-And esbuild will take care of it. This works by default in our preset to supply the replace the import with the expected worker url of the bundle where it will be in your node_modules when you install the worker package, or the blob.
+And esbuild will take care of it. This works by default in our preset to supply the replace the import with the worker as an object url ready to be loaded. If using the default URL instead, the default worker import will be its expected package location if installing a worker library via npm.
 
 ### External
 
