@@ -13,7 +13,7 @@ export const defaultConfig = {
     server: server.defaultServer
 }
 
-export async function packager(config=defaultConfig) {
+export async function packager(config=defaultConfig, exitOnBundle=true) {
     console.time('🎂🎆 Packager finished!');
 
     if(process?.argv) { //add any command line arguments
@@ -65,6 +65,10 @@ export async function packager(config=defaultConfig) {
         packaged.server = await server.serve(config.server);
     }
     console.timeEnd('🎂🎆 Packager finished!');
+
+    if((config.bundle || !config.server) && exitOnBundle) {
+        process.exit();
+    }
 
     return packaged;
 }

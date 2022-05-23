@@ -86,10 +86,12 @@ export async function runTinybuild(args) {
     // let scriptsrc = path.join(process.cwd(), (cliArgs.path) ? cliArgs.path : 'tinybuild.js')
     // const hasScript= fs.existsSync(scriptsrc)
 
-    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL && fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')))  tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
+    if(!tinybuildCfg.path && tinybuildCfg.GLOBAL && fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js')))  tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
     if(!tinybuildCfg.path && fs.existsSync(path.join(process.cwd(),'tinybuild.js'))) tinybuildCfg.path = path.join(process.cwd(),'tinybuild.js')
     if(!tinybuildCfg.path && tinybuildCfg.GLOBAL) tinybuildCfg.path = path.join(tinybuildCfg.GLOBAL,'global_packager.js');
     if(!tinybuildCfg.path) tinybuildCfg.path = 'tinybuild.js';
+
+    console.log(tinybuildCfg.path);
 
     //scenarios:
     /*     
@@ -179,11 +181,14 @@ export async function runTinybuild(args) {
         }
         else {
 
-            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')))
+            if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
                 await checkBoilerPlate(); //install boilerplate if repo lacks package.json
-            
-            if(tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+                //console.log('spawning!!', tinybuildCfg)
+            if((tinybuildCfg.server && !tinybuildCfg.bundle && !cmdargs.includes('bundle')) || tinybuildCfg.path.includes('tinybuild.js')) { 
+                SERVER_PROCESS = runAndWatch(tinybuildCfg.path, [`config=${(JSON.stringify(tinybuildCfg))}`,...cmdargs]);
+            }
             else packager(tinybuildCfg); //else just run the bundler and quit
+
         }
 
     } 
@@ -216,4 +221,4 @@ if(GLOBALPATH) {
         })
     }   
     else runTinybuild(process.argv);
-}
+} else runTinybuild(process.argv);

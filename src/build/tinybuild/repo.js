@@ -184,11 +184,15 @@ export function runAndWatch(
 
     if(p.stdout) p.stdout.on('data',(dat) => {
         console.log(dat.toString());
-    })
+    });
 
     p.on('message', (msg) => {
         console.log('message from server:', msg.toString());
-    })
+    });
+
+    p.on('exit',(code,sig) => {
+        process.exit();
+    });
 
     watcher.on('change',(path,stats)=>{
         let skip = false;
@@ -880,6 +884,9 @@ Server arguments:
             if(v.includes(fileName)) argIdx = true;
     
     })
+
+    if(Object.keys(tinybuildCfg.server).length === 0) delete tinybuildCfg.server;
+    if(Object.keys(tinybuildCfg.bundler).length === 0) delete tinybuildCfg.bundler; 
 
     return tinybuildCfg;
 }

@@ -32,6 +32,7 @@ export const defaultBundler = {
   allowOverwrite:true, 
   loader: {
     '.html': 'text', //not always necessary but it doesn't hurt
+    '.json': 'text',
     '.png' : 'file',
     '.jpg' : 'file',
     '.gif' : 'file',
@@ -42,7 +43,10 @@ export const defaultBundler = {
     '.eot': 'file',
     '.mp3': 'file',
     '.mp4': 'file',
-    '.json': 'text',
+    '.xml' : 'file',
+    '.csv' : 'file',
+    '.xls' : 'file',
+    '.xlsx': 'file'
   },
   outputs:{ //overwrites main config settings for specific use cases
     node:{ 
