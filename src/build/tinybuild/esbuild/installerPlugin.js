@@ -17,6 +17,7 @@ export const installerPlugin = { //modified from https://github.com/evanw/esbuil
                         } catch (err) {
                             try { 
                                 execSync('npm i '+args.path);
+                                console.log("Installed missing package: ", args.path);
                                 let mainfile = fs.readFileSync(path.join(process.cwd(),'node_modules',args.path,'package.json')).toString();
                                 mainfile = mainfile.split('\n');
                                 let main; mainfile.find((s) => {
