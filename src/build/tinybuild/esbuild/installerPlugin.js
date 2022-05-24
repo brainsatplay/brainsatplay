@@ -21,12 +21,13 @@ export const installerPlugin = { //modified from https://github.com/evanw/esbuil
                                 mainfile = mainfile.split('\n');
                                 let main; mainfile.find((s) => {
                                     if(s.includes('"main"')) {
-                                        var arrStr = s.split(/[:"";,]/);
+                                        var arrStr = s.split(/[:"";]/);
                                         arrStr.pop();
                                         main = arrStr.pop();
                                     }
                                 })
-                                args.path = path.join(process.cwd(),'node_modules',args.path,main);
+                                //console.log(main);
+                                args.path = path.join(process.cwd(),'node_modules',args.path, main);
                             } catch(err) {
                                 console.error(err);
                             }
