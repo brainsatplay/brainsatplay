@@ -1,6 +1,7 @@
 export * from './esbuild/bundler.js'
 export * from './esbuild/streamingImportsPlugin.js'
 export * from './esbuild/workerPlugin.js'
+export * from './esbuild/installerPlugin.js'
 export * from './node_server/server.js'
 export * from './repo.js'
 
