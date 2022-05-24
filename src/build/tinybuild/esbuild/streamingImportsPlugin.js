@@ -11,7 +11,10 @@ export const streamingImportsPlugin = {
       if(args.kind?.includes('import') || args.kind?.includes('require')) {
         let cachepath = path.join(process.cwd(),'node_modules','.cache',path.basename(args.path));
         
-        if(!cachepath.endsWith('.js') < 0) cachepath += '.js';
+        if(!path.extname(cachepath)){ 
+          cachepath += '.js'; //should account for other file types like css if they can be imported without extensions
+        }
+        //if(!cachepath.endsWith('.js') < 0) cachepath += '.js';
         //request http/s resource
         //write file to cache
         //resolve new path to local cache for bundler to target 
