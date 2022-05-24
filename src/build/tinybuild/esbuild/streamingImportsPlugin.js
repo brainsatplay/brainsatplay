@@ -10,6 +10,8 @@ export const streamingImportsPlugin = {
     build.onResolve({ filter: /^https?:\/\// }, async (args) => {
       if(args.kind?.includes('import') || args.kind?.includes('require')) {
         let cachepath = path.join(process.cwd(),'node_modules','.cache',path.basename(args.path));
+        
+        if(!cachepath.endsWith('.js') < 0) cachepath += '.js';
         //request http/s resource
         //write file to cache
         //resolve new path to local cache for bundler to target 
