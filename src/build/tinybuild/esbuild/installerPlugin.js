@@ -28,25 +28,13 @@ export const installerPlugin = { //modified from https://github.com/evanw/esbuil
                                 })
                                 //console.log(main);
                                 args.path = path.join(process.cwd(),'node_modules',args.path, main);
+                                return { path: args.path };
                             } catch(err) {
                                 console.error(err);
                             }
                         }
-                    } else {
-                        let mainfile = fs.readFileSync(path.join(process.cwd(),'node_modules',args.path,'package.json')).toString();
-                        mainfile = mainfile.split('\n');
-                        let main; mainfile.find((s) => {
-                            if(s.includes('"main"')) {
-                                var arrStr = s.split(/[:"";]/);
-                                arrStr.pop();
-                                main = arrStr.pop();
-                            }
-                        })
-                        args.path = path.join(process.cwd(),'node_modules',args.path,main);
-                
-                    }
+                    } 
                 }
-                return { path: args.path };
             }
         });
 
