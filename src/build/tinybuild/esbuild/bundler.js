@@ -8,6 +8,7 @@ import pkg from 'esbuild-plugin-d.ts';
 const {dtsPlugin} = pkg;
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
+import { installerPlugin } from './installerPlugin.js';
 
 import fs from 'fs'
 import path from 'path'
@@ -27,7 +28,7 @@ export const defaultBundler = {
   platform: 'browser', //'node' //bundleNode will use 'node' mode by default
   minify: true,
   sourcemap: false,
-  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true})], //{importmap:{imports:{[key:string]: string}}, directory: string}
+  plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
