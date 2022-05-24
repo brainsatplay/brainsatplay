@@ -180,6 +180,9 @@ export function runAndWatch(
 
     if(p.stderr) p.stderr.on('data',(dat) => {
         console.error(dat.toString());
+        p.on('exit',(code,sig) => {
+            process.exit();
+        });
     });
 
     if(p.stdout) p.stdout.on('data',(dat) => {
@@ -190,9 +193,6 @@ export function runAndWatch(
         console.log('message from server:', msg.toString());
     });
 
-    p.on('exit',(code,sig) => {
-        process.exit();
-    });
 
     watcher.on('change',(path,stats)=>{
         let skip = false;
