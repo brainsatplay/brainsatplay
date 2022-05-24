@@ -59,7 +59,7 @@ export async function runNodemon(script) {
 export function runOnChange(
     command, 
     args=[], 
-    ignore=['dist','temp'], 
+    ignore=['dist','temp','package'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
 ) { 
 
@@ -149,7 +149,7 @@ export function runOnChange(
 export function runAndWatch(
     script,
     args=[],
-    ignore=['dist','temp'], 
+    ignore=['dist','temp','package'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls'],
     restartDelay=50
 ) {    
