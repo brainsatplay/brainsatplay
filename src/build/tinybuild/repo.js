@@ -314,9 +314,9 @@ const config = {
         pwa: "dist/service-worker.js",  //pwa mode? Injects service worker registry code in (see pwa README.md)
         python: false,//7000,  //quart server port (configured via the python server script file still)
         python_node: 7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: "packager/node_server/other/404.html",  //default error page, etc.
-        certpath: "packager/node_server/ssl/cert.pem", //if using https, this is required. See cert.pfx.md for instructions
-        keypath: "packager/node_server/ssl/key.pem" //if using https, this is required. See cert.pfx.md for instructions
+        errpage: "node_modules/tinybuild/tinybuild/node_server/other/404.html",  //default error page, etc.
+        certpath: "node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem", //if using https, this is required. See cert.pfx.md for instructions
+        keypath: "node_modules/tinybuild/tinybuild/node_server/ssl/key.pem" //if using https, this is required. See cert.pfx.md for instructions
     }
 }
 
