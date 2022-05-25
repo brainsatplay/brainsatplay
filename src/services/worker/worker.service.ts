@@ -232,7 +232,7 @@ class WorkerService extends Service {
         return new Promise(resolve => {
           //console.log('posting',input,id);
           if(typeof input !== 'object') {
-            input = {route:'',message:input, origin:this.id};
+            input = {route:'run',message:input, origin:this.id};
           }
           
           const resolver = (res) => 
@@ -250,7 +250,8 @@ class WorkerService extends Service {
           if(workerId == null) {
               const worker = this.workers?.[this.threadrot]?.worker
               if (worker){
-                worker.postMessage(input,transfer);
+                if(this.workers[this.threadrot].port) this.workers[this.threadrot].port.postMessage(input,transfer);
+                else worker.postMessage(input,transfer);
                 if(this.threads > 1){
                     this.threadrot++;
                     if(this.threadrot >= this.threads){
@@ -262,7 +263,8 @@ class WorkerService extends Service {
           else{
               this.workers.find((o)=>{
                   if(o.id === workerId) {
-                      o.worker.postMessage(input,transfer); 
+                      if(o.port) o.port.postMessage(input,transfer);
+                      else o.worker.postMessage(input,transfer); 
                       return true;
                     } else return;
               });

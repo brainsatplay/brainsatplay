@@ -20,6 +20,7 @@ import { Service } from "../../core/Service";
 import { randomId } from "../../common/id.utils";
 import { parseFunctionFromText, } from "../../common/parse.utils";
 
+const DONOTSEND = 'DONOTSEND';
 
 //check if in node ENV (enables backend)
 // let NODE = false;
@@ -52,14 +53,14 @@ export class ServerWorker extends Service {
     routes = [
         {
             route:'workerPost',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
               console.log('worker message received!', args, origin);
               return;
             }
         },
         {
             route:'addservice',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 //provide service name and setup arguments (e.g. duplicating server details etc)
                 if(services[args[0]]) {
                     let service;
@@ -80,13 +81,13 @@ export class ServerWorker extends Service {
         },
         {
             route:'removeservice',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 return;
             }
         },
         { //MessageChannel port, it just runs the whole callback system to keep it pain-free, while allowing messages from other workers
             route: 'addport', 
-            post: (self, args, origin) => { //args[0] = eventName, args[1] = case, only fires event if from specific same origin
+            post: (self,graphOrigin,router,origin,...args) => { //args[0] = eventName, args[1] = case, only fires event if from specific same origin
                 let port = args[1]; //messageport 
                 this[`${origin}`] = port; //message ports will have the origin marked as the worker id 
                 port.onmessage = onmessage; //port messages get processed generically, an argument will denote they are from a worker 
@@ -95,7 +96,7 @@ export class ServerWorker extends Service {
         },
         {
             route:'postMessagePort', //send a message to another worker via a message port
-            post:(self,args,origin) => {
+            post:(self,graphOrigin,router,origin,...args) => {
                 if(!args[1]){
                     if(this[`${origin}`]) 
                         this[`${origin}`].postMessage(JSON.stringify(args[0]),undefined,args[2]); //0 is whatever, 2 is transfer array
@@ -108,14 +109,14 @@ export class ServerWorker extends Service {
         },
         {
             route:'postMessage', //post back to main thread
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 postMessage(args[0],undefined,args[1]); //0 is args, 1 is transfer array
                 return;
             }
         },
         {
             route:'addcallback',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 if(!args[0] && !args[1]) return;
                 let func = parseFunctionFromText(args[1]);
                 if(func) this.addCallback(args[0],func);
@@ -124,14 +125,14 @@ export class ServerWorker extends Service {
         },
         {
             route:'removecallback',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 if(args[0]) this.removeCallback(args[0]);
                 return true;
             }
         },
         {
             route:'run',
-            post:(self,args,origin)=>{
+            post:(self,graphOrigin,router,origin,...args)=>{
                 let c = this.responses.find((o) => {
                     if(o.name === args[0]) {
                         return true;
@@ -180,7 +181,22 @@ self.onmessage = async (event) => {
         if(event.data.port) worker[event.data.origin] = event.data.port; //set the message channel port by the origin worker id to send return outputs to that thread (incl main thread)
     }
     else if(event.data) {
-        worker.notify(event.data,undefined,event.data.origin);
+        let result = await worker.notify(event.data,undefined,event.data.origin);
+        if(result !== DONOTSEND) { //pass result back
+            let output = {output:result, route:event.data.route, id:worker.id, origin:event.data.origin, callbackId:event.data.callbackId}
+            let transfer = undefined; 
+            if(result.__proto__?.__proto__?.constructor.name === 'TypedArray') transfer = [result];
+            else if(typeof result === 'object') {
+                for(const key in result) {
+                    if(result[key].__proto__?.__proto__?.constructor.name === 'TypedArray') { 
+                        if(!transfer) transfer = [result[key]]; 
+                        else transfer.push(result[key]);
+                    }
+                }
+            }
+            if(worker[event.data.origin]) worker[event.data.origin].postMessage(output,transfer);
+            else self.postMessage(output,transfer);
+        }
     }
     //if origin is a message port, pass through the port
     //if origin is main thread, pass to main thread
