@@ -95,7 +95,7 @@ export class StructService extends Service {
         this.routes = [
             {
                 route:'query',
-                post:async (self,router, args,origin) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin];
                     if(!u) return false;
 
@@ -172,7 +172,7 @@ export class StructService extends Service {
             {
                 route:'getUsersByIds',
                 aliases:['getUsers'],
-                post:async (self,router, args,origin) => { 
+                post:async (self,graphOrigin,router,origin,...args) => { 
                     const u = router.USERS[origin]
                     if (!u) return false
     
@@ -192,7 +192,7 @@ export class StructService extends Service {
             },
             {
                 route:'getUsersByRoles',
-                post:async (self,router, args,origin) => {
+                post:async (self,graphOrigin,router,origin,...args) => {
                     const u = router.USERS[origin]
                     if (!u) return false
     
