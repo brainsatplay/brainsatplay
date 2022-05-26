@@ -49,7 +49,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
     if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
         packaged.bundles = await bundler.bundle(config.bundler);
 
-        if(config.bundler.bundleHTML) { //serve the bundled app page 
+        if(config.bundler?.bundleHTML) { //serve the bundled app page 
             
             let outfile = config.bundler.outfile;
             if(!outfile && config.bundler.outdir) outfile = config.bundler.outdir[0];
