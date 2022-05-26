@@ -35,7 +35,7 @@ export const defaultBundler = {
   loader: { //just a bunch of path resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
     '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text',
-    '.gitignore':'text','.md':'text','.sh':'text',
+    '.gitignore':'text','.md':'text','.sh':'file',
     '.xml' : 'file','.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file',
     '.svg': 'file','.webm': 'file',
     '.woff': 'file','.woff2': 'file','.ttf': 'file','.otf': 'file','.eot': 'file',
