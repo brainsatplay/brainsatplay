@@ -32,23 +32,24 @@ export const defaultBundler = {
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
-  loader: {
+  loader: { //just a bunch of path resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
-    '.json': 'text',
-    '.png' : 'file',
-    '.jpg' : 'file',
-    '.gif' : 'file',
-    '.svg': 'file',
-    '.woff': 'file',
-    '.woff2': 'file',
-    '.ttf': 'file',
-    '.eot': 'file',
-    '.mp3': 'file',
-    '.mp4': 'file',
-    '.xml' : 'file',
-    '.csv' : 'file',
-    '.xls' : 'file',
-    '.xlsx': 'file'
+    '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text',
+    '.gitignore':'text','.md':'text','.sh':'text',
+    '.xml' : 'file','.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file',
+    '.svg': 'file','.webm': 'file',
+    '.woff': 'file','.woff2': 'file','.ttf': 'file','.otf': 'file','.eot': 'file',
+    '.mp3': 'file','.wav': 'file','.wma': 'file','.aac': 'file',
+    '.m4a': 'file','.avi': 'file','.flac': 'file','.flv': 'file',
+    '.mov': 'file','.mp4': 'file','.mkv': 'file','.doc' : 'file',
+    '.docx' : 'file','.pdf' : 'file','.odt' : 'file','.ppt' : 'file',
+    '.csv' : 'file','.xls' : 'file','.xlsx': 'file','.fbx': 'file',
+    '.obj': 'file','.collada': 'file','.x3d': 'file',
+    '.3ds': 'file','.flc': 'file','.swf': 'file',
+    '.step': 'file','.stl': 'file',
+    '.brd': 'file','.sch': 'file','.gbr': 'file','.gb': 'file','.gerb': 'file','.drl': 'file',
+    '.exe': 'file','.dmg': 'file','.elf': 'file', '.app': 'file', 
+    '.zip': 'file','.7z': 'file', '.gz': 'file', '.tar': 'file',
   },
   outputs:{ //overwrites main config settings for specific use cases
     node:{ 
