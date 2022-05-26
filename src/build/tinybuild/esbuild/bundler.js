@@ -36,7 +36,7 @@ export const defaultBundler = {
     '.html': 'text', //not always necessary but it doesn't hurt
     '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text',
     '.gitignore':'file','.md':'text','.wasm':'file',
-    '.xml' : 'file','.xhtml': 'file','.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file','.ico' : 'file',
+    '.xml' : 'file','.xhtml': 'file','.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file','.ico' : 'file','.bmp' : 'file',
     '.svg': 'file','.webm': 'file', '.mid': 'file', '.midi': 'file',
     '.woff': 'file','.woff2': 'file','.ttf': 'file','.otf': 'file','.eot': 'file','.fnt': 'file','.fon': 'file',
     '.mp3': 'file','.wav': 'file','.wma': 'file','.aac': 'file',
