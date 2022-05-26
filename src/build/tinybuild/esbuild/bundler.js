@@ -34,8 +34,8 @@ export const defaultBundler = {
   allowOverwrite:true, 
   loader: { //just a bunch of path resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
-    '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text',
-    '.gitignore':'file','.md':'text',
+    '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text','.md':'text', 
+    '.gitignore':'file',
     '.xml' : 'file','.xhtml': 'file','.png' : 'file','.PNG' : 'file','.jpg' : 'file','.gif' : 'file','.ico' : 'file',
     '.svg': 'file','.webm': 'file', '.mid': 'file', '.midi': 'file',
     '.woff': 'file','.woff2': 'file','.ttf': 'file','.otf': 'file','.eot': 'file','.fnt': 'file','.fon': 'file',
