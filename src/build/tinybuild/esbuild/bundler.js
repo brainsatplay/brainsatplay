@@ -41,7 +41,7 @@ export const defaultBundler = {
     '.woff': 'file','.woff2': 'file','.ttf': 'file','.otf': 'file','.eot': 'file','.fnt': 'file','.fon': 'file',
     '.mp3': 'file','.wav': 'file','.wma': 'file','.aac': 'file',
     '.m4a': 'file','.avi': 'file','.flac': 'file','.flv': 'file',
-    '.mov': 'file','.mp4': 'file','.mkv': 'file', '.h264':'file','3gp':'file',
+    '.mov': 'file','.mp4': 'file','.mkv': 'file', '.h264':'file','.3gp':'file',
     '.doc' : 'file', '.docx' : 'file','.pdf' : 'file','.odt' : 'file','.ppt' : 'file','.pptx': 'file', '.odp': 'file', 
     '.csv' : 'file','.xls' : 'file','.xlsx': 'file','.fbx': 'file', '.sql': 'file',
     '.obj': 'file','.collada': 'file','.x3d': 'file',
