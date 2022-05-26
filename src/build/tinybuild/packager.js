@@ -46,7 +46,7 @@ export async function packager(config=defaultConfig, exitOnBundle=true) {
 
     let packaged = {}
     
-    if(config.bundler && !config.serve) {
+    if(config.bundler && !config.serve || (!config.bundler && !config.server && !config.serve)) {
         packaged.bundles = await bundler.bundle(config.bundler);
 
         if(config.bundler.bundleHTML) { //serve the bundled app page 
