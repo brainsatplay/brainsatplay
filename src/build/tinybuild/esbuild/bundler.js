@@ -32,7 +32,7 @@ export const defaultBundler = {
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
   external: ['node-fetch'], // [];
   allowOverwrite:true, 
-  loader: { //just a bunch of path resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
+  loader: { //just a bunch of path resolvers, importing these files will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
     '.json': 'text','.txt': 'text','.yaml': 'text', '.toml':'text','.md':'text', 
     '.gitignore':'file','.wasm': 'file',
