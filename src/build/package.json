@@ -1,6 +1,6 @@
 {
   "name": "tinybuild",
-  "version": "0.3.119",
+  "version": "0.3.120",
   "description": "Versatile esbuild + node + python quart wrapper for a lightweight and frustration-free development experience.",
   "main": "tinybuild.js",
   "type": "module",
@@ -30,7 +30,7 @@
     "ws": "^8.5.0"
   },
   "peerDependencies": {
-    "typescript":"~4.6.4"
+    "typescript": "~4.6.4"
   },
   "nodemonConfig": {
     "env": {
