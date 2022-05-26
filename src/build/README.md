@@ -54,9 +54,9 @@ const config = {
         //watch: ['../'], //watch additional directories other than the current working directory
         python: false,//7000,  //quart server port (configured via the python server script file still)
         python_node:7001, //websocket relay port (relays messages to client from nodejs that were sent to it by python)
-        errpage: 'tinybuild/node_server/other/404.html', //default error page, etc.
-        certpath:'tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
-        keypath:'tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
+        errpage: 'node_modules/tinybuild/tinybuild/node_server/other/404.html', //default error page, etc.
+        certpath:'node_modules/tinybuild/tinybuild/node_server/ssl/cert.pem',//if using https, this is required. See cert.pfx.md for instructions
+        keypath:'node_modules/tinybuild/tinybuild/node_server/ssl/key.pem'//if using https, this is required. See cert.pfx.md for instructions
     }
 }
 

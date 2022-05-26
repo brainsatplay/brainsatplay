@@ -126,9 +126,9 @@ You may also use it if you want to write quick library or frontend tests with in
 
 ### Worker bundling
 
-This custom plugin is active by default. The only prerequisite is that your worker files have 'worker.js' in their path. Then import your workers like this:
+This custom plugin is active by default. The only prerequisite is that your worker files have 'worker.js' or '.worker' (e.g. for ts worker files) in their path. Then import your workers like this:
 ```js
-import worker from 'worker.js'
+import worker from 'worker.js' //or if the worker is a ts file, '.worker' will resolve the separate worker bundle too
 //export { worker } //you can re-export the bundled worker blob/path or use it in your app/library
 
 let w = new Worker(worker);

@@ -1,12 +1,12 @@
 //Main thread control of workers
 
-import { Router } from "../../Router";
+import { Router } from "../../core/Router";
 import { Service } from "../../core/Service";
 import { randomId } from "../../common/id.utils";
 import { parseFunctionFromText, } from "../../common/parse.utils";
 
 import worker from './server.worker'
-import { workerRenderer } from './old/oldlib/workerRenderer/workerRenderer';
+//import { workerRenderer } from './old/oldlib/workerRenderer/workerRenderer';
 
 //Runs on main thread
 class WorkerService extends Service {
@@ -30,7 +30,7 @@ class WorkerService extends Service {
       },
       {
         route:'addworker',
-        callback:(self,router, args,origin)=>{
+        callback:(self,graphOrigin,router,origin,...args)=>{
           let id = this.addWorker(args[0],args[1]); //can specify a url and module type 
           if(this.workers.length > 0 ) {
             this.workers.forEach((w) => { //set up message channels for each thread to talk to each other
@@ -46,13 +46,13 @@ class WorkerService extends Service {
       },
       {
         route:'terminate',
-        callback:(self,router, args,origin)=>{
+        callback:(self,graphOrigin,router,origin,...args)=>{
           return this.terminate(args[0]); //specify worker id or terminate all workers
         }
       },
       {
         route:'addcallback',
-        callback:(self,router, args,origin)=>{
+        callback:(self,graphOrigin,router,origin,...args)=>{
             if(!args[0] && !args[1]) return;
             let func = parseFunctionFromText(args[1]);
             if(func) this.addCallback(args[0],func);
@@ -61,14 +61,14 @@ class WorkerService extends Service {
       },
       {
         route:'removecallback',
-        callback:(self,router, args,origin)=>{
+        callback:(self,graphOrigin,router,origin,...args)=>{
             if(args[0]) this.removeCallback(args[0]);
             return true;
         }
       },
       {
         route:'run',
-        callback:(self,router, args,origin)=>{
+        callback:(self,graphOrigin,router,origin,...args)=>{
             let c = this.responses.find((o) => {
                 if(o.name === args[0]) {
                     return true;
@@ -106,7 +106,7 @@ class WorkerService extends Service {
   
           let newWorker:Worker;
           try {
-            if (!url) newWorker = (worker as any)();
+            if (!url) newWorker = new Worker(worker as any); //import will be replaced with blob
             else {
               if (!(url instanceof URL)) url = new URL(url, import.meta.url)
               newWorker = new Worker(url, {name:'worker_'+this.workers.length, type});
@@ -232,7 +232,7 @@ class WorkerService extends Service {
         return new Promise(resolve => {
           //console.log('posting',input,id);
           if(typeof input !== 'object') {
-            input = {route:'',message:input, origin:this.id};
+            input = {route:'run',message:input, origin:this.id};
           }
           
           const resolver = (res) => 
@@ -250,7 +250,8 @@ class WorkerService extends Service {
           if(workerId == null) {
               const worker = this.workers?.[this.threadrot]?.worker
               if (worker){
-                worker.postMessage(input,transfer);
+                if(this.workers[this.threadrot].port) this.workers[this.threadrot].port.postMessage(input,transfer);
+                else worker.postMessage(input,transfer);
                 if(this.threads > 1){
                     this.threadrot++;
                     if(this.threadrot >= this.threads){
@@ -262,7 +263,8 @@ class WorkerService extends Service {
           else{
               this.workers.find((o)=>{
                   if(o.id === workerId) {
-                      o.worker.postMessage(input,transfer); 
+                      if(o.port) o.port.postMessage(input,transfer);
+                      else o.worker.postMessage(input,transfer); 
                       return true;
                     } else return;
               });
