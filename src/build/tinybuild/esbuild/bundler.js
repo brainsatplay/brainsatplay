@@ -35,6 +35,7 @@ export const defaultBundler = {
   loader: {
     '.html': 'text', //not always necessary but it doesn't hurt
     '.json': 'text',
+    '.yaml' : 'text',
     '.png' : 'file',
     '.jpg' : 'file',
     '.gif' : 'file',
