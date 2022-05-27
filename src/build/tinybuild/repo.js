@@ -168,7 +168,7 @@ export function runAndWatch(
 
     const watcher = chokidar.watch(
         watchPaths,{
-        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?$/, // ignore node_modules
+        ignored: /^(?:.*[\\\\\\/])?node_modules(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?.git(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?android(?:[\\\\\\/].*)?|(?:.*[\\\\\\/])?ios(?:[\\\\\\/].*)?$/, // ignore node_modules
         persistent: true,
         ignoreInitial:true,
         interval:100,
@@ -407,10 +407,11 @@ export async function checkBoilerPlate(onlyConfig=true) {
     "main": "index.js",
     "type":"module",
     "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
+        "start": "tinybuild",
+        "build": "tinybuild build",
+        "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \\"npm run python\\" \\"npm run startdev\\"",
+        "concurrent": "concurrently \\"npm run python\\" \\"npm start\\"",
         "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
         "startdev": "nodemon --exec \\"node tinybuild.js\\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
         "python": "python python/server.py",
