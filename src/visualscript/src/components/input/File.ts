@@ -4,12 +4,18 @@ import { LitElement, html, css } from 'lit';
 export type FileProps = {
   accept?: string // e.g. "audio/*, video/*"
   onChange?: (ev: Event)=> any
+  webkitdirectory?: boolean
+  directory?: boolean 
+  multiple?: boolean
 }
 
 export class File extends LitElement {
 
   onChange: FileProps['onChange'] = () => {}
   accept: FileProps['accept']
+  webkitdirectory: FileProps['webkitdirectory'] 
+  directory: FileProps['directory'] 
+  multiple: FileProps['multiple']
 
   static get styles() {
     return css`
@@ -90,7 +96,19 @@ export class File extends LitElement {
           onChange: {
             type: Function,
             reflect: true
-          }
+          },
+          webkitdirectory: {
+            type: Boolean,
+            reflect: true
+          },
+          directory: {
+            type: Boolean,
+            reflect: true
+          },
+          multiple: {
+            type: Boolean,
+            reflect: true
+          },
       };
     }
 
@@ -98,6 +116,9 @@ export class File extends LitElement {
       super();
       if (props.accept) this.accept = props.accept
       if (props.onChange) this.onChange = props.onChange
+      if (props.webkitdirectory) this.webkitdirectory = props.webkitdirectory
+      if (props.directory) this.directory = props.directory
+      if (props.multiple) this.multiple = props.multiple
     }
     
     render() {
@@ -109,15 +130,24 @@ export class File extends LitElement {
           if (input) input.click()
         }}>Choose File</button>
       </label>
-      <input type="file" id="fileupload" accept="${this.accept ?? ''}" @change=${(ev) => {
-        const fileUploaded = ev.target.files[0];
-        const input = this.shadowRoot.querySelector('input[type=text]') as HTMLInputElement
-        var filename = fileUploaded.name
-        input.value = filename
-        input.placeholder = filename
-        input.focus()
-        this.onChange(ev);
-      }}>
+      <input 
+        type="file" 
+        id="fileupload" 
+        accept="${this.accept ?? ''}" 
+        webkitdirectory=${this.webkitdirectory}
+        directory=${this.directory}
+        multiple=${this.multiple}
+
+        @change=${(ev) => {
+          const fileUploaded = ev.target.files[0];
+          const input = this.shadowRoot.querySelector('input[type=text]') as HTMLInputElement
+          var filename = fileUploaded.name
+          input.value = filename
+          input.placeholder = filename
+          input.focus()
+          this.onChange(ev);
+        }}
+      >
       <label for="filename" class="hide">
         uploaded file
       </label>

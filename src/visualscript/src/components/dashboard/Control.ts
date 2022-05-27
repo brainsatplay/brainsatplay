@@ -26,6 +26,9 @@ export class Control extends LitElement {
   // File / Select
   onChange: ControlProps['onChange'] = () => {}
   accept: ControlProps['accept']
+  webkitdirectory: ControlProps['webkitdirectory'] 
+  directory: ControlProps['directory'] 
+  multiple: ControlProps['multiple']
 
   // Button
   onClick: ControlProps['onClick']
@@ -115,6 +118,18 @@ export class Control extends LitElement {
           type: String,
           reflect: true
         },
+        webkitdirectory: {
+          type: Boolean,
+          reflect: true
+        },
+        directory: {
+          type: Boolean,
+          reflect: true
+        },
+        multiple: {
+          type: Boolean,
+          reflect: true
+        },
 
         // Button
         primary:  {
@@ -153,12 +168,17 @@ export class Control extends LitElement {
       // File / Select
       if (props.onChange) this.onChange = props.onChange
       if (props.accept) this.accept = props.accept
+      if (props.webkitdirectory) this.webkitdirectory = props.webkitdirectory
+      if (props.directory) this.directory = props.directory
+      if (props.multiple) this.multiple = props.multiple
 
       // Button
       if (props.onClick) this.onClick = props.onClick
       if (props.primary) this.primary = props.primary
       if (props.backgroundColor) this.backgroundColor = props.backgroundColor
       if (props.size) this.size = props.size
+
+      // this.getElement()
     }
     
 
@@ -167,14 +187,18 @@ export class Control extends LitElement {
     //   return this;
     // }
 
-    render() {
-
+    getElement = () => {
       if (this.type === 'select') this.element = new Select(this)
       else if (this.type === 'file') this.element = new File(this)
       else if (this.type === 'switch') this.element = new Switch(this)
       else if (this.type === 'range') this.element = new Range(this)
       else if (['input', 'text', 'number'].includes(this.type)) this.element = new Input(this)
       else this.element = new Button(this)
+    }
+
+    render() {
+
+      this.getElement()
 
       return html`<div><h5>${this.label}</h5>${this.element}</div><slot></slot>`
     }
