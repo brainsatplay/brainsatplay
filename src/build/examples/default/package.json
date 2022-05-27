@@ -5,8 +5,9 @@
     "main": "index.js",
     "type":"module",
     "scripts": {
-        "start": "npm run startdev",
-        "build": "node tinybuild.js",
+        "start": "tinybuild",
+        "build": "tinybuild build",
+        "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
         "concurrent": "concurrently \"npm run python\" \"npm run startdev\"",
         "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
