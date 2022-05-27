@@ -3,6 +3,8 @@
  
 https://github.com/capacitor-community/bluetooth-le
 
+If not included, copy the index.html to dist so it copies to the mobile project files correctly. The local server is configured to run it from there as well.
+
 #### In your project root
 `npm i`
 
