@@ -1,9 +1,13 @@
 {
-    "name": "intensities",
-    "type":"module",
-    "scripts": {
-      "start": "node tinybuild.js"
-    },
-    "license": "AGPL-3.0-or-later"
+  "name": "intensities",
+  "type": "module",
+  "scripts": {
+    "start": "tinybuild"
+  },
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "lit": "^2.2.5",
+    "resize-observer-polyfill": "^1.5.1",
+    "tinybuild": "^0.3.125"
   }
-  
+}

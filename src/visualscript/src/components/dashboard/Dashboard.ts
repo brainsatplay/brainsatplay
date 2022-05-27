@@ -6,6 +6,24 @@ import { Sidebar } from '../dashboard';
 import { Nav, Footer } from '../general';
 import { App } from './App';
 
+
+export const slotGrid = css`
+
+slot {
+  display: grid;
+  grid-template-columns: 1fr fit-content(100%);
+  grid-template-rows: fit-content(75px) 1fr fit-content(75px);
+  grid-template-areas: 
+          "nav nav"
+          "main side"
+          "foot foot";
+
+  width: 100%;
+  height: 100%;
+}
+
+`
+
 export type DashboardProps = {
   open?: boolean
   closeHandler?: Function,
@@ -19,14 +37,14 @@ export class Dashboard extends LitElement {
     return css`
     
     :host {
+      color-scheme: light dark;
       position: relative;
       width: 100%;
       height: 100%;
-      max-width: 100vw;
-      max-height: 100vh;
+      box-sizing: border-box;
+      grid-area: main;
+      overflow: hidden;
     }
-
-    
 
     :host([global]) {
       position: absolute;
@@ -51,9 +69,7 @@ export class Dashboard extends LitElement {
     }
 
     :host * {
-      
       box-sizing: border-box;
-      
     }
 
     slot {
@@ -61,18 +77,7 @@ export class Dashboard extends LitElement {
       color: black;
     }
 
-    slot {
-      display: grid;
-      grid-template-columns: 1fr fit-content(100%);
-      grid-template-rows: fit-content(75px) 1fr fit-content(75px);
-      grid-template-areas: 
-              "nav nav"
-              "main side"
-              "foot foot";
-  
-      width: 100%;
-      height: 100%;
-    }
+    ${slotGrid}
 
     :host([open]) slot {
       opacity: 1;

@@ -1,6 +1,7 @@
 
 import { html, css } from 'lit';
-import { Tab, TabProps, TabPropsLit } from './tabs/Tab';
+import { Tab, TabProps, TabPropsLit, tabStyle } from './tabs/Tab';
+import { slotGrid } from './Dashboard';
 
 // ---------------- SPECIFICATION ----------------
 // 1. Display the application metadata
@@ -16,6 +17,26 @@ export class App extends Tab {
   name: AppProps['name'];
   // type: AppProps['type'] = 'app';
   parent: Node;
+
+
+  static get styles() {
+    return css`
+    :host {
+      color-scheme: light dark;
+      max-width: 100vw;
+      max-height: 100vh;
+    }
+
+
+    slot {
+      overflow: hidden !important;
+    }
+
+    ${tabStyle}
+    ${slotGrid}
+    `
+
+  }
   
     static get properties() {
       return Object.assign({

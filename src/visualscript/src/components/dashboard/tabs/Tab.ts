@@ -4,6 +4,26 @@ import { Dashboard } from '../Dashboard';
 import { TabToggle } from './TabToggle';
 import { Control, ControlProps } from '../Control';
 
+export const tabStyle = css`
+
+:host {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: inherit;
+}
+
+slot {
+  overflow: scroll;
+}
+
+:host * {
+  
+  box-sizing: border-box;
+  
+}
+`
+
 export type TabProps = {
   name?: string;
   controls?: ControlProps[],
@@ -44,25 +64,7 @@ export class Tab extends LitElement {
   toggle: TabToggle
 
   static get styles() {
-    return css`
-
-    :host {
-      width: 100%;
-      height: 100%;
-      box-sizing: border-box;
-      background: inherit;
-    }
-
-    slot {
-      overflow: scroll;
-    }
-
-    :host * {
-      
-      box-sizing: border-box;
-      
-    }
-    `;
+    return tabStyle;
   }
     
     static get properties() {
