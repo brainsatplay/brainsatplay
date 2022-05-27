@@ -8,7 +8,7 @@ export const installerPlugin = { //modified from https://github.com/evanw/esbuil
     name:'installer',
     setup(builder) {
         builder.onResolve({ filter: /.*/}, async (args) => {
-            if(args.kind.includes('import') || args.kind.includes('require') && !args.importer.includes('node_modules')){
+            if((args.kind.includes('import') || args.kind.includes('require')) && !args.importer.includes('node_modules')){
                 if(args.path.includes('@') || !(args.path.includes('/') || args.path.includes('\\'))) {
                     if(!fs.existsSync(path.join('node_modules',path.basename(args.path)))) {
                         try {
