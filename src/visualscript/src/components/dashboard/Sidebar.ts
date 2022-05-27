@@ -123,6 +123,10 @@ export class Sidebar extends LitElement {
       background: var(--dark-color);
       color: white;
       margin: 0px;
+    }
+
+
+    #toggle, #header {
       position: sticky;
       left:0;
       top: 0;
