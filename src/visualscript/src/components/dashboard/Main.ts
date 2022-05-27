@@ -22,17 +22,14 @@ export class Main extends LitElement {
       height: 100%;
       box-sizing: border-box;
       grid-area: main;
-      overflow-x: hidden;
-      overflow-y: scroll;
+      overflow: hidden;
       background: inherit;
       color: inherit;
       position: relative;
     }
 
     :host * {
-      
       box-sizing: border-box;
-      
     }
     `;
   }
