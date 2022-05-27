@@ -3,6 +3,7 @@ import path from 'path';
 import chokidar from 'chokidar';
 import {execSync, spawn} from 'child_process';
 import { defaultServer } from './node_server/server.js';
+import { defaultConfig } from './packager.js';
 
 
 //https://stackoverflow.com/questions/13786160/copy-folder-recursively-in-node-js
@@ -376,25 +377,31 @@ packager(config); // bundle and serve
 // NOTE: At a minimum, boilerplate includes a (1) a script / config , (1) a package.json and (3) an index.html file.
 // If these files exist, none of the others are created.
 // IMPORTANT: Using the tinybuild.config.js file at process.cwd() OR a generated one.
-export async function checkBoilerPlate(onlyConfig=true) {
+export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=true) {
     //const config = await ((onlyConfig) ? createConfig() : checkBuildScript()); //this is borderline unreadable, also the import thing doesnt work unless the package is type:module, this builds on es5 packages now
-    
-    let config; 
+
+    //let config; 
     if(!onlyConfig) {
         checkBuildScript();
     }
     checkConfig();
     
-    const packagePath = path.join(process.cwd(),'package.json')
-    const htmlPath = process.cwd()+'/index.html'
+    let packagePath = path.join(process.cwd(),'package.json')
+    let htmlPath = process.cwd()+'/index.html'
 
-    const entryFile = 'index.js';
-    const entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
-
-    const needPackage = !fs.existsSync(packagePath)
-    const needHTML = !fs.existsSync(htmlPath)
-    const needEntry = !fs.existsSync(entryFilePath)
-
+    let entryFile = 'index.js';
+    let needPackage = !fs.existsSync(packagePath)
+    let needHTML = true;
+    let needEntry = true;
+    if(tinybuildCfg.server?.startpage) {
+        htmlPath = tinybuildCfg.server.startpage;
+    } 
+    needHTML = !fs.existsSync(htmlPath);
+    if(tinybuildCfg.bundler?.entryPoints[0]) {
+        entryFile = tinybuildCfg.bundler.entryPoints[0];
+    } 
+    needEntry = !fs.existsSync(path.join(process.cwd(),entryFile));
+    let entryFilePath = path.join(process.cwd(), entryFile) // assign index by first entrypoint
 
     if(needPackage) {
 
@@ -451,7 +458,7 @@ export async function checkBoilerPlate(onlyConfig=true) {
     // Auto-assign distpath
     if(needHTML) { //the python server needs the index.html
 
-        console.log('Creating index.html')
+        console.log('Creating html boilerplate.')
 
         fs.writeFileSync(htmlPath,`
 <!DOCTYPE html>
@@ -459,7 +466,7 @@ export async function checkBoilerPlate(onlyConfig=true) {
     <head>
     </head>
     <body>  
-        <script src="dist/${entryFile}">
+        <script src="dist/${path.basename(entryFile,path.extname(entryFile))}.js">
         </script>
     </body>
 </html>
@@ -468,10 +475,11 @@ export async function checkBoilerPlate(onlyConfig=true) {
 
     if(needEntry) {
 
-        console.log('Creating entry file: ', entryFile)
+        console.log('Creating entry file: ', entryFilePath)
 
         // Make index.js if it doesn't exist
-        if (needEntry) fs.writeFileSync(entryFilePath,'console.log("Hello World!"); if(typeof alert !== "undefined") alert("Hello world!");')
+        if (needEntry) fs.writeFileSync(entryFilePath,
+            'console.log("Hello World!"); if(typeof window !== "undefined") document.body.innerHTML = "Hello World!";')
     }
 }
 
@@ -481,7 +489,7 @@ export async function checkBoilerPlate(onlyConfig=true) {
 // If you set includeCore to true then the new repo can be used as a template for creating more repos with standalone tinybuild files
 export async function initRepo(
     dirName='example',    
-    entryPoints='index.js', //your head js file
+    entryPoints=['index.js'], //your head js file
     initScript=`
 /* 
     esbuild + nodejs (with asyncio python) development/production server. 
@@ -500,8 +508,8 @@ alert('tinybuild successful!');
     `,
     config={
         bundler:{
-            entryPoints: [entryPoints],
-            outfile: 'dist/'+entryPoints.slice(0,entryPoints.lastIndexOf('.')),
+            entryPoints:entryPoints,
+            outfile: 'dist/'+entryPoints[0].slice(0,entryPoints.lastIndexOf('.')),
             bundleBrowser: true, //plain js format
             bundleESM: false, //.esm format
             bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
@@ -512,7 +520,7 @@ alert('tinybuild successful!');
     includeCore=true, //include the core bundler and node server files, not necessary if you are building libraries or quickly testing an app.js
     ) {
 
-        console.log('ACTUAL INIT REPO')
+        console.log('INIT REPO')
 
     if(!fs.existsSync(dirName)) fs.mkdirSync(dirName); //will be made in the folder calling the init script
 
