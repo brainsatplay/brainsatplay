@@ -202,7 +202,7 @@ export class Graph extends BaseProcess {
     backward = false; //propagate outputs to parents?
     [x:string]: any; // any additional attribute
 
-    constructor(properties:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)={}, parentNode?, graph?) {
+    constructor(properties:GraphProperties|OperatorType|((...args)=>any)={}, parentNode?, graph?) {
         super();
         const keys = Object.keys(this)
         const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']        
@@ -559,7 +559,7 @@ export class Graph extends BaseProcess {
     }
     
     //converts all children nodes and tag references to Graphs also
-    add(node:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)={}) {
+    add(node:GraphProperties|OperatorType|((...args)=>any)={}) {
         if(typeof node === 'function') node = { operator:node };
         let converted = new Graph(node,this,this.graph); 
         this.nodes.set(converted.tag,converted);
@@ -758,7 +758,7 @@ export class AcyclicGraph extends BaseProcess {
 
 
     //converts all children nodes and tag references to Graphs also
-    add(node:Graph|GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any) ={}) {
+    add(node:Graph|GraphProperties|OperatorType|((...args)=>any) ={}) {
         if(typeof node === 'function') { node = {operator:node}}
         let converted = new Graph(node,undefined,this); 
         this.nodes.set(converted.tag,converted);
@@ -806,10 +806,10 @@ export class AcyclicGraph extends BaseProcess {
         else return undefined;
     }
 
-    removeTree(node) {
+    removeTree(node:string|Graph) {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node) {
-            const recursivelyRemove = (node) => {
+            const recursivelyRemove = (node:Graph) => {
                 if(node.children) {
                     if(Array.isArray(node.children)) {
                         node.children.forEach((c)=>{
@@ -835,53 +835,60 @@ export class AcyclicGraph extends BaseProcess {
                     }
                 }
             }
-            if(node.stopNode) node.stopNode();
-            if(node.tag) {
-                this.nodes.delete(node.tag);
+            if((node as Graph).stopNode) (node as Graph).stopNode();
+            if((node as Graph).tag) {
+                this.nodes.delete((node as Graph).tag);
                 this.nodes.forEach((n) => {
-                    if(n.nodes.get(node.tag)) n.nodes.delete(node.tag);
+                    if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
                 });
-                recursivelyRemove(node);
+                recursivelyRemove(node as Graph);
             }
         }
     }
 
-    remove(node) {
+    remove(node:string|Graph) {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node?.tag) this.nodes.delete(node.tag);
-        if(node?.tag) {
-            if(this.nodes.get(node.tag)) 
-            {
-                this.nodes.delete(node.tag);
-                //if(this.graph) this.graph.nodes.delete(node.tag);
-                this.nodes.forEach((n) => {
-                    if(n.nodes.get(node.tag)) n.nodes.delete(node.tag);
-                });
+        if((node as Graph).tag) {
+            if((node as Graph)?.tag) this.nodes.delete((node as Graph).tag);
+            if((node as Graph)?.tag) {
+                if(this.nodes.get((node as Graph).tag)) 
+                {
+                    this.nodes.delete((node as Graph).tag);
+                    //if(this.graph) this.graph.nodes.delete(node.tag);
+                    this.nodes.forEach((n) => {
+                        if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
+                    });
+                }
             }
         }
     }
 
-    append(node={}, parentNode) {
+    append(node:Graph, parentNode:Graph) {
         parentNode.addChildren(node);
     }
 
-    async callParent(node, origin=node, ...args ) {
+    async callParent(node:Graph, origin:Graph=node, ...args ) {
         if(node?.parent) {
             return await node.callParent(node,origin,...args);
         }
     }
 
-    async callChildren(node, origin=node, ...args) {
+    async callChildren(node:Graph, origin:Graph=node, ...args) {
         if(node?.children) {
             return await node.callChildren(node,origin,...args);
         }
     }
 
-    subscribe(tag,callback=(res)=>{}) {
-        return this.state.subscribeTrigger(tag,callback);
+    subscribe(node:string|Graph,callback:(res)=>{}) {
+        if(!callback) return;
+        if(typeof node !== 'string') node = node.tag;
+        if(node instanceof Graph) {
+            return node.subscribe(callback);
+        }
+        else return this.state.subscribeTrigger(node,callback);
     }
 
-    unsubscribe(tag,sub) {
+    unsubscribe(tag:string,sub:number) {
         this.state.unsubscribeTrigger(tag,sub);
     }
 
@@ -900,7 +907,7 @@ export class AcyclicGraph extends BaseProcess {
         if(parsed) return this.add(parsed);
     }
 
-    create(operator:(self:Graph,origin:Graph|AcyclicGraph,...args)=>any,parentNode,props) {
+    create(operator:OperatorType,parentNode:Graph,props:GraphProperties) {
         return createNode(operator,parentNode,props,this);
     }
 
@@ -1012,7 +1019,7 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
 }
 
 
-export function createNode(operator:(input,self,origin,cmd)=>any,parentNode:Graph,props:GraphProperties,graph:AcyclicGraph) {
+export function createNode(operator:OperatorType,parentNode:Graph,props:GraphProperties,graph:AcyclicGraph) {
     if(typeof props === 'object') {
         (props.operator as any) = operator;
         return new Graph(props,parentNode,graph);
