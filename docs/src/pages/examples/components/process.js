@@ -55,7 +55,7 @@ export default function ProcessExample({server, sockets, router}) {
         add.run(2)
 
         // Get Node Tree
-        let list = add.tree()
+        let list = add.getTree()
 
         // Show Add Node
         list = {[add.tag]:{
