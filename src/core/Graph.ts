@@ -60,7 +60,7 @@ export const state = {
 
         return this.data;
     },
-    subscribeTrigger(key,onchange:Function=()=>{}){
+    subscribeTrigger(key,onchange:(res:any)=>void){
         if(key) {
             if(!this.triggers[key]) {
                 this.triggers[key] = [];
@@ -84,7 +84,7 @@ export const state = {
             }
         }
     },
-    subscribeTriggerOnce(key=undefined,onchange=(value)=>{}) {
+    subscribeTriggerOnce(key=undefined,onchange:(res:any)=>void) {
         let sub;
         let changed = (value) => {
             onchange(value);
@@ -669,7 +669,7 @@ export class Graph extends BaseProcess {
     }
     
     //subscribe an output with an arbitrary callback
-    subscribe(callback:Graph|((res)=>any),tag=this.tag) {
+    subscribe(callback:Graph|((res)=>void),tag=this.tag) {
         if(callback instanceof Graph) {
             return this.subscribeNode(callback);
         } else return this.state.subscribeTrigger(tag,callback);
@@ -755,8 +755,10 @@ export class AcyclicGraph extends BaseProcess {
     //can create preset node trees on the graph
     tree:Tree = {}
 
-    constructor(tree:Tree) {
+    constructor(tree:Tree,tag:string) {
         super();
+
+        this.tag = tag ? tag : `graph${Math.floor(Math.random()*100000000000)}`;
 
         this.setTree(tree);
     }
@@ -774,18 +776,18 @@ export class AcyclicGraph extends BaseProcess {
         if(tree) this.tree = tree;
         else return;
 
-        for(const node in this.tree) {
-            if(typeof this.tree[node] === 'function') {
-                let newNode = this.add({tag:node, operator:this.tree[node] as OperatorType});
-                this.nodes.set(node,newNode); 
-            }
-            else if (typeof this.tree[node] === 'object') {
-                let newNode = this.add(this.tree[node]);
-                this.nodes.set(newNode.tag,newNode); 
-                if((this.tree[node] as GraphProperties).aliases) {
-                    (this.tree[node] as GraphProperties).aliases.forEach((a) => {
-                        this.nodes.set(a,newNode); 
-                    })
+        for(const node in this.tree) { //add any nodes not added yet, assuming we aren't overwriting the same tags to the tree.
+            if(!this.nodes.get(node)) {
+                if(typeof this.tree[node] === 'function') {
+                    this.add({tag:node, operator:this.tree[node] as OperatorType|((...args)=>any|void)});
+                }
+                else if (typeof this.tree[node] === 'object') {
+                    let newNode = this.add(this.tree[node]);
+                    if((this.tree[node] as GraphProperties).aliases) {
+                        (this.tree[node] as GraphProperties).aliases.forEach((a) => {
+                            this.nodes.set(a,newNode); 
+                        });
+                    }
                 }
             }
         }
@@ -884,7 +886,7 @@ export class AcyclicGraph extends BaseProcess {
         }
     }
 
-    subscribe(node:string|Graph,callback:(res)=>{}) {
+    subscribe(node:string|Graph,callback:(res)=>void) {
         if(!callback) return;
         if(typeof node !== 'string') node = node.tag;
         if(node instanceof Graph) {

@@ -1,53 +1,86 @@
-import { AcyclicGraph, Graph, GraphProperties, OperatorType, Tree } from "./Graph";
+import { state } from "./Graph";
+import { Service } from "./Service2";
 
-/**
- * 
- * A router is a simple way to construct a set of graph nodes and handle different message passing 
- * protocols to and from operators
- * 
- */
 
-type Routes = {
-    [key:string]:
-            Graph |
-            GraphProperties |
-            OperatorType |
-            ((...args)=>any|void) |
-            { aliases:string[] } & GraphProperties |
-            {
-                get?:{
-                    object:any,
-                    transform:(...args)=>any
-                },
-                post?:OperatorType|((...args)=>any|void)
-                aliases?:string[] 
-            } & GraphProperties
+export type Protocol = 'http'|'socket'|'webrtc'|'osc'|string|undefined;
+
+type AvailableServices = {
+    [key:string]:{
+        protocol:Protocol, //communication protocol we want to use
+        service: Service //the service which will aggregate the message if the protocol is specified
+    }
 }
 
-export class Router extends AcyclicGraph {
+//handle subscriptions
+//match i/o protocols to correct services
 
-    routes:Routes = {
-        '/':()=>{
-            return this.getTree();
-        },
-        'ping':()=>{
-            return 'pong';
-        },
-        'echo':(...args)=>{
-            return args;
+export class Router {
+
+    state = state; //share the shared state with router too
+
+    services:AvailableServices
+    constructor(services:Service[]|AvailableServices) {
+        if(Array.isArray(services)){
+            services.forEach(s => this.load(s));
+        }
+        else if (typeof services === 'object') this.services = services;
+    }
+
+    load(service:Service) {
+        this.services[service.name] = {
+            protocol:service.protocol,
+            service
+        };
+    }
+
+    subscribe( //a state trigger can be set to transmit on a service protocol, callbacks can be used to modify results before sending (return something in the callback!!) 
+        tag:string, //the output we are subscribing to
+        destination?:Protocol|string, //the protocol or service to transmit the result with
+        callback?:((res)=>any) //return a modified result before transmitting
+    ) {
+        if(destination) {
+            let dest;
+            for(const key in this.services) {
+                if(key === destination || this.services[key].protocol === destination) {
+                    dest = this.services[key];
+                    break;
+                }
+            }
+            if(!dest) return false;
+            let cb;
+            if(callback) {
+                cb = (res) => {
+                    let mod = callback(res);
+                    dest.transmit(mod);
+                }
+            } else cb = (res) => {dest.transmit(res);};
+            this.state.subscribeTrigger(tag,cb);
+        }
+        else if(callback) return this.state.subscribeTrigger(tag,callback);
+    }
+
+    unsubscribe(
+        tag,
+        sub
+    ) {
+        return this.state.unsubscribeTrigger(tag,sub);
+    }
+
+    inbound(message:any, destination:Protocol|string, method?:string) {
+        for(const key in this.services) {
+            if(key === destination || this.services[key].protocol === destination) {
+                this.services[key].service.receive(message, method);
+                break;
+            }
         }
     }
 
-    constructor(routes:Routes) {
-        super(routes);
-        if(routes) this.routes = routes;
-        if(this.routes) {
-            this.tree = this.routes;
-            this.setTree();
+    outbound(message:any, destination:Protocol|string, method?:string) {
+        for(const key in this.services) {
+            if(key === destination || this.services[key].protocol === destination) {
+                this.services[key].service.transmit(message,method);
+                break;
+            }
         }
     }
-
-    //handle subscriptions
-    //match i/o protocols to correct services
-    
 }
