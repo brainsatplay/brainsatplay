@@ -15,7 +15,6 @@ type Route = {
             ((...args)=>any|void) |
             { aliases:string[] & GraphProperties } |
             {
-                route:string,
                 get?:{
                     object:any,
                     transform:(any,...args)=>any
