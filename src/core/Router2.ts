@@ -1,4 +1,4 @@
-import { AcyclicGraph, Graph, GraphProperties } from "./Graph";
+import { AcyclicGraph, Tree } from "./Graph";
 
 /**
  * 
@@ -8,8 +8,18 @@ import { AcyclicGraph, Graph, GraphProperties } from "./Graph";
  */
 export class Router extends AcyclicGraph {
 
-    constructor(routes:{[key:string]:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)}) {
+    tree = {
+        'ping':()=>{
+            return 'pong';
+        },
+        'echo':()=>{}
+    }
+
+    constructor(routes:Tree) {
         super(routes);
     }
 
+    //handle subscriptions
+    //match i/o protocols to correct services
+    
 }

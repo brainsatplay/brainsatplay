@@ -1,4 +1,4 @@
-import { parseFunctionFromText } from '../common/parse.utils';
+import { getFnParamNames, parseFunctionFromText } from '../common/parse.utils';
 
 //just a more typical hierarchical graph tree with back and forward prop and arbitrary 
 // go-here-do-that utilities. Create an object node tree and make it do... things 
@@ -6,11 +6,15 @@ import { parseFunctionFromText } from '../common/parse.utils';
 // or propagate to children/parents with utility calls that get added to the objects
 //Joshua Brewster and Garrett Flynn AGPLv3.0
 
-type OperatorType = ( //can be async
+export type OperatorType = ( //can be async
     self:Graph,  //'this' node
     origin:Graph|AcyclicGraph, //origin node
     ...input:any //input arguments, e.g. output from another node
 )=>any|void
+
+export type Tree = {
+    [key:string]:Graph|GraphProperties|OperatorType
+}
 
 //properties input on Graph or add, or for children
 export type GraphProperties = {
@@ -201,25 +205,52 @@ export class Graph extends BaseProcess {
     constructor(properties:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)={}, parentNode?, graph?) {
         super();
         const keys = Object.keys(this)
-        const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']
-        
+        const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']        
+
         if(typeof properties === 'function') {
             properties = { operator:properties };
         }
-        
-        for (let key in properties){
-            if (!keys.includes(key) && !prohibited.includes(key)) this.attributes.add(key)
-        }
 
-        if(!properties.tag && graph) properties.tag = `node${graph.nNodes}`; //add a sequential id to find the node in the tree 
-        else if(!properties.tag) properties.tag = `node${Math.floor(Math.random()*10000000000)}`; //add a random id for the top index if none supplied
-        Object.assign(this,properties); //set the node's props as this
+        if(typeof properties === 'object') {
+            if(properties?.operator) {
+
+                let params = getFnParamNames(properties.operator);
+
+                //we can pass other formatted functions in as operators and they will be wrapped to assume they don't use self/node or origin/router, but will still work in the flow graph logic calls
+                if(!(params[0] == 'self' || params[0] == 'node' || params[1] == 'origin' || params[1] == 'parent' || params[1] == 'graph' || params[1] == 'router')) {
+                    let fn = properties.operator;
+                    //wrap the simplified operator to fit our format
+                    properties.operator = (self:Graph,origin:Graph|AcyclicGraph,...args) => {
+                        return (fn as any)(...args);
+                    }
+                }
+
+            }
+            for (let key in properties){
+                if (!keys.includes(key) && !prohibited.includes(key)) this.attributes.add(key)
+            }
+    
+            if(!properties.tag && graph) 
+            {
+                properties.tag = `node${graph.nNodes}`; //add a sequential id to find the node in the tree 
+            }
+            else if(!properties.tag) {
+                properties.tag = `node${Math.floor(Math.random()*10000000000)}`; //add a random id for the top index if none supplied
+            }    
+            Object.assign(this,properties); //set the node's props as this
+        }
+        else if(graph) {
+            this.tag = `node${graph.nNodes}`;
+        } else {
+            this.tag = `node${Math.floor(Math.random()*10000000000)}`;
+        }
+        
         this.parent=parentNode;
         this.graph=graph;
     
         if(graph) {
             graph.nNodes++;
-            graph.nodes.set(properties.tag,this);
+            graph.nodes.set(this.tag,this);
         }
     
         if(this.children) this.convertChildrenToNodes(this);
@@ -717,12 +748,26 @@ export class AcyclicGraph extends BaseProcess {
     nNodes = 0
 
     //can create preset node trees on the graph
-    tree:{[key:string]:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)} = {}
+    tree:Tree = {}
 
-    constructor(tree:{[key:string]:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any)}) {
+    constructor(tree:Tree) {
         super();
 
+        this.setTree(tree);
+    }
+
+
+    //converts all children nodes and tag references to Graphs also
+    add(node:Graph|GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any) ={}) {
+        if(typeof node === 'function') { node = {operator:node}}
+        let converted = new Graph(node,undefined,this); 
+        this.nodes.set(converted.tag,converted);
+        return converted;
+    }
+
+    setTree(tree=this.tree) {
         if(tree) this.tree = tree;
+        else return;
 
         for(const node in this.tree) {
             if(typeof this.tree[node] === 'function') {
@@ -740,16 +785,6 @@ export class AcyclicGraph extends BaseProcess {
             }
         }
 
-
-    }
-
-
-    //converts all children nodes and tag references to Graphs also
-    add(node:GraphProperties|((self:Graph,origin:Graph|AcyclicGraph,...args)=>any) ={}) {
-        if(typeof node === 'function') { node = {operator:node}}
-        let converted = new Graph(node,undefined,this); 
-        this.nodes.set(converted.tag,converted);
-        return converted;
     }
 
     get(tag) {
