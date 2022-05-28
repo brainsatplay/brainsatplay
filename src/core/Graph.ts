@@ -13,7 +13,7 @@ export type OperatorType = ( //can be async
 )=>any|void
 
 export type Tree = {
-    [key:string]:Graph|GraphProperties|OperatorType
+    [key:string]:Graph|GraphProperties|OperatorType|((...args)=>any|void)
 }
 
 //properties input on Graph or add, or for children
@@ -202,7 +202,7 @@ export class Graph extends BaseProcess {
     backward = false; //propagate outputs to parents?
     [x:string]: any; // any additional attribute
 
-    constructor(properties:GraphProperties|OperatorType|((...args)=>any)={}, parentNode?, graph?) {
+    constructor(properties:GraphProperties|OperatorType|((...args)=>any|void)={}, parentNode?, graph?) {
         super();
         const keys = Object.keys(this)
         const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']        
@@ -559,7 +559,7 @@ export class Graph extends BaseProcess {
     }
     
     //converts all children nodes and tag references to Graphs also
-    add(node:GraphProperties|OperatorType|((...args)=>any)={}) {
+    add(node:GraphProperties|OperatorType|((...args)=>any|void)={}) {
         if(typeof node === 'function') node = { operator:node };
         let converted = new Graph(node,this,this.graph); 
         this.nodes.set(converted.tag,converted);
@@ -758,7 +758,7 @@ export class AcyclicGraph extends BaseProcess {
 
 
     //converts all children nodes and tag references to Graphs also
-    add(node:Graph|GraphProperties|OperatorType|((...args)=>any) ={}) {
+    add(node:Graph|GraphProperties|OperatorType|((...args)=>any|void) ={}) {
         if(typeof node === 'function') { node = {operator:node}}
         let converted = new Graph(node,undefined,this); 
         this.nodes.set(converted.tag,converted);

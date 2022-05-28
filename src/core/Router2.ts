@@ -1,4 +1,4 @@
-import { AcyclicGraph, Tree } from "./Graph";
+import { AcyclicGraph, Graph, GraphProperties, OperatorType, Tree } from "./Graph";
 
 /**
  * 
@@ -6,9 +6,18 @@ import { AcyclicGraph, Tree } from "./Graph";
  * protocols to and from operators
  * 
  */
+
+type Route = {
+    [key:string]:
+            Graph|
+            GraphProperties|
+            OperatorType|
+            ((...args)=>any|void)
+}
+
 export class Router extends AcyclicGraph {
 
-    tree = {
+    routes:Tree = {
         'ping':()=>{
             return 'pong';
         },
@@ -17,8 +26,10 @@ export class Router extends AcyclicGraph {
         }
     }
 
+
     constructor(routes:Tree) {
         super(routes);
+        if(this.routes) this.setTree(this.routes);
     }
 
     //handle subscriptions
