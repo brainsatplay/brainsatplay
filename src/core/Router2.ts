@@ -36,8 +36,9 @@ export class Router extends AcyclicGraph {
     }
 
 
-    constructor(routes:Tree) {
+    constructor(routes:Routes) {
         super(routes);
+        if(routes) this.routes = routes;
         if(this.routes) this.setTree(this.routes);
     }
 
