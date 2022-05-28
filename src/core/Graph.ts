@@ -764,9 +764,9 @@ export class AcyclicGraph extends BaseProcess {
 
     //converts all children nodes and tag references to Graphs also
     add(node:Graph|GraphProperties|OperatorType|((...args)=>any|void) ={}) {
-        if(typeof node === 'function') { node = {operator:node}}
-        let converted = new Graph(node,undefined,this); 
-        this.nodes.set(converted.tag,converted);
+        let props = node;
+        let converted = new Graph(props,undefined,this); 
+        this.tree[converted.tag] = node; //store the head node prototype in the tree
         return converted;
     }
 

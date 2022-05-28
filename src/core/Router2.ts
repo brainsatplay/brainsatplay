@@ -27,6 +27,9 @@ type Routes = {
 export class Router extends AcyclicGraph {
 
     routes:Routes = {
+        '/':()=>{
+            return this.getTree();
+        },
         'ping':()=>{
             return 'pong';
         },
@@ -35,11 +38,13 @@ export class Router extends AcyclicGraph {
         }
     }
 
-
     constructor(routes:Routes) {
         super(routes);
         if(routes) this.routes = routes;
-        if(this.routes) this.setTree(this.routes);
+        if(this.routes) {
+            this.tree = this.routes;
+            this.setTree();
+        }
     }
 
     //handle subscriptions
