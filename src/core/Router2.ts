@@ -15,7 +15,11 @@ type Route = {
             ((...args)=>any|void) |
             { aliases:string[] & GraphProperties } |
             {
-                get?:{},
+                route:string,
+                get?:{
+                    object:any,
+                    transform:(any,...args)=>any
+                },
                 post?:OperatorType|((...args)=>any|void)
                 operator?:OperatorType|((...args)=>any|void)
                 aliases?:string[]
