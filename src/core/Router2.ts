@@ -13,16 +13,15 @@ type Route = {
             GraphProperties |
             OperatorType |
             ((...args)=>any|void) |
-            { aliases:string[] & GraphProperties } |
+            { aliases:string[] } & GraphProperties |
             {
                 get?:{
                     object:any,
-                    transform:(any,...args)=>any
+                    transform:(...args)=>any
                 },
                 post?:OperatorType|((...args)=>any|void)
-                operator?:OperatorType|((...args)=>any|void)
-                aliases?:string[]
-            }
+                aliases?:string[] 
+            } & GraphProperties
 }
 
 export class Router extends AcyclicGraph {
