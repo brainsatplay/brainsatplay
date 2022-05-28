@@ -7,7 +7,7 @@ import { AcyclicGraph, Graph, GraphProperties, OperatorType, Tree } from "./Grap
  * 
  */
 
-type Route = {
+type Routes = {
     [key:string]:
             Graph |
             GraphProperties |
@@ -26,7 +26,7 @@ type Route = {
 
 export class Router extends AcyclicGraph {
 
-    routes:Tree = {
+    routes:Routes = {
         'ping':()=>{
             return 'pong';
         },
