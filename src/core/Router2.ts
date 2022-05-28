@@ -12,7 +12,9 @@ export class Router extends AcyclicGraph {
         'ping':()=>{
             return 'pong';
         },
-        'echo':()=>{}
+        'echo':(...args)=>{
+            return args;
+        }
     }
 
     constructor(routes:Tree) {
