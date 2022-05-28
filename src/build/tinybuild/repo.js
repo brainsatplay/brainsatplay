@@ -390,7 +390,16 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     let htmlPath = process.cwd()+'/index.html'
 
     let entryFile = 'index.js';
-    let needPackage = !fs.existsSync(packagePath)
+
+    let outfile = 'dist/index';
+    if(tinybuildCfg.bundler?.outfile) {
+        outfile = tinybuildCfg.bundler.outfile;
+    } else if(tinybuildCfg.bundler?.outdir) {
+        outfile = tinybuildCfg.bundler.outdir[0];
+    }
+
+    let needPackage = !fs.existsSync(packagePath);
+
     let needHTML = true;
     let needEntry = true;
     if(tinybuildCfg.server?.startpage) {
@@ -466,7 +475,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     <head>
     </head>
     <body>  
-        <script src="dist/${path.basename(entryFile,path.extname(entryFile))}.js">
+        <script src="${path.relative(path.join(htmlPath,'../'),path.join(process.cwd(),outfile))}.js">
         </script>
     </body>
 </html>
