@@ -13,7 +13,12 @@ export type OperatorType = ( //can be async
 )=>any|void
 
 export type Tree = {
-    [key:string]:Graph|GraphProperties|OperatorType|((...args)=>any|void)
+    [key:string]:
+        Graph |
+        GraphProperties |
+        OperatorType |
+        ((...args)=>any|void) |
+        { aliases:string[] } & GraphProperties
 }
 
 //properties input on Graph or add, or for children

@@ -9,10 +9,17 @@ import { AcyclicGraph, Graph, GraphProperties, OperatorType, Tree } from "./Grap
 
 type Route = {
     [key:string]:
-            Graph|
-            GraphProperties|
-            OperatorType|
-            ((...args)=>any|void)
+            Graph |
+            GraphProperties |
+            OperatorType |
+            ((...args)=>any|void) |
+            { aliases:string[] & GraphProperties } |
+            {
+                get?:{},
+                post?:OperatorType|((...args)=>any|void)
+                operator?:OperatorType|((...args)=>any|void)
+                aliases?:string[]
+            }
 }
 
 export class Router extends AcyclicGraph {
