@@ -73,6 +73,20 @@ export function getParams(fn: Function) {
   } else return []
 }
 
+//another method
+export function getFnParamNames(fn):string[]{ //https://stackoverflow.com/questions/9091838/get-function-parameter-names-for-interface-purposes
+  var fstr = fn.toString();
+  return fstr.match(/\(.*?\)/)[0].replace(/[()]/gi,'').replace(/\s/gi,'').split(',');
+}
+
+export const getFunctionBody = (methodString) => {
+  return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
+}
+
+export const getFunctionHead = (methodString) => {
+  let startindex = methodString.indexOf(')');
+  return methodString.slice(0, methodString.indexOf('{',startindex) + 1);
+}
 
 export function parseFunctionFromText(method='') {
   //Get the text inside of a function (regular or arrow);

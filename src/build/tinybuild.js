@@ -126,7 +126,7 @@ export async function runTinybuild(args) {
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path))) {
-                await checkBoilerPlate();
+                await checkBoilerPlate(tinybuildCfg);
             }
 
             exec('node '+ tinybuildCfg.path,(err,stdout,stderr) => {});
@@ -136,7 +136,7 @@ export async function runTinybuild(args) {
             //check if python server.py folder exists, copy if not
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild'))) {
                 checkCoreExists();
-                await checkBoilerPlate();
+                await checkBoilerPlate(tinybuildCfg);
             }
 
             let distpath = 'dist/index.js';
@@ -153,7 +153,7 @@ export async function runTinybuild(args) {
             spawn('python',['tinybuild/python/server.py']); //this can exit independently or the node server will send a kill signal
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)))
-                await checkBoilerPlate()
+                await checkBoilerPlate(tinybuildCfg)
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
 
@@ -164,7 +164,7 @@ export async function runTinybuild(args) {
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || !fs.existsSync(path.join(process.cwd(),tinybuildCfg.path)) || !fs.existsSync(path.join(process.cwd(),'tinybuild'))) {
                 checkCoreExists();
                 checkNodeModules();
-                await checkBoilerPlate();
+                await checkBoilerPlate(tinybuildCfg);
             }
 
             SERVER_PROCESS = runAndWatch(tinybuildCfg.path, cmdargs); //runNodemon(tinybuildCfg.path);
@@ -183,7 +183,7 @@ export async function runTinybuild(args) {
 
             if(!fs.existsSync(path.join(process.cwd(),'package.json')) || (!fs.existsSync(path.join(process.cwd(),'tinybuild.config.js')) && !fs.existsSync(path.join(process.cwd(),'tinybuild.js'))))
                 {
-                    await checkBoilerPlate(); //install boilerplate if repo lacks package.json
+                    await checkBoilerPlate(tinybuildCfg); //install boilerplate if repo lacks package.json
                     tinybuildCfg.path = path.join(process.cwd(),'tinybuild.config.js');
                 }
                 //console.log('spawning!!', tinybuildCfg)

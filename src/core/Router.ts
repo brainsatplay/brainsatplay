@@ -755,7 +755,7 @@ export class Router {
 
             // --------------- Graph Support ---------------
             if (this.method === 'process'){
-              if (o.post && !(o.post instanceof Graph)) o.post = new Graph({tag: route, operator: o.post}) // Map to process
+              if (o.post && !(o.post instanceof Graph)) o.post = new Graph({tag: route, operator: o.post as any}) // Map to process
             }
 
             this.ROUTES[route] = Object.assign(o, {route})
