@@ -437,7 +437,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     "keywords": [
         "esbuild"
     ],
-    "author": "Joshua Brewster",
+    "author": "",
     "license": "AGPL-3.0-or-later",
     "dependencies": {
     },
@@ -578,7 +578,7 @@ packager(config);
     "keywords": [
         "esbuild"
     ],
-    "author": "Joshua Brewster",
+    "author": "",
     "license": "AGPL-3.0-or-later",
     "dependencies": {
     },
@@ -654,7 +654,7 @@ packager(config);
     "keywords": [
         "esbuild"
     ],
-    "author": "Joshua Brewster",
+    "author": "",
     "license": "AGPL-3.0-or-later",
     "dependencies": {
     },

@@ -18,12 +18,11 @@ export class PythonClient {
         this.wss = wss;
         if(cfg.python){
 
-        this.url = `wss://${cfg.host}:${cfg.python}`;
-        this.ws = new WebSocket(
-            this.url,
-            {
-                rejectUnauthorized: false
-            });
+            this.url = `wss://${cfg.host}:${cfg.python}`;
+            this.ws = new WebSocket(
+                this.url,
+                {rejectUnauthorized: false}
+            );
 
             this.ws.on('error', (err) => {
                 console.error(err.toString());
