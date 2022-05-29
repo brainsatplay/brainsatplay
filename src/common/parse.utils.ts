@@ -79,6 +79,10 @@ export function getFnParamNames(fn):string[]{ //https://stackoverflow.com/questi
   return fstr.match(/\(.*?\)/)[0].replace(/[()]/gi,'').replace(/\s/gi,'').split(',');
 }
 
+export function isTypedArray(x) { //https://stackoverflow.com/a/40319428
+  return (ArrayBuffer.isView(x) && Object.prototype.toString.call(x) !== "[object DataView]");
+}
+
 export const getFunctionBody = (methodString) => {
   return methodString.replace(/^\W*(function[^{]+\{([\s\S]*)\}|[^=]+=>[^{]*\{([\s\S]*)\}|[^=]+=>(.+))/i, '$2$3$4');
 }
