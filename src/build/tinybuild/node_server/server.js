@@ -64,7 +64,7 @@ function onRequest(request, response, cfg) {
         fs.readFile(requestURL, (error, content) => {
             if (error) {
                 if(error.code == 'ENOENT') { //page not found: 404
-                    fs.readFile(cfg.errpage, (error, content) => {
+                    fs.readFile(cfg.errpage, (er, content) => {
                         response.writeHead(404, { 'Content-Type': 'text/html' }); //set response headers
 
                         
