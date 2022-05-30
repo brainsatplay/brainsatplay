@@ -9,13 +9,13 @@ export const workerPlugin = (config={blobWorkers:true}) => {
     return { //modified from https://github.com/evanw/esbuild/issues/312#issuecomment-698649833
         name:'workerloader',
         setup(builder) {
-            builder.onResolve({ filter: /\.?worker\.|\.Worker\./ }, (args) => {
+            builder.onResolve({ filter: /\b[w|W]orker\.[m|c]?[j|t]s/ }, (args) => {
                 if(args.kind.includes('import') || args.kind.includes('require')){
                     return { path: path.join(args.resolveDir,args.path)};
                 }
             });
     
-            builder.onLoad({ filter: /\.?worker\.|\.Worker\./ },
+            builder.onLoad({ filter: /\b[w|W]orker\.[m|c]?[j|t]s/ },
             async (args) => {
                 let outfile = path.join("dist", path.basename(args.path));
                 try {
