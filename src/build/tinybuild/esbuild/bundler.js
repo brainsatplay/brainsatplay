@@ -192,11 +192,14 @@ export async function bundleBrowser(config) {
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
   if(cfg.outfile) {
-    cfg.outfile += '.js';
+    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.js');
+    cfg.outdir = cfg.outdir.map(v => {
+      if(!cfg.outfile.endsWith('.js')) v += '.js';
+      return v;
+    });
   }
 
   cleanupConfig(cfg);
@@ -321,11 +324,16 @@ export async function bundleESM(config) {
   
   cfg.format = 'esm';
   if(cfg.outfile) {
-    cfg.outfile += '.esm.js';
+    if(!cfg.outfile.endsWith('.esm.js')) cfg.outfile += '.esm.js';
+    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.esm.js');
+    cfg.outdir = cfg.outdir.map(v => {
+      if(!cfg.outfile.endsWith('.esm.js')) v += '.esm.js';
+      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      return v;
+    });
   }
 
   cleanupConfig(cfg);
@@ -359,11 +367,16 @@ export async function bundleNode(config) {
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
   if(cfg.outfile) {
-    cfg.outfile += '.node.js';
+    if(!cfg.outfile.endsWith('.node.js')) v += '.node.js';
+    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.node.js');
+    cfg.outdir = cfg.outdir.map(v => {
+      if(!cfg.outfile.endsWith('.node.js')) v += '.node.js';
+      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      return v;
+    });
   }
 
   cleanupConfig(cfg);
@@ -395,11 +408,11 @@ export async function bundleCommonJS(config) {
   cfg.logLevel = 'error';
   cfg.format = 'cjs';
   if(cfg.outfile) {
-    cfg.outfile += '.cjs';
+    if(!cfg.outfile.endsWith('.cjs')) cfg.outfile += '.cjs';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.cjs');
+    cfg.outdir = cfg.outdir.map(v => {if(!cfg.outfile.endsWith('.cjs')) v += '.cjs'; return v;});
   }
 
   cleanupConfig(cfg);
@@ -431,11 +444,16 @@ export async function bundleTypes(config) {
   cfg.logLevel = 'error';
   cfg.format = 'iife';
   if(cfg.outfile) {
-    cfg.outfile += '.iife.js';
+    if(!cfg.outfile.endsWith('.iife.js')) v += '.iife.js';
+    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => v+'.iife.js');
+    cfg.outdir = cfg.outdir.map(v => {
+      if(!cfg.outfile.endsWith('.iife.js')) v += '.iife.js';
+      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      return v;
+    });
   }
   cfg.plugins = [
     streamingImportsPlugin,
