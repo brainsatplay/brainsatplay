@@ -475,7 +475,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
     <head>
     </head>
     <body>  
-        <script src="${path.relative(path.join(htmlPath,'../'),path.join(process.cwd(),outfile))}.js">
+        <script src="${path.relative(path.join(htmlPath,'../'), path.join(process.cwd(),outfile)).split(path.sep).join('/')}.js">
         </script>
     </body>
 </html>
