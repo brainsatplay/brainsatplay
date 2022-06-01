@@ -324,14 +324,14 @@ export async function bundleESM(config) {
   
   cfg.format = 'esm';
   if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.esm.js')) cfg.outfile += '.esm.js';
-    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.includes('.esm')) cfg.outfile += '.esm';
+    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!cfg.outfile.endsWith('.esm.js')) v += '.esm.js';
-      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      if(!v.includes('.esm')) v += '.esm';
+      if(!v.endsWith('.js')) v += '.js';
       return v;
     });
   }
@@ -367,14 +367,14 @@ export async function bundleNode(config) {
   cfg.logLevel = 'error';
   if(cfg.format) delete cfg.format;
   if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.node.js')) v += '.node.js';
-    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.includes('.node')) cfg.outfile += '.node';
+    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!cfg.outfile.endsWith('.node.js')) v += '.node.js';
-      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      if(!v.includes('.node')) v += '.node';
+      if(!v.endsWith('.js')) v += '.js';
       return v;
     });
   }
@@ -412,7 +412,7 @@ export async function bundleCommonJS(config) {
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
-    cfg.outdir = cfg.outdir.map(v => {if(!cfg.outfile.endsWith('.cjs')) v += '.cjs'; return v;});
+    cfg.outdir = cfg.outdir.map(v => {if(!v.endsWith('.cjs')) v += '.cjs'; return v;});
   }
 
   cleanupConfig(cfg);
@@ -444,14 +444,14 @@ export async function bundleTypes(config) {
   cfg.logLevel = 'error';
   cfg.format = 'iife';
   if(cfg.outfile) {
-    if(!cfg.outfile.endsWith('.iife.js')) v += '.iife.js';
-    else if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
+    if(!cfg.outfile.includes('.iife')) cfg.outfile += '.iife';
+    if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
   }
   else if (cfg.outdir) {
     if(cfg.outfile) delete cfg.outfile;
     cfg.outdir = cfg.outdir.map(v => {
-      if(!cfg.outfile.endsWith('.iife.js')) v += '.iife.js';
-      else if(!cfg.outfile.endsWith('.js')) v += '.js';
+      if(!v.includes('.iife')) v += '.iife';
+      if(!v.endsWith('.js')) v += '.js';
       return v;
     });
   }
