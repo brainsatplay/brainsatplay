@@ -189,7 +189,7 @@ export async function bundleBrowser(config) {
       cfg.entryPoints = modifier.entryPoints.map(v => `${cwd}/${v}`);
     }
   }
-  cfg.logLevel = 'error';
+
   if(cfg.format) delete cfg.format;
   if(cfg.outfile) {
     if(!cfg.outfile.endsWith('.js')) cfg.outfile += '.js';
@@ -322,6 +322,7 @@ export async function bundleESM(config) {
     }
   }
   
+  cfg.logLevel = 'error';
   cfg.format = 'esm';
   if(cfg.outfile) {
     if(!cfg.outfile.includes('.esm')) cfg.outfile += '.esm';
