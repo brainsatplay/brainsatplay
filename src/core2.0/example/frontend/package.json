@@ -8,7 +8,7 @@
         "build": "tinybuild build",
         "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
-        "concurrent": "concurrently \"cd ../backend && tinybuild && node server.node.js\" \"tinybuild\"",
+        "concurrent": "concurrently \"cd ../backend && tinybuild && node dist/server.node.js\" \"tinybuild\"",
         "dev": "npm run pip && npm i --save-dev concurrently && npm i --save-dev nodemon && npm run concurrent",
         "startdev": "nodemon --exec \"node tinybuild.js\" -e ejs,js,ts,jsx,tsx,css,html,jpg,png,scss,txt,csv",
         "python": "python python/server.py",
