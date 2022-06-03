@@ -106,7 +106,7 @@ export class UserRouter extends Router {
         if(user.eventsources) {
             for(const path in user.eventsources) {
                 if(!user.eventsources[path].source && !user.eventsources[path].sessions) {
-                    this.run('wss/terminate',path);
+                    this.run('sse/terminate',path);
                 }
             }
         }
