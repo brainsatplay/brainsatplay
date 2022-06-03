@@ -102,6 +102,7 @@ export class WebRTCfrontend extends Service {
         }, 
         host=true
     ) => {
+        if(!options.id) options.id = `rtc${Math.floor(Math.random()*1000000000000000)}`
         if(!options.config) options.config = {}
         let rtc = new RTCPeerConnection(options.config);
 
