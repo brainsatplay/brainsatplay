@@ -4,7 +4,7 @@
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "server.node.js",
     "scripts": {
-        "start": "tinybuild",
+        "start": "cd ../frontend && npm start",
         "build": "tinybuild build",
         "serve": "tinybuild serve",
         "init": "node tinybuild/init.js",
