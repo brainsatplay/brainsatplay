@@ -102,7 +102,7 @@ export class HTTPbackend extends Service {
         else
             return this.setupHTTPserver(options, requestListener, onStarted);
     }
-    
+
     //insecure server
     setupHTTPserver = (
         options:ServerProps={
@@ -349,6 +349,7 @@ export class HTTPbackend extends Service {
             args:{request:http.IncomingMessage,response:http.ServerResponse},  //data will be an object containing request, response
             method?:string,
             origin?:string,
+            node?:string, // alt for route
             served?:ServerInfo //server deets
         }
     ) => {
@@ -480,6 +481,9 @@ export class HTTPbackend extends Service {
                         if(message.method) {
                             res = this.handleMethod(message.route, message.method, message.args, message.origin); //these methods are being passed request/response in the data here, post methods will parse the command objects instead while this can be used to get html templates or play with req/res custom callbakcs
                         }
+                        else if (message.node) {
+                            res = this.handleGraphCall(message.node, message.args);
+                        }
                         else res = this.handleServiceMessage(message);
     
                         if(res instanceof Promise) res.then((r) => {
@@ -538,14 +542,18 @@ export class HTTPbackend extends Service {
                         if(body.method) {
                             res = this.handleMethod(route, method, args, origin);
                         }
+                        else if (body.node) {
+                            res = this.handleGraphCall(body.node, body.args, body.origin);
+                        }
                         else res = this.handleServiceMessage({route, args:args, method:method, origin:origin});
                         
-                        if(res instanceof Promise) res.then((r) => {
-                            this.withResult(response,r,message);
-                            if(served.keepState) this.setState({[served.address]:res});
-                            resolve(res);
-                        })
-                        else {
+                        if(res instanceof Promise) {
+                            res.then((r) => {
+                                this.withResult(response,r,message);
+                                if(served.keepState) this.setState({[served.address]:res});
+                                resolve(res);
+                            });
+                        } else {
                             this.withResult(response,res,message);
                             if(served.keepState) this.setState({[served.address]:res});
                             resolve(res);

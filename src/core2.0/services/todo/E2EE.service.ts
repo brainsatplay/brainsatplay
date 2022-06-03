@@ -1,0 +1,1 @@
+//End to end encryption using cryptojs and keygen stuff, should involve webworkers 

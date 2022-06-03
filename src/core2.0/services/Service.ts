@@ -50,6 +50,7 @@ export class Service extends AcyclicGraph {
     firstLoad = true;
     name:string=`service${Math.floor(Math.random()*100000000000000)}`;
     protocol:'http'|'ws'|'sse'|'webrtc'|'osc'|'worker'|'unsafe'|'struct'|string;
+    keepState:boolean = true; //routes that don't trigger the graph on receive can still set state
 
     constructor(routes?:Routes, name?:string) {
         super(undefined,name);
@@ -223,7 +224,13 @@ export class Service extends AcyclicGraph {
                 return this.handleServiceMessage(args[0]);
             } else if ((typeof args[0]?.node === 'string' || args[0].node instanceof Graph)) {
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
-            } else return args; 
+            } else if(this.keepState) {
+                if(args[0].route)
+                    this.setState({[args[0].route]:args[0].args});
+                if(args[0].node)
+                    this.setState({[args[0].node]:args[0].args});
+                return args; 
+            }
         } else return args;
     } 
 
@@ -247,7 +254,12 @@ export class Service extends AcyclicGraph {
                 return this.handleServiceMessage(args[0]);
             } else if ((typeof args[0].node === 'string' || args[0].node instanceof Graph)) {
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
-            } else return args; 
+            } else if(this.keepState) {    
+                if(args[0].route)
+                    this.setState({[args[0].route]:args[0].args});
+                if(args[0].node)
+                    this.setState({[args[0].node]:args[0].args});
+            }
         } else return args;
     }//these are fairly identical on the base template plus json parsing on the receive end
 
