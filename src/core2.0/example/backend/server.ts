@@ -105,7 +105,7 @@ router.run(
     //console.log(socketserver);
     //console.log(sseinfo)
 }); //make a default server
-//router.services.http.service.run('setupServer');
+//router.services.http.run('setupServer');
 //router.services.http.setupServer();
 //router.services.http.routes.setupServer();
 //router.routes.['http/setupServer'](); //this the original function/property object, it won't set state.
