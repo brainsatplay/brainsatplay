@@ -1,0 +1,1 @@
+//sessions just route to shared game data objects that have various options
