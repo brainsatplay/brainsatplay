@@ -77,7 +77,7 @@ export function runOnChange(
                 }
             }
 
-            if(a.includes('watchext')) { //watchext='../../otherlibraryfolder'
+            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -191,7 +191,7 @@ export function runAndWatch(
                 }
             }
 
-            if(a.includes('watchext')) { //watchext='../../otherlibraryfolder'
+            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -876,6 +876,9 @@ Server arguments:
                     tinybuildCfg.server.watch = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('ignore')) {
+                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                }
+                if(command.includes('extensions')) {
                     tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('python')) {
