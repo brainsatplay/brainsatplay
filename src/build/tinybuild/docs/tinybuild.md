@@ -71,8 +71,8 @@ local command:
 
 tinybuild arguments (applies to packager or tinybuild commands):
 - `start` -- runs the equivalent of `node tinybuild.js` in the current working directory.
-- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified (and URI-encoded if there are spaces) object
-- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and (URI-encoded if there are spaces) object
+- `bundle` -- runs the esbuild bundler, can specify config with `config={"bundler":{}}` via a jsonified object
+- `serve` -- runs the node development server, can specify config with `config={"server":{}}` via a jsonified object and object
 - `mode=python` -- runs the development server as well as python which also serves the dist from a separate port (7000 by default). 
 - `mode=dev` for the dev server mode (used by default if you just type `tinybuild` on boilerplate)
 - `path=custom.js` -- target a custom equivalent tinybuild.js entry file (to run the packager or bundler/server)st` - host name for the server, localhost by default
@@ -97,6 +97,9 @@ Server arguments:
 - `protocol=http` - http or https? You need ssl cert and key to run https
 - `python=7000` - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use `mode=python`
 - `hotreload=5000` - hotreload port for the node server, 5000 by default
+- `watch=../../path/to/other/src` OR `watch=['path/to/src1','src2','.xml']` - watch extra folders and extensions
+- `extensions=xml,3ds` OR `extensions=['xml','3ds']` watch specific extensions for changes
+- `ignore=../../path/to/other/src,path2/src2` OR `ignore=['path/to/src1','../path2/src2']`- ignore files and folders
 - `startpage=index.html` - entry html page for the home '/' page, index.html by default
 - `certpath=tinybuild/node_server/ssl/cert.pem` - cert file for https 
 - `keypath=tinybuild/node_server/ssl/key.pem` - key file for https

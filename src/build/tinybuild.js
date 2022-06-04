@@ -69,13 +69,29 @@ export async function runTinybuild(args) {
     else if (typeof args === 'object') {
         tinybuildCfg = args;
         cmdargs = process.argv;
+        let dupResults = (str) => {
+            if(Array.isArray(tinybuildCfg.server[str])) tinybuildCfg.server[str] = tinybuildCfg.server[str].join(',');
+            let cmdarg, argidx;
+            for(let i = 0; i<cmdargs.length; i++) {
+                if(cmdargs[i].includes(str)) {
+                    cmdarg = cmdargs[i].split('=')[1];
+                    if(cmdarg.includes('[')) cmdarg = JSON.parse(cmdarg);
+                    if(Array.isArray(cmdarg)) cmdarg = cmdarg.join(',');
+                    argidx = i;
+                    break;
+                }
+            }
+            if(cmdarg) {
+                cmdargs[i] = str+'='+tinybuildCfg.server[str]+','+cmdarg;
+            }
+            else cmdargs.push(str+'='+tinybuildCfg.server[str]);
+        }
+        dupResults('watch');
+        dupResults('ignore');
+        dupResults('extensions');
     }
     //check global module path for node_modules folder
 
-    if(tinybuildCfg.server?.watch) {
-        if(typeof tinybuildCfg.server.watch === 'string') cmdargs.push('watch='+tinybuildCfg.server.watch);
-        if(Array.isArray(tinybuildCfg.server.watch)) cmdargs.push('watch='+tinybuildCfg.server.watch.join(','));
-    }
 
     let SERVER_PROCESS;
 
@@ -122,6 +138,7 @@ export async function runTinybuild(args) {
     }
 
     if(cliArgs.mode !== 'help') {
+        process.env.HOTRELOAD = true; //enables the hot reloading port on the tinybuild backend (if port set in settings)
 
         if(tinybuildCfg.start) { //execute the tinybuild.js in the working directory instead of our straight packager.
 

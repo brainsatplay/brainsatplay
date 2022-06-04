@@ -59,22 +59,44 @@ export async function runNodemon(script) {
 //spawns a child process when a change is detected in the working repository, e.g. a one-shot bundler script
 export function runOnChange(
     command, 
-    args=[], 
+    args=process.argv,
     ignore=['dist','temp','package'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls']
 ) { 
 
-    
     let watchPaths = process.cwd();
+    if(args.length > 0) {
+        args.forEach((a)=>{
+       
+            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+                watchPaths = a.split('=')[1];
+                if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+                else {
+                    watchPaths = watchPaths.split(',');
+                    watchPaths = [process.cwd(),...watchPaths];
+                }
+            }
 
-    if(args.includes('watch')) { //watch='../../otherlibraryfolder'
-        watchPaths = watch.split('=')[1];
-        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-        else {
-            watchPaths = watchPaths.split(',');
-            watchPaths = [process.cwd(),...watchPaths];
-        }
+            if(a.includes('watchext')) { //watchext='../../otherlibraryfolder'
+                let extPaths = a.split('=')[1];
+                if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
+                else {
+                    extPaths = extPaths.split(',');
+                    extensions = [...extensions,...watchPaths];
+                }
+            }
+            
+            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+                let ignorePaths = a.split('=')[1];
+                if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
+                else {
+                    ignorePaths = ignorePaths.split(',');
+                    ignore = [...ignore,...ignorePaths];
+                }
+            }
+        })
     }
+
 
     const watcher = chokidar.watch(
         watchPaths,{
@@ -149,22 +171,44 @@ export function runOnChange(
 //run a script and watch the directory for changes then restart the script
 export function runAndWatch(
     script,
-    args=[],
+    args=process.argv,
     ignore=['dist','temp','package'], 
     extensions=['js','ts','css','html','jpg','png','txt','csv','xls'],
     restartDelay=50
 ) {    
-    process.env.HOTRELOAD = true; //enables the hot reloading port
 
     let watchPaths = process.cwd();
 
-    if(args.includes('watch')) { //watch='../../otherlibraryfolder'
-        watchPaths = watch.split('=')[1];
-        if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
-        else {
-            watchPaths = watchPaths.split(',');
-            watchPaths = [process.cwd(),...watchPaths];
-        }
+    if(args.length > 0) {
+        args.forEach((a)=>{
+       
+            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+                watchPaths = a.split('=')[1];
+                if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
+                else {
+                    watchPaths = watchPaths.split(',');
+                    watchPaths = [process.cwd(),...watchPaths];
+                }
+            }
+
+            if(a.includes('watchext')) { //watchext='../../otherlibraryfolder'
+                let extPaths = a.split('=')[1];
+                if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
+                else {
+                    extPaths = extPaths.split(',');
+                    extensions = [...extensions,...watchPaths];
+                }
+            }
+            
+            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+                let ignorePaths = a.split('=')[1];
+                if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
+                else {
+                    ignorePaths = ignorePaths.split(',');
+                    ignore = [...ignore,...ignorePaths];
+                }
+            }
+        })
     }
 
     const watcher = chokidar.watch(
@@ -773,7 +817,9 @@ Server arguments:
 - 'protocol=http' - http or https? You need ssl cert and key to run https
 - 'python=7000' - port for python server so the node server can send a kill signal, 7000 by default. Run the python server concurrently or use 'mode=python'
 - 'hotreload=5000' - hotreload port for the node server, 5000 by default
-- 'watch=../../path/to/other/src' - watch extra folders other than anything under the current working directory
+- 'watch=../../path/to/other/src' OR 'watch=['path/to/src1','src2','.xml']' - watch extra folders and extensions
+- 'extensions=xml,3ds' OR 'extensions=['xml','3ds']' watch specific extensions for changes
+- 'ignore=../../path/to/other/src,path2/src2' OR 'ignore=['path/to/src1','../path2/src2']'- ignore files and folders
 - 'startpage=index.html' - entry html page for the home '/' page, index.html by default
 - 'certpath=tinybuild/node_server/ssl/cert.pem' - cert file for https 
 - 'keypath=tinybuild/node_server/ssl/key.pem' - key file for https
@@ -821,13 +867,16 @@ Server arguments:
                     tinybuildCfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('keypath')) {
-                    tinybuildCfg.server.keypath = command.split('=').pop() //pwa service worker relative path
+                    tinybuildCfg.server.keypath = command.split('=').pop() //https key path
                 }
                 if(command.includes('certpath')) {
-                    tinybuildCfg.server.certpath = command.split('=').pop() //pwa service worker relative path
+                    tinybuildCfg.server.certpath = command.split('=').pop() //https cert path 
                 }
                 if(command.includes('watch')) {
                     tinybuildCfg.server.watch = command.split('=').pop() //pwa service worker relative path
+                }
+                if(command.includes('ignore')) {
+                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('python')) {
                     tinybuildCfg.server.python = command.split('=').pop() //python port

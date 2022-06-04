@@ -30,8 +30,6 @@ class SessionsService extends Service {
     constructor(Router, userinfo={_id:'user'+Math.floor(Math.random()*10000000000)}, running=true) {
         super(Router)
 
-
-
 		this.user = userinfo;
 		
 		this.services.stream = new StreamService(userinfo);
