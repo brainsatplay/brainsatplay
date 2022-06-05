@@ -162,7 +162,7 @@ export class Graph {
     runSync = false;
     firstRun = true;
 
-    [x:string]: any; // any additional attribute
+    [key:string]: any; // any additional attribute
 
     constructor(
         properties:GraphProperties|OperatorType|((...args)=>any|void)={}, 
@@ -326,14 +326,14 @@ export class Graph {
                     return new Promise (async (r) => {
                         tick++;
                         let res = await node.runOp(node, origin, ...input); //executes the operator on the node in the flow logic
-                        if(typeof node.repeat === 'number') {
+                        if(node.repeat) {
                             while(tick < node.repeat) {
                                 if(node.delay) {
                                     setTimeout(async ()=>{
                                         r(await run(node,tick, ...input));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
+                                } else if (node.frame && window?.requestAnimationFrame) {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...input));
                                     });
@@ -346,7 +346,7 @@ export class Graph {
                                 r(res);
                                 return;
                             }
-                        } else if(typeof node.recursive === 'number') {
+                        } else if(node.recursive) {
                             
                             while(tick < node.recursive) {
                                 if(node.delay) {
@@ -354,7 +354,7 @@ export class Graph {
                                         r(await run(node,tick, ...res));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
+                                } else if (node.frame && window?.requestAnimationFrame) {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...res));
                                     });
@@ -374,20 +374,9 @@ export class Graph {
                     });
                 }
     
-    
                 let runnode = async () => {
     
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
-                    
-                    //can add an animationFrame coroutine, one per node //because why not
-                    if(node.animate && !node.isAnimating) {
-                        node.runAnimation(node.animation,args,node,origin);
-                    }
-    
-                    //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
-                    if(typeof node.loop === 'number' && !node.isLooping) {
-                        node.runLoop(node.looper,args,node,origin);
-                    }
     
                     if(node.backward && node.parent) {
                         await node.parent._run(node.parent, this, res);
@@ -408,7 +397,7 @@ export class Graph {
                     setTimeout(async ()=>{
                         resolve(await runnode());
                     },node.delay);
-                } else if (node.frame && typeof requestAnimationFrame !== 'undefined') {
+                } else if (node.frame && window?.requestAnimationFrame) {
                     requestAnimationFrame(async ()=>{
                         resolve(await runnode());
                     });
@@ -443,7 +432,7 @@ export class Graph {
                     if(result instanceof Promise) {
                         result = await result;
                     }
-                    if(typeof result !== 'undefined') {
+                    if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent) {
                             await node.parent._run(node.parent, this, result);
@@ -456,6 +445,7 @@ export class Graph {
                             }
                             else await node.children._run(node.children, this, result);
                         }
+                        this.setState({[node.tag]:result});
                     }
                     requestAnimationFrame(anim);
                 }
@@ -468,12 +458,13 @@ export class Graph {
         loop:OperatorType=this.looper, 
         args=[], 
         node:Graph&GraphProperties|any=this, 
-        origin:string|Graph|AcyclicGraph
+        origin:string|Graph|AcyclicGraph,
+        timeout:number=node.loop
     ) => {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
         this.looper = loop;
         if(!loop) this.looper = this.operator;
-        if(typeof node.loop === 'number' && !node.isLooping) {
+        if(typeof timeout === 'number' && !node.isLooping) {
             node.isLooping = true;
             let looping = async () => {
                 if(node.looping)  {
@@ -485,7 +476,7 @@ export class Graph {
                     if(result instanceof Promise) {
                         result = await result;
                     }
-                    if(typeof result !== 'undefined') {
+                    if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
                             await node.parent._run(node.parent, this,  result);
@@ -498,10 +489,12 @@ export class Graph {
                             }
                             else await node.children._run(node.children, this, result);
                         }
+                        this.setState({[node.tag]:result});
                     }
-                    setTimeout(async ()=>{await looping();},node.loop);
+                    setTimeout(async ()=>{ await looping(); }, timeout);
                 }
             }
+            looping(); // -.-
         }
     }
     
@@ -808,13 +801,16 @@ export class Graph {
 
 // Macro set for Graphs
 export class AcyclicGraph {
+
     nNodes = 0
     tag:string;
     nodes = new Map();
     state=state;
 
     //can create preset node trees on the graph
-    tree:Tree = {}
+    tree:Tree = {};
+
+    [key:string]:any;
 
     constructor( tree:Tree, tag:string ) {
         this.tag = tag ? tag : `graph${Math.floor(Math.random()*100000000000)}`;
@@ -1032,9 +1028,9 @@ export const stringifyWithCircularRefs = (function() {
     const path = ["this"];
 
     function clear() {
-    refs.clear();
-    parents.length = 0;
-    path.length = 1;
+        refs.clear();
+        parents.length = 0;
+        path.length = 1;
     }
 
     function updateParents(key, value) {

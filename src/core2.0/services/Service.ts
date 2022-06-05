@@ -38,7 +38,8 @@ export type ServiceMessage = {
     args?:any, //route args or data depending on what we're handling
     method?:string, //can specify get, post, etc. on http requests or on multiplexed routes using the RouteProp format
     node?:string|Graph, //alt tag for routes
-    origin?:string|Graph|AcyclicGraph|Service
+    origin?:string|Graph|AcyclicGraph|Service,
+    [key:string]:any //it's an object so do whatever, any messages meant for web protocols need to be stringified or buffered
 }
 
 
@@ -267,6 +268,7 @@ export class Service extends AcyclicGraph {
     pipe = (
         source:Graph|string, 
         destination:string, 
+        endpoint?:string|any, //the address or websocket etc. of the endpoint on the service we're using, this is different e.g. for sockets or http
         origin?:string, 
         method?:string, 
         callback?:(res:any)=>any|void
@@ -275,12 +277,12 @@ export class Service extends AcyclicGraph {
             if(callback) return source.subscribe((res)=>{
                 let mod = callback(res); //either a modifier or a void function to do a thing before transmitting the data
                 if(typeof mod !== 'undefined') this.transmit({route:destination, args:mod, origin, method});
-                else this.transmit({route:destination, args:res, origin, method});
+                else this.transmit({route:destination, args:res, origin, method},endpoint);
             })
-            else return this.subscribe(source,(res)=>{ this.transmit({route:destination, args:res, origin, method}); });
+            else return this.subscribe(source,(res)=>{ this.transmit({route:destination, args:res, origin, method},endpoint); });
         }
         else if(typeof source === 'string') return this.subscribe(source,(res)=>{ 
-            this.transmit({route:destination, args:res, origin, method}); 
+            this.transmit({route:destination, args:res, origin, method},endpoint); 
         });
     }
 

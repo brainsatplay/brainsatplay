@@ -25,9 +25,15 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     state = this.service.state;
 
+    routes:Routes = {}
     services:{[key:string]:Service} = {};
 
+    [key:string]:any;
+
     constructor(services:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
+        if(this.routes) 
+            if(Object.keys(this.routes).length > 0)
+                this.load(this.routes);
         if(Array.isArray(services)){
             services.forEach(s => this.load(s));
         }
@@ -51,7 +57,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     }
 
     load = (service:Service|Routes|any) => { //load a service class instance or service prototoype class
-        if(!(service instanceof Service) && (service as any)?.name)    
+        if(!(service instanceof Service) && typeof service === 'function')    //class
         {   
             service = new service(undefined, service.name); //we can instantiate a class)
             service.load();
@@ -89,17 +95,143 @@ export class Router { //instead of extending acyclicgraph or service again we ar
                 return this.subscribe(source,(res) => {
                     let mod = callback(res);
                     if(mod) res = mod;
-                    radio.transmit({route:destination,args:res,origin,method});
+                    radio.transmit(
+                        {route:destination,args:res,origin,method}
+                    );
                 });
 
             }
             else return this.subscribe(source,(res) => {
                 radio.transmit({route:destination,args:res,origin,method});
             });
+        } else { //search every service connection for a matching path
+            let endpoint = this.getEndpointInfo(transmitter);
+            if(endpoint) { 
+                this.services[endpoint.service].pipe(source,destination,transmitter,origin,method,callback);
+            }
+        }
+    }
+
+    //get endpoint info e.g. a socket server or sse object based on the address it's stored as
+    getEndpointInfo = (
+        path:string,
+        service?:string
+    ) => {
+        if(!path) return undefined;
+
+        let testpath = (path:string,service:string) => {
+            if(this.services[service]) {
+                if(this.services[service].servers?.[path]) {
+                    return this.services[service].servers[path];
+                }
+                else if(this.services[service].sockets?.[path]) {
+                    return this.services[service].sockets[path];
+                }
+                else if(this.services[service].eventsources?.[path]) {
+                    return this.services[service].eventsources[path];
+                }
+                else if(this.services[service].rtc?.[path]) {
+                    return this.services[service].rtc[path];
+                }
+                else if(this.services[service].workers?.[path]) {
+                    return this.services[service].workers[path];
+                } 
+            }
+             
+            return undefined;
+        }
+        
+        if(service) {
+            let found = testpath(path,service);
+            if(found) 
+                return {
+                    endpoint:found,
+                    service
+                };
+        } 
+        for(const s in this.services) {
+            let found = testpath(path,s);
+            if(found) 
+                return {
+                    endpoint:found,
+                    service:s
+                };
+        }
+        
+        return undefined;
+    }
+
+    //  We only really want this function for users trying to communicate 
+    //    to a single endpoint where we want the fastest possible  
+    pipeFastest = (
+        source:string|Graph, 
+        destination:string, 
+        origin?:string, 
+        method?:string, 
+        callback?:(res:any)=>any|void,
+        services=this.services //can choose from selected services
+    ) => {
+        for(const service in services) {          
+            if(services[service].rtc) {
+               return this.pipe(source,destination,'webrtc',origin,method,callback);
+            }
+            if(services[service].eventsources) {
+                let keys = Object.keys(services[service].eventsources);
+                if(keys[0])
+                    if(this.services[service].eventsources[keys[0]].sessions)
+                        return this.pipe(source,destination,'sse',origin,method,callback);
+            }
+            if(services[service].sockets) {
+                return this.pipe(source,destination,'wss',origin,method,callback);
+            }
+            if(services[service].servers) {
+                return this.pipe(source,destination,'http',origin,method,callback);
+            }
+            if(services[service].workers) { //workers aren't remote but whatever it's in here 
+                return this.pipe(source,destination,'worker',origin,method,callback);
+            }
         }
     }
     
-    receive = (message:any|ServiceMessage, service:Protocol|string, ...args) => {
+    //get the first remote endpoint that exists on this router in order of fastest. 
+    //  We only really want this function for users trying to communicate 
+    //    to a single endpoint where we want the fastest possible  
+    getFirstRemoteEndpoint = (
+        services=this.services
+    ) => { 
+        let serviceInfo:any;
+
+        for(const service in services) {          
+            if(services[service].rtc) {
+                serviceInfo = services[service].rtc;
+            }
+            if(services[service].eventsources && !serviceInfo) {
+                let keys = Object.keys(services[service].eventsources);
+                if(keys[0])
+                    if(this.services[service].eventsources[keys[0]]?.sessions)
+                        serviceInfo = services[service].eventsources;
+            }
+            if(services[service].sockets && !serviceInfo) {
+                serviceInfo = services[service].sockets;
+            }
+            if(services[service].servers && !serviceInfo) {
+                serviceInfo = services[service].servers;
+            }
+            if(services[service].workers && !serviceInfo) { //workers aren't remote but whatever it's in here 
+                serviceInfo = services[service].workers;
+            }
+        }
+
+        let keys = Object.keys(serviceInfo);
+        if(keys[0])
+            return serviceInfo[keys[0]];
+    }
+
+    receive = (
+        message:any|ServiceMessage, 
+        service:Protocol|string, 
+        ...args:any[]
+    ) => {
         if(service) for(const key in this.services) {
             if(key === service || this.services[key].name === service) {
                 return this.services[key].receive(message, ...args);
@@ -108,7 +240,11 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         return this.service.receive(message, ...args); //graph call
     }
 
-    transmit = (message:any|ServiceMessage, service:Protocol|string, ...args) => {
+    transmit = (
+        message:any|ServiceMessage, 
+        service:Protocol|string, 
+        ...args:any[]
+    ) => {
         if(service) for(const key in this.services) {
             if(key === service || this.services[key].name === service) {
                 return this.services[key].transmit(message, ...args);

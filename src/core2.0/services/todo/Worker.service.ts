@@ -11,12 +11,4 @@ export class WorkerService extends Service {
         super(routes, name);
     }
 
-
-    transmit = (message:any|ServiceMessage) => {
-
-    }
-
-    receive = () => {
-
-    }
 }

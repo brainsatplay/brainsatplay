@@ -31,7 +31,7 @@ export class WebRTCfrontend extends Service {
 
     name='webrtc'
 
-    rooms:{
+    rtc:{
         [key:string]:any
     } = {}
 
@@ -117,7 +117,7 @@ export class WebRTCfrontend extends Service {
             }
         }
 
-        this.rooms[options.id] = {
+        this.rtc[options.id] = {
             rtc,
             ...options
         };
@@ -135,9 +135,9 @@ export class WebRTCfrontend extends Service {
         }
 
         if(!options.ondatachannel) options.ondatachannel = (ev:RTCDataChannelEvent) => {
-            this.rooms[options.id].channels[ev.channel.label] = ev.channel;
+            this.rtc[options.id].channels[ev.channel.label] = ev.channel;
             ev.channel.onmessage = (mev) => {
-                this.receive(mev.data, ev.channel, this.rooms[options.id]);
+                this.receive(mev.data, ev.channel, this.rtc[options.id]);
             }
         }
 
@@ -153,8 +153,8 @@ export class WebRTCfrontend extends Service {
             return new Promise((res,rej) => {
                 rtc.createOffer(options.offer).then((desc) => {
                     rtc.setLocalDescription(desc).then(()=>{
-                        this.rooms[options.id].description = desc;
-                        res(this.rooms[options.id]); //this is to be transmitted to the user 
+                        this.rtc[options.id].description = desc;
+                        res(this.rtc[options.id]); //this is to be transmitted to the user 
                     });
                 });
             });
@@ -163,41 +163,42 @@ export class WebRTCfrontend extends Service {
             if(options.description) return new Promise((res,rej) => {
                 rtc.setRemoteDescription(options.description).then((desc)=>{
                     rtc.createAnswer(options.answer).then(()=>{
-                        this.rooms[options.id].description = desc;
-                        res(this.rooms[options.id]);
+                        this.rtc[options.id].description = desc;
+                        res(this.rtc[options.id]);
                     });
                 }); //we can now receive data
             });
-            else return this.rooms[options.id];
+            else return this.rtc[options.id];
         }
     }
 
-    addDataChannel = (
-        rtc:RTCPeerConnection, 
-        name:string,
-        options:RTCDataChannelInit = { negotiated: true }
+    addUserMedia = (
+        rtc:RTCPeerConnection,
+        options:MediaStreamConstraints={
+            audio:false,
+            video:{
+                optional:[
+                    {minWidth: 320},
+                    {minWidth: 640},
+                    {minWidth: 1024},
+                    {minWidth: 1280},
+                    {minWidth: 1920},
+                    {minWidth: 2560},
+                  ]
+            } as MediaTrackConstraints
+        }
     ) => {
-        return rtc.createDataChannel(name,options);
-    }
-
-    //send data on a data channel
-    transmit = (data:ServiceMessage|any, channel:string|RTCDataChannel, id?:string ) => {
-        if(typeof data === 'object' || typeof data === 'number') 
-            data = JSON.stringify(data); //we need strings
-        
-        if(typeof channel === 'string')  {
-            if(id) {
-                channel = this.rooms[id].channels[channel] as RTCDataChannel;
-            } else { //send on all channels on all rooms
-                for(const id in this.rooms) {
-                    if(this.rooms[id].channels[channel] instanceof RTCDataChannel)
-                        this.rooms[id].channels[channel].send(data);
-                }
+        let senders = [];
+        navigator.mediaDevices.getUserMedia(options)
+            .then((stream) => {
+                let tracks = stream.getTracks()
+                tracks.forEach((track) => {
+                    senders.push(rtc.addTrack(track,stream));
+                });
             }
-        }
+        )
 
-        if(channel instanceof RTCDataChannel)
-            channel.send(data);
+        return senders;
     }
 
     //add media streams to the dat channel
@@ -206,11 +207,49 @@ export class WebRTCfrontend extends Service {
         return true;
     }
 
+    removeTrack = (rtc:RTCPeerConnection,sender:RTCRtpSender) => {
+        rtc.removeTrack(sender); //e.g. remove the senders removed by addUserMedia
+    }
+
+    addDataChannel = ( //send arbitrary strings
+        rtc:RTCPeerConnection, 
+        name:string,
+        options:RTCDataChannelInit = { negotiated: true }
+    ) => {
+        return rtc.createDataChannel(name,options);
+    }
+
+    //send data on a data channel
+    transmit = (data:ServiceMessage|any, channel?:string|RTCDataChannel, id?:string ) => {
+        if(typeof data === 'object' || typeof data === 'number') 
+            data = JSON.stringify(data); //we need strings
+        
+        if(!channel) { //select first channel
+            let keys = Object.keys(this.rtc[id].channels)[0];
+            if(keys[0])
+                channel = this.rtc[id].channels[keys[0]];
+        }
+
+        if(typeof channel === 'string')  {
+            if(id) {
+                channel = this.rtc[id].channels[channel] as RTCDataChannel;
+            } else { //send on all channels on all rooms
+                for(const id in this.rtc) {
+                    if(this.rtc[id].channels[channel] instanceof RTCDataChannel)
+                        this.rtc[id].channels[channel].send(data);
+                }
+            }
+        }
+
+        if(channel instanceof RTCDataChannel)
+            channel.send(data);
+    }
+
     //close a channel
     terminate = (rtc:RTCPeerConnection|WebRTCInfo|string) => {
         if(typeof rtc === 'string') {
-            let room = this.rooms[rtc];
-            delete this.rooms[rtc];
+            let room = this.rtc[rtc];
+            delete this.rtc[rtc];
             if(room) rtc = room.rtc;
         }
         else if (typeof rtc === 'object') rtc = (rtc as WebRTCInfo).rtc;
@@ -226,8 +265,10 @@ export class WebRTCfrontend extends Service {
         },
         openRTC:this.openRTC,
         createStream:this.createStream,
-        addDataChannel:this.addDataChannel,
-        addTrack:this.addTrack
+        addUserMedia:this.addUserMedia,
+        addTrack:this.addTrack,
+        removeTrack:this.removeTrack,
+        addDataChannel:this.addDataChannel
     }
 
 }

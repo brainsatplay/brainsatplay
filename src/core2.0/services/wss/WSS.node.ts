@@ -14,6 +14,7 @@ export type SocketServerProps = {
     onconnection?:(ws:WebSocket,request:http.IncomingMessage, serverinfo:SocketServerInfo)=>void,
     onconnectionclosed?:(code:number,reason:Buffer,ws:WebSocket, serverinfo:SocketServerInfo)=>void,
     onerror?:(err:Error, wss:WebSocketServer, serverinfo:SocketServerInfo)=>void,
+    onupgrade?:(ws:WebSocket, serverinfo:SocketServerInfo, request:http.IncomingMessage, socket:any, head:Buffer)=>void, //after handleUpgrade is called
     keepState?:boolean,
     [key:string]:any
 }
@@ -50,7 +51,7 @@ export class WSSbackend extends Service {
     debug:boolean=false;
     
     //servers
-    socketservers:{
+    servers:{
         [key:string]:SocketServerInfo
     }={};
 
@@ -88,7 +89,7 @@ export class WSSbackend extends Service {
             address += path;
         }
 
-        this.socketservers[address] = {
+        this.servers[address] = {
             wss,
             clients:{},
             address,
@@ -98,26 +99,26 @@ export class WSSbackend extends Service {
 
         wss.on('connection',(ws,request) => {
             if(this.debug) console.log(`New socket connection on ${address}`);
-            if(options.onconnection) options.onconnection(ws,request,this.socketservers[address]);//can overwrite the default onmesssage response 
+            if(options.onconnection) options.onconnection(ws,request,this.servers[address]);//can overwrite the default onmesssage response 
             
             if(!options.onmessage) options.onmessage = (data) => {  //default onmessage
-                const result = this.receive(data, wss, this.socketservers[address]); 
+                const result = this.receive(data, wss, this.servers[address]); 
                 if(options.keepState) this.setState({[address]:result}); 
             }
 
-            if(options.onmessage) ws.on('message',(data)=>{options.onmessage(data,ws,this.socketservers[address])}) //default onmessage response
+            if(options.onmessage) ws.on('message',(data)=>{options.onmessage(data,ws,this.servers[address])}) //default onmessage response
             if(options.onconnectionclosed) ws.on('close',(code,reason)=>{
-                if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.socketservers[address]);
+                if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.servers[address]);
             });
 
             let clientId = `socket${Math.floor(Math.random()*1000000000000)}`;
 
-            this.socketservers[address].clients[clientId] = ws;
+            this.servers[address].clients[clientId] = ws;
         });
 
         wss.on('error',(err) => {
             if(this.debug) console.log("Socket Error:",err);
-            if(options.onerror) options.onerror(err, wss, this.socketservers[address]);   
+            if(options.onerror) options.onerror(err, wss, this.servers[address]);   
             else console.error(err);
         })
 
@@ -128,9 +129,10 @@ export class WSSbackend extends Service {
             addr += ':'+port;
             addr += request.url.split('?')[0];
 
-            if(addr === address && this.socketservers[addr]) {
-                this.socketservers[addr].wss.handleUpgrade(request,socket,head,(ws) => {
-                    this.socketservers[addr].wss.emit('connection',ws,request);
+            if(addr === address && this.servers[addr]) {
+                this.servers[addr].wss.handleUpgrade(request,socket,head, (ws) => {
+                    if(options.onupgrade) options.onupgrade(ws, this.servers[address], request, socket, head);
+                    this.servers[addr].wss.emit('connection',ws,request);
                 });
             }
         }
@@ -139,11 +141,11 @@ export class WSSbackend extends Service {
 
         wss.on('close',()=> {
             server.removeListener('upgrade',onUpgrade);
-            if(options.onclose) options.onclose(wss, this.socketservers[address]);
+            if(options.onclose) options.onclose(wss, this.servers[address]);
             else console.log(`wss closed: ${address}`);
         })
 
-        return this.socketservers[address];
+        return this.servers[address];
     }
 
     openWS = (
@@ -188,7 +190,7 @@ export class WSSbackend extends Service {
 
         if(!ws) {
             
-            let served = this.socketservers[Object.keys(this.socketservers)[0]];
+            let served = this.servers[Object.keys(this.servers)[0]];
             if(served) ws = served.wss; //select first websocket server to transmit to all clients
             else {//else select first active socket to transmit to one endpoint
                 let s = this.sockets[Object.keys(this.sockets)[0]];
@@ -222,13 +224,13 @@ export class WSSbackend extends Service {
 
     terminate = (ws:WebSocketServer|WebSocket|string) => {
         if(!ws) {
-            let served = this.socketservers[Object.keys(this.socketservers)[0]];
+            let served = this.servers[Object.keys(this.servers)[0]];
             if(served) ws = served.wss; //select first websocket server to transmit to all clients
         }
         else if(typeof ws === 'string') {
-            for(const k in this.socketservers) {
+            for(const k in this.servers) {
                 if(k.includes(ws)) {
-                    ws = this.socketservers[k].wss;
+                    ws = this.servers[k].wss;
                     break;
                 }
             }
@@ -255,17 +257,17 @@ export class WSSbackend extends Service {
         closeWS:this.closeWS,
         terminate:(path:string) => {
             if(path) {
-                for (const address in this.socketservers) {
+                for (const address in this.servers) {
                     if(address.includes(path)) {
-                        this.terminate(this.socketservers[address].wss);
-                        delete this.socketservers[address];
+                        this.terminate(this.servers[address].wss);
+                        delete this.servers[address];
 
                     }
                 }
             } else {
-                path = Object.keys(this.socketservers)[0];
-                this.terminate(this.socketservers[path].wss);
-                delete this.socketservers[path];
+                path = Object.keys(this.servers)[0];
+                this.terminate(this.servers[path].wss);
+                delete this.servers[path];
             }
         }
     }
