@@ -18,11 +18,11 @@ export class E2EEService extends Service {
     }
 
     addKey = (
-        id:string,
+        _id:string,
         key:string,
         method:'aes'|'sha256'|undefined
     ) => {
-        this.keys[id] = {key, method};
+        this.keys[_id] = {key, method};
     }
 
     //cryptojs calls, should be done

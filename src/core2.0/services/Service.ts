@@ -286,6 +286,29 @@ export class Service extends AcyclicGraph {
             });
     }
 
+    //one-shot callback pipe e.g. to return results back through an endpoint
+    pipeOnce = (
+        source:Graph|string, 
+        destination:string, 
+        endpoint?:string|any, //the address or websocket etc. of the endpoint on the service we're using, this is different e.g. for sockets or http
+        origin?:string, 
+        method?:string, 
+        callback?:(res:any)=>any|void
+    ) => {
+        if(source instanceof Graph) {
+            if(callback) return source.state.subscribeTriggerOnce(source.tag,(res)=>{
+                let mod = callback(res); //either a modifier or a void function to do a thing before transmitting the data
+                if(mod !== undefined) this.transmit({route:destination, args:mod, origin, method});
+                else this.transmit({route:destination, args:res, origin, method},endpoint);
+            })
+            else return this.state.subscribeTriggerOnce(source.tag,(res)=>{ this.transmit({route:destination, args:res, origin, method},endpoint); });
+        }
+        else if(typeof source === 'string') 
+            return this.state.subscribeTriggerOnce(source,(res)=>{ 
+                this.transmit({route:destination, args:res, origin, method},endpoint); 
+            });
+    }
+
     terminate = (...args:any) => {
        this.nodes.forEach((n) => {
            n.stopNode(); //stops any loops

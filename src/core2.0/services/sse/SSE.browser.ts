@@ -11,7 +11,7 @@ export type EventSourceProps = {
     }
     evoptions?:boolean|AddEventListenerOptions,
     type?:'eventsource'|string,
-    id?:string,
+    _id?:string,
     keepState?:boolean
 }
 
@@ -58,7 +58,7 @@ export class SSEfrontend extends Service {
                         data = JSON.parse(data); //parse stringified objects
 
                         if(data.route === 'setId') {
-                            sse.id = data.args;
+                            sse._id = data.args;
                             options.events.message = (ev, sse) => { //clear extra logic after id is set
                                 const result = this.receive(ev.data,sse);
                                 if(options.keepState) this.setState({[options.url]:result}); 

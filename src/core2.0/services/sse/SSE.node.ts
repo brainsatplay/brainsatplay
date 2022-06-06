@@ -7,7 +7,7 @@ export type SSEProps = {
     server:http.Server|https.Server,
     path:string,
     channels?:string[],
-    onconnection?:(session:any,sseinfo:any,id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
+    onconnection?:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
     onclose?:(sse:any)=>void,
     onsessionclose:(session:any,sseinfo:any)=>void,
     type:'sse'|string,
@@ -31,7 +31,7 @@ export class SSEbackend extends Service {
     }={}
     
     eventsources:{ //the session instances
-        [key:string]:{ id:string, session:Session<SessionState>, served:SSESessionInfo }
+        [key:string]:{ _id:string, session:Session<SessionState>, served:SSESessionInfo }
     }={}
 
     constructor(routes?:Routes, name?:string) {
@@ -61,22 +61,22 @@ export class SSEbackend extends Service {
         let onRequest = (req:http.IncomingMessage,res:http.ServerResponse) => {
             if(req.method === 'GET' && req.url.includes(path)) {
                 if(this.debug) console.log('SSE Request', path);
-                
+
                 createSession(req,res).then((session) => {
 
                     channel.register(session);
-                    let id = `sse${Math.floor(Math.random()*1000000000000000)}`;
-                    sse.sessions[id] = session;
+                    let _id = `sse${Math.floor(Math.random()*1000000000000000)}`;
+                    sse.sessions[_id] = session;
 
-                    this.eventsources[id] = {
-                        id,
+                    this.eventsources[_id] = {
+                        _id,
                         session,
                         served:sse
                     };
 
-                    session.push(JSON.stringify({route:'setId',args:id})); //associate this user's connection with a server generated id 
+                    session.push(JSON.stringify({route:'setId',args:_id})); //associate this user's connection with a server generated id 
 
-                    if(sse.onconnection) {sse.onconnection(session,sse,id,req,res);}
+                    if(sse.onconnection) {sse.onconnection(session,sse,_id,req,res);}
                 
                 });
             }

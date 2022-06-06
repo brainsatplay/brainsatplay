@@ -11,7 +11,7 @@ export type WebSocketProps = {
     protocol?:'ws'|'wss',
     keepState?:boolean,
     type?:'socket',
-    id?:string,
+    _id?:string,
     [key:string]:any
 }
 
@@ -71,7 +71,7 @@ export class WSSfrontend extends Service {
                         data = JSON.parse(data); //parse stringified objects
 
                         if(data.route === 'setId') {
-                            this.sockets[address].id = data.args;
+                            this.sockets[address]._id = data.args;
                             options.onmessage = (data:any, ws:WebSocket, wsinfo:WebSocketInfo) => { //clear extra logic after id is set
                                 let res = this.receive(data); 
                                 if(options.keepState) this.setState({[address]:res}); 

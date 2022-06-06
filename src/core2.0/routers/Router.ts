@@ -112,6 +112,47 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         }
     }
 
+    //one-shot callback pipe e.g. to return results back through an endpoint
+    pipeOnce = (
+        source:string|Graph, 
+        destination:string, 
+        transmitter?:Protocol|string, 
+        origin?:string, 
+        method?:string, 
+        callback?:(res:any)=>any|void
+    ) => {
+        if(source instanceof Graph) source = source.tag;
+        if(!transmitter && source && destination) {
+            if(callback) return  this.state.subscribeTriggerOnce(source,(res:any) => { 
+                let mod = callback(res);
+                if(mod) res = mod;
+                this.run(destination, res); 
+            }); //local pipe
+            return this.state.subscribeTriggerOnce(source,(res:any) => { this.run(destination, res); }); //local pipe
+        }
+        if(transmitter === 'sockets') transmitter = 'wss';
+        const radio = this.services[transmitter];
+        if(radio) {
+            if(callback) {
+                return this.state.subscribeTriggerOnce(source,(res) => {
+                    let mod = callback(res);
+                    if(mod) res = mod;
+                    radio.transmit(
+                        {route:destination,args:res,origin,method}
+                    );
+                });
+
+            }
+            else return this.state.subscribeTriggerOnce(source,(res) => {
+                radio.transmit({route:destination,args:res,origin,method});
+            });
+        } else { //search every service connection for a matching path
+            let endpoint = this.getEndpointInfo(transmitter);
+            if(endpoint) { 
+                this.services[endpoint.service].pipeOnce(source,destination,transmitter,origin,method,callback);
+            }
+        }
+    }
     //get endpoint info e.g. a socket server or sse object based on the address it's stored as
     getEndpointInfo = (
         path:string,

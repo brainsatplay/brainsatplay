@@ -119,11 +119,11 @@ export class UserRouter extends Router {
         //pass any connection props and replace them with signaling objects e.g. to set event listeners on messages for this user for these sockets, sse's, rtcs, etc.
         if(connections.sockets && this.services.wss) {
             for(const address in connections.sockets) {
-                if(connections.sockets[address].id) {
+                if(connections.sockets[address]._id) {
                     if(this.services.wss.servers) {
                         for(const addr in this.services.wss.servers) { //check server clients to corroborate frontend/backend connections
                             for(const id in this.services.wss.servers[addr].clients) {
-                                if(id === connections.sockets[address].id) {
+                                if(id === connections.sockets[address]._id) {
                                     connections.sockets[address] = { socket:this.services.wss.servers[addr].clients[id], id, address };
                                     break;
                                 }
@@ -132,7 +132,7 @@ export class UserRouter extends Router {
                     }
                     if(!connections.sockets[address].socket) {
                         for(const s in this.services.wss.sockets) {
-                            if(this.services.wss.sockets[s].id === connections.sockets[address].id) {
+                            if(this.services.wss.sockets[s]._id === connections.sockets[address]._id) {
                                 connections.sockets[address] = this.services.wss.sockets[address];
                                 break;
                             }
@@ -148,9 +148,9 @@ export class UserRouter extends Router {
         }
         if(connections.wss && this.services.wss) {
             for(const address in connections.wss) {
-                if(connections.wss[address].id) {
+                if(connections.wss[address]._id) {
                     for(const s in this.services.wss.servers) {
-                        if(this.services.wss.servers[s].id === connections.server[address].id) {
+                        if(this.services.wss.servers[s]._id === connections.server[address]._id) {
                             connections.wss[address] = this.services.wss.server[address];
                             break;
                         }
@@ -165,9 +165,9 @@ export class UserRouter extends Router {
         }
         if(connections.eventsources && this.services.sse) {
             for(const path in connections.eventsources) {
-                if(connections.eventsources[path].id) {
+                if(connections.eventsources[path]._id) {
                     for(const s in this.services.sse.eventsources) {
-                        if(this.services.sse.eventsources[s].id === connections.eventsources[path].id) {
+                        if(this.services.sse.eventsources[s]._id === connections.eventsources[path]._id) {
                             connections.sse[path] = this.services.sse.eventsources[path];
                             break;
                         }
@@ -214,7 +214,7 @@ export class UserRouter extends Router {
 
     //pass user info and any service connections we want specific to this users. Pass properties of services 
     //   to create fresh connections e.g. with custom callbacks
-    addUser(user:UserProps) { 
+    addUser = async (user:UserProps, timeout=5000) => { 
         if(!user?._id) user._id = `user${Math.floor(Math.random()*1000000000000000)}`;
         user.tag = user._id;
         
@@ -298,7 +298,54 @@ export class UserRouter extends Router {
             
         if(!(user instanceof Graph)) this.users[user._id] = new Graph(user, undefined, this.service);
 
-        return this.users[user._id];
+        //we need to make sure that all of the connections needing IDs have IDs, meaning they've traded with the other ends
+        //then we can call addUser on the other end and the ids will get associated 
+        if(this.user.sockets || this.user.eventsources || this.user.webrtc) {
+            let needsId = [];
+            for(const prop in this.user.sockets) {
+                if(!this.user.sockets[prop]._id) {
+                    needsId.push(this.user.sockets[prop]);
+                }
+            }
+            for(const prop in this.user.eventsources) {
+                if(!this.user.eventsources[prop]._id) {
+                    needsId.push(this.user.eventsources[prop]);
+                }
+            }
+            for(const prop in this.user.webrtc) {
+                if(!this.user.webrtc[prop]._id) {
+                    needsId.push(this.user.webrtc[prop]);
+                }
+            }
+            if(needsId.length > 0) {
+                return await new Promise((res,rej) => {
+
+                    let start = performance.now();
+                    let checker = () => {
+                        let filtered = needsId.filter((n) => {
+                            if(!n._id) return true; //id not returned from server yet
+                        });
+
+                        if(filtered.length > 0) {
+                            if(performance.now() - start > timeout) {
+                                rej(filtered);
+                                return this.users[user._id];
+                            } else {
+                                setTimeout(()=>{
+                                    checker();
+                                },100); //check every 100ms
+                            }
+                        } else {
+                            res(this.users[user._id]);
+                            return this.users[user._id];
+                        }
+                    }
+
+                }).catch((er) => {console.error('Connections timed out:', er); });
+            }
+        }
+        
+        return await this.users[user._id];
     }
 
     //need to close all user connections
@@ -363,6 +410,83 @@ export class UserRouter extends Router {
         return user;
     }
 
+            
+    getConnectionInfo = (user:UserProps) => {
+        let connectionInfo:any = {
+            _id:user._id
+        };
+        if(user.sockets) {
+            connectionInfo.sockets = {};
+            for(const prop in user.sockets) {
+                if(user.sockets[prop]._id) connectionInfo.sockets[prop] = { 
+                    _id:user.sockets[prop]._id, 
+                    host:user.sockets[prop].host, 
+                    port:user.sockets[prop].port, 
+                    path:user.sockets[prop].path, 
+                    address:user.sockets[prop].address 
+                }
+            }
+        }
+        if(user.eventsources) {
+            connectionInfo.eventsources = {};
+            for(const prop in user.eventsources) {
+                if(user.eventsources[prop]._id)
+                    connectionInfo.eventsources[prop] = {
+                        _id:user.eventsources[prop]._id,
+                        url:user.eventsources[prop].url
+                    }
+            }
+        }
+        if(user.webrtc) {
+            connectionInfo.webrtc = {};
+            for(const prop in user.webrtc) {
+                if(user.webrtc[prop]._id)
+                    connectionInfo.webrtc[prop] = {
+                        _id:user.webrtc[prop]._id,
+                        icecandidate:user.webrtc[prop].icecandidate
+                    }
+            }
+        }
+        if(user.servers) {
+            connectionInfo.servers = {};
+            for(const prop in user.servers) {
+                if(user.servers[prop].server)
+                    connectionInfo.servers[prop] = {
+                        host:user.servers[prop].host,
+                        port:user.servers[prop].port,
+                        protocol:user.servers[prop].protocol,
+                        address:user.servers[prop].address
+                    }
+            }
+        }
+        if(user.wss) {
+            connectionInfo.wss = {};
+            for(const prop in user.wss) {
+                if(user.wss[prop]._id)
+                    connectionInfo.wss[prop] = {
+                        host:user.wss[prop].host,
+                        port:user.wss[prop].port,
+                        path:user.wss[prop].path,
+                        address:user.wss[prop].address,
+                    }
+            }
+        }
+        if(user.sessions) {
+            connectionInfo.sessions = {};
+            for(const prop in user.sessions) {
+                if(user.sessions[prop]._id)
+                    connectionInfo.sessions[prop] = {
+                        _id:user.sessions[prop]._id,
+                        type:user.sessions[prop].type,
+                        address:user.sessions[prop].address,
+                    }
+            }
+        }
+        return connectionInfo;
+    }
+
+
+
     openPrivateSession = (options:PrivateSessionProps={}, userId?:string) => {
         if(!options._id) {
             options._id = `private${Math.floor(Math.random()*1000000000000000)}`;
@@ -375,7 +499,7 @@ export class UserRouter extends Router {
             if(!options.settings) options.settings = { listener:userId, source:userId, propnames:{latency:true}, admins:{[userId]:true}, ownerId:userId };
             if(!options.settings.listener) options.settings.listener = userId;
             if(!options.settings.source) options.settings.source = userId;
-            this.users[userId].sessions[options.id] = options;
+            this.users[userId].sessions[options._id] = options;
         }
         if(!options.data) options.data = {};
         if(this.sessions.private[options._id]) {
@@ -402,7 +526,7 @@ export class UserRouter extends Router {
             if(!options.settings.users) options.settings.users = {[userId]:true};
             if(!options.settings.admins) options.settings.admins = {[userId]:true};
             if(!options.settings.ownerId) options.settings.ownerId = userId;
-            this.users[userId].sessions[options.id] = options;
+            this.users[userId].sessions[options._id] = options;
         } else if (!options.settings) options.settings = {name:'shared', propnames:{latency:true}, users:{}};
         if(!options.name) options.name = 'shared'; 
         if(!options.data) options.data = { private:{}, shared:{}};
@@ -650,6 +774,7 @@ export class UserRouter extends Router {
         addUser:this.addUser,
         removeUser:this.removeUser,
         updateUser:this.updateUser,
+        getConnectionInfo:this.getConnectionInfo,
         openPrivateSession:this.openPrivateSession,
         openSharedSession:this.openSharedSession,
         joinSession:this.joinSession,

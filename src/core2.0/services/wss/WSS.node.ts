@@ -37,7 +37,7 @@ export type SocketProps = {
     onerror?:(er:Error, ws:WebSocket,wsinfo:SocketProps)=>void,
     protocol?:'ws'|'wss',
     type?:'socket',
-    id?:string,
+    _id?:string,
     keepState?:boolean
 }
 
@@ -183,7 +183,7 @@ export class WSSbackend extends Service {
                         data = JSON.parse(data); //parse stringified objects
 
                         if(data.route === 'setId') {
-                            this.sockets[address].id = data.args;
+                            this.sockets[address]._id = data.args;
                             socket.removeEventListener('message',socketonmessage);
                             socket.on('message', (data:any)=> {
                                 const result = this.receive(data,socket,this.sockets[address]); 

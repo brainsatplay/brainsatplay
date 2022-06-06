@@ -1,7 +1,7 @@
 import { Service, Routes, ServiceMessage } from "../Service";
 
 export type WebRTCProps = {
-    id:string,
+    _id:string,
     origin?:string,
     channels?:{
         [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
@@ -81,7 +81,7 @@ export class WebRTCfrontend extends Service {
 
     openRTC = (
         options:{
-            id:string,
+            _id:string,
             origin?:string,
             channels?:{
                 [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
@@ -102,7 +102,7 @@ export class WebRTCfrontend extends Service {
         }, 
         host=true
     ) => {
-        if(!options.id) options.id = `rtc${Math.floor(Math.random()*1000000000000000)}`
+        if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`
         if(!options.config) options.config = {}
         let rtc = new RTCPeerConnection(options.config);
 
@@ -118,9 +118,9 @@ export class WebRTCfrontend extends Service {
             }
         }
 
-        this.rtc[options.id] = {
+        this.rtc[options._id] = {
             rtc,
-            id:options.id,
+            _id:options._id,
             ...options
         };
 
@@ -128,23 +128,23 @@ export class WebRTCfrontend extends Service {
             let sdpMLineIndex = ev.candidate.sdpMLineIndex;
             let icecandidate = ev.candidate; 
 
-            this.rtc[options.id].icecandidate = icecandidate;
+            this.rtc[options._id].icecandidate = icecandidate;
 
             this.run('webrtcemit',{
                 origin:options.origin,
-                id:options.id,
+                _id:options._id,
                 sdpMLineIndex,
                 icecandidate
             });
         }
 
         if(!options.ondatachannel) options.ondatachannel = (ev:RTCDataChannelEvent) => {
-            this.rtc[options.id].channels[ev.channel.label] = ev.channel;
+            this.rtc[options._id].channels[ev.channel.label] = ev.channel;
             if(!options.ondata)
                 ev.channel.onmessage = (mev) => {
-                    this.receive(mev.data, ev.channel, this.rtc[options.id]);
+                    this.receive(mev.data, ev.channel, this.rtc[options._id]);
                 }
-            else ev.channel.onmessage = (mev) => { options.ondata(mev.data, ev.channel, this.rtc[options.id]); }
+            else ev.channel.onmessage = (mev) => { options.ondata(mev.data, ev.channel, this.rtc[options._id]); }
         }
 
         rtc.ontrack = options.ontrack;
@@ -159,8 +159,8 @@ export class WebRTCfrontend extends Service {
             return new Promise((res,rej) => {
                 rtc.createOffer(options.offer).then((desc) => {
                     rtc.setLocalDescription(desc).then(()=>{
-                        this.rtc[options.id].description = desc;
-                        res(this.rtc[options.id]); //this is to be transmitted to the user 
+                        this.rtc[options._id].description = desc;
+                        res(this.rtc[options._id]); //this is to be transmitted to the user 
                     });
                 });
             });
@@ -169,12 +169,12 @@ export class WebRTCfrontend extends Service {
             if(options.description) return new Promise((res,rej) => {
                 rtc.setRemoteDescription(options.description).then((desc)=>{
                     rtc.createAnswer(options.answer).then(()=>{
-                        this.rtc[options.id].description = desc;
-                        res(this.rtc[options.id]);
+                        this.rtc[options._id].description = desc;
+                        res(this.rtc[options._id]);
                     });
                 }); //we can now receive data
             });
-            else return this.rtc[options.id];
+            else return this.rtc[options._id];
         }
     }
 
@@ -265,7 +265,7 @@ export class WebRTCfrontend extends Service {
 
     routes:Routes = {
         //just echos webrtc info for server subscriptions to grab onto
-        webrtcemit:(info:{id:string,label:number,candidate:string,origin:string}) => {
+        webrtcemit:(info:{_id:string,label:number,candidate:string,origin:string}) => {
             return info;
         },
         openRTC:this.openRTC,
