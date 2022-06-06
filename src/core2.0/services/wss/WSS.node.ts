@@ -291,7 +291,7 @@ export class WSSbackend extends Service {
                 if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
                 if(data.callbackId === callbackId) {
                     ws.removeEventListener('message',onmessage);
-                    res(data);
+                    res(data.args);
                 }
             }
 

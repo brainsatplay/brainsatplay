@@ -273,7 +273,7 @@ export class WebRTCfrontend extends Service {
                 if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
                 if(data.callbackId === callbackId) {
                     channel.removeEventListener('message',onmessage);
-                    res(data);
+                    res(data.args);
                 }
             }
 
