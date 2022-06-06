@@ -89,13 +89,10 @@ export const state = {
     data:{},
     triggers:{},
     setState(updateObj){
-        
         Object.assign(state.data, updateObj);
-
         for (const prop of Object.getOwnPropertyNames(updateObj)) {
             if (state.triggers[prop]) state.triggers[prop].forEach((obj) => obj.onchange(state.data[prop]));
         }
-
         return state.data;
     },
     subscribeTrigger(key,onchange:(res:any)=>void){
@@ -128,7 +125,6 @@ export const state = {
             onchange(value);
             state.unsubscribeTrigger(key,sub);
         }
-
         sub = state.subscribeTrigger(key,changed);
     }
 }

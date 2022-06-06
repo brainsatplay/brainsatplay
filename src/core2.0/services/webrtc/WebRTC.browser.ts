@@ -263,12 +263,39 @@ export class WebRTCfrontend extends Service {
             rtc.close();
     }
 
+    request = (message:ServiceMessage|any, channel:RTCDataChannel, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+        let callbackId = Math.random();
+        let req:any = {route:'runRequest', args:message, callbackId};
+        if(method) req.method = method;
+        if(origin) req.origin = origin;
+        return new Promise((res,rej) => {
+            let onmessage = (data:any) => {
+                if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
+                if(data.callbackId === callbackId) {
+                    channel.removeEventListener('message',onmessage);
+                    res(data);
+                }
+            }
+
+            channel.addEventListener('message',onmessage);
+            channel.send(JSON.stringify(req));
+        })
+    }
+
+    runRequest = (message:any, channel:RTCDataChannel) => { //send result back
+        let res = this.receive(message);
+        res = {args:res, callbackId:message.callbackId};
+        res = JSON.stringify(res);
+        channel.send(res);
+    }
     routes:Routes = {
         //just echos webrtc info for server subscriptions to grab onto
         webrtcemit:(info:{_id:string,label:number,candidate:string,origin:string}) => {
             return info;
         },
         openRTC:this.openRTC,
+        request:this.request,
+        runRequest:this.runRequest,
         createStream:this.createStream,
         addUserMedia:this.addUserMedia,
         addTrack:this.addTrack,

@@ -281,10 +281,38 @@ export class WSSbackend extends Service {
                 ws.close();
     }
 
+    request = (message:ServiceMessage|any, ws:WebSocket, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+        let callbackId = Math.random();
+        let req:any = {route:'runRequest', args:message, callbackId};
+        if(method) req.method = method;
+        if(origin) req.origin = origin;
+        return new Promise((res,rej) => {
+            let onmessage = (data:any) => {
+                if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
+                if(data.callbackId === callbackId) {
+                    ws.removeEventListener('message',onmessage);
+                    res(data);
+                }
+            }
+
+            ws.addEventListener('message',onmessage);
+            ws.send(JSON.stringify(req));
+        })
+    }
+
+    runRequest = (message:any, ws:WebSocket) => { //send result back
+        let res = this.receive(message);
+        res = {args:res, callbackId:message.callbackId};
+        res = JSON.stringify(res);
+        ws.send(res);
+    }
+
     routes:Routes={
         setupWSS:this.setupWSS,
         openWS:this.openWS,
         closeWS:this.closeWS,
+        request:this.request,
+        runRequest:this.runRequest,
         terminate:(path:string) => {
             if(path) {
                 for (const address in this.servers) {
