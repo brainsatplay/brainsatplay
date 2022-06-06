@@ -50,7 +50,6 @@ export class Service extends AcyclicGraph {
     routes:Routes={}
     firstLoad = true;
     name:string=`service${Math.floor(Math.random()*100000000000000)}`;
-    protocol:'http'|'ws'|'sse'|'webrtc'|'osc'|'worker'|'unsafe'|'struct'|string;
     keepState:boolean = true; //routes that don't trigger the graph on receive can still set state
 
     constructor(routes?:Routes, name?:string) {
@@ -152,7 +151,7 @@ export class Service extends AcyclicGraph {
     unload = (routes:Service|Routes|any=this.routes) => { //tries to delete the nodes along with the routes, incl stopping any looping nodes
         if(!routes) return; 
         let service;
-        if(!(routes instanceof Service) && (routes as any)?.name === 'Service') {
+        if(!(routes instanceof Service) && typeof routes === 'function') {
             service = new Service();
             routes = service.routes;
         } //we can instantiate a class and load the routes. Routes should run just fine referencing the classes' internal data structures without those being garbage collected.
@@ -174,12 +173,12 @@ export class Service extends AcyclicGraph {
         origin?:string|Graph|AcyclicGraph|Service
     ) => { //For handling RouteProp or other routes with multiple methods 
         let m = method.toLowerCase(); //lower case is enforced in the route keys
-        if(m === 'get' && typeof ((this.routes[route] as RouteProp)?.get as any)?.transform === 'function') { //make alt formats for specific methods and execute them a certain way
+        if(m === 'get' && ((this.routes[route] as RouteProp)?.get as any)?.transform instanceof Function) { //make alt formats for specific methods and execute them a certain way
             if(Array.isArray(args)) return ((this.routes[route] as RouteProp).get as any).transform(...args);
             else return ((this.routes[route] as RouteProp).get as any).transform(args);
         }
         if(this.routes[route]?.[m]) {
-            if(typeof this.routes[route][m] !== 'function') {
+            if(!(this.routes[route][m] instanceof Function)) {
                 return this.routes[route][m]; //could just be a stored local variable we are returning like a string or object
             }// else if(origin) { return this.routes[route][m](origin,data); }//put origin in first position
             else return this.routes[route][m](args); 
@@ -218,19 +217,18 @@ export class Service extends AcyclicGraph {
     transmit:(...args)=>any|void = (
         ...args:[ServiceMessage|any,...any[]]|any[]
     ) => {
-        if(typeof args[0] === 'object') {
-            if(typeof args[0]?.method === 'string') { //run a route method directly, results not linked to graph
+        if(args[0] instanceof Object) {
+            if(Object.getPrototypeOf(args[0].method) === String.prototype) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
-            } else if(typeof args[0]?.route === 'string') {
+            } else if(Object.getPrototypeOf(args[0].route) === String.prototype) {
                 return this.handleServiceMessage(args[0]);
-            } else if ((typeof args[0]?.node === 'string' || args[0].node instanceof Graph)) {
+            } else if ((Object.getPrototypeOf(args[0].node) === String.prototype || args[0].node instanceof Graph)) {
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
-            } else if(this.keepState) {
+            } else if(this.keepState) {    
                 if(args[0].route)
                     this.setState({[args[0].route]:args[0].args});
                 if(args[0].node)
                     this.setState({[args[0].node]:args[0].args});
-                return args; 
             }
         } else return args;
     } 
@@ -239,21 +237,22 @@ export class Service extends AcyclicGraph {
     receive:(...args)=>any|void = (
         ...args:[ServiceMessage|any,...any[]]|any[] //generalized args for customizing, it looks weird I know
     ) => {
-        if(typeof args[0] === 'string') {
-            if(args[0].includes('{') || args[0].includes('[')) {    
-                if(args[0].includes('\\')) args[0] = args[0].replace(/\\/g,"");
+        if(Object.getPrototypeOf(args[0]) === String.prototype) {
+            let substr = args[0].substring(0,8);
+            if(substr.includes('{') || substr.includes('[')) {    
+                if(substr.includes('\\')) args[0] = args[0].replace(/\\/g,"");
                 if(args[0][0] === '"') { args[0] = args[0].substring(1,args[0].length-1)};
                 //console.log(args[0])
                 args[0] = JSON.parse(args[0]); //parse stringified args
             }
         }
 
-        if(typeof args[0] === 'object') {
-            if(typeof args[0].method === 'string') { //run a route method directly, results not linked to graph
+        if(args[0] instanceof Object) {
+            if(Object.getPrototypeOf(args[0].method) === String.prototype) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
-            } else if(typeof args[0].route === 'string') {
+            } else if(Object.getPrototypeOf(args[0].route) === String.prototype) {
                 return this.handleServiceMessage(args[0]);
-            } else if ((typeof args[0].node === 'string' || args[0].node instanceof Graph)) {
+            } else if ((Object.getPrototypeOf(args[0].node) === String.prototype || args[0].node instanceof Graph)) {
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
             } else if(this.keepState) {    
                 if(args[0].route)
@@ -276,14 +275,15 @@ export class Service extends AcyclicGraph {
         if(source instanceof Graph) {
             if(callback) return source.subscribe((res)=>{
                 let mod = callback(res); //either a modifier or a void function to do a thing before transmitting the data
-                if(typeof mod !== 'undefined') this.transmit({route:destination, args:mod, origin, method});
+                if(mod !== undefined) this.transmit({route:destination, args:mod, origin, method});
                 else this.transmit({route:destination, args:res, origin, method},endpoint);
             })
             else return this.subscribe(source,(res)=>{ this.transmit({route:destination, args:res, origin, method},endpoint); });
         }
-        else if(typeof source === 'string') return this.subscribe(source,(res)=>{ 
-            this.transmit({route:destination, args:res, origin, method},endpoint); 
-        });
+        else if(typeof source === 'string') 
+            return this.subscribe(source,(res)=>{ 
+                this.transmit({route:destination, args:res, origin, method},endpoint); 
+            });
     }
 
     terminate = (...args:any) => {

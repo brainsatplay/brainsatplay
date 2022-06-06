@@ -9,7 +9,10 @@ export type WebSocketProps = {
     onclose?:(ev:any,  ws:WebSocket, wsinfo:WebSocketInfo)=>void,
     onerror?:(ev:any,  ws:WebSocket, wsinfo:WebSocketInfo)=>void
     protocol?:'ws'|'wss',
-    keepState?:boolean
+    keepState?:boolean,
+    type?:'socket',
+    id?:string,
+    [key:string]:any
 }
 
 export type WebSocketInfo = {
@@ -56,14 +59,37 @@ export class WSSfrontend extends Service {
 
         const socket = new WebSocket(address);
 
-        if(!options.onmessage) options.onmessage = (data:string | ArrayBufferLike | Blob | ArrayBufferView, ws:WebSocket, wsinfo:WebSocketInfo) => { 
-            let res = this.receive(data); 
-            if(options.keepState) this.setState({[address]:res}); 
-        } //default onmessage
+        if(!options.onmessage) {
+            options.onmessage = (data:any, ws:WebSocket, wsinfo:WebSocketInfo) => { 
+            
+                if(Object.getPrototypeOf(data) === String.prototype) {
+                    let substr = data.substring(0,8);
+                    if(substr.includes('{') || substr.includes('[')) {    
+                        if(substr.includes('\\')) data = data.replace(/\\/g,"");
+                        if(data[0] === '"') { data = data.substring(1,data.length-1)};
+                        //console.log(message)
+                        data = JSON.parse(data); //parse stringified objects
 
-        if(options.onmessage) socket.addEventListener('message',(ev)=>{
-            options.onmessage(ev.data, socket, this.sockets[address]);
-        });
+                        if(data.route === 'setId') {
+                            this.sockets[address].id = data.args;
+                            options.onmessage = (data:any, ws:WebSocket, wsinfo:WebSocketInfo) => { //clear extra logic after id is set
+                                let res = this.receive(data); 
+                                if(options.keepState) this.setState({[address]:res}); 
+                            }
+                        }
+                    }
+                } 
+                
+                let res = this.receive(data); 
+                if(options.keepState) this.setState({[address]:res}); 
+            } //default onmessage
+        }
+
+        if(options.onmessage) {
+            socket.addEventListener('message',(ev)=>{
+                options.onmessage(ev.data, socket, this.sockets[address]);
+            });
+        }
         if(options.onopen) socket.addEventListener('open',(ev)=>{options.onopen(ev,socket, this.sockets[address]);});
         if(options.onclose) socket.addEventListener('close',(ev)=>{options.onclose(ev,socket, this.sockets[address]);});
         if(options.onerror) socket.addEventListener('error',(ev)=>{options.onerror(ev,socket, this.sockets[address]);});
@@ -71,6 +97,7 @@ export class WSSfrontend extends Service {
         this.sockets[address] = {
             socket,
             address,
+            type:'socket',
             ...options
         };
 

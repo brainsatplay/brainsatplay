@@ -19,6 +19,7 @@ export type ServerProps = {
         }
     },
     protocol?:'http'|'https',
+    type?:'httpserver'|string,
     keepState?:boolean, //setState whenever a route is run? State will be available at the address (same key of the object storing it here)
     [key:string]:any
 }
@@ -129,6 +130,7 @@ export class HTTPbackend extends Service {
 
         const served = {
             server:undefined,
+            type:'httpserver',
             address,
             ...options
         }
@@ -196,6 +198,7 @@ export class HTTPbackend extends Service {
 
         const served = {
             server:undefined,
+            type:'httpserver',
             address:`${host}:${port}`,
             ...options
         }
@@ -239,7 +242,7 @@ export class HTTPbackend extends Service {
 
     transmit = ( //generalized http request. The default will try to post back to the first server in the list
         message:any | ServiceMessage, 
-        options:{
+        options:string|{
             protocol:'http'|'https'|string
             host:string,
             port:number,
@@ -257,6 +260,10 @@ export class HTTPbackend extends Service {
     ) => {
         let input = message;
         if(typeof input === 'object') input = JSON.stringify(input);
+
+        if(typeof options === 'string' && message) return this.post(options,message);
+        else if(typeof options === 'string') return this.get(options);
+        
         if(!options) { //fill a generic post request for the first server if none provided
             let server = this.servers[Object.keys(this.servers)[0]];
             options = {
@@ -511,7 +518,12 @@ export class HTTPbackend extends Service {
                     body = Buffer.concat(body).toString(); //now it's a string
                             
                     if(typeof body === 'string') {
-                        if(body.includes('{') || body.includes('[')) body = JSON.parse(body); //parse stringified args, this is safer in a step
+                        let substr = body.substring(0,8);
+                        if(substr.includes('{') || substr.includes('[')) {
+                            if(substr.includes('\\')) body = body.replace(/\\/g,""); 
+                            if(body[0] === '"') { body = body.substring(1,body.length-1)};
+                            body = JSON.parse(body); //parse stringified args, this is safer in a step
+                        }
                     }
                     
                     let route,method,args,origin;

@@ -148,7 +148,12 @@ export class HTTPfrontend extends Service {
                     let body = xhr.response;
                     
                     if(typeof body === 'string') {
-                        if(body.includes('{') || body.includes('[')) body = JSON.parse(body); //parse stringified args
+                        let substr = body.substring(0,8);
+                        if(substr.includes('{') || substr.includes('[')) {
+                            if(substr.includes('\\')) body = body.replace(/\\/g,"");
+                            if(body[0] === '"') { body = body.substring(1,body.length-1)};
+                            body = JSON.parse(body); //parse stringified args
+                        }
                     }
             
                     if(typeof body?.method === 'string') { //run a route method directly, results not linked to graph
@@ -173,6 +178,7 @@ export class HTTPfrontend extends Service {
             response:Response //original response if we want to cause problems for the site
         )=>{    
             const result = await clone.text();
+            console.log('http listener:', result, clone);
             const returned = this.receive(result);
             this.setState({[response.url]:returned});
         }

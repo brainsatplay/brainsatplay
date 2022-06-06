@@ -3,13 +3,15 @@ import { Service, Routes } from "../Service";
 export type EventSourceProps = {
     url:string,
     events:{
-        message?:(ev:any,sse?:EventSourceInfo)=>void,  //will use this.receive as default
-        open?:(ev:any,sse?:EventSourceInfo)=>void,
-        close?:(ev:any,sse?:EventSourceInfo)=>void,
-        error?:(ev:any,sse?:EventSourceInfo)=>void,
-        [key:string]:(ev:any,sse?:EventSourceInfo)=>void
+        message?:(ev:any,sseinfo?:EventSourceInfo)=>void,  //will use this.receive as default
+        open?:(ev:any,sseinfo?:EventSourceInfo)=>void,
+        close?:(ev:any,sseinfo?:EventSourceInfo)=>void,
+        error?:(ev:any,sseinfo?:EventSourceInfo)=>void,
+        [key:string]:(ev:any,sseinfo?:EventSourceInfo)=>void
     }
     evoptions?:boolean|AddEventListenerOptions,
+    type?:'eventsource'|string,
+    id?:string,
     keepState?:boolean
 }
 
@@ -36,6 +38,7 @@ export class SSEfrontend extends Service {
 
         let sse = {
             source,
+            type:'eventsource',
             ...options
         }
 
@@ -43,6 +46,27 @@ export class SSEfrontend extends Service {
         if(!options.events) options.events = {};
         if(!options.events.message) {
             options.events.message = (ev, sse) => {
+
+                let data = ev.data;
+
+                if(Object.getPrototypeOf(data) === String.prototype) {
+                    let substr = data.substring(0,8);
+                    if(substr.includes('{') || substr.includes('[')) {    
+                        if(substr.includes('\\')) data = data.replace(/\\/g,"");
+                        if(data[0] === '"') { data = data.substring(1,data.length-1)};
+                        //console.log(message)
+                        data = JSON.parse(data); //parse stringified objects
+
+                        if(data.route === 'setId') {
+                            sse.id = data.args;
+                            options.events.message = (ev, sse) => { //clear extra logic after id is set
+                                const result = this.receive(ev.data,sse);
+                                if(options.keepState) this.setState({[options.url]:result}); 
+                            }
+                        }
+                    }
+                } 
+
                 const result = this.receive(ev.data,sse);
                 if(options.keepState) this.setState({[options.url]:result}); 
             }

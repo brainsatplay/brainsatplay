@@ -1,8 +1,7 @@
 import { Graph } from "../Graph";
 import { Routes, Service, ServiceMessage } from '../services/Service';
-
 //should match existing service names, services have matching frontend and backend names as well
-export type Protocol = 'http'|'wss'|'sse'|'webrtc'|'osc'|'worker'|'ble'|'unsafe'|'struct'|'fs'|'lsl'|'hdf5'|'unity'; //??? could make alternates too like express etc. services, everything is pluggable. 
+export type Protocol = 'http'|'wss'|'sse'|'webrtc'|'osc'|'worker'|'ble'|'serial'|'unsafe'|'struct'|'fs'|'lsl'|'hdf5'|'unity'|'e2ee'; //??? could make alternates too like express etc. services, everything is pluggable. 
 
 
 //handle subscriptions
@@ -89,6 +88,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             }); //local pipe
             return this.subscribe(source,(res:any) => { this.run(destination, res); }); //local pipe
         }
+        if(transmitter === 'sockets') transmitter = 'wss';
         const radio = this.services[transmitter];
         if(radio) {
             if(callback) {
@@ -121,7 +121,11 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
         let testpath = (path:string,service:string) => {
             if(this.services[service]) {
-                if(this.services[service].servers?.[path]) {
+                
+                if(this.services[service].rtc?.[path]) {
+                    return this.services[service].rtc[path];
+                }
+                else if(this.services[service].servers?.[path]) {
                     return this.services[service].servers[path];
                 }
                 else if(this.services[service].sockets?.[path]) {
@@ -129,9 +133,6 @@ export class Router { //instead of extending acyclicgraph or service again we ar
                 }
                 else if(this.services[service].eventsources?.[path]) {
                     return this.services[service].eventsources[path];
-                }
-                else if(this.services[service].rtc?.[path]) {
-                    return this.services[service].rtc[path];
                 }
                 else if(this.services[service].workers?.[path]) {
                     return this.services[service].workers[path];

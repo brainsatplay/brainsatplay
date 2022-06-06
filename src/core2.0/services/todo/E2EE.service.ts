@@ -1,5 +1,6 @@
 //End to end encryption using cryptojs and keygen stuff, should involve webworkers 
 
+import { Graph } from "../../Graph";
 import { Service, Routes, ServiceMessage } from "../Service";
 
 //End to end encryption service, this will redirect transmits/receives through an encoder/decoder framework
@@ -25,7 +26,11 @@ export class E2EEService extends Service {
     }
 
     //cryptojs calls, should be done
-    encrypt(message:string,key:string,method?:string) {
+    encrypt(
+        message:string,
+        key:string,
+        method?:string
+    ) {
 
         return message;
     }
@@ -67,6 +72,48 @@ export class E2EEService extends Service {
         }
         return decryptedMessage;
     }
+
+    transmit = (message:ServiceMessage|string,keyId?:string) => {
+        if(!keyId) {
+            keyId = Object.keys(this.keys)[0];
+        }
+        message = this.encryptRoute(message,keyId);
+        return this.handleServiceMessage(message); //??
+    }
+
+    receive = (message:ServiceMessage|string,keyId?:string) => { //decrypt then pass message to typical message handlers
+        if(!keyId) {
+            keyId = Object.keys(this.keys)[0];
+        }
+        message = this.decryptRoute(message,keyId);
+
+        if(typeof message === 'string') {
+            
+            let substr = message.substring(0,8);
+            if(substr.includes('{') || substr.includes('[')) {
+                if(substr.includes('\\')) message = message.replace(/\\/g,""); 
+                if(message[0] === '"') { message = message.substring(1,message.length-1)};
+                //console.log(message)
+                message = JSON.parse(message); //parse stringified args
+            }
+        }
+
+        if(typeof message === 'object') {
+            if(typeof message.method === 'string') { //run a route method directly, results not linked to graph
+                return this.handleMethod(message.route, message.method, message.args);
+            } else if(typeof message.route === 'string') {
+                return this.handleServiceMessage(message);
+            } else if ((typeof message.node === 'string' || message.node instanceof Graph)) {
+                return this.handleGraphCall(message.node, message.args, message.origin);
+            } else if(this.keepState) {    
+                if(message.route)
+                    this.setState({[message.route]:message.args});
+                if(message.node)
+                    this.setState({[message.node]:message.args});
+            }
+        } else return message;
+        
+    } //
     
     routes:Routes={
         encryptRoute:this.encryptRoute,

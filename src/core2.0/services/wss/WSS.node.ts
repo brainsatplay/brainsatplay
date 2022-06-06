@@ -11,11 +11,12 @@ export type SocketServerProps = {
     path:'wss'|'hotreload'|'python'|string,
     onmessage?:(data:any, ws:WebSocket, serverinfo:SocketServerInfo)=>void,
     onclose?:(wss:WebSocketServer, serverinfo:SocketServerInfo)=>void,
-    onconnection?:(ws:WebSocket,request:http.IncomingMessage, serverinfo:SocketServerInfo)=>void,
-    onconnectionclosed?:(code:number,reason:Buffer,ws:WebSocket, serverinfo:SocketServerInfo)=>void,
+    onconnection?:(ws:WebSocket,request:http.IncomingMessage, serverinfo:SocketServerInfo, clientId:string)=>void,
+    onconnectionclosed?:(code:number,reason:Buffer,ws:WebSocket, serverinfo:SocketServerInfo, clientId:string)=>void,
     onerror?:(err:Error, wss:WebSocketServer, serverinfo:SocketServerInfo)=>void,
     onupgrade?:(ws:WebSocket, serverinfo:SocketServerInfo, request:http.IncomingMessage, socket:any, head:Buffer)=>void, //after handleUpgrade is called
     keepState?:boolean,
+    type?:'wss',
     [key:string]:any
 }
 
@@ -35,6 +36,8 @@ export type SocketProps = {
     onclose?:(code:any,reason:any,ws:WebSocket,wsinfo:SocketProps)=>void,
     onerror?:(er:Error, ws:WebSocket,wsinfo:SocketProps)=>void,
     protocol?:'ws'|'wss',
+    type?:'socket',
+    id?:string,
     keepState?:boolean
 }
 
@@ -90,6 +93,7 @@ export class WSSbackend extends Service {
         }
 
         this.servers[address] = {
+            type:'wss',
             wss,
             clients:{},
             address,
@@ -99,21 +103,25 @@ export class WSSbackend extends Service {
 
         wss.on('connection',(ws,request) => {
             if(this.debug) console.log(`New socket connection on ${address}`);
-            if(options.onconnection) options.onconnection(ws,request,this.servers[address]);//can overwrite the default onmesssage response 
+
+            let clientId = `socket${Math.floor(Math.random()*1000000000000)}`;
+            this.servers[address].clients[clientId] = ws;
+
+            ws.send(JSON.stringify({ route:'setId', args:clientId }));
+
+            if(options.onconnection) options.onconnection(ws,request,this.servers[address], clientId);//can overwrite the default onmesssage response 
             
             if(!options.onmessage) options.onmessage = (data) => {  //default onmessage
+
                 const result = this.receive(data, wss, this.servers[address]); 
                 if(options.keepState) this.setState({[address]:result}); 
+    
             }
 
             if(options.onmessage) ws.on('message',(data)=>{options.onmessage(data,ws,this.servers[address])}) //default onmessage response
             if(options.onconnectionclosed) ws.on('close',(code,reason)=>{
-                if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.servers[address]);
+                if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.servers[address], clientId);
             });
-
-            let clientId = `socket${Math.floor(Math.random()*1000000000000)}`;
-
-            this.servers[address].clients[clientId] = ws;
         });
 
         wss.on('error',(err) => {
@@ -162,24 +170,46 @@ export class WSSbackend extends Service {
 
         if(!('keepState' in options)) options.keepState = true;
 
-        if(options.onmessage) socket.on('message',(data)=>{
-            options.onmessage(data,socket,this.sockets[address]);}); 
-        else socket.on('message',(data)=>{ 
-            const result = this.receive(data,socket,this.sockets[address]); 
-            if(options.keepState) this.setState({[address]:result}); 
-        }); //add default callback if none specified
+        if(options.onmessage) socket.on('message',(data)=>{options.onmessage(data,socket,this.sockets[address]);}); 
+        else {
+            let socketonmessage = (data:any)=>{ 
+          
+                if(Object.getPrototypeOf(data) === String.prototype) { //pulling this out of receive to check if setId was called
+                    let substr = data.substring(0,8);
+                    if(substr.includes('{') || substr.includes('[')) {    
+                        if(substr.includes('\\')) data = data.replace(/\\/g,"");
+                        if(data[0] === '"') { data = data.substring(1,data.length-1)};
+                        //console.log(message)
+                        data = JSON.parse(data); //parse stringified objects
+
+                        if(data.route === 'setId') {
+                            this.sockets[address].id = data.args;
+                            socket.removeEventListener('message',socketonmessage);
+                            socket.on('message', (data:any)=> {
+                                const result = this.receive(data,socket,this.sockets[address]); 
+                                if(options.keepState) this.setState({[address]:result}); 
+                            }); //clear this extra logic after id is set
+                        }
+                    }
+                } 
+
+                const result = this.receive(data,socket,this.sockets[address]); 
+                if(options.keepState) this.setState({[address]:result}); 
+            }
+            socket.on('message',socketonmessage); //add default callback if none specified
+        }
         if(options.onopen) socket.on('open',()=>{options.onopen(socket,this.sockets[address]);});
         if(options.onclose) socket.on('close',(code,reason)=>{options.onclose(code,reason,socket,this.sockets[address]);});
         if(options.onerror) socket.on('error',(er)=>{options.onerror(er,socket,this.sockets[address]);});
 
         this.sockets[address] = {
+            type:'socket',
             socket,
             address,
             ...options
         }
 
         return socket;
-
     }
 
     transmit = (

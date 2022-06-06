@@ -1,5 +1,5 @@
 import { Routes, Service, ServiceMessage } from "../Service";
-import {createSession, createChannel} from 'better-sse'; //third party lib. SSEs really just 
+import {createSession, createChannel, Session, SessionState} from 'better-sse'; //third party lib. SSEs really just push notifications to an http endpoint but it's minimal overhead
 import http from 'http'
 import https from 'https'
 
@@ -7,9 +7,10 @@ export type SSEProps = {
     server:http.Server|https.Server,
     path:string,
     channels?:string[],
-    onconnection?:(session:any,sseinfo:any,req:http.IncomingMessage,res:http.ServerResponse)=>void,
+    onconnection?:(session:any,sseinfo:any,id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
     onclose?:(sse:any)=>void,
     onsessionclose:(session:any,sseinfo:any)=>void,
+    type:'sse'|string,
     [key:string]:any
 }
 
@@ -23,8 +24,14 @@ export class SSEbackend extends Service {
 
     name='sse'
     
-    eventsources:{
+    debug=false;
+
+    servers:{
         [key:string]:SSESessionInfo
+    }={}
+    
+    eventsources:{ //the session instances
+        [key:string]:{ id:string, session:Session<SessionState>, served:SSESessionInfo }
     }={}
 
     constructor(routes?:Routes, name?:string) {
@@ -36,29 +43,40 @@ export class SSEbackend extends Service {
         const server = options.server; 
         let path = options.path;
         
-        if(this.eventsources[path]) {
+        if(this.servers[path]) {
             return false;
         }
 
         const channel = createChannel();
         
         let sse = {
+            type:'sse',
             channel,
             sessions:{},
             ...options
-        }
+        } as SSESessionInfo;
         
-        this.eventsources[path] = sse;
+        this.servers[path] = sse;
 
         let onRequest = (req:http.IncomingMessage,res:http.ServerResponse) => {
             if(req.method === 'GET' && req.url.includes(path)) {
-                console.log('SSE Request', path);
+                if(this.debug) console.log('SSE Request', path);
+                
                 createSession(req,res).then((session) => {
 
                     channel.register(session);
-                    sse.sessions[`sse${Math.floor(Math.random()*1000000000000000)}`] = session;
+                    let id = `sse${Math.floor(Math.random()*1000000000000000)}`;
+                    sse.sessions[id] = session;
 
-                    if(sse.onconnection) {sse.onconnection(session,sse,req,res);}
+                    this.eventsources[id] = {
+                        id,
+                        session,
+                        served:sse
+                    };
+
+                    session.push(JSON.stringify({route:'setId',args:id})); //associate this user's connection with a server generated id 
+
+                    if(sse.onconnection) {sse.onconnection(session,sse,id,req,res);}
                 
                 });
             }
@@ -75,7 +93,7 @@ export class SSEbackend extends Service {
         
         const sseListener =  (req:http.IncomingMessage,res:http.ServerResponse) => { 
             if(req.url.indexOf(path) > -1) { //redirect requests to this listener if getting this path
-                if(!this.eventsources[path]) { //removes this listener if not found and returns to the original listener array
+                if(!this.servers[path]) { //removes this listener if not found and returns to the original listener array
                     server.removeListener('request',sseListener);
                     server.addListener('request',otherListeners);
                 }
@@ -102,10 +120,10 @@ export class SSEbackend extends Service {
         if(typeof data === 'object') {
             if(data.route) {
                 if(!path) {
-                    let keys = Object.keys(this.eventsources)
+                    let keys = Object.keys(this.servers)
                     if(keys.length > 0) 
                         {
-                            let evs = this.eventsources[keys[0]];
+                            let evs = this.servers[keys[0]];
                             if(evs.channels.includes(data.route)) {
                                 path = evs.path;
                                 channel = data.route;
@@ -116,10 +134,10 @@ export class SSEbackend extends Service {
                             }
                         }
                     if(!path && data.route) 
-                        if(this.eventsources[data.route]) 
+                        if(this.servers[data.route]) 
                             path = data.route;
                     if(!path && typeof data.origin === 'string') 
-                        if(this.eventsources[data.origin]) 
+                        if(this.servers[data.origin]) 
                             path = data.origin;
                 }
                 
@@ -128,16 +146,16 @@ export class SSEbackend extends Service {
             data = JSON.stringify(data);
         }
 
-        if(!path) path = Object.keys(this.eventsources)[0]; //transmit on default channel
+        if(!path) path = Object.keys(this.servers)[0]; //transmit on default channel
 
         if(path && channel) {
-            this.eventsources[path].channel.broadcast(data, channel); //specific events broadcasted to all sessions on the event source
+            this.servers[path].channel.broadcast(data, channel); // specific events broadcasted to all sessions on the event source
         } else if(path) {
-            let sessions = this.eventsources[path].sessions;
+            let sessions = this.servers[path].sessions;
             for(const s in sessions) {
-                if(sessions[s].isConnected) sessions[s].push(data);//on 'message' event
+                if(sessions[s].isConnected) sessions[s].push(data); // on 'message' event
                 else {
-                    if(this.eventsources[path].onsessionclose) this.eventsources[path].onsessionclose(sessions[s], this.eventsources[path])
+                    if(this.servers[path].onsessionclose) this.servers[path].onsessionclose(sessions[s], this.servers[path])
                     delete sessions[s]; //removed dead sessions
                 }
             }
@@ -147,8 +165,8 @@ export class SSEbackend extends Service {
     //need to make a backend sse listener too
 
     terminate = (path:string|SSEProps) => {
-        if(typeof path === 'object') delete this.eventsources[path.path];
-        else if(typeof path === 'string') delete this.eventsources[path];
+        if(typeof path === 'object') delete this.servers[path.path];
+        else if(typeof path === 'string') delete this.servers[path];
     }
 
     routes:Routes = {

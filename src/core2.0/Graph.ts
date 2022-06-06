@@ -281,7 +281,7 @@ export class Graph {
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
-        if(typeof node === 'string') { //can pass the node tag instead
+        if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
                 let fnd;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);

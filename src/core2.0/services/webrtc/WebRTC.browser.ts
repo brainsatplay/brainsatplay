@@ -96,7 +96,7 @@ export class WebRTCfrontend extends Service {
             onicecandidateerror?:(ev:Event)=>void,
             onnegotiationneeded:(ev:Event)=>void,
             ondatachannel:(ev:RTCDataChannelEvent)=>void,
-            ondata:(ev:MessageEvent<any>, channel:RTCDataChannel, room)=>void,
+            ondata:(ev:MessageEvent<any>, channel:RTCDataChannel, room:WebRTCInfo)=>void,
             onconnectionstatechange:(ev:Event)=>void,
             oniceconnectionstatechange:(ev:Event)=>void
         }, 
@@ -106,6 +106,7 @@ export class WebRTCfrontend extends Service {
         if(!options.config) options.config = {}
         let rtc = new RTCPeerConnection(options.config);
 
+        if(!options.channels) options.channels = { 'data':true }; //need one channel at least for the default service stuff to work
         if(options.channels) {
             for(const channel in options.channels) {
                 if(options.channels[channel] instanceof RTCDataChannel) {
@@ -119,26 +120,31 @@ export class WebRTCfrontend extends Service {
 
         this.rtc[options.id] = {
             rtc,
+            id:options.id,
             ...options
         };
 
         if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
             let sdpMLineIndex = ev.candidate.sdpMLineIndex;
-            let candidate = ev.candidate;
+            let icecandidate = ev.candidate; 
+
+            this.rtc[options.id].icecandidate = icecandidate;
 
             this.run('webrtcemit',{
                 origin:options.origin,
                 id:options.id,
                 sdpMLineIndex,
-                icecandidate:candidate
+                icecandidate
             });
         }
 
         if(!options.ondatachannel) options.ondatachannel = (ev:RTCDataChannelEvent) => {
             this.rtc[options.id].channels[ev.channel.label] = ev.channel;
-            ev.channel.onmessage = (mev) => {
-                this.receive(mev.data, ev.channel, this.rtc[options.id]);
-            }
+            if(!options.ondata)
+                ev.channel.onmessage = (mev) => {
+                    this.receive(mev.data, ev.channel, this.rtc[options.id]);
+                }
+            else ev.channel.onmessage = (mev) => { options.ondata(mev.data, ev.channel, this.rtc[options.id]); }
         }
 
         rtc.ontrack = options.ontrack;
@@ -197,7 +203,6 @@ export class WebRTCfrontend extends Service {
                 });
             }
         )
-
         return senders;
     }
 
