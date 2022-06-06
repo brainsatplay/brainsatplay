@@ -293,6 +293,45 @@ export class UserRouter extends Router {
             }
         }    
 
+        if(!user.request) {
+            user.request = (message:ServiceMessage|any, connection:any, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+                if(!connection) {
+                    for(const prop in this.user.webrtc) {
+                        if(this.user.webrtc[prop].channels.data) {
+                            connection = this.user.webrtc[prop].channelsdata;
+                            break;
+                        } else if (Object.keys(this.user.webrtc[prop].channels).length > 0) {
+                            connection = this.user.webrtc[prop].channels[Object.keys(this.user.webrtc[prop].channels)[0]]
+                            break;
+                        }
+                    }
+                    if(!connection) for(const prop in this.user.sockets) {
+                        if(this.user.sockets[prop].socket) {
+                            this.user.sockets[prop].socket;
+                            break;
+                        }
+                    }
+                }
+                let callbackId = Math.random();
+                let req:any = {route:'runRequest', args:message, callbackId};
+                if(method) req.method = method;
+                if(origin) req.origin = origin;
+                return new Promise((res,rej) => {
+                    let onmessage = (data:any) => {
+                        if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
+                        if(data.callbackId === callbackId) {
+                            connection.removeEventListener('message',onmessage);
+                            res(data.args);
+                        }
+                    }
+
+                    connection.addEventListener('message',onmessage);
+                    connection.send(JSON.stringify(req));
+                })
+            }
+        }
+        
+
         //pass any connection props and replace them with signaling objects e.g. to set event listeners on messages for this user for these sockets, sse's, rtcs, etc.
         this._initConnections(user);
             
