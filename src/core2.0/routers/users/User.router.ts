@@ -1,4 +1,4 @@
-import { Graph, GraphProperties } from "../../Graph";
+import { Graph, GraphProperties, stringifyFast } from "../../Graph";
 import { Protocol, Router } from "../Router";
 import { Routes, Service, ServiceMessage } from "../../services/Service";
 
@@ -11,9 +11,11 @@ export type UserProps = {
     webrtc?:{[key:string]:any},       //webrtc rooms and/or server info
     sessions?:{[key:string]:any},     //game sessions
     sendOn?:Protocol|string|{[key:string]:{[key:string]:any}}, //e.g. user.sendOn.wss['ws://localhost:8080/wss'] should return the connection info object (info in that service)
-    onmessage?:(message:any)=>void,  //when a message comes in from an endpoint assigned to this user
+    onopen?:(connection:any)=>void, 
+    onmessage?:(message:any)=>void,  //when a message comes in from an endpoint assigned to this user   
     onclose?:(connection:any)=>void,               //when a connection belonging to this user closes
     send?:(message:any, channel?:string)=>any,        //send function to determine how to communicate to this user's endpoint(s) from this router instance
+    request?:(message:ServiceMessage|any, connection?:any, origin?:string, method?:string) => Promise<any> //await a server response for a call 
     latency?:number,                 //should calculate other metrics like latency
     [key:string]:any //other user properties e.g. personally identifying information
 } & GraphProperties
@@ -47,7 +49,7 @@ export type SharedSessionProps = {
     settings?:{
         name:string,
         propnames:{[key:string]:boolean},
-        users:{[key:string]:boolean},
+        users?:{[key:string]:boolean},
         host?:string, //if there is a host, all users only receive from the host's prop updates
         hostprops?:{[key:string]:boolean},
         admins?:{[key:string]:boolean},
@@ -98,20 +100,22 @@ export class UserRouter extends Router {
     //just an alias for service._run with clear usage for user Id as origin, you'll need to wire up how responses are handled at the destination based on user id
     runAs = (
         node:string|Graph, 
-        userId:string, 
+        userId:string|UserProps|UserProps & Graph, 
         ...args:any[]
     ) => {
-        return this._run(node,userId,...args);
+        if(userId instanceof Object) userId = (userId as UserProps)._id;
+        return this._run(node,userId as string,...args);
     }
 
     pipeAs = ( //just an alias of service.pipe with clear usage for user Id as origin, you'll need to wire up how responses are handled at the destination based on user id
         source:string | Graph, 
         destination:string, 
         transmitter:Protocol|string, 
-        userId:string,
+        userId:string|UserProps|UserProps & Graph,
         method:string, 
         callback:(res:any)=>any|void
     ) => {
+        if(typeof userId === 'object') userId = userId._id;
         return this.pipe(source, destination, transmitter, userId, method, callback);
     }
 
@@ -226,7 +230,7 @@ export class UserRouter extends Router {
 
         user.operator = user.onmessage; //user.run(...message);
 
-        if(!user.send) { //default send will select first available (fastest) protocol representing the target endpoint, which can be specified with user.sendOn
+        if(!user.send) { //default send will select first available (fastest) protocol representing the target endpoint, which can be specified with connections
             user.send = (message:ServiceMessage|any, channel?:string) => {
                 if(message instanceof Object) message = JSON.stringify(message);
                 //use the fastest available endpoint for the user, swap when no longer available to next possible endpoint
@@ -294,20 +298,20 @@ export class UserRouter extends Router {
         }    
 
         if(!user.request) {
-            user.request = (message:ServiceMessage|any, connection:any, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+            user.request = (message:ServiceMessage|any, connection?:any, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
                 if(!connection) {
-                    for(const prop in this.user.webrtc) {
+                    for(const prop in this.user.sockets) {
+                        if(this.user.sockets[prop].socket) {
+                            this.user.sockets[prop].socket;
+                            break;
+                        }
+                    }
+                    if(!connection) for(const prop in this.user.webrtc) {
                         if(this.user.webrtc[prop].channels.data) {
                             connection = this.user.webrtc[prop].channelsdata;
                             break;
                         } else if (Object.keys(this.user.webrtc[prop].channels).length > 0) {
                             connection = this.user.webrtc[prop].channels[Object.keys(this.user.webrtc[prop].channels)[0]]
-                            break;
-                        }
-                    }
-                    if(!connection) for(const prop in this.user.sockets) {
-                        if(this.user.sockets[prop].socket) {
-                            this.user.sockets[prop].socket;
                             break;
                         }
                     }
@@ -327,7 +331,7 @@ export class UserRouter extends Router {
 
                     connection.addEventListener('message',onmessage);
                     connection.send(JSON.stringify(req));
-                })
+                });
             }
         }
         
@@ -449,8 +453,19 @@ export class UserRouter extends Router {
         return user;
     }
 
+    setUser = (user:string|UserProps & Graph, props:{[key:string]:any}|string) => {
+        if(Object.getPrototypeOf(user) === String.prototype) {
+            user = this.users[user as string];
+            if(!user) return false;
+        }
+        if(Object.getPrototypeOf(props) === String.prototype) {
+            props = JSON.parse(props as string);
+        }
+        Object.assign(user,props);
+        return true;
+    }
             
-    getConnectionInfo = (user:UserProps) => {
+    getConnectionInfo = (user:UserProps|UserProps & Graph) => {
         let connectionInfo:any = {
             _id:user._id
         };
@@ -517,16 +532,44 @@ export class UserRouter extends Router {
                     connectionInfo.sessions[prop] = {
                         _id:user.sessions[prop]._id,
                         type:user.sessions[prop].type,
-                        address:user.sessions[prop].address,
-                    }
+                        users:user.sessions[prop].users
+                    };
             }
         }
         return connectionInfo;
     }
 
+    getSessionInfo = (
+        sessionId?:string, //id or name (on shared sessions)
+        userId?:string|UserProps & Graph
+    ) => {
+        if(userId instanceof Object) userId = (userId as any)._id;
+        if(!sessionId) {
+            return this.settings.shared;
+        }
+        else {
+            if(this.sessions.private[sessionId]) {
+                let s = this.sessions.private[sessionId];
+                if(s.settings.source === userId || s.settings.listener === userId || s.settings.ownerId === userId || s.settings.admins[userId as string] || s.settings.moderators[userId as string])
+                    return {private:{[sessionId]:s}};
+            } else if(this.sessions.shared[sessionId]) {
+                return {shared:{[sessionId]:this.sessions.shared[sessionId]}};
+            } else {
+                let res = {};
+                for(const id in this.sessions.shared) {
+                    if(this.sessions.shared[id].settings.name) //get by name
+                        res[id] = this.sessions.shared.settings;
+                }
+                if(Object.keys(res).length > 0) return res;
+            }
+        }
+    }
 
-
-    openPrivateSession = (options:PrivateSessionProps={}, userId?:string) => {
+    openPrivateSession = (
+        options:PrivateSessionProps={}, 
+        userId?:string|UserProps|UserProps & Graph
+    ) => {
+        if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
             options._id = `private${Math.floor(Math.random()*1000000000000000)}`;
         }          
@@ -544,15 +587,17 @@ export class UserRouter extends Router {
         if(this.sessions.private[options._id]) {
             return this.updateSession(options,userId);
         }
-        else if(options.settings.listener && options.settings.source) this.sessions.private[options._id] = options; //need the bare min in here
+        else if(options.settings.listener && options.settings.source) 
+            this.sessions.private[options._id] = options; //need the bare min in here
 
         return options;
     }
 
     openSharedSession = (
         options:SharedSessionProps, 
-        userId:string
+        userId:string|UserProps|UserProps & Graph
     ) => {
+        if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
             options._id = `shared${Math.floor(Math.random()*1000000000000000)}`;
         }         
@@ -567,9 +612,8 @@ export class UserRouter extends Router {
             if(!options.settings.ownerId) options.settings.ownerId = userId;
             this.users[userId].sessions[options._id] = options;
         } else if (!options.settings) options.settings = {name:'shared', propnames:{latency:true}, users:{}};
-        if(!options.name) options.name = 'shared'; 
+        if(!options.settings.name) options.name = 'shared'; 
         if(!options.data) options.data = { private:{}, shared:{}};
-        
         else this.sessions.shared[options._id] = options;
         
         return options;
@@ -578,8 +622,9 @@ export class UserRouter extends Router {
     //update session properties, also invoke basic permissions checks for who is updating
     updateSession = (
         options:PrivateSessionProps | SharedSessionProps, 
-        userId?:string
+        userId?:string|UserProps|UserProps & Graph
     ) => {
+        if(typeof userId === 'object') userId = userId._id;
         //add permissions checks based on which user ID is submitting the update
         let session:any;
         session = this.sessions.private[options._id];
@@ -598,9 +643,11 @@ export class UserRouter extends Router {
     //add a user id to a session, supply options e.g. to make them a moderator or update properties to be streamed dynamically
     joinSession = (   
         sessionId:string, 
-        userId:string, 
+        userId:string|UserProps|UserProps & Graph, 
         options?:SharedSessionProps|PrivateSessionProps
     ) => {
+        if(typeof userId === 'object') userId = userId._id;
+        if(!userId) return false;
         let sesh = this.sessions.shared[sessionId];
         if(sesh) {
             if(sesh.settings?.banned) {
@@ -619,7 +666,12 @@ export class UserRouter extends Router {
         return false;
     }
 
-    leaveSession = (sessionId:string, userId:string, clear?:boolean) => {
+    leaveSession = (
+        sessionId:string, 
+        userId:string|UserProps|UserProps & Graph, 
+        clear?:boolean //clear all data related to this user incl permissions
+    ) => {
+        if(typeof userId === 'object') userId = userId._id;
         let session:any = this.sessions.private[sessionId];
         if(!session) session = this.sessions.shared[sessionId];
         if(session) {
@@ -659,15 +711,18 @@ export class UserRouter extends Router {
         return undefined;
     }
 
-    swapHost = (session:PrivateSessionProps|SharedSessionProps|string, newHost?:string) => {
+    swapHost = (
+        session:PrivateSessionProps|SharedSessionProps|string, 
+        newHostId?:string
+    ) => {
         if(typeof session === 'string') {
             if(this.sessions.private[session]) session = this.sessions.private[session];
             else if(this.sessions.shared[session]) session = this.sessions.shared[session];
         }
         if(typeof session === 'object') {
             delete session.settings.host;
-            if(newHost) {
-                if(session.settings.users[newHost]) session.settings.host = newHost;
+            if(newHostId) {
+                if(session.settings.users[newHostId]) session.settings.host = newHostId;
             }
             if(session.settings.ownerId && !session.settings.host) {
                 if(session.settings.users[session.settings.ownerId]) session.settings.host = session.settings.ownerId;
@@ -686,7 +741,8 @@ export class UserRouter extends Router {
         return false;
     }
 
-    deleteSession = (sessionId:string, userId:string) => {
+    deleteSession = (sessionId:string, userId:string|UserProps) => {
+        if(typeof userId === 'object') userId = userId._id;
         let session:any = this.sessions.private[sessionId];
         if(!session) session = this.sessions.shared[sessionId];
         if(session) {
@@ -698,6 +754,37 @@ export class UserRouter extends Router {
                 else if(this.sessions.shared[sessionId]) delete this.sessions.private[sessionId]
             }
         }
+    }
+
+    subscribeToSession = (
+        session:SharedSessionProps|PrivateSessionProps|string, 
+        userId:string|UserProps|UserProps & Graph, 
+        onmessage?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void, 
+        onopen?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void,
+        onclose?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void
+    ) => {
+        if(userId instanceof Object) userId = (userId as UserProps)._id;
+        if(typeof session === 'string') {
+            let s = this.sessions.private[session];
+            if(!s) this.sessions.shared[session];
+            if(!s) return undefined;
+            session = s;
+        } 
+        if(session instanceof Object) { //we need to fire onmessage events when the session updates (setState for sessionId) and when the user updates
+
+            if(onmessage) session.onmessage = onmessage;
+            if(onopen) session.onclose = onopen;
+            if(onclose) session.onclose = onclose;
+
+            if(typeof session.onopen === 'function')
+                session.onopen(session, userId);
+
+            if(typeof session.onmessage === 'function') 
+                this.subscribe(session._id,(session)=>{ session.onmessage(session,userId); });
+            
+            this.setState({[session._id]:session});
+        }
+        
     }
 
     //iterate all subscriptions
@@ -722,8 +809,12 @@ export class UserRouter extends Router {
                 break;
             }
             for(const prop in sesh.settings.propnames) {
-                if(this.sessions.private[session].data) {
-                    if(this.users[sesh.source][prop] && (sesh.data[prop] !== this.users[sesh.source][prop] || !(prop in sesh.data))) 
+                if(this.sessions.private[session].data) { 
+                    if(sesh.data[prop] instanceof Object) {
+                        if(this.users[sesh.source][prop] && (stringifyFast(sesh.data[prop]) !== stringifyFast(this.users[sesh.source][prop]) || !(prop in sesh.data))) 
+                            updateObj.data[prop] = this.users[sesh.source][prop];
+                    }
+                    else if(this.users[sesh.source][prop] && (sesh.data[prop] !== this.users[sesh.source][prop] || !(prop in sesh.data))) 
                         updateObj.data[prop] = this.users[sesh.source][prop];
                 }
                 else updateObj.data[prop] = this.users[sesh.source][prop];
@@ -758,6 +849,10 @@ export class UserRouter extends Router {
                         for(const prop in sesh.settings.propnames) {
                             if(!(user in sesh.data.private)) 
                                 privateData[user][prop] = this.users[user][prop];
+                            else if(privateData[user][prop] instanceof Object) {
+                                if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data))) 
+                                    privateData[user][prop] = this.users[sesh.source][prop];
+                            }
                             else if(this.users[user][prop] && sesh.data.private[prop] !== this.users[user][prop]) 
                                 privateData[user][prop] = this.users[user][prop];
                         }
@@ -767,7 +862,11 @@ export class UserRouter extends Router {
                         for(const prop in sesh.settings.hostprops) {
                             if(!(user in sesh.data.shared)) 
                                 sharedData[user][prop] = this.users[user][prop];
-                            else if(this.users[user][prop] && sesh.data.shared[user]?.[prop] !== this.users[user][prop]) 
+                            else if(sharedData[user][prop] instanceof Object) {
+                                if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data))) 
+                                    sharedData[user][prop] = this.users[sesh.source][prop];
+                            }
+                            else if(this.users[user][prop] && sesh.data.shared[user][prop] !== this.users[user][prop]) 
                                 sharedData[user][prop] = this.users[user][prop];
                         }
                     }
@@ -778,12 +877,18 @@ export class UserRouter extends Router {
                 if(Object.keys(sharedData).length > 0) {
                     updateObj.data.shared = sharedData;
                 }
-            } else { //all users receive the update
+            } else { //all users receive the same update when no host set
                 const sharedData = {}; //users receive all other user's props
                 for(const user in sesh.settings.users) {
                     sharedData[user] = {};
                     for(const prop in sesh.settings.propnames) {
-                        if(sesh.data.shared?.[user] !== this.users[user][prop]) sharedData[user][prop] = this.users[user][prop];
+                        if(!sesh.data.shared[user]) sharedData[user][prop] = this.users[user][prop];
+                        else if(sesh.data.shared[user][prop] instanceof Object) {
+                            if(this.users[sesh.source][prop] && (stringifyFast(sesh.data[prop]) !== stringifyFast(this.users[sesh.source][prop]) || !(prop in sesh.data))) 
+                                updateObj.data[prop] = this.users[sesh.source][prop];
+                        }
+                        else if(sesh.data.shared[user][prop] !== this.users[user][prop]) 
+                            sharedData[user][prop] = this.users[user][prop];
                     }
                     if(Object.keys(sharedData[user]).length === 0) delete sharedData[user];
                 }
@@ -807,21 +912,144 @@ export class UserRouter extends Router {
         
     }
 
+    transmitSessionUpdates = (updates:{private:{[key:string]:any},shared:{[key:string]:any}}) => {
+        let users = {};
+        if(updates.private) {
+            for(const s in updates.private) {
+                let session = this.sessions.private[s];
+                if(session) {
+                    let u = session.settings.listener;
+                    if(!users[u]) users[u] = {private:{}};
+                    if(!users[u].private) users[u].private = {};
+                    users[u].private[s] = updates.private[s];
+                }
+            }
+        }
+        if(updates.shared) {
+            for(const s in updates.shared) {
+                let session = this.sessions.shared[s];
+                if(session) {
+                    let usrs = session.settings.users;
+                    let copy;
+                    if(session.settings.host) {
+                        copy = Object.assign({},updates.shared[s]);
+                        delete copy.data.private; 
+                    }
+                    for(const u in usrs) {
+                        if(!users[u]) users[u] = {shared:{}};
+                        if(!users[u].shared) users[u].shared = {};
+                        if(session.settings.host) {
+                            if(u !== session.settings.host) {
+                                users[u].shared[s] = copy;
+                            } else users[u].shared[s] = updates.shared[s];
+                        } 
+                        else users[u].shared[s] = updates.shared[s];
+                    }
+                }
+            }
+        }
+
+        let message = {route:'receiveSessionUpdates', args:null, origin:null}
+        for(const u in users) {
+            message.args = users[u];
+            message.origin = u;
+            if(this.users[u].send) this.users[u].send(JSON.stringify(message));
+        }
+
+        return users;
+    }
+
+    receiveSessionUpdates = (self=this, origin:any, update:{private:{[key:string]:any},shared:{[key:string]:any}}|string) => { //following operator format we get the origin passed
+        if(Object.getPrototypeOf(update) === String.prototype) update = JSON.parse(update as string);
+        
+        if(typeof origin === 'object') origin = origin._id;
+        let user = this.users[origin];
+        if(!user) return undefined;
+        if(!user.sessions) user.sessions = {};
+        Object.assign(user.sessions,update);
+
+        return user;
+    }
+
+    //you either need to run this loop on a session to 
+    // pass updates up to the server from your user manually
+    userUpdateLoop = (user:UserProps & Graph) => {
+        if(user.sessions) {
+            const updateObj = {};
+            for(const key in user.sessions) {
+                let s = user.sessions[key];
+                if(s.settings.users[user._id] || s.settings.source === user._id) {
+                    if(!s.settings.spectators?.[user._id]) {
+                        if(s.settings.host === user._id) {
+                            for(const prop in s.settings.hostprops) {
+                                if(!updateObj[prop]) {
+                                    if(s.data.shared?.[user._id]?.[prop]) {
+                                        if(user[prop] instanceof Object) {
+                                            if(stringifyFast(s.data.shared[user._id][prop]) !== stringifyFast(user[prop]))
+                                                updateObj[prop] = user[prop];
+                                        }
+                                        else if (s.data.shared[user._id][prop] !== user[prop]) updateObj[prop] = user[prop];   
+                                    } else updateObj[prop] = user[prop];
+                                }
+                            }   
+                        } else {
+                            for(const prop in s.settings.propnames) {
+                                if(!updateObj[prop]) {
+                                    if(s.settings.source) {
+                                        if(user[prop] instanceof Object && s.data[prop] !== undefined) {
+                                            if(stringifyFast(s.data[prop]) !== stringifyFast(user[prop]))
+                                                updateObj[prop] = user[prop];
+                                        }
+                                        else if (s.data[prop] !== user[prop]) updateObj[prop] = user[prop];  
+                                    }
+                                    else {
+                                        if(s.data.shared?.[user._id]?.[prop]) { //host only sessions have a little less efficiency in this setup
+                                            if(user[prop] instanceof Object) {
+                                                if(stringifyFast(s.data.shared[user._id][prop]) !== stringifyFast(user[prop]))
+                                                    updateObj[prop] = user[prop];
+                                            }
+                                            else if (s.data.shared[user._id][prop] !== user[prop]) updateObj[prop] = user[prop];
+                                        } else updateObj[prop] = user[prop];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(Object.keys(updateObj).length > 0) {
+                if(user.send) user.send({ route:'setUser', args:updateObj, origin:user._id });
+                return updateObj;
+            } 
+        }
+        return undefined; //state won't trigger if returning undefined on the loop
+    }
+
     routes:Routes = {
         runAs:this.runAs,
         pipeAs:this.pipeAs,
         addUser:this.addUser,
+        setUser:(self,origin,update)=>{this.setUser(origin,update);},
         removeUser:this.removeUser,
         updateUser:this.updateUser,
         getConnectionInfo:this.getConnectionInfo,
+        getSessionInfo:this.getSessionInfo,
         openPrivateSession:this.openPrivateSession,
         openSharedSession:this.openSharedSession,
         joinSession:this.joinSession,
         leaveSession:this.leaveSession,
+        subscribeToSession:this.subscribeToSession,
+        transmitSessionUpdates:this.transmitSessionUpdates,
+        receiveSessionUpdates:this.receiveSessionUpdates,
         swapHost:this.swapHost,
+        userUpdateLoop:{ //this node loop will run separately from the one below it
+            operator:this.userUpdateLoop, 
+            loop:10//this will set state each iteration so we can trigger subscriptions on session updates :O
+        },
         sessionLoop:{
-            operator:this.sessionLoop, //this will set state each iteration so we can trigger subscriptions on session updates :O
-            loop:10
+            operator:this.sessionLoop, 
+            loop:10//this will set state each iteration so we can trigger subscriptions on session updates :O
         }
     }
     //todo: add listeners to each connection type to register user connections, add routes for utils like adding mods or banning etc.

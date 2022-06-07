@@ -454,7 +454,7 @@ export class Graph {
         loop:OperatorType=this.looper, 
         args=[], 
         node:Graph&GraphProperties|any=this, 
-        origin:string|Graph|AcyclicGraph,
+        origin?:string|Graph|AcyclicGraph,
         timeout:number=node.loop
     ) => {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
@@ -957,6 +957,15 @@ export class AcyclicGraph {
         return this.state.subscribeTrigger(tag,(res)=>{this.run(outputNode,inputNode, ...res);}) // TODO: Check if correct node
     }
 
+    stopNode = (node:string|Graph) => {
+        if(typeof node === 'string') {
+            node = this.nodes.get(node);
+        }
+        if(node instanceof Graph) {
+            node.stopNode(); //just sets node.isAnimating and node.isLooping to false
+        }
+    }
+
     print = (node:Graph|undefined=undefined,printChildren=true) => {
         if(node instanceof Graph) return node.print(node,printChildren);
         else {
@@ -1085,6 +1094,149 @@ export const stringifyWithCircularRefs = (function() {
 if((JSON as any).stringifyWithCircularRefs === undefined) {
     //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
     (JSON as any).stringifyWithCircularRefs = stringifyWithCircularRefs;
+}
+
+//partial stringification for objects and removing circular references. This allows MUCH faster object equivalency comparison with three-tier depth checking
+export const stringifyFast = (function() {
+    const refs = new Map();
+    const parents = [];
+    const path = ["this"];
+
+    function clear() {
+        refs.clear();
+        parents.length = 0;
+        path.length = 1;
+    }
+
+    function updateParents(key, value) {
+        var idx = parents.length - 1;
+        //console.log(idx, parents[idx])
+        if(parents[idx]){
+            var prev = parents[idx];
+            //console.log(value); 
+            if(typeof prev === 'object') {
+                if (prev[key] === value || idx === 0) {
+                    path.push(key);
+                    parents.push(value.pushed);
+                } else {
+                    while (idx-- >= 0) {
+                        prev = parents[idx];
+                        if(typeof prev === 'object') {
+                            if (prev[key] === value) {
+                                idx += 2;
+                                parents.length = idx;
+                                path.length = idx;
+                                --idx;
+                                parents[idx] = value;
+                                path[idx] = key;
+                                break;
+                            }
+                        }
+                        idx++;
+                    }
+                }
+            }
+        }
+    }
+
+    function checkValues(key, value) {
+        let val;
+        if (value != null) {
+            if (typeof value === "object") {
+                //if (key) { updateParents(key, value); }
+                let c = value.constructor.name;
+                if (key && c === 'Object') {updateParents(key, value); }
+
+                let other = refs.get(value);
+                if (other) {
+                    return '[Circular Reference]' + other;
+                } else {
+                    refs.set(value, path.join('.'));
+                }
+                if(c === "Array") { //Cut arrays down to 100 samples for referencing
+                    if(value.length > 20) {
+                        val = value.slice(value.length-20);
+                    } else val = value;
+                   // refs.set(val, path.join('.'));
+                }  
+                else if (c.includes("Set")) {
+                    val = Array.from(value)
+                }  
+                else if (c !== "Object" && c !== "Number" && c !== "String" && c !== "Boolean") { //simplify classes, objects, and functions, point to nested objects for the state manager to monitor those properly
+                    val = "instanceof_"+c;
+                }
+                else if (c === 'Object') {
+                    let obj = {};
+                    for(const prop in value) {
+                        if (value[prop] == null){
+                            obj[prop] = value[prop]; 
+                        }
+                        else if(Array.isArray(value[prop])) { 
+                            if(value[prop].length>20)
+                                obj[prop] = value[prop].slice(value[prop].length-20); 
+                            else obj[prop] = value[prop];
+                        } //deal with arrays in nested objects (e.g. means, slices)
+                        else if (value[prop].constructor.name === 'Object') { //additional layer of recursion for 3 object-deep array checks
+                            obj[prop] = {};
+                            for(const p in value[prop]) {
+                                if(Array.isArray(value[prop][p])) {
+                                    if(value[prop][p].length>20)
+                                        obj[prop][p] = value[prop][p].slice(value[prop][p].length-20); 
+                                    else obj[prop][p] = value[prop][p];
+                                }
+                                else { 
+                                    if (value[prop][p] != null){
+                                        let con = value[prop][p].constructor.name;
+                                        if (con.includes("Set")) {
+                                            obj[prop][p] = Array.from(value[prop][p])
+                                        } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
+                                            obj[prop][p] = "instanceof_"+con; //3-deep nested objects are cut off
+                                        }  else {
+                                            obj[prop][p] = value[prop][p]; 
+                                        }
+                                    } else {
+                                        obj[prop][p] = value[prop][p]; 
+                                    }
+                                }
+                            }
+                        }
+                        else { 
+                            let con = value[prop].constructor.name;
+                            if (con.includes("Set")) {
+                                obj[prop] = Array.from(value[prop])
+                            } else if(con !== "Number" && con !== "String" && con !== "Boolean") {
+                                obj[prop] = "instanceof_"+con;
+                            } else {
+                                obj[prop] = value[prop]; 
+                            }
+                        }
+                    }
+                    //console.log(obj, value)
+                    val = obj;
+                    //refs.set(val, path.join('.'));
+                }
+                else {
+                    val = value;
+                }
+            } else {
+                val = value;
+            }
+        }
+        //console.log(value, val)
+        return val;
+    }
+
+    return function stringifyFast(obj, space?) {
+        parents.push(obj);
+        let res = JSON.stringify(obj, checkValues, space);
+        clear();
+        return res;
+    }
+})();
+
+if((JSON as any).stringifyFast === undefined) {
+    //Workaround for objects containing DOM nodes, which can't be stringified with JSON. From: https://stackoverflow.com/questions/4816099/chrome-sendrequest-error-typeerror-converting-circular-structure-to-json
+    (JSON as any).stringifyFast = stringifyFast;
 }
 
 export function createNode(operator:OperatorType,parentNode:Graph,props:GraphProperties,graph:AcyclicGraph) {

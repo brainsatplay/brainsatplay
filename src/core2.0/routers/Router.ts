@@ -16,6 +16,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     _run = this.service._run;
     add = this.service.add;
     remove = this.service.remove;
+    stopNode = this.service.stopNode;
     subscribe = this.service.subscribe;
     unsubscribe = this.service.unsubscribe;
     get = this.service.get;
@@ -40,19 +41,6 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             Object.keys(services).forEach(s => this.load(services[s]));
         }
         
-        //reference some methods on the service if undefined
-        if(!this.run) {
-            this.run = this.service.run;
-            this._run = this.service._run;
-            this.add = this.service.add;
-            this.remove = this.service.remove;
-            this.subscribe = this.service.subscribe;
-            this.unsubscribe = this.service.unsubscribe;
-            this.get = this.service.get;
-            this.reconstruct = this.service.reconstruct;
-            this.setState = this.service.setState;
-            this.state = this.service.state; //share the shared state with router too why not
-        }
     }
 
     load = (service:Service|Routes|any) => { //load a service class instance or service prototoype class
@@ -153,6 +141,69 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             }
         }
     }
+
+
+    //send to protocols based on a specifier object, if say multiple event sources or webrtc connections are being called you can specify a channel
+    sendOn = (
+        message:ServiceMessage|any, 
+        connections:{[key:string]:{[key:string]:any}}, //e.g. {wss:{'socket1':socketinfo}} //provide list of objects associating connection types and active connection info objects
+        channel?:string
+    ) => {
+        let sent = false;
+        if(connections instanceof Object) { //can transmit on multiple endpoints in an object
+            for(const protocol in connections) {
+                for(const info in connections[protocol]) {
+                    let obj = connections[protocol][info];
+                    if(obj.socket) { //frontend or backend socket
+                        if(obj.socket.readyState === 1) {
+                            obj.socket.send(message);
+                            sent = true;
+                        } else delete connections[protocol][info]; //not preferable if it's closed
+                    } else if(obj.wss) { //websocket server
+                        obj.wss.clients.forEach((c:WebSocket) => {c.send(message);})
+                        sent = true;
+                    } else if(obj.sessions) { //sse backend
+                        if(channel) {
+                            obj.channel.broadcast(message,channel)
+                            sent = true;
+                        } else for(const s in obj.sessions) {
+                            if(obj.sessions[s].isConnected) {
+                                obj.sessions[s].push(message);
+                                sent = true;
+                            }
+                        }
+                    } else if(obj.session) { //sse backend single session
+                        if(channel) {
+                            obj.served.channel.broadcast(message,channel); //this will still boradcast to all channels fyi
+                            sent = true;
+                        } else if(obj.session.isConnected) { 
+                            obj.session.push(message);
+                            sent = true;
+                        } else delete connections[protocol][info];
+                    } else if(obj.rtc) { //webrtc peer connection
+                        if(channel && obj.channels[channel]) {
+                            obj.channels[channel].send(message);
+                            sent = true;
+                        } else if(obj.channels.data) { //default data channel
+                            obj.channels.data.send(message);
+                            sent = true;
+                        } else {
+                            let firstchannel = Object.keys(obj.channels)[0]; 
+                            obj.channels[firstchannel].send(message);
+                            sent = true;
+                        }
+                    } else if(obj.server) { //http server (??)
+                        if(this.services.http) {
+                            this.services.http.transmit(message,channel); //??
+                            sent = true;
+                        }
+                    }
+                } //need to despaghettify this 
+            }
+        }
+    }
+
+
     //get endpoint info e.g. a socket server or sse object based on the address it's stored as
     getEndpointInfo = (
         path:string,

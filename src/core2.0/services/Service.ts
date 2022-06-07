@@ -367,6 +367,7 @@ export class Service extends AcyclicGraph {
         _run:this._run,
         subscribe:this.subscribe,
         unsubscribe:this.unsubscribe,
+        stopNode:this.stopNode,
         get:this.get,
         add:this.add,
         remove:this.remove,

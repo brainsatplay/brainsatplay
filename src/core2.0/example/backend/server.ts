@@ -11,9 +11,10 @@ process.on('exit', exitHandler.bind(null,{cleanup:true}));
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 
+import { Graph } from "../../Graph";
 //run backends
 //import { Router } from "../../routers/Router";
-import { UserRouter } from "../../routers/users/User.router";
+import { UserProps, UserRouter } from "../../routers/users/User.router";
 import { HTTPbackend, ServerProps, ServerInfo } from '../../services/http/HTTP.node';
 import { SSEbackend, SSEProps } from '../../services/sse/SSE.node';
 import { WSSbackend, SocketServerProps } from '../../services/wss/WSS.node';
@@ -65,7 +66,7 @@ router.run(
             host:served.host,
             port:8081,
             path:'wss',
-            onconnection:(ws)=>{
+            onconnection:(ws,req,serverinfo,id)=>{
                 ws.send('Hello from WSS!');
             }
         } as SocketServerProps
@@ -90,7 +91,7 @@ router.run(
             server:served.server,
             path:'sse',
             channels:['test'],
-            onconnection:(session,sseinfo,req,res)=>{
+            onconnection:(session,sseinfo,id,req,res)=>{
                 console.log('pushing sse!')
                 session.push('Hello from SSE!');
                 sseinfo.channels.forEach(
@@ -110,10 +111,33 @@ router.run(
 //router.services.http.routes.setupServer();
 //router.routes.['http/setupServer'](); //this the original function/property object, it won't set state.
 
-
 console.log('main service routes',router.service.routes);
 console.log('http service routes',router.services.http.routes);
 
-
 const sub1 = router.pipe('ping','log','wss');
 const sub2 = router.pipe('ping','log','sse');
+
+router.addUser({
+    _id:'admin'
+} as UserProps);
+
+router.openSharedSession({
+    settings:{
+        name:'webrtcrooms',
+        propnames:{
+            rooms:true //if these props are updated on the user object we'll return them
+        }  
+    }
+},'admin')
+
+
+router.subscribe('addUser', (res) =>{
+    res.then((user:UserProps & Graph) => {
+        let joined = router.joinSession('webrtcrooms',user);
+        user.send(
+            JSON.stringify({route:'joinSession',args:[joined._id,user._id,joined]})
+        );
+    })
+})
+
+//elegantly represent users connecting and adding themselves to the backend incl settings their sockets etc. that they're reporting from

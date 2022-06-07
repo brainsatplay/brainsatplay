@@ -1,8 +1,8 @@
 import { Service, Routes, ServiceMessage } from "../Service";
 
 export type WebRTCProps = {
-    _id:string,
-    origin?:string,
+    _id?:string,
+    origin:string,
     channels?:{
         [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
     },
@@ -14,11 +14,11 @@ export type WebRTCProps = {
     ontrack?:(ev:RTCTrackEvent)=>void,
     onicecandidate?:(ev:RTCPeerConnectionIceEvent)=>void,
     onicecandidateerror?:(ev:Event)=>void,
-    onnegotiationneeded:(ev:Event)=>void,
-    ondatachannel:(ev:RTCDataChannelEvent)=>void,
-    ondata:(ev:MessageEvent<any>, channel:RTCDataChannel, room)=>void,
-    onconnectionstatechange:(ev:Event)=>void,
-    oniceconnectionstatechange:(ev:Event)=>void
+    onnegotiationneeded?:(ev:Event)=>void,
+    ondatachannel?:(ev:RTCDataChannelEvent)=>void,
+    ondata?:(ev:MessageEvent<any>, channel:RTCDataChannel, room)=>void,
+    onconnectionstatechange?:(ev:Event)=>void,
+    oniceconnectionstatechange?:(ev:Event)=>void
 }
 
 export type WebRTCInfo = {
@@ -79,27 +79,8 @@ export class WebRTCfrontend extends Service {
         return stream;
     }
 
-    openRTC = (
-        options:{
-            _id:string,
-            origin?:string,
-            channels?:{
-                [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
-            },
-            config?:RTCConfiguration,
-            description?:RTCSessionDescriptionInit,
-            offer?:RTCOfferOptions,
-            icecandidate?:RTCIceCandidate,
-            answer?:RTCAnswerOptions,
-            ontrack?:(ev:RTCTrackEvent)=>void,
-            onicecandidate?:(ev:RTCPeerConnectionIceEvent)=>void,
-            onicecandidateerror?:(ev:Event)=>void,
-            onnegotiationneeded:(ev:Event)=>void,
-            ondatachannel:(ev:RTCDataChannelEvent)=>void,
-            ondata:(ev:MessageEvent<any>, channel:RTCDataChannel, room:WebRTCInfo)=>void,
-            onconnectionstatechange:(ev:Event)=>void,
-            oniceconnectionstatechange:(ev:Event)=>void
-        }, 
+    openRTC = async (
+        options?:WebRTCProps, 
         host=true
     ) => {
         if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`
@@ -156,7 +137,7 @@ export class WebRTCfrontend extends Service {
         rtc.onconnectionstatechange = options.onconnectionstatechange;
 
         if(host) {
-            return new Promise((res,rej) => {
+            return await new Promise((res,rej) => {
                 rtc.createOffer(options.offer).then((desc) => {
                     rtc.setLocalDescription(desc).then(()=>{
                         this.rtc[options._id].description = desc;
@@ -166,7 +147,7 @@ export class WebRTCfrontend extends Service {
             });
         } else {
             if(options.icecandidate) rtc.addIceCandidate(options.icecandidate);
-            if(options.description) return new Promise((res,rej) => {
+            if(options.description) return await new Promise((res,rej) => {
                 rtc.setRemoteDescription(options.description).then((desc)=>{
                     rtc.createAnswer(options.answer).then(()=>{
                         this.rtc[options._id].description = desc;
@@ -174,7 +155,7 @@ export class WebRTCfrontend extends Service {
                     });
                 }); //we can now receive data
             });
-            else return this.rtc[options._id];
+            else return await this.rtc[options._id];
         }
     }
 
