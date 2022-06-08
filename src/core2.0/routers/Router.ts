@@ -31,6 +31,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     [key:string]:any;
 
     constructor(services:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
+        this.load(this.defaultRoutes);
         if(this.routes) 
             if(Object.keys(this.routes).length > 0)
                 this.load(this.routes);
@@ -144,7 +145,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
 
     //send to protocols based on a specifier object, if say multiple event sources or webrtc connections are being called you can specify a channel
-    sendOn = (
+    sendAll = (
         message:ServiceMessage|any, 
         connections:{[key:string]:{[key:string]:any}}, //e.g. {wss:{'socket1':socketinfo}} //provide list of objects associating connection types and active connection info objects
         channel?:string
@@ -320,6 +321,235 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             return serviceInfo[keys[0]];
     }
 
+
+
+    
+	STREAMLATEST = 0;
+	STREAMALLLATEST = 1;
+    streamSettings:{
+        [key:string]:{
+            object:{[key:string]:any}, //the object we want to watch
+            settings:{ //the settings for how we are handling the transform on the watch loop
+                keys?: string[]
+                callback?:0|1|Function,
+                lastRead?:number,
+                [key:string]:any
+            }
+        }
+    } = {};
+
+    streamFunctions = {
+        //these default functions will only send the latest of an array or value if changes are detected, and can handle single nested objects 
+        // you can use the setting to create watch properties (e.g. lastRead for these functions). 
+        // All data must be JSONifiable
+        allLatestValues:(prop:any, setting:any)=>{ //return arrays of hte latest values on an object e.g. real time data streams. More efficient would be typedarrays or something
+            let result = undefined;
+
+            if(Array.isArray(prop)) {
+                if(prop.length !== setting.lastRead) {
+                    result = prop.slice(setting.lastRead);
+                    setting.lastRead = prop.length;
+                }
+            }
+            else if (typeof prop === 'object') {
+                result = {};
+                for(const p in prop) {
+                    if(Array.isArray(prop[p])) {
+                        if(typeof setting === 'number') setting = {[p]:{lastRead:undefined}}; //convert to an object for the sub-object keys
+                        else if(!setting[p]) setting[p] = {lastRead:undefined};
+                        
+                        if(prop[p].length !== setting[p].lastRead) {
+                            result[p] = prop[p].slice(setting[p].lastRead);
+                            setting[p].lastRead = prop[p].length;
+                        }
+                    }
+                    else {
+                        if(typeof setting === 'number') setting = {[p]:{lastRead:undefined}}; //convert to an object for the sub-object keys
+                        else if(!setting[p]) setting[p] = {lastRead:undefined};
+
+                        if(setting[p].lastRead !== prop[p]) {
+                            result[p] = prop[p];
+                            setting[p].lastRead = prop[p];
+                        }
+                    }
+                }
+                if(Object.keys(result).length === 0) result = undefined;
+            }
+            else { 
+                if(setting.lastRead !== prop) {
+                    result = prop;
+                    setting.lastRead = prop;
+                } 
+            }
+
+            return result;
+
+            
+        },
+        latestValue:(prop:any,setting:any)=>{
+            let result = undefined;
+            if(Array.isArray(prop)) {
+                if(prop.length !== setting.lastRead) {
+                    result = prop[prop.length-1];
+                    setting.lastRead = prop.length;
+                }
+            }
+            else if (typeof prop === 'object') {
+                result = {};
+                for(const p in prop) {
+                    if(Array.isArray(prop[p])) {
+                        if(typeof setting === 'number') setting = {[p]:{lastRead:undefined}}; //convert to an object for the sub-object keys
+                        else if(!setting[p]) setting[p] = {lastRead:undefined};
+                        
+                        if(prop[p].length !== setting[p].lastRead) {
+                            result[p] = prop[p][prop[p].length-1];
+                            setting[p].lastRead = prop[p].length;
+                        }
+                    }
+                    else {
+                        if(typeof setting === 'number') setting = {[p]:{lastRead:undefined}}; //convert to an object for the sub-object keys
+                        else if(!setting[p]) setting[p] = {lastRead:undefined};
+
+                        if(setting[p].lastRead !== prop[p]) {
+                            result[p] = prop[p];
+                            setting[p].lastRead = prop[p];
+                        }
+                    }
+                }
+            }
+            else { 
+                if(setting.lastRead !== prop) {
+                    result = prop;
+                    setting.lastRead = prop;
+                } 
+            }
+
+            return result;
+        },
+    };
+
+	setStreamFunc = (
+        name:string,
+        key:string,
+        callback:0|1|Function=this.streamFunctions.allLatestValues) => {
+		if(!this.streamSettings[name].settings[key]) 
+			this.streamSettings[name].settings[key] = {lastRead:0};
+		
+		if(callback === this.STREAMLATEST) 
+			this.streamSettings[name].settings[key].callback = this.streamFunctions.latestValue; //stream the latest value 
+		else if(callback === this.STREAMALLLATEST) 
+			this.streamSettings[name].settings[key].callback = this.streamFunctions.allLatestValues; //stream all of the latest buffered data
+		else if (typeof callback === 'string') 
+			this.streamSettings[name].settings[key].callback = this.streamFunctions[callback]; //indexed functions
+		else if (typeof callback === 'function')
+			this.streamSettings[name].settings[key].callback = callback; //custom function
+
+		if(!this.streamSettings[name].settings[key].callback) this.streamSettings[name].settings[key].callback = this.streamFunctions.allLatestValues; //default
+		
+	}
+
+	addStreamFunc = (name,callback=(data)=>{}) => {
+		this.streamFunctions[name] = callback;
+	}
+
+				
+	// 		object:{key:[1,2,3],key2:0,key3:'abc'}, 		// Object we are buffering data from
+	//		settings:{
+	//      	callback:0, 	// Default data streaming mode for all keys
+	//			keys:['key','key2'], 	// Keys of the object we want to buffer into the stream
+	// 			key:{
+	//				callback:0 //specific modes for specific keys or can be custom functions
+	// 				lastRead:0,	
+	//			} //just dont name an object key 'keys' :P
+	//		}
+	setStream = (
+		object={},   //the object you want to watch
+		settings: {
+			keys?: string[]
+			callback?: Function
+		}={}, //settings object to specify how data is pulled from the object keys
+		streamName=`stream${Math.floor(Math.random()*10000000000)}` //used to remove or modify the stream by name later
+	) => {
+
+		///stream all of the keys from the object if none specified
+		if(settings.keys) { 
+			if(settings.keys.length === 0) {
+				let k = Object.keys(object);
+				if(k.length > 0) {
+					settings.keys = Array.from(k);
+				}
+			}
+		} else {
+			settings.keys = Array.from(Object.keys(object));
+		}
+
+		this.streamSettings[streamName] = {
+			object,
+			settings
+		};
+
+		// if(!settings.callback) settings.callback = this.STREAMALLLATEST;
+
+		settings.keys.forEach((prop) => {
+			if(settings[prop]?.callback)
+				this.setStreamFunc(streamName,prop,settings[prop].callback);
+			else
+				this.setStreamFunc(streamName,prop,settings.callback);
+		});
+
+		return this.streamSettings[streamName];
+
+	}
+
+	//can remove a whole stream or just a key from a stream if supplied
+	removeStream = (streamName,key) => {
+		if(streamName && !key) delete this.streamSettings[streamName];
+		else if (key) {
+			let idx = this.streamSettings[streamName].settings.keys.indexOf(key);
+			if(idx > -1) 
+				this.streamSettings[streamName].settings.keys.splice(idx,1);
+			if(this.streamSettings[streamName].settings[key]) 
+				delete this.streamSettings[streamName].settings[key];
+		}
+	}
+
+	//can update a stream object by object assignment (if you don't have a direct reference)
+	updateStreamData = (streamName, data={}) => {
+		if(this.streamSettings[streamName]) {
+			Object.assign(this.streamSettings[streamName].object,data);
+			return this.streamSettings[streamName].object;
+		}
+		return undefined;
+	} 
+
+    streamLoop = (
+        connections?:{[key:string]:{[key:string]:any}}, //e.g. {wss:{'socket1':socketinfo}} //provide list of objects associating connection types and active connection info objects
+        channel?:string
+    ) => {
+        let updateObj = {};
+
+        for(const prop in this.streamSettings) {
+            this.streamSettings[prop].settings.keys.forEach((key) => {
+                if(this.streamSettings[prop].settings[key]) {
+                    let data = this.streamSettings[prop].settings[key].callback(
+                        this.streamSettings[prop].object[key],
+                        this.streamSettings[prop].settings[key]
+                    );
+                    if(data !== undefined) updateObj[key] = data; //overlapping props will be overwritten (e.g. duplicated controller inputs)
+                }
+            });
+        }
+
+        if(connections) {
+            this.sendAll(updateObj,connections,channel);
+        }
+
+        return updateObj; //if no connection endpoints specified, you can otherwise subscribe to state for the streamLoop
+        
+        //setTimeout(()=>{this.streamLoop()},this.delay);
+		
+	}
+
     receive = (
         message:any|ServiceMessage, 
         service:Protocol|string, 
@@ -344,5 +574,21 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             }
         }
         return this.service.transmit(message, ...args); //graph call
+    }
+
+    defaultRoutes:Routes = {
+        getEndpointInfo:this.getEndpointInfo,
+        pipeOnce:this.pipeOnce,
+        pipeFastest:this.pipeFastest,
+        setStream:this.setStream,
+        removeStream:this.removeStream,
+        updateStreamData:this.updateStreamData,
+        addStreamFunc:this.addStreamFunc,
+        setStreamFunc:this.setStreamFunc,
+        sendAll:this.sendAll,
+        streamLoop:{
+            operator:this.streamLoop,
+            loop:10
+        }
     }
 }
