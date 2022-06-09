@@ -124,7 +124,7 @@ let p = router.addUser(
                             .getElementById('webrtc')
                             .insertAdjacentHTML(
                                 'beforeend',
-                                `<div><span>User: ${user._id}</span><span>Rooms: <table>${Object.keys(user.rooms).map((room:any) => { return `<tr><td>ID: ${user.rooms[room]._id}</td><td>Ice Candidates: ${user.rooms[room].icecandidates ? Object.keys(user.rooms[room].icecandidates).length : 0 }</td><td><button id='${user.rooms[room]._id}'>Connect</button></td></tr>`; })}</table></span></div>`
+                                `<div><span>User: ${key}</span><span>Rooms: <table>${Object.keys(user.rooms).map((room:any) => { return `<tr><td>ID: ${user.rooms[room]._id}</td><td>Ice Candidates: ${user.rooms[room].icecandidates ? Object.keys(user.rooms[room].icecandidates).length : 0 }</td><td><button id='${user.rooms[room]._id}'>Connect</button></td></tr>`; })}</table></span></div>`
                                 )
                     }
                 }
