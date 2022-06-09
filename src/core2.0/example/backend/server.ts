@@ -121,23 +121,30 @@ router.addUser({
     _id:'admin'
 } as UserProps);
 
-router.openSharedSession({
+router.run('sessionLoop');
+
+let session = router.openSharedSession({
+    _id:'webrtcrooms',
     settings:{
         name:'webrtcrooms',
         propnames:{
             rooms:true //if these props are updated on the user object we'll return them
         }  
     }
-},'admin')
+},'admin');
 
+///console.log('session',session, 'sessions', router.sessions);
 
 router.subscribe('addUser', (res) =>{
-    res.then((user:UserProps & Graph) => {
+    console.log('user joining webrtcrooms', res._id);
+    if (res instanceof Object) {
+        let user = res;
         let joined = router.joinSession('webrtcrooms',user);
-        user.send(
+        console.log('user joined session:',joined);
+        if(joined) user.send(
             JSON.stringify({route:'joinSession',args:[joined._id,user._id,joined]})
         );
-    })
+    }
 })
 
 //elegantly represent users connecting and adding themselves to the backend incl settings their sockets etc. that they're reporting from

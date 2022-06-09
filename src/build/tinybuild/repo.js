@@ -743,7 +743,7 @@ dist
 
 
 export function parseArgs(args=process.argv) {
-    let tinybuildCfg = {
+    let tcfg = {
         server:{},
         bundler:{}
     }
@@ -778,7 +778,7 @@ export function parseArgs(args=process.argv) {
     
             if(argIdx){ //after 5 args we probably aren't on these args anymore
                 if(command.includes('help')) {
-                    tinybuildCfg.mode = 'help';
+                    tcfg.mode = 'help';
                     console.log(
 `
 tinybuild commands:
@@ -834,120 +834,120 @@ Server arguments:
                     process.exit();
                 }
                 if(command.includes('mode=')) {
-                    tinybuildCfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
+                    tcfg.mode = command.split('=').pop(); //extra modes are 'python' and 'dev'. 
                 }
                 if(command.includes('GLOBAL')) { //path to global bin file inserted when running the 'tinybuild' script, which will run tinybuild and the restarting server as a child process
-                    tinybuildCfg.GLOBAL = command.split('=').pop()
+                    tcfg.GLOBAL = command.split('=').pop()
                 }
                 if(command.includes('start')) {
-                    tinybuildCfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
+                    tcfg.start = true; //starts the entryPoints with 'node tinybuild.js' (or specified path), does not use nodemon (e.g. for production), just run tinybuild without 'start' to use the dev server config by default
                 }
                 if(command.includes('bundle') && !command.includes('bundler')) {
-                    tinybuildCfg.bundle = true; //bundle the local app?
+                    tcfg.bundle = true; //bundle the local app?
                 }
                 if(command.includes('serve') && !command.includes('server')) {
-                    tinybuildCfg.serve = true; //serve the local (assumed built) dist?
+                    tcfg.serve = true; //serve the local (assumed built) dist?
                 }
                 if(command.includes('path')) { //path to the tinybuild script where the packager or plain bundler etc. are being run. defaults to look for 'tinybuild.js'
-                    tinybuildCfg.path = command.split('=').pop()
+                    tcfg.path = command.split('=').pop()
                 }
                 if(command.includes('init')) {
-                    tinybuildCfg.init = true; //initialize a repo with the below settings?
+                    tcfg.init = true; //initialize a repo with the below settings?
                 }
                 if(command.includes('debug')) {
-                    tinybuildCfg.server.debug = JSON.parse(command.split('=').pop()) //debug?
+                    tcfg.server.debug = JSON.parse(command.split('=').pop()) //debug?
                 }
                 if(command.includes('socket_protocol')) {
-                    tinybuildCfg.server.socket_protocol = command.split('=').pop() //node server socket protocol (wss for hosted, or ws for localhost, depends)
+                    tcfg.server.socket_protocol = command.split('=').pop() //node server socket protocol (wss for hosted, or ws for localhost, depends)
                 }
                 if(command.includes('pwa')) {
-                    tinybuildCfg.server.pwa = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.pwa = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('hotreload')) {
-                    tinybuildCfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.hotreload = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('keypath')) {
-                    tinybuildCfg.server.keypath = command.split('=').pop() //https key path
+                    tcfg.server.keypath = command.split('=').pop() //https key path
                 }
                 if(command.includes('certpath')) {
-                    tinybuildCfg.server.certpath = command.split('=').pop() //https cert path 
+                    tcfg.server.certpath = command.split('=').pop() //https cert path 
                 }
                 if(command.includes('watch')) {
-                    tinybuildCfg.server.watch = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.watch = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('ignore')) {
-                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('extensions')) {
-                    tinybuildCfg.server.ignore = command.split('=').pop() //pwa service worker relative path
+                    tcfg.server.ignore = command.split('=').pop() //pwa service worker relative path
                 }
                 if(command.includes('python')) {
-                    tinybuildCfg.server.python = command.split('=').pop() //python port
+                    tcfg.server.python = command.split('=').pop() //python port
                 }
                 if(command.includes('host')) {
-                    tinybuildCfg.server.host = command.split('=').pop() //node host
+                    tcfg.server.host = command.split('=').pop() //node host
                 }
                 if(command.includes('port')) {
-                    tinybuildCfg.server.port = command.split('=').pop() //node port
+                    tcfg.server.port = command.split('=').pop() //node port
                 }
                 if(command.includes('protocol')) {
-                    tinybuildCfg.server.protocol = command.split('=').pop() //node http or https protocols
+                    tcfg.server.protocol = command.split('=').pop() //node http or https protocols
                 }
                 if(command.includes('startpage')) {
-                    tinybuildCfg.server.startpage = command.split('=').pop() //node http or https protocols
+                    tcfg.server.startpage = command.split('=').pop() //node http or https protocols
                 }
                 if(command.includes('core')) {
-                    tinybuildCfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
+                    tcfg.includeCore = command.split('=').pop() //use tinybuild's source instead of the npm packages?
                 }
                 if(command.includes('bundleBrowser')) {
-                    tinybuildCfg.bundler.bundleBrowser = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleBrowser = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleESM')) {
-                    tinybuildCfg.bundler.bundleESM = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleESM = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleTypes')) {
-                    tinybuildCfg.bundler.bundleTypes = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleTypes = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleNode')) {
-                    tinybuildCfg.bundler.bundleNode = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleNode = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('bundleHTML')) {
-                    tinybuildCfg.bundler.bundleHTML = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.bundleHTML = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('entryPoints')) {
-                    tinybuildCfg.bundler.entryPoints = [command.split('=').pop()]; //entry point script name to be created
-                    if(tinybuildCfg.bundler.entryPoints.includes('[')) tinybuildCfg.bundler.entryPoints = JSON.parse(tinybuildCfg.bundler.entryPoints);
+                    tcfg.bundler.entryPoints = [command.split('=').pop()]; //entry point script name to be created
+                    if(tcfg.bundler.entryPoints.includes('[')) tcfg.bundler.entryPoints = JSON.parse(tcfg.bundler.entryPoints);
                 }
                 if(command.includes('outfile')) {
-                    tinybuildCfg.bundler.outfile = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.outfile = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('outdir')) {
-                    tinybuildCfg.bundler.outdir = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.outdir = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('platform')) {
-                    tinybuildCfg.bundler.platform = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.platform = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('external')) {
-                    tinybuildCfg.bundler.external = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.external = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('globalThis')) {
-                    tinybuildCfg.bundler.globalThis = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.globalThis = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('globals')) {
-                    tinybuildCfg.bundler.globals = JSON.parse(decodeURIComponent(command.split('=').pop()))
+                    tcfg.bundler.globals = JSON.parse(decodeURIComponent(command.split('=').pop()))
                 }
                 if(command.includes('minify')) {
-                    tinybuildCfg.bundler.minify = JSON.parse(command.split('=').pop())
+                    tcfg.bundler.minify = JSON.parse(command.split('=').pop())
                 }
                 if(command.includes('script')) {
                     let parsed = decodeURIComponent(command.slice(command.indexOf('=')+1));
                     //console.log('script parsed: ', parsed);
-                    tinybuildCfg.initScript = parsed; //encoded URI string of a javascript file
+                    tcfg.initScript = parsed; //encoded URI string of a javascript file
                 }
                 if(command.includes('config')) {
                     let parsed = JSON.parse(command.split('=').pop());
                     //console.log('config parsed: ', parsed);
-                    Object.assign(tinybuildCfg, parsed); //encoded URI string of a packager config.
+                    Object.assign(tcfg, parsed); //encoded URI string of a packager config.
                 }
                 tick++;
             }
@@ -955,8 +955,8 @@ Server arguments:
     
     })
 
-    if(Object.keys(tinybuildCfg.server).length === 0) delete tinybuildCfg.server;
-    if(Object.keys(tinybuildCfg.bundler).length === 0) delete tinybuildCfg.bundler; 
+    if(tcfg.server) if(Object.keys(tcfg.server).length === 0) delete tcfg.server;
+    if(tcfg.bundler) if(Object.keys(tcfg.bundler).length === 0) delete tcfg.bundler; 
 
-    return tinybuildCfg;
+    return tcfg;
 }

@@ -9,7 +9,7 @@ export type SSEProps = {
     channels?:string[],
     onconnection?:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
     onclose?:(sse:any)=>void,
-    onsessionclose:(session:any,sseinfo:any)=>void,
+    onconnectionclose:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
     type:'sse'|string,
     [key:string]:any
 }
@@ -48,7 +48,7 @@ export class SSEbackend extends Service {
         }
 
         const channel = createChannel();
-        
+
         let sse = {
             type:'sse',
             channel,
@@ -57,6 +57,10 @@ export class SSEbackend extends Service {
         } as SSESessionInfo;
         
         this.servers[path] = sse;
+
+        if(!sse.onconnectionclose) sse.onconnectionclose = (session,sse,id,req,res) => {
+            delete sse.sessions[id];
+        }
 
         let onRequest = (req:http.IncomingMessage,res:http.ServerResponse) => {
             if(req.method === 'GET' && req.url.includes(path)) {
@@ -75,7 +79,7 @@ export class SSEbackend extends Service {
                     };
 
                     session.push(JSON.stringify({route:'setId',args:_id})); //associate this user's connection with a server generated id 
-
+                    if(options.onconnectionclose) session.on('close',()=>{options.onconnectionclose(session,sse,_id,req,res)})
                     if(sse.onconnection) {sse.onconnection(session,sse,_id,req,res);}
                 
                 });
@@ -155,7 +159,6 @@ export class SSEbackend extends Service {
             for(const s in sessions) {
                 if(sessions[s].isConnected) sessions[s].push(data); // on 'message' event
                 else {
-                    if(this.servers[path].onsessionclose) this.servers[path].onsessionclose(sessions[s], this.servers[path])
                     delete sessions[s]; //removed dead sessions
                 }
             }

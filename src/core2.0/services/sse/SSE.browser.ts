@@ -49,7 +49,7 @@ export class SSEfrontend extends Service {
 
                 let data = ev.data;
 
-                if(Object.getPrototypeOf(data) === String.prototype) {
+                if(data) if(Object.getPrototypeOf(data) === String.prototype) {
                     let substr = data.substring(0,8);
                     if(substr.includes('{') || substr.includes('[')) {    
                         if(substr.includes('\\')) data = data.replace(/\\/g,"");
@@ -93,7 +93,7 @@ export class SSEfrontend extends Service {
         }
         
         this.eventsources[options.url] = sse;
-        console.log(source);
+        //console.log(source);
 
         return sse;
     }

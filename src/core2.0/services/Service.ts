@@ -218,11 +218,11 @@ export class Service extends AcyclicGraph {
         ...args:[ServiceMessage|any,...any[]]|any[]
     ) => {
         if(args[0] instanceof Object) {
-            if(Object.getPrototypeOf(args[0].method) === String.prototype) { //run a route method directly, results not linked to graph
+            if(args[0].method) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
-            } else if(Object.getPrototypeOf(args[0].route) === String.prototype) {
+            } else if(args[0].route) {
                 return this.handleServiceMessage(args[0]);
-            } else if ((Object.getPrototypeOf(args[0].node) === String.prototype || args[0].node instanceof Graph)) {
+            } else if (args[0].node){
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
             } else if(this.keepState) {    
                 if(args[0].route)
@@ -237,7 +237,7 @@ export class Service extends AcyclicGraph {
     receive:(...args)=>any|void = (
         ...args:[ServiceMessage|any,...any[]]|any[] //generalized args for customizing, it looks weird I know
     ) => {
-        if(Object.getPrototypeOf(args[0]) === String.prototype) {
+        if(args[0]) if(Object.getPrototypeOf(args[0]) === String.prototype) {
             let substr = args[0].substring(0,8);
             if(substr.includes('{') || substr.includes('[')) {    
                 if(substr.includes('\\')) args[0] = args[0].replace(/\\/g,"");
@@ -248,11 +248,11 @@ export class Service extends AcyclicGraph {
         }
 
         if(args[0] instanceof Object) {
-            if(Object.getPrototypeOf(args[0].method) === String.prototype) { //run a route method directly, results not linked to graph
+            if(args[0].method) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
-            } else if(Object.getPrototypeOf(args[0].route) === String.prototype) {
+            } else if(args[0].route) {
                 return this.handleServiceMessage(args[0]);
-            } else if ((Object.getPrototypeOf(args[0].node) === String.prototype || args[0].node instanceof Graph)) {
+            } else if (args[0].node){
                 return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
             } else if(this.keepState) {    
                 if(args[0].route)

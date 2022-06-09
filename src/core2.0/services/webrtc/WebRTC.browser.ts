@@ -105,18 +105,23 @@ export class WebRTCfrontend extends Service {
             ...options
         };
 
+        console.log('opening webrtc channel',this.rtc)
+
         if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
-            let sdpMLineIndex = ev.candidate.sdpMLineIndex;
-            let icecandidate = ev.candidate; 
+            if(ev.candidate) {
+                let sdpMLineIndex = ev.candidate.sdpMLineIndex;
+                let icecandidate = ev.candidate; 
 
-            this.rtc[options._id].icecandidate = icecandidate;
+                if(!this.rtc[options._id].icecandidates) this.rtc[options._id].icecandidates = {};
+                this.rtc[options._id].icecandidates[`candidate${Math.floor(Math.random()*1000000000000000)}`] = icecandidate;
 
-            this.run('webrtcemit',{
-                origin:options.origin,
-                _id:options._id,
-                sdpMLineIndex,
-                icecandidate
-            });
+                this.run('webrtcemit',{
+                    origin:options.origin,
+                    _id:options._id,
+                    sdpMLineIndex,
+                    icecandidate
+                });
+            }
         }
 
         if(!options.ondatachannel) options.ondatachannel = (ev:RTCDataChannelEvent) => {
@@ -200,7 +205,7 @@ export class WebRTCfrontend extends Service {
     addDataChannel = ( //send arbitrary strings
         rtc:RTCPeerConnection, 
         name:string,
-        options:RTCDataChannelInit = { negotiated: true }
+        options:RTCDataChannelInit = { negotiated: false }
     ) => {
         return rtc.createDataChannel(name,options);
     }
@@ -244,15 +249,16 @@ export class WebRTCfrontend extends Service {
             rtc.close();
     }
 
-    request = (message:ServiceMessage|any, channel:RTCDataChannel, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
-        let callbackId = Math.random();
-        let req:any = {route:'runRequest', args:message, callbackId};
+    request = (message:ServiceMessage|any, channel:RTCDataChannel, _id:string, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+        let callbackId = `${Math.random()}`;
+        let req:any = {route:'webrtc/runRequest', args:[message,_id,callbackId]};
         if(method) req.method = method;
         if(origin) req.origin = origin;
         return new Promise((res,rej) => {
-            let onmessage = (data:any) => {
-                if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
-                if(data.callbackId === callbackId) {
+            let onmessage = (ev:any) => {
+                let data = ev.data;
+                if(typeof data === 'string') if(data.includes('callbackId')) data = JSON.parse(data);
+                if(data instanceof Object) if(data.callbackId === callbackId) {
                     channel.removeEventListener('message',onmessage);
                     res(data.args);
                 }
@@ -263,11 +269,19 @@ export class WebRTCfrontend extends Service {
         })
     }
 
-    runRequest = (message:any, channel:RTCDataChannel) => { //send result back
+    runRequest = (message:any, channel:RTCDataChannel|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
-        res = {args:res, callbackId:message.callbackId};
-        res = JSON.stringify(res);
-        channel.send(res);
+        res = {args:res, callbackId};
+        if(channel) {
+            if(Object.getPrototypeOf(channel) === String.prototype) {
+                for(const key in this.rtc) {
+                    if(key === channel) {channel = this.rtc[key].channels.data; break;}
+                }
+            }
+            if(channel instanceof RTCDataChannel) channel.send(JSON.stringify(res));
+        }
+
+        return res;
     }
     
     routes:Routes = {

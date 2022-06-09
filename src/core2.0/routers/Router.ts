@@ -54,8 +54,19 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         if(service instanceof Service) {
             this.services[service.name] = service;
         }
+
+
         this.service.load(service);
+
         
+        for(const name in this.services) { //tie node references together across service node maps so they can call each other
+            this.service.nodes.forEach((n) => {
+                if(!this.services[name].nodes.get(n.tag)) {
+                    this.services[name].nodes.set(n.tag,n);
+                }
+            });
+        }
+
         return this.services[service.name];
     }
 
@@ -320,9 +331,6 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         if(keys[0])
             return serviceInfo[keys[0]];
     }
-
-
-
     
 	STREAMLATEST = 0;
 	STREAMALLLATEST = 1;
@@ -452,7 +460,6 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 		this.streamFunctions[name] = callback;
 	}
 
-				
 	// 		object:{key:[1,2,3],key2:0,key3:'abc'}, 		// Object we are buffering data from
 	//		settings:{
 	//      	callback:0, 	// Default data streaming mode for all keys

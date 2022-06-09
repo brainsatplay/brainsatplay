@@ -277,8 +277,8 @@ export class Graph {
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
-        if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
-                let fnd;
+        if(!(node instanceof Graph)) if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
+                let fnd:Graph;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
                 node = fnd;
@@ -458,13 +458,13 @@ export class Graph {
         timeout:number=node.loop
     ) => {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
-        this.looper = loop;
-        if(!loop) this.looper = this.operator;
+        node.looper = loop;
+        if(!loop) node.looper = node.operator;
         if(typeof timeout === 'number' && !node.isLooping) {
             node.isLooping = true;
             let looping = async () => {
-                if(node.looping)  {
-                    let result = this.looper(
+                if(node.isLooping)  {
+                    let result = node.looper(
                         node, 
                         origin, 
                         ...args
@@ -473,24 +473,25 @@ export class Graph {
                         result = await result;
                     }
                     if(result !== undefined) {
-                        if(this.tag) this.setState({[this.tag]:result}); //if the loop returns it can trigger state
+                        if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent) {
-                            await node.parent._run(node.parent, this,  result);
+                            await node.parent._run(node.parent, node,  result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(node.children)) {
                                 for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i]._run(node.children[i], this, result);
+                                    await node.children[i]._run(node.children[i], node, result);
                                 }
                             }
-                            else await node.children._run(node.children, this, result);
+                            else await node.children._run(node.children, node, result);
                         }
-                        this.setState({[node.tag]:result});
+                        node.setState({[node.tag]:result});
                     }
                     setTimeout(async ()=>{ await looping(); }, timeout);
                 }
             }
             looping(); // -.-
+            //console.log('looping',timeout, loop, node.operator)
         }
     }
     

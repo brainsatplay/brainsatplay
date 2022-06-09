@@ -109,16 +109,20 @@ export class WSSbackend extends Service {
 
             ws.send(JSON.stringify({ route:'setId', args:clientId }));
 
-            if(options.onconnection) options.onconnection(ws,request,this.servers[address], clientId);//can overwrite the default onmesssage response 
+            if(options.onconnection) 
+                options.onconnection(ws,request,this.servers[address], clientId);//can overwrite the default onmesssage response 
             
             if(!options.onmessage) options.onmessage = (data) => {  //default onmessage
-
+                if(data instanceof Buffer) data = data.toString();
+                //console.log(data);
                 const result = this.receive(data, wss, this.servers[address]); 
+                //console.log(result)
                 if(options.keepState) this.setState({[address]:result}); 
     
             }
 
-            if(options.onmessage) ws.on('message',(data)=>{options.onmessage(data,ws,this.servers[address])}) //default onmessage response
+            if(options.onmessage) 
+                ws.on('message',(data)=>{options.onmessage(data,ws,this.servers[address])}) //default onmessage response
             if(options.onconnectionclosed) ws.on('close',(code,reason)=>{
                 if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.servers[address], clientId);
             });
@@ -174,7 +178,7 @@ export class WSSbackend extends Service {
         else {
             let socketonmessage = (data:any)=>{ 
           
-                if(Object.getPrototypeOf(data) === String.prototype) { //pulling this out of receive to check if setId was called
+                if(data) if(Object.getPrototypeOf(data) === String.prototype) { //pulling this out of receive to check if setId was called
                     let substr = data.substring(0,8);
                     if(substr.includes('{') || substr.includes('[')) {    
                         if(substr.includes('\\')) data = data.replace(/\\/g,"");
@@ -197,6 +201,7 @@ export class WSSbackend extends Service {
                 if(options.keepState) this.setState({[address]:result}); 
             }
             socket.on('message',socketonmessage); //add default callback if none specified
+            options.onmessage = socketonmessage;
         }
         if(options.onopen) socket.on('open',()=>{options.onopen(socket,this.sockets[address]);});
         if(options.onclose) socket.on('close',(code,reason)=>{options.onclose(code,reason,socket,this.sockets[address]);});
@@ -281,15 +286,16 @@ export class WSSbackend extends Service {
                 ws.close();
     }
 
-    request = (message:ServiceMessage|any, ws:WebSocket, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
-        let callbackId = Math.random();
-        let req:any = {route:'runRequest', args:message, callbackId};
+    request = (message:ServiceMessage|any, ws:WebSocket, _id:string, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
+        let callbackId = `${Math.random()}`;
+        let req:any = {route:'wss/runRequest', args:[message,_id,callbackId]};
         if(method) req.method = method;
         if(origin) req.origin = origin;
         return new Promise((res,rej) => {
-            let onmessage = (data:any) => {
-                if(data.includes('{') || data.includes('[')) data = JSON.parse(data);
-                if(data.callbackId === callbackId) {
+            let onmessage = (ev:any) => {
+                let data = ev.data;
+                if(typeof data === 'string') if(data.includes('callbackId')) data = JSON.parse(data);
+                if(data instanceof Object) if(data.callbackId === callbackId) {
                     ws.removeEventListener('message',onmessage);
                     res(data.args);
                 }
@@ -300,11 +306,27 @@ export class WSSbackend extends Service {
         })
     }
 
-    runRequest = (message:any, ws:WebSocket) => { //send result back
+    runRequest = (message:any, ws:WebSocket|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
-        res = {args:res, callbackId:message.callbackId};
-        res = JSON.stringify(res);
-        ws.send(res);
+        //console.log(this.nodes.keys());
+        res = {args:res, callbackId}; //route straight to the message listener we created with the request function
+        if(ws) {
+            if(Object.getPrototypeOf(ws) === String.prototype) {
+                for(const key in this.servers) {
+                    for(const c in this.servers[key].clients) {
+                        if(c === ws) {ws = this.servers[key].clients[c]; break;}
+                    }
+                }
+                if(!(ws instanceof WebSocket)) { 
+                    for(const s in this.sockets) {
+                        if(s === ws) {ws = this.sockets[s].socket; break;}
+                    }
+                }
+            }
+
+            if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+        }
+        return res;
     }
 
     routes:Routes={
