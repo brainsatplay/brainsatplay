@@ -1,4 +1,4 @@
-import { Graph } from "../Graph";
+import { GraphNode } from "../Graph";
 import { Routes, Service, ServiceMessage } from '../services/Service';
 //should match existing service names, services have matching frontend and backend names as well
 export type Protocol = 'http'|'wss'|'sse'|'webrtc'|'osc'|'worker'|'ble'|'serial'|'unsafe'|'struct'|'fs'|'lsl'|'hdf5'|'unity'|'e2ee'; //??? could make alternates too like express etc. services, everything is pluggable. 
@@ -72,7 +72,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     //pipe state updates from a source route/node through an available protocol to a destination route/node
     pipe = (
-        source:string|Graph, 
+        source:string|GraphNode, 
         destination:string, 
         transmitter?:Protocol|string, 
         origin?:string, 
@@ -114,14 +114,14 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     //one-shot callback pipe e.g. to return results back through an endpoint
     pipeOnce = (
-        source:string|Graph, 
+        source:string|GraphNode, 
         destination:string, 
         transmitter?:Protocol|string, 
         origin?:string, 
         method?:string, 
         callback?:(res:any)=>any|void
     ) => {
-        if(source instanceof Graph) source = source.tag;
+        if(source instanceof GraphNode) source = source.tag;
         if(!transmitter && source && destination) {
             if(callback) return  this.state.subscribeTriggerOnce(source,(res:any) => { 
                 let mod = callback(res);
@@ -270,7 +270,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     //  We only really want this function for users trying to communicate 
     //    to a single endpoint where we want the fastest possible  
     pipeFastest = (
-        source:string|Graph, 
+        source:string|GraphNode, 
         destination:string, 
         origin?:string, 
         method?:string, 

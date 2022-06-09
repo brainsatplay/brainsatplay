@@ -45,28 +45,28 @@ export function parseFunctionFromText(method='') {
 //Joshua Brewster and Garrett Flynn AGPLv3.0
 
 export type OperatorType = ( //can be async
-    self:Graph,  //'this' node
-    origin:string|Graph|AcyclicGraph, //origin node
+    self:GraphNode,  //'this' node
+    origin:string|GraphNode|Graph, //origin node
     ...args:any //input arguments, e.g. output from another node
 )=>any|void
 
 export type Tree = {
     [key:string]: //the key becomes the node tag on the graph
-        Graph |
-        GraphProperties |
+        GraphNode |
+        GraphNodeProperties |
         OperatorType |
         ((...args)=>any|void) |
-        { aliases:string[] } & GraphProperties
+        { aliases:string[] } & GraphNodeProperties
 }
 
-//properties input on Graph or add, or for children
-export type GraphProperties = {
+//properties input on GraphNode or add, or for children
+export type GraphNodeProperties = {
     tag?:string, //generated if not specified, or use to get another node by tag instead of generating a new one
     operator?:OperatorType|((...args)=>any|void), //Operator to handle I/O on this node. Returned inputs can propagate according to below settings
     forward?:boolean, //pass output to child nodes
     backward?:boolean, //pass output to parent node
-    children?:string|GraphProperties|Graph|(GraphProperties|Graph|string)[], //child node(s), can be tags of other nodes, properties objects like this, or Graphs, or null
-    parent?:Graph|undefined, //parent graph node
+    children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or GraphNodes, or null
+    parent?:GraphNode|undefined, //parent graph node
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
@@ -131,15 +131,15 @@ export const state = {
 
 
   /**
-   * Creates new instance of a Graph
+   * Creates new instance of a GraphNode
    * The methods of this class can be referenced in the operator after setup for more complex functionality
    * 
    * ```typescript
-   * const graph = new Graph({custom: 1, operator: (self, origin, input) => console.log(input, self.custom)});
+   * const graph = new GraphNode({custom: 1, operator: (self, origin, input) => console.log(input, self.custom)});
    * ```
    */
 
-export class Graph {
+export class GraphNode {
 
     nodes = new Map()
     attributes = new Set()
@@ -161,9 +161,9 @@ export class Graph {
     [key:string]: any; // any additional attribute
 
     constructor(
-        properties:GraphProperties|OperatorType|((...args)=>any|void)={}, 
-        parentNode?:Graph, 
-        graph?:AcyclicGraph
+        properties:GraphNodeProperties|OperatorType|((...args)=>any|void)={}, 
+        parentNode?:GraphNode, 
+        graph?:Graph
     ) {    
 
         if(typeof properties === 'function') { //pass a function instead of properties to set up a functional graph quickly
@@ -179,7 +179,7 @@ export class Graph {
                 if(!(params[0] == 'self' || params[0] == 'node' || params[1] == 'origin' || params[1] == 'parent' || params[1] == 'graph' || params[1] == 'router')) {
                     let fn = properties.operator;
                     //wrap the simplified operator to fit our format
-                    properties.operator = (self:Graph,origin:string|Graph|AcyclicGraph,...args) => {
+                    properties.operator = (self:GraphNode,origin:string|GraphNode|Graph,...args) => {
                         return (fn as any)(...args);
                     }
                 }
@@ -234,14 +234,14 @@ export class Graph {
     }
     
     // I/O scheme for this node in the graph
-    operator = (self:Graph=this, origin:string|Graph|AcyclicGraph, ...args:any[]) => {
+    operator = (self:GraphNode=this, origin:string|GraphNode|Graph, ...args:any[]) => {
         return args as any;
     }
     
     //run the operator
     runOp = (
-        node:Graph=this,
-        origin:string|Graph|AcyclicGraph=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
+        node:GraphNode=this,
+        origin:string|GraphNode|Graph=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args:any[]
     ) => {
         let result = node.operator(node,origin,...args);
@@ -271,14 +271,14 @@ export class Graph {
     }
 
     _run = (
-        node:Graph=this, 
-        origin:string|Graph|AcyclicGraph, 
+        node:GraphNode=this, 
+        origin:string|GraphNode|Graph, 
         ...args:any[]
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
-        if(!(node instanceof Graph)) if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
-                let fnd:Graph;
+        if(!(node instanceof GraphNode)) if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
+                let fnd:GraphNode;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
                 node = fnd;
@@ -409,8 +409,8 @@ export class Graph {
     runAnimation = (
         animation:OperatorType=this.animation, 
         args=[], 
-        node:Graph&GraphProperties|any=this, 
-        origin:string|Graph|AcyclicGraph
+        node:GraphNode&GraphNodeProperties|any=this, 
+        origin:string|GraphNode|Graph
     ) => {
         //can add an animationFrame coroutine, one per node //because why not
         this.animation = animation;
@@ -453,8 +453,8 @@ export class Graph {
     runLoop = (
         loop:OperatorType=this.looper, 
         args=[], 
-        node:Graph&GraphProperties|any=this, 
-        origin?:string|Graph|AcyclicGraph,
+        node:GraphNode&GraphNodeProperties|any=this, 
+        origin?:string|GraphNode|Graph,
         timeout:number=node.loop
     ) => {
         //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
@@ -500,50 +500,50 @@ export class Graph {
         this.operator = operator;
     }
     
-    // Set Graph parent
-    setParent = (parent:Graph) => { 
+    // Set GraphNode parent
+    setParent = (parent:GraphNode) => { 
         this.parent = parent;
         if(this.backward) this.runSync = false;
     }
     
-    // Set Graph children
-    setChildren = (children:Graph|Graph[]) => {
+    // Set GraphNode children
+    setChildren = (children:GraphNode|GraphNode[]) => {
         this.children = children;
         if(this.forward) this.runSync = false;
     }
     
-    //converts all children nodes and tag references to Graphs also
-    add = (node:GraphProperties|OperatorType|((...args)=>any|void)={}) => {
+    //converts all children nodes and tag references to GraphNodes also
+    add = (node:GraphNodeProperties|OperatorType|((...args)=>any|void)={}) => {
         if(typeof node === 'function') node = { operator:node as any};
-        if(!(node instanceof Graph)) node = new Graph(node,this,this.graph); 
+        if(!(node instanceof GraphNode)) node = new GraphNode(node,this,this.graph); 
         this.nodes.set(node.tag,node);
         if(this.graph) this.graph.nodes.set(node.tag,node);
         return node;
     }
     
-    remove = (node:string|Graph) => {
+    remove = (node:string|GraphNode) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph) {
+        if(node instanceof GraphNode) {
             this.nodes.delete(node.tag);
             if(this.graph) this.graph.nodes.delete(node.tag);
-            this.nodes.forEach((n:Graph) => {
-                if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
+            this.nodes.forEach((n:GraphNode) => {
+                if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
             }); 
         }
     }
     
     //append a node as a child to a parent node (this by default)
-    append = (node:string|Graph, parentNode=this) => {
+    append = (node:string|GraphNode, parentNode=this) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph)  {
+        if(node instanceof GraphNode)  {
             parentNode.addChildren(node);
             if(node.forward) node.runSync = false;
         }
     }      
             
     //subscribe an output with an arbitrary callback
-    subscribe = (callback:Graph|((res)=>void),tag:string=this.tag) => {
-        if(callback instanceof Graph) {
+    subscribe = (callback:GraphNode|((res)=>void),tag:string=this.tag) => {
+        if(callback instanceof GraphNode) {
             return this.subscribeNode(callback);
         } else return this.state.subscribeTrigger(tag,callback);
     }
@@ -554,7 +554,7 @@ export class Graph {
     }
 
     //append child
-    addChildren = (children:Graph|GraphProperties|(Graph|GraphProperties)[]) => {
+    addChildren = (children:GraphNode|GraphNodeProperties|(GraphNode|GraphNodeProperties)[]) => {
         if(!this.children) this.children = [];
         if(!Array.isArray(this.children)) {
             this.children = [children];
@@ -607,7 +607,7 @@ export class Graph {
         return result;
     }
     
-    setProps = (props:GraphProperties={}) => {
+    setProps = (props:GraphNodeProperties={}) => {
         Object.assign(this,props);
         if(
             !( 
@@ -619,9 +619,9 @@ export class Graph {
         ) this.runSync = true;
     }
 
-    removeTree = (node:Graph|string) => { //stop and dereference nodes to garbage collect them
+    removeTree = (node:GraphNode|string) => { //stop and dereference nodes to garbage collect them
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph) {
+        if(node instanceof GraphNode) {
             const recursivelyRemove = (node) => {
                 if(node.children) {
                     if(Array.isArray(node.children)) {
@@ -652,7 +652,7 @@ export class Graph {
             if(node.tag) {
                 this.nodes.delete(node.tag);
                 this.nodes.forEach((n) => {
-                    if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
+                    if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
                 });
                 recursivelyRemove(node);
                 if(this.graph) this.graph.nodes.removeTree(node); //remove from parent graph too 
@@ -660,8 +660,8 @@ export class Graph {
         }
     }
          
-    convertChildrenToNodes = (n:Graph) => {
-        if( n?.children instanceof Graph ) { 
+    convertChildrenToNodes = (n:GraphNode) => {
+        if( n?.children instanceof GraphNode ) { 
             if(!this.graph?.nodes.get(n.tag)) this.graph.nodes.set(n.tag,n);
             if(!this.nodes.get(n.tag)) this.nodes.set(n.tag,n); 
         }
@@ -673,7 +673,7 @@ export class Graph {
                     continue; 
                 }
                 else if(typeof n.children[i] === 'object') {
-                    n.children[i] = new Graph(n.children[i],n,this.graph);
+                    n.children[i] = new GraphNode(n.children[i],n,this.graph);
                     this.nodes.set(n.children[i].tag,n.children[i]);
                     this.convertChildrenToNodes(n.children[i]);
                 } 
@@ -688,7 +688,7 @@ export class Graph {
             }
         }
         else if(typeof n.children === 'object') {
-            n.children = new Graph(n.children,n,this.graph);
+            n.children = new GraphNode(n.children,n,this.graph);
             this.nodes.set(n.children.tag,n.children);
             this.convertChildrenToNodes(n.children);
         } 
@@ -707,34 +707,34 @@ export class Graph {
     }
     
     //stop any loops
-    stopLooping = (node:Graph=this) => {
+    stopLooping = (node:GraphNode=this) => {
         node.isLooping = false;
     }
     
-    stopAnimating = (node:Graph=this) => {
+    stopAnimating = (node:GraphNode=this) => {
         node.isAnimating = false;
     }
     
-    stopNode = (node:Graph=this) => {
+    stopNode = (node:GraphNode=this) => {
         node.stopAnimating(node);
         node.stopLooping(node);
     }
 
     
     //subscribe a node (that isn't a forward-passed child of this node) to run after this node 
-    subscribeNode = (node:Graph) => {
+    subscribeNode = (node:GraphNode) => {
         if(node.tag) this.nodes.set(node.tag,node); //register the node on this node
         return this.state.subscribeTrigger(this.tag,(res)=>{node._run(node, this, res);})
     }
     
     //recursively print a snapshot reconstructible json hierarchy of the node and the children. 
     // Start at the top/initially called nodes to print the whole hierarchy in one go
-    print = (node:string|Graph=this,printChildren=true,nodesPrinted=[]) => {
+    print = (node:string|GraphNode=this,printChildren=true,nodesPrinted=[]) => {
     
-        let dummyNode = new Graph(); //test against this for adding props
+        let dummyNode = new GraphNode(); //test against this for adding props
     
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph) {
+        if(node instanceof GraphNode) {
             
             nodesPrinted.push(node.tag);
         
@@ -785,7 +785,7 @@ export class Graph {
         
     }
     
-    //reconstruct a node hierarchy (incl. stringified functions) into a Graph set
+    //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
     reconstruct = (json:string|{[x:string]: any}) => {
         let parsed = reconstructObject(json);
         if(parsed) return this.add(parsed);
@@ -796,8 +796,8 @@ export class Graph {
 
 
 
-// Macro set for Graphs
-export class AcyclicGraph {
+// Macro set for GraphNodes
+export class Graph {
 
     nNodes = 0
     tag:string;
@@ -815,10 +815,10 @@ export class AcyclicGraph {
         if(tree || Object.keys(this.tree).length > 0) this.setTree(tree);
     }
 
-    //converts all children nodes and tag references to Graphs also
-    add = (node:Graph|GraphProperties|OperatorType|((...args)=>any|void) ={}) => {
+    //converts all children nodes and tag references to GraphNodes also
+    add = (node:GraphNode|GraphNodeProperties|OperatorType|((...args)=>any|void) ={}) => {
         let props = node;
-        if(!(node instanceof Graph)) node = new Graph(props,undefined,this); 
+        if(!(node instanceof GraphNode)) node = new GraphNode(props,undefined,this); 
         this.tree[node.tag] = props; //set the head node prototype in the tree object
         return node;
     }
@@ -834,8 +834,8 @@ export class AcyclicGraph {
                 else if (typeof tree[node] === 'object') {
                     if(!(tree[node] as any).tag) (tree[node] as any).tag = node;
                     let newNode = this.add(tree[node]);
-                    if((tree[node] as GraphProperties).aliases) {
-                        (tree[node] as GraphProperties).aliases.forEach((a) => {
+                    if((tree[node] as GraphNodeProperties).aliases) {
+                        (tree[node] as GraphNodeProperties).aliases.forEach((a) => {
                             this.nodes.set(a,newNode); 
                         });
                     }
@@ -849,24 +849,24 @@ export class AcyclicGraph {
     }
 
     //Should create a sync version with no promises (will block but be faster)
-    run = (node:string|Graph,...args) => {
+    run = (node:string|GraphNode,...args) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph)
+        if(node instanceof GraphNode)
             return node._run(node,this,...args)
         else return undefined;
     }
 
-    _run = (node:string|Graph,origin:string|Graph|AcyclicGraph=this,...args) => {
+    _run = (node:string|GraphNode,origin:string|GraphNode|Graph=this,...args) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph)
+        if(node instanceof GraphNode)
             return node._run(node,origin,...args)
         else return undefined;
     }
 
-    removeTree = (node:string|Graph) => {
+    removeTree = (node:string|GraphNode) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if(node instanceof Graph) {
-            const recursivelyRemove = (node:Graph) => {
+        if(node instanceof GraphNode) {
+            const recursivelyRemove = (node:GraphNode) => {
                 if(node.children) {
                     if(Array.isArray(node.children)) {
                         node.children.forEach((c)=>{
@@ -892,55 +892,55 @@ export class AcyclicGraph {
                     }
                 }
             }
-            if((node as Graph).stopNode) (node as Graph).stopNode();
-            if((node as Graph).tag) {
-                this.nodes.delete((node as Graph).tag);
+            if((node as GraphNode).stopNode) (node as GraphNode).stopNode();
+            if((node as GraphNode).tag) {
+                this.nodes.delete((node as GraphNode).tag);
                 this.nodes.forEach((n) => {
-                    if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
+                    if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
                 });
-                recursivelyRemove(node as Graph);
+                recursivelyRemove(node as GraphNode);
             }
         }
     }
 
-    remove = (node:string|Graph) => {
+    remove = (node:string|GraphNode) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if((node as Graph)?.tag) {
-            (node as Graph).stopNode();
-            if((node as Graph)?.tag) this.nodes.delete((node as Graph).tag);
-            if((node as Graph)?.tag) {
-                if(this.nodes.get((node as Graph).tag)) 
+        if((node as GraphNode)?.tag) {
+            (node as GraphNode).stopNode();
+            if((node as GraphNode)?.tag) this.nodes.delete((node as GraphNode).tag);
+            if((node as GraphNode)?.tag) {
+                if(this.nodes.get((node as GraphNode).tag)) 
                 {
-                    this.nodes.delete((node as Graph).tag);
+                    this.nodes.delete((node as GraphNode).tag);
                     //if(this.graph) this.graph.nodes.delete(node.tag);
                     this.nodes.forEach((n) => {
-                        if(n.nodes.get((node as Graph).tag)) n.nodes.delete((node as Graph).tag);
+                        if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
                     });
                 }
             }
         }
     }
 
-    append = (node:Graph, parentNode:Graph) => {
+    append = (node:GraphNode, parentNode:GraphNode) => {
         parentNode.addChildren(node);
     }
 
-    callParent = async (node:Graph, origin:string|Graph|AcyclicGraph=node, ...args ) => {
+    callParent = async (node:GraphNode, origin:string|GraphNode|Graph=node, ...args ) => {
         if(node?.parent) {
             return await node.callParent(node,origin,...args);
         }
     }
 
-    callChildren = async (node:Graph, idx?:number, ...args) => {
+    callChildren = async (node:GraphNode, idx?:number, ...args) => {
         if(node?.children) {
             return await node.callChildren(idx,...args);
         }
     }
 
-    subscribe = (node:string|Graph,callback:(res:any)=>void) => {
+    subscribe = (node:string|GraphNode,callback:(res:any)=>void) => {
         if(!callback) return;
         if(typeof node !== 'string') node = node.tag;
-        if(node instanceof Graph) {
+        if(node instanceof GraphNode) {
             return node.subscribe(callback);
         }
         else return this.state.subscribeTrigger(node,callback);
@@ -951,24 +951,24 @@ export class AcyclicGraph {
     }
 
     //subscribe a node to this node that isn't a child of this node
-    subscribeNode = (inputNode:string|Graph, outputNode:Graph|string) => {
+    subscribeNode = (inputNode:string|GraphNode, outputNode:GraphNode|string) => {
         let tag;
-        if((inputNode as Graph)?.tag) tag = (inputNode as Graph).tag;
+        if((inputNode as GraphNode)?.tag) tag = (inputNode as GraphNode).tag;
         else if (typeof inputNode === 'string') tag = inputNode;
         return this.state.subscribeTrigger(tag,(res)=>{this.run(outputNode,inputNode, ...res);}) // TODO: Check if correct node
     }
 
-    stopNode = (node:string|Graph) => {
+    stopNode = (node:string|GraphNode) => {
         if(typeof node === 'string') {
             node = this.nodes.get(node);
         }
-        if(node instanceof Graph) {
+        if(node instanceof GraphNode) {
             node.stopNode(); //just sets node.isAnimating and node.isLooping to false
         }
     }
 
-    print = (node:Graph|undefined=undefined,printChildren=true) => {
-        if(node instanceof Graph) return node.print(node,printChildren);
+    print = (node:GraphNode|undefined=undefined,printChildren=true) => {
+        if(node instanceof GraphNode) return node.print(node,printChildren);
         else {
             let printed = `{`;
             this.nodes.forEach((n) => { //print all nodes if none specified
@@ -978,13 +978,13 @@ export class AcyclicGraph {
         }
     }
 
-    //reconstruct a node hierarchy (incl. stringified functions) into a Graph set
+    //reconstruct a node hierarchy (incl. stringified functions) into a GraphNode set
     reconstruct = (json:string|{[x:string]: any}) => {
         let parsed = reconstructObject(json);
         if(parsed) return this.add(parsed);
     }
 
-    create = (operator:OperatorType,parentNode:Graph,props:GraphProperties) => {
+    create = (operator:OperatorType,parentNode:GraphNode,props:GraphNodeProperties) => {
         return createNode(operator,parentNode,props,this);
     }
 
@@ -995,12 +995,12 @@ export class AcyclicGraph {
 //macro
 export function reconstructNode(json:string|{[x:string]: any},parentNode,graph) {
     let reconstructed = reconstructObject(json);
-    if(reconstructed) return new Graph(reconstructed,parentNode,graph);
+    if(reconstructed) return new GraphNode(reconstructed,parentNode,graph);
     else return undefined;
 }
 
-// exports.AcyclicGraph = AcyclicGraph;
 // exports.Graph = Graph;
+// exports.GraphNode = GraphNode;
 
 //parse stringified object with stringified functions
 export function reconstructObject(json:string|{[x:string]: any}='{}') {
@@ -1240,10 +1240,10 @@ if((JSON as any).stringifyFast === undefined) {
     (JSON as any).stringifyFast = stringifyFast;
 }
 
-export function createNode(operator:OperatorType,parentNode:Graph,props:GraphProperties,graph:AcyclicGraph) {
+export function createNode(operator:OperatorType,parentNode:GraphNode,props:GraphNodeProperties,graph:Graph) {
     if(typeof props === 'object') {
         (props.operator as any) = operator;
-        return new Graph(props,parentNode,graph);
+        return new GraphNode(props,parentNode,graph);
     }
-    return new Graph({operator:operator},parentNode,graph);
+    return new GraphNode({operator:operator},parentNode,graph);
 }

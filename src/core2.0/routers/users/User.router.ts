@@ -1,4 +1,4 @@
-import { Graph, GraphProperties, stringifyFast } from "../../Graph";
+import { GraphNode, GraphNodeProperties, stringifyFast } from "../../Graph";
 import { Protocol, Router } from "../Router";
 import { Routes, Service, ServiceMessage } from "../../services/Service";
 
@@ -18,7 +18,7 @@ export type UserProps = {
     request?:(message:ServiceMessage|any, connection?:any, origin?:string, method?:string) => Promise<any> //await a server response for a call 
     latency?:number,                 //should calculate other metrics like latency
     [key:string]:any //other user properties e.g. personally identifying information
-} & GraphProperties
+} & GraphNodeProperties
 
 //parse from this object/endpoint and send to that object/endpoint, e.g. single users
 export type PrivateSessionProps = {
@@ -82,7 +82,7 @@ export type SharedSessionProps = {
 export class UserRouter extends Router {
 
     users:{
-        [key:string]:Graph
+        [key:string]:GraphNode
     } = {}
 
     sessions:{
@@ -100,8 +100,8 @@ export class UserRouter extends Router {
 
     //just an alias for service._run with clear usage for user Id as origin, you'll need to wire up how responses are handled at the destination based on user id
     runAs = (
-        node:string|Graph, 
-        userId:string|UserProps|UserProps & Graph, 
+        node:string|GraphNode, 
+        userId:string|UserProps|UserProps & GraphNode, 
         ...args:any[]
     ) => {
         if(userId instanceof Object) userId = (userId as UserProps)._id;
@@ -109,10 +109,10 @@ export class UserRouter extends Router {
     }
 
     pipeAs = ( //just an alias of service.pipe with clear usage for user Id as origin, you'll need to wire up how responses are handled at the destination based on user id
-        source:string | Graph, 
+        source:string | GraphNode, 
         destination:string, 
         transmitter:Protocol|string, 
-        userId:string|UserProps|UserProps & Graph,
+        userId:string|UserProps|UserProps & GraphNode,
         method:string, 
         callback:(res:any)=>any|void
     ) => {
@@ -380,7 +380,7 @@ export class UserRouter extends Router {
         //pass any connection props and replace them with signaling objects e.g. to set event listeners on messages for this user for these sockets, sse's, rtcs, etc.
         this._initConnections(user);
             
-        if(!(user instanceof Graph)) this.users[user._id] = new Graph(user, undefined, this.service);
+        if(!(user instanceof GraphNode)) this.users[user._id] = new GraphNode(user, undefined, this.service);
         
         //we need to make sure that all of the connections needing IDs have IDs, meaning they've traded with the other ends
         //then we can call addUser on the other end and the ids will get associated 
@@ -435,7 +435,7 @@ export class UserRouter extends Router {
     }
 
     //need to close all user connections
-    removeUser = (user:UserProps & Graph|string) => {
+    removeUser = (user:UserProps & GraphNode|string) => {
         if(typeof user === 'string') user = this.users[user];
 
         if(!user) return false;
@@ -482,7 +482,7 @@ export class UserRouter extends Router {
         return true;
     }
 
-    updateUser = (user:UserProps & Graph|string, options:UserProps) => {
+    updateUser = (user:UserProps & GraphNode|string, options:UserProps) => {
         if(typeof user === 'string') user = this.users[user];
         if(!user) return false;
 
@@ -499,7 +499,7 @@ export class UserRouter extends Router {
         return user;
     }
 
-    setUser = (user:string|UserProps & Graph, props:{[key:string]:any}|string) => {
+    setUser = (user:string|UserProps & GraphNode, props:{[key:string]:any}|string) => {
         if(user) if(Object.getPrototypeOf(user) === String.prototype) {
             user = this.users[user as string];
             if(!user) return false;
@@ -511,7 +511,7 @@ export class UserRouter extends Router {
         return true;
     }
             
-    getConnectionInfo = (user:UserProps|UserProps & Graph) => {
+    getConnectionInfo = (user:UserProps|UserProps & GraphNode) => {
         let connectionInfo:any = {
             _id:user._id
         };
@@ -587,7 +587,7 @@ export class UserRouter extends Router {
 
     getSessionInfo = (
         sessionId?:string, //id or name (on shared sessions)
-        userId?:string|UserProps & Graph
+        userId?:string|UserProps & GraphNode
     ) => {
         if(userId instanceof Object) userId = (userId as any)._id;
         if(!sessionId) {
@@ -613,7 +613,7 @@ export class UserRouter extends Router {
 
     openPrivateSession = (
         options:PrivateSessionProps={}, 
-        userId?:string|UserProps|UserProps & Graph
+        userId?:string|UserProps|UserProps & GraphNode
     ) => {
         if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
@@ -642,7 +642,7 @@ export class UserRouter extends Router {
 
     openSharedSession = (
         options:SharedSessionProps, 
-        userId:string|UserProps|UserProps & Graph
+        userId:string|UserProps|UserProps & GraphNode
     ) => {
         if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
@@ -673,7 +673,7 @@ export class UserRouter extends Router {
     //update session properties, also invoke basic permissions checks for who is updating
     updateSession = (
         options:PrivateSessionProps | SharedSessionProps, 
-        userId?:string|UserProps|UserProps & Graph
+        userId?:string|UserProps|UserProps & GraphNode
     ) => {
         if(typeof userId === 'object') userId = userId._id;
         //add permissions checks based on which user ID is submitting the update
@@ -694,7 +694,7 @@ export class UserRouter extends Router {
     //add a user id to a session, supply options e.g. to make them a moderator or update properties to be streamed dynamically
     joinSession = (   
         sessionId:string, 
-        userId:string|UserProps|UserProps & Graph, 
+        userId:string|UserProps|UserProps & GraphNode, 
         options?:SharedSessionProps|PrivateSessionProps
     ) => {
         if(typeof userId === 'object') userId = userId._id;
@@ -721,7 +721,7 @@ export class UserRouter extends Router {
 
     leaveSession = (
         sessionId:string, 
-        userId:string|UserProps|UserProps & Graph, 
+        userId:string|UserProps|UserProps & GraphNode, 
         clear:boolean=true //clear all data related to this user incl permissions
     ) => {
         if(typeof userId === 'object') userId = userId._id;
@@ -811,7 +811,7 @@ export class UserRouter extends Router {
 
     subscribeToSession = (
         session:SharedSessionProps|PrivateSessionProps|string, 
-        userId:string|UserProps|UserProps & Graph, 
+        userId:string|UserProps|UserProps & GraphNode, 
         onmessage?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void, 
         onopen?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void,
         onclose?:(session:SharedSessionProps|PrivateSessionProps, userId:string)=>void
@@ -1063,7 +1063,7 @@ export class UserRouter extends Router {
 
     //you either need to run this loop on a session to 
     // pass updates up to the server from your user manually
-    userUpdateLoop = (user:UserProps & Graph) => {
+    userUpdateLoop = (user:UserProps & GraphNode) => {
         if(user.sessions) {
             const updateObj = {};
             for(const key in user.sessions) {

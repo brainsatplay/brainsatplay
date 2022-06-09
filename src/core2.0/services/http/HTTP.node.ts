@@ -489,7 +489,7 @@ export class HTTPbackend extends Service {
                             res = this.handleMethod(message.route, message.method, message.args, message.origin); //these methods are being passed request/response in the data here, post methods will parse the command objects instead while this can be used to get html templates or play with req/res custom callbakcs
                         }
                         else if (message.node) {
-                            res = this.handleGraphCall(message.node, message.args);
+                            res = this.handleGraphNodeCall(message.node, message.args);
                         }
                         else res = this.handleServiceMessage(message);
     
@@ -555,7 +555,7 @@ export class HTTPbackend extends Service {
                             res = this.handleMethod(route, method, args, origin);
                         }
                         else if (body.node) {
-                            res = this.handleGraphCall(body.node, body.args, body.origin);
+                            res = this.handleGraphNodeCall(body.node, body.args, body.origin);
                         }
                         else res = this.handleServiceMessage({route, args:args, method:method, origin:origin});
                         

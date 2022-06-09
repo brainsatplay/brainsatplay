@@ -1,6 +1,6 @@
 //End to end encryption using cryptojs and keygen stuff, should involve webworkers 
 
-import { Graph } from "../../Graph";
+import { GraphNode } from "../../Graph";
 import { Service, Routes, ServiceMessage } from "../Service";
 
 //End to end encryption service, this will redirect transmits/receives through an encoder/decoder framework
@@ -103,8 +103,8 @@ export class E2EEService extends Service {
                 return this.handleMethod(message.route, message.method, message.args);
             } else if(typeof message.route === 'string') {
                 return this.handleServiceMessage(message);
-            } else if ((typeof message.node === 'string' || message.node instanceof Graph)) {
-                return this.handleGraphCall(message.node, message.args, message.origin);
+            } else if ((typeof message.node === 'string' || message.node instanceof GraphNode)) {
+                return this.handleGraphNodeCall(message.node, message.args, message.origin);
             } else if(this.keepState) {    
                 if(message.route)
                     this.setState({[message.route]:message.args});

@@ -1,4 +1,4 @@
-import { AcyclicGraph, Graph, GraphProperties, OperatorType, stringifyWithCircularRefs } from "../Graph";
+import { Graph, GraphNode, GraphNodeProperties, OperatorType, stringifyWithCircularRefs } from "../Graph";
 
 /**
  * 
@@ -20,16 +20,16 @@ export type RouteProp = { //these are just multiple methods you can call on a ro
     connect?:(...args:any)=>any|void,
     trace?:(...args:any)=>any|void,
     aliases?:string[] 
-} & GraphProperties
+} & GraphNodeProperties
 
 
 export type Routes = { //same as the tree in the base acyclic graph but adds aliases and RouteProps handling
     [key:string]:
-        Graph |
-        GraphProperties |
+        GraphNode |
+        GraphNodeProperties |
         OperatorType |
         ((...args)=>any|void) |
-        { aliases?:string[] } & GraphProperties |
+        { aliases?:string[] } & GraphNodeProperties |
         RouteProp
 }
 
@@ -37,13 +37,13 @@ export type ServiceMessage = {
     route:string,  //the function/node to execute
     args?:any, //route args or data depending on what we're handling
     method?:string, //can specify get, post, etc. on http requests or on multiplexed routes using the RouteProp format
-    node?:string|Graph, //alt tag for routes
-    origin?:string|Graph|AcyclicGraph|Service,
+    node?:string|GraphNode, //alt tag for routes
+    origin?:string|GraphNode|Graph|Service,
     [key:string]:any //it's an object so do whatever, any messages meant for web protocols need to be stringified or buffered
 }
 
 
-export class Service extends AcyclicGraph {
+export class Service extends Graph {
 
     //routes denote paths and properties callable across interfaces and inherited by parent services (adding the service name in the 
     // front of the route like 'http/createServer'.
@@ -170,7 +170,7 @@ export class Service extends AcyclicGraph {
         route:string, 
         method:string, 
         args:any, 
-        origin?:string|Graph|AcyclicGraph|Service
+        origin?:string|GraphNode|Graph|Service
     ) => { //For handling RouteProp or other routes with multiple methods 
         let m = method.toLowerCase(); //lower case is enforced in the route keys
         if(m === 'get' && ((this.routes[route] as RouteProp)?.get as any)?.transform instanceof Function) { //make alt formats for specific methods and execute them a certain way
@@ -200,7 +200,7 @@ export class Service extends AcyclicGraph {
         } else return message;
     }
 
-    handleGraphCall(route:string|Graph, args:any, origin?:string|Graph|AcyclicGraph) {
+    handleGraphNodeCall(route:string|GraphNode, args:any, origin?:string|GraphNode|Graph) {
         if(!route) return args;
         if((args as ServiceMessage)?.args) {
             this.handleServiceMessage(args);
@@ -223,7 +223,7 @@ export class Service extends AcyclicGraph {
             } else if(args[0].route) {
                 return this.handleServiceMessage(args[0]);
             } else if (args[0].node){
-                return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
+                return this.handleGraphNodeCall(args[0].node, args[0].args, args[0].origin);
             } else if(this.keepState) {    
                 if(args[0].route)
                     this.setState({[args[0].route]:args[0].args});
@@ -253,7 +253,7 @@ export class Service extends AcyclicGraph {
             } else if(args[0].route) {
                 return this.handleServiceMessage(args[0]);
             } else if (args[0].node){
-                return this.handleGraphCall(args[0].node, args[0].args, args[0].origin);
+                return this.handleGraphNodeCall(args[0].node, args[0].args, args[0].origin);
             } else if(this.keepState) {    
                 if(args[0].route)
                     this.setState({[args[0].route]:args[0].args});
@@ -265,14 +265,14 @@ export class Service extends AcyclicGraph {
 
     //we may want to auto pipe outputs from a node through our frontend<-->backend service protocol
     pipe = (
-        source:Graph|string, 
+        source:GraphNode|string, 
         destination:string, 
         endpoint?:string|any, //the address or websocket etc. of the endpoint on the service we're using, this is different e.g. for sockets or http
         origin?:string, 
         method?:string, 
         callback?:(res:any)=>any|void
     ) => {
-        if(source instanceof Graph) {
+        if(source instanceof GraphNode) {
             if(callback) return source.subscribe((res)=>{
                 let mod = callback(res); //either a modifier or a void function to do a thing before transmitting the data
                 if(mod !== undefined) this.transmit({route:destination, args:mod, origin, method});
@@ -288,14 +288,14 @@ export class Service extends AcyclicGraph {
 
     //one-shot callback pipe e.g. to return results back through an endpoint
     pipeOnce = (
-        source:Graph|string, 
+        source:GraphNode|string, 
         destination:string, 
         endpoint?:string|any, //the address or websocket etc. of the endpoint on the service we're using, this is different e.g. for sockets or http
         origin?:string, 
         method?:string, 
         callback?:(res:any)=>any|void
     ) => {
-        if(source instanceof Graph) {
+        if(source instanceof GraphNode) {
             if(callback) return source.state.subscribeTriggerOnce(source.tag,(res)=>{
                 let mod = callback(res); //either a modifier or a void function to do a thing before transmitting the data
                 if(mod !== undefined) this.transmit({route:destination, args:mod, origin, method});
@@ -376,7 +376,7 @@ export class Service extends AcyclicGraph {
         reconstruct:this.reconstruct,
         handleMethod:this.handleMethod,
         handleServiceMessage:this.handleServiceMessage,
-        handleGraphCall:this.handleGraphCall
+        handleGraphNodeCall:this.handleGraphNodeCall
     }
 
 }

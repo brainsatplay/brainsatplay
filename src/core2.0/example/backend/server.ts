@@ -11,7 +11,7 @@ process.on('exit', exitHandler.bind(null,{cleanup:true}));
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 
-import { Graph } from "../../Graph";
+import { GraphNode } from "../../Graph";
 //run backends
 //import { Router } from "../../routers/Router";
 import { UserProps, UserRouter } from "../../routers/users/User.router";

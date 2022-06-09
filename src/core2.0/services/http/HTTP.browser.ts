@@ -1,4 +1,4 @@
-import { Graph } from "../../Graph";
+import { GraphNode } from "../../Graph";
 import { Routes, Service, ServiceMessage } from "../Service";
 
 
@@ -160,8 +160,8 @@ export class HTTPfrontend extends Service {
                         return resolve(this.handleMethod(body.route,body.method,body.args,body.origin));
                     } else if(typeof body?.route === 'string') {
                         return resolve(this.handleServiceMessage(body));
-                    } else if ((typeof body?.node === 'string' || body.node instanceof Graph)) {
-                        return resolve(this.handleGraphCall(body.node,body.args,body.origin));
+                    } else if ((typeof body?.node === 'string' || body.node instanceof GraphNode)) {
+                        return resolve(this.handleGraphNodeCall(body.node,body.args,body.origin));
                     } else return resolve(body);
                 },
                 onabort:(er)=>{ reject(er); }
