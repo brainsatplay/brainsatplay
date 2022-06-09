@@ -461,7 +461,7 @@ export async function checkBoilerPlate(tinybuildCfg=defaultConfig,onlyConfig=tru
         console.log('Creating package.json')
         fs.writeFileSync(packagePath,
 `{
-    "name": "tinybuildapp",
+    "name": "tinybuildapp${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -603,7 +603,7 @@ packager(config);
         //package.json, used to run npm install then npm start
         fs.writeFileSync(dirName+'/package.json',`
 {
-    "name": "tinybuild",
+    "name": "tinybuild${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -679,7 +679,7 @@ packager(config);
         //package.json, used to run npm install then npm start
         fs.writeFileSync(path.join(dirName,'package.json'),`
 {
-    "name": "tinybuild",
+    "name": "tinybuild${Math.floor(Math.random()*10000)}",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
