@@ -4,8 +4,7 @@
 
 //const cwd = process.cwd()
 import esbuild from 'esbuild'
-import pkg from 'esbuild-plugin-d.ts';
-const {dtsPlugin} = pkg;
+import {dtsPlugin} from 'tinybuild/tinybuild/esbuild/.d.ts_plugin/index.cjs';
 import {streamingImportsPlugin} from './streamingImportsPlugin.js'
 import {workerPlugin} from './workerPlugin.js'
 import { installerPlugin } from './installerPlugin.js';

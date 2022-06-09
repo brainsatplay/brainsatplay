@@ -25,7 +25,7 @@ bundle({
     outfile: 'dist/index',
     bundleBrowser: true, //plain js format
     bundleESM: false, //.esm format
-    bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+    bundleTypes: false, //you need a .tsconfig for this to work
     bundleHTML: true
 })
 ```
@@ -43,7 +43,7 @@ Any unlisted settings are just typical esbuild settings, which can be configured
 const bundlerSettings = {
   bundleBrowser:true, //create plain js build? Can include globals and init scripts
   bundleESM:false,     //create esm module js files
-  bundleTypes:false,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
+  bundleTypes:false,   //create .d.ts files, //you need a .tsconfig for this to work
   bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
   bundleIIFE:false,   //create an iife build, this is compiled temporarily to create the types files
   bundleCommonJS:false, //cjs format outputted as .cjs.js
@@ -102,7 +102,7 @@ ESM bundles are for enabling the `import`/`export` syntax either in es6 or later
 
 ### Types Bundling
 
-As long as your entry point is a typescript file, this esbuild plugin can generate .d.ts type files for all of your local script files imported in your project. You also need a tsconfig in your project root. 
+You need a tsconfig in your project root for this to work, we edited the plugin to work with any js/jsx/ts/tsx entry points. 
 
 These function sort of like header files in strongly-typed C, which show you all of the functions/classes/variables/etc. and their expected input/output formats (including detailed formatting for objects or array types) in each respective script file. Nice for reference, VSCode otherwise does this on-the-fly even in .js files when working.
 

@@ -33,7 +33,7 @@ const config = {
         outfile: 'dist/index',
         bundleBrowser: true, //plain js format
         bundleESM: false, //.esm format
-        bundleTypes: false, //entry point should be a ts or jsx (or other typescript) file
+        bundleTypes: false, //you need a .tsconfig for this to work
         bundleNode: false, // bundle a package with platform:node and separate externals
         bundleHTML: true //can wrap the built outfile (or first file in outdir) automatically and serve it or click and run the file without hosting.
     },
