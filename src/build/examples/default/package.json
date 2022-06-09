@@ -1,5 +1,5 @@
 {
-    "name": "tinybuildapp",
+    "name": "default",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
