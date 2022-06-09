@@ -112,22 +112,28 @@ let p = router.addUser(
                 })
             });
 
-            if(Object.keys(res.data.shared).length > 0) {
-                //console.log(res.data.shared);
-                for(const key in res.data.shared) {
-                    let user = res.data.shared[key];
-                    if(user.rooms)
-                        document
-                        .getElementById('webrtc')
-                        .insertAdjacentHTML(
-                            'beforeend',
-                            `<div><span>User: ${user._id}</span><span>Rooms: <table>${Object.keys(user.rooms).map((room:any) => { return `<tr><td>ID: ${user.rooms[room]._id}</td><td>Ice Candidates: ${user.rooms[room].icecandidates ? Object.keys(user.rooms[room].icecandidates).length : 0 }</td><td><button id='${user.rooms[room]._id}'>Connect</button></td></tr>`; })}</table></span></div>`
-                            )
+                    
+            router.subscribeToSession('webrtcrooms',user._id,(res)=>{
+                console.log(res)
+                if(Object.keys(res.data.shared).length > 0) {
+                    //console.log(res.data.shared);
+                    for(const key in res.data.shared) {
+                        let user = res.data.shared[key];
+                        if(user.rooms)
+                            document
+                            .getElementById('webrtc')
+                            .insertAdjacentHTML(
+                                'beforeend',
+                                `<div><span>User: ${user._id}</span><span>Rooms: <table>${Object.keys(user.rooms).map((room:any) => { return `<tr><td>ID: ${user.rooms[room]._id}</td><td>Ice Candidates: ${user.rooms[room].icecandidates ? Object.keys(user.rooms[room].icecandidates).length : 0 }</td><td><button id='${user.rooms[room]._id}'>Connect</button></td></tr>`; })}</table></span></div>`
+                                )
+                    }
                 }
-            }
+
+            })
 
         }
     })
+
 
     user.send(JSON.stringify({route:'addUser',args:info}));
     

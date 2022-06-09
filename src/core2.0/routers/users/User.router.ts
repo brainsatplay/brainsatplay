@@ -819,23 +819,29 @@ export class UserRouter extends Router {
         if(userId instanceof Object) userId = (userId as UserProps)._id;
         if(typeof session === 'string') {
             let s = this.sessions.private[session];
-            if(!s) this.sessions.shared[session];
+            if(!s) s = this.sessions.shared[session] as any;
             if(!s) return undefined;
             session = s;
         } 
+
+        if(typeof session.onopen === 'function') {
+            let sub = this.subscribe('joinSession',(res) => {
+                if(res._id === (session as any)._id) (session as any).onopen(session, userId);
+                this.unsubscribe('joinSession',sub);
+            })
+        }
+
         if(session instanceof Object) { //we need to fire onmessage events when the session updates (setState for sessionId) and when the user updates
 
             if(onmessage) session.onmessage = onmessage;
             if(onopen) session.onclose = onopen;
             if(onclose) session.onclose = onclose;
 
-            if(typeof session.onopen === 'function')
-                session.onopen(session, userId);
-
-            if(typeof session.onmessage === 'function') 
-                this.subscribe(session._id,(session)=>{ session.onmessage(session,userId); });
+           
+            // if(typeof session.onmessage === 'function') 
+            //     this.subscribe(session._id,(session)=>{ session.onmessage(session,userId); });
             
-            this.setState({[session._id]:session});
+            // this.setState({[session._id]:session});
         }
         
     }
@@ -1039,12 +1045,16 @@ export class UserRouter extends Router {
                 for(const key in update.private) {
                     if(!user.sessions[key]) continue;
                     user.sessions[key].data = update.private[key].data;
+                    if(user.sessions[key].onmessage)
+                        user.sessions[key].onmessage(user.sessions[key],user._id)
                 }
             }
             if(update.shared) {
                 for(const key in update.shared) {
                     if(!user.sessions[key]) continue;
                     user.sessions[key].data = update.shared[key].data;
+                    if(user.sessions[key].onmessage)
+                        user.sessions[key].onmessage(user.sessions[key],user._id)
                 }
             }
             return user;
