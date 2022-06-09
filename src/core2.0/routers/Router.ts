@@ -213,6 +213,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
                 } //need to despaghettify this 
             }
         }
+        return sent;
     }
 
 
