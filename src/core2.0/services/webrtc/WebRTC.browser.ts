@@ -9,7 +9,7 @@ export type WebRTCProps = {
     config?:RTCConfiguration,
     description?:RTCSessionDescriptionInit,
     offer?:RTCOfferOptions,
-    icecandidate?:RTCIceCandidate,
+    icecandidates?:{[key:string]:RTCIceCandidate},
     answer?:RTCAnswerOptions,
     ontrack?:(ev:RTCTrackEvent)=>void,
     onicecandidate?:(ev:RTCPeerConnectionIceEvent)=>void,
@@ -105,7 +105,7 @@ export class WebRTCfrontend extends Service {
             ...options
         };
 
-        console.log('opening webrtc channel',this.rtc)
+        //console.log('opening webrtc channel',this.rtc)
 
         if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
             if(ev.candidate) {
@@ -151,7 +151,11 @@ export class WebRTCfrontend extends Service {
                 });
             });
         } else {
-            if(options.icecandidate) rtc.addIceCandidate(options.icecandidate);
+            if(options.icecandidates) {
+                for(const prop in options.icecandidates) {
+                    rtc.addIceCandidate(options.icecandidates[prop]);
+                }
+            }
             if(options.description) return await new Promise((res,rej) => {
                 rtc.setRemoteDescription(options.description).then((desc)=>{
                     rtc.createAnswer(options.answer).then(()=>{

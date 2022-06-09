@@ -647,7 +647,7 @@ export class UserRouter extends Router {
         if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
             options._id = `shared${Math.floor(Math.random()*1000000000000000)}`;
-        }         
+        }   
         if(this.sessions.shared[options._id]) {
             delete options._id;
             this.openSharedSession(options,userId); //regen id
@@ -660,8 +660,8 @@ export class UserRouter extends Router {
             if(!this.users[userId].sessions) this.users[userId].sessions = {};
             this.users[userId].sessions[options._id] = options;
         } else if (!options.settings) options.settings = {name:'shared', propnames:{latency:true}, users:{}};
-        if(!options.settings.name) options.settings.name = 'shared'; 
         if(!options.data) options.data = { private:{}, shared:{}};
+        if(!options.settings.name) options.name = options.id;
         if(this.sessions.shared[options._id]) {
             return this.updateSession(options,userId);
         }
@@ -925,8 +925,8 @@ export class UserRouter extends Router {
                                 if(!(user in sesh.data.shared)) 
                                     sharedData[user][prop] = this.users[user][prop];
                                 else if(sharedData[user][prop] instanceof Object) {
-                                    if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data))) 
-                                        sharedData[user][prop] = this.users[sesh.source][prop];
+                                    if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data.shared[user]))) 
+                                        sharedData[user][prop] = this.users[user][prop];
                                 }
                                 else if(this.users[user][prop] && sesh.data.shared[user][prop] !== this.users[user][prop]) 
                                     sharedData[user][prop] = this.users[user][prop];
@@ -953,8 +953,10 @@ export class UserRouter extends Router {
                         if(this.users[user][prop]) {
                             if(!sesh.data.shared[user]) sharedData[user][prop] = this.users[user][prop];
                             else if(sesh.data.shared[user][prop] instanceof Object) {
-                                if(this.users[user][prop] && (stringifyFast(sesh.data[prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data))) 
-                                    updateObj.data[prop] = this.users[user][prop];
+                                if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data.shared[user]))) { 
+                                    console.log(user,prop,sesh.data[prop],this.users[user][prop])
+                                    sharedData[user][prop] = this.users[user][prop]; 
+                                }
                             }
                             else if(sesh.data.shared[user][prop] !== this.users[user][prop]) 
                                 sharedData[user][prop] = this.users[user][prop];
@@ -1021,6 +1023,9 @@ export class UserRouter extends Router {
                 }
             }
         }
+
+        //console.log(updates,users)
+            
 
         let message = {route:'receiveSessionUpdates', args:null, origin:null}
         for(const u in users) {
@@ -1109,6 +1114,8 @@ export class UserRouter extends Router {
                 }
             }
 
+            console.log(updateObj)
+
             if(Object.keys(updateObj).length > 0) {
                 //console.log(updateObj)
                 if(user.send) user.send({ route:'setUser', args:updateObj, origin:user._id });
@@ -1123,7 +1130,6 @@ export class UserRouter extends Router {
         pipeAs:this.pipeAs,
         addUser:this.addUser,
         setUser:(self,origin,update)=>{
-            //console.log('setuser',origin,update)
             this.setUser(origin,update);
         },
         removeUser:this.removeUser,
