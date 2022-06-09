@@ -14,7 +14,7 @@ export const safeParse = (input:string | {
             let arrow = (typeof value === 'string') ? regex.test(value) : false
             
             try {
-                input[key] = (func || arrow) ? eval('(' + value + ')') : value;
+                input[key] = (func || arrow) ? (0, eval)('(' + value + ')') : value;
             } catch (e) {
                 console.error(e, value)
                 input[key] = value
@@ -67,7 +67,7 @@ export function getParams(fn: Function) {
     var result = getParamNames(fn)
   return result.reduce(function (parameters, param) {          // Convert it into an object
     const matchVals = param.match(/([_$a-zA-Z][^=]*)(?:=([^=]+))?/); // Split parameter name from value
-    parameters.push({name: matchVals[1].trim(), default: eval(matchVals[2])})// Eval each default value, to get strings, variable refs, etc.
+    parameters.push({name: matchVals[1].trim(), default: (0, eval)(matchVals[2])})// Eval each default value, to get strings, variable refs, etc.
     return parameters;
   }, []);
   } else return []
@@ -118,7 +118,7 @@ export function parseFunctionFromText(method='') {
       newFunc = new Function(varName, newFuncBody.substring(newFuncBody.indexOf('{')+1,newFuncBody.length-1));
     }
     else {
-      try {newFunc = eval(newFuncHead + newFuncBody + "}");} catch {}
+      try {newFunc = (0, eval)(newFuncHead + newFuncBody + "}");} catch {}
     }
   }
 
