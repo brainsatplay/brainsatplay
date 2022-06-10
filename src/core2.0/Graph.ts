@@ -290,6 +290,7 @@ export class GraphNode {
             
         //can add an animationFrame coroutine, one per node //because why not
         if(node.firstRun) {
+            node.firstRun = false;
             if(
                 !( 
                    (node.children && node.forward) || 
@@ -309,7 +310,6 @@ export class GraphNode {
                 node.runLoop(node.looper,args,node,origin);
                 return;
             }
-            node.firstRun = false;
 
         }
     
