@@ -883,15 +883,17 @@ export class UserRouter extends Router {
                 break;
             }
             for(const prop in sesh.settings.propnames) {
-                if(this.sessions.private[session].data) { 
-                    if(sesh.data[prop] instanceof Object) {
-                        if(this.users[sesh.source][prop] && (stringifyFast(sesh.data[prop]) !== stringifyFast(this.users[sesh.source][prop]) || !(prop in sesh.data))) 
+                if( this.users[sesh.source][prop]) {
+                    if(this.sessions.private[session].data) { 
+                        if(sesh.data[prop] instanceof Object) {
+                            if(this.users[sesh.source][prop] && (stringifyFast(sesh.data[prop]) !== stringifyFast(this.users[sesh.source][prop]) || !(prop in sesh.data))) 
+                                updateObj.data[prop] = this.users[sesh.source][prop];
+                        }
+                        else if(this.users[sesh.source][prop] && (sesh.data[prop] !== this.users[sesh.source][prop] || !(prop in sesh.data))) 
                             updateObj.data[prop] = this.users[sesh.source][prop];
                     }
-                    else if(this.users[sesh.source][prop] && (sesh.data[prop] !== this.users[sesh.source][prop] || !(prop in sesh.data))) 
-                        updateObj.data[prop] = this.users[sesh.source][prop];
-                }
-                else updateObj.data[prop] = this.users[sesh.source][prop];
+                    else updateObj.data[prop] = this.users[sesh.source][prop];
+                } else if(this.sessions.private[session]?.data?.[prop]) delete this.sessions.private[session].data[prop];
             }
             if(Object.keys(updateObj.data).length > 0) {
                 this.recursivelyAssign(this.sessions.private[session].data, updateObj.data); //set latest data on the source object as reference
@@ -931,11 +933,11 @@ export class UserRouter extends Router {
                                     else privateData[user][prop] = this.users[user][prop];
                                 } else if(privateData[user][prop] instanceof Object) {
                                     if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data))) 
-                                        privateData[user][prop] =  this.users[sesh.source][prop];
+                                        privateData[user][prop] =  this.users[user][prop];
                                 }
                                 else if(this.users[user][prop] && sesh.data.private[prop] !== this.users[user][prop]) 
                                     privateData[user][prop] = this.users[user][prop];
-                            }
+                            } else if (sesh.data.private[user]?.[prop]) delete sesh.data.private[user][prop]; //if user deleted the prop, session can delete it
                         }
                         if(Object.keys(privateData[user]).length === 0) delete privateData[user];
                     } else {
@@ -951,7 +953,7 @@ export class UserRouter extends Router {
                                 }
                                 else if(this.users[user][prop] && sesh.data.shared[user][prop] !== this.users[user][prop]) 
                                     sharedData[user][prop] = this.users[user][prop];
-                            }
+                            } else if (sesh.data.shared[user]?.[prop]) delete sesh.data.shared[user][prop]; //if user deleted the prop, session can delete it
                         }
                     }
                 }
@@ -987,7 +989,7 @@ export class UserRouter extends Router {
                             }
                             else if(sesh.data.shared[user][prop] !== this.users[user][prop]) 
                                 sharedData[user][prop] = this.users[user][prop];
-                        }
+                        } else if (sesh.data.shared[user]?.[prop]) delete sesh.data.shared[user][prop]; //if user deleted the prop, session can delete it 
                     }
                     if(Object.keys(sharedData[user]).length === 0) delete sharedData[user];
                 }
