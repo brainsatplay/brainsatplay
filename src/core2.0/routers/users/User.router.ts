@@ -910,6 +910,8 @@ export class UserRouter extends Router {
                 for(const user in sesh.settings.users) {
                     if(!this.users[user]) {
                         delete sesh.settings.users[user]; //dont need to delete admins, mods, etc as they might want to come back <_<
+                        if( sesh.data.shared[user]) delete sesh.data.shared[user];
+                        if( sesh.data.private[user]) delete sesh.data.shared[user];
                         if(sesh.settings.host === user) this.swapHost(sesh);
                         continue;
                     }
@@ -955,6 +957,8 @@ export class UserRouter extends Router {
                 for(const user in sesh.settings.users) {
                     if(!this.users[user]) {
                         delete sesh.settings.users[user]; //dont need to delete admins, mods, etc as they might want to come back <_<
+                        if( sesh.data.shared[user]) delete sesh.data.shared[user];
+                        if( sesh.data.private[user]) delete sesh.data.shared[user];
                         if(sesh.settings.host === user) this.swapHost(sesh);
                         continue;
                     }
