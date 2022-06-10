@@ -277,14 +277,16 @@ export class GraphNode {
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
-        if(!(node instanceof GraphNode)) if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
+        if(!(node instanceof GraphNode)) {
+            if(!node) return undefined;
+            if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
                 let fnd:GraphNode;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
                 node = fnd;
+            }
         }
         
-        if(!node) return undefined;
 
         //console.log('running node ', node.tag, 'children: ', node.children);
             
@@ -302,14 +304,15 @@ export class GraphNode {
 
             if(node.animate && !node.isAnimating) {
                 node.runAnimation(node.animation,args,node,origin);
-                return;
             }
 
             //can add an infinite loop coroutine, one per node, e.g. an internal subroutine
             if(node.loop && typeof node.loop === 'number' && !node.isLooping) {
                 node.runLoop(node.looper,args,node,origin);
-                return;
             }
+
+            if(node.loop || node.animat) 
+                return;
 
         }
     
