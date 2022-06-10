@@ -494,7 +494,7 @@ export class UserRouter extends Router {
             this.users[user._id] = user; //change the _id the user is registered under. Do this before joining sessions and stuff unless you really want to error check all that too (you don't)
         }   
 
-        Object.assign(this.users[user._id],options);
+        this.recursivelyAssign(this.users[user._id],options);
 
         return user;
     }
@@ -502,7 +502,7 @@ export class UserRouter extends Router {
     recursivelyAssign = (target,obj) => {
         for(const key in obj) {
             if(obj[key] instanceof Object) {
-                if(target[key]) this.recursivelyAssign(target[key], obj[key]);
+                if(target[key] instanceof Object) this.recursivelyAssign(target[key], obj[key]);
                 else target[key] = obj[key]
             } else target[key] = obj[key];
         }
@@ -518,6 +518,8 @@ export class UserRouter extends Router {
         }
 
         this.recursivelyAssign(user,props);
+
+        console.log(user,props)
         return true;
     }
             
@@ -720,7 +722,7 @@ export class UserRouter extends Router {
             }
             sesh.settings.users[userId] = true;
             if(!this.users[userId].sessions) this.users[userId].sessions = {};
-            this.users[userId].sessions[sessionId] = options;
+            this.users[userId].sessions[sessionId] = sesh;
             if(options) { return this.updateSession(options,userId); };
             //console.log(sesh)
             return sesh;
@@ -1143,7 +1145,7 @@ export class UserRouter extends Router {
                 }
             }
 
-            //console.log(updateObj)
+            console.log(user._id,updateObj)
 
             if(Object.keys(updateObj).length > 0) {
                 if(user.send) user.send({ route:'setUser', args:updateObj, origin:user._id });
