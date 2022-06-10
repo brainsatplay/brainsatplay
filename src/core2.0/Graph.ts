@@ -375,10 +375,12 @@ export class GraphNode {
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
     
                     if(node.backward && node.parent?._run) {
-                        await this.runParent(node,...res);
+                        if(Array.isArray(res)) await this.runParent(node,...res);
+                        else await this.runParent(node,...res);
                     }
                     if(node.children && node.forward) {
-                        await this.runChildren(node,...res);
+                        if(Array.isArray(res)) await this.runChildren(node,...res);
+                        else await this.runChildren(node,...res);
                     }
     
                     return res;
@@ -467,10 +469,12 @@ export class GraphNode {
                     if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent?._run) {
-                            await this.runParent(node,...result);
+                            if(Array.isArray(result)) await this.runParent(node,...result);
+                            else await this.runParent(node,...result);
                         }
                         if(node.children && node.forward) {
-                            await this.runChildren(node,...result);
+                            if(Array.isArray(result)) await this.runChildren(node,...result);
+                            else await this.runChildren(node,...result);
                         }
                         this.setState({[node.tag]:result});
                     }
@@ -506,10 +510,12 @@ export class GraphNode {
                     if(result !== undefined) {
                         if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent?._run) {
-                            await this.runParent(node,...result);
+                            if(Array.isArray(result)) await this.runParent(node,...result);
+                            else await this.runParent(node,...result);
                         }
                         if(node.children && node.forward) {
-                            await this.runChildren(node,...result);
+                            if(Array.isArray(result)) await this.runChildren(node,...result);
+                            else await this.runChildren(node,...result);
                         }
                         node.setState({[node.tag]:result});
                     }
