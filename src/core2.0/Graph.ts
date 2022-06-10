@@ -30,7 +30,7 @@ export function parseFunctionFromText(method='') {
         newFunc = new Function(varName, newFuncBody.substring(newFuncBody.indexOf('{')+1,newFuncBody.length-1));
         }
         else {
-        try {newFunc = (0, eval)(newFuncHead + newFuncBody + "}");} catch {}
+        try {newFunc = eval(newFuncHead + newFuncBody + "}");} catch {}
         }
     }
 
@@ -376,11 +376,11 @@ export class GraphNode {
     
                     if(node.backward && node.parent?._run) {
                         if(Array.isArray(res)) await this.runParent(node,...res);
-                        else await this.runParent(node,...res);
+                        else await this.runParent(node,res);
                     }
                     if(node.children && node.forward) {
                         if(Array.isArray(res)) await this.runChildren(node,...res);
-                        else await this.runChildren(node,...res);
+                        else await this.runChildren(node,res);
                     }
     
                     return res;
@@ -470,11 +470,11 @@ export class GraphNode {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent?._run) {
                             if(Array.isArray(result)) await this.runParent(node,...result);
-                            else await this.runParent(node,...result);
+                            else await this.runParent(node,result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(result)) await this.runChildren(node,...result);
-                            else await this.runChildren(node,...result);
+                            else await this.runChildren(node,result);
                         }
                         this.setState({[node.tag]:result});
                     }
@@ -511,11 +511,11 @@ export class GraphNode {
                         if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent?._run) {
                             if(Array.isArray(result)) await this.runParent(node,...result);
-                            else await this.runParent(node,...result);
+                            else await this.runParent(node,result);
                         }
                         if(node.children && node.forward) {
                             if(Array.isArray(result)) await this.runChildren(node,...result);
-                            else await this.runChildren(node,...result);
+                            else await this.runChildren(node,result);
                         }
                         node.setState({[node.tag]:result});
                     }
