@@ -157,13 +157,23 @@ export class WSSfrontend extends Service {
 
     runRequest = (message:any, ws:WebSocket|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
-        res = {args:res, callbackId};
         if(Object.getPrototypeOf(ws) === String.prototype) {
             for(const s in this.sockets) {
                 if(s === ws) {ws = this.sockets[s].socket; break;}
             }
         }
-        if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+        if(ws) {
+            if(res instanceof Promise) {
+                res.then((v) => {        
+                    res = {args:res, callbackId};
+                    if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+                })
+            }
+            else { 
+                res = {args:res, callbackId};
+                if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+            }
+        }
 
         return res;
     }

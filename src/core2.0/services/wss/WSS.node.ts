@@ -307,9 +307,7 @@ export class WSSbackend extends Service {
     }
 
     runRequest = (message:any, ws:WebSocket|string, callbackId:string|number) => { //send result back
-        let res = this.receive(message);
-        //console.log(this.nodes.keys());
-        res = {args:res, callbackId}; //route straight to the message listener we created with the request function
+        let res = this.receive(message);        
         if(ws) {
             if(Object.getPrototypeOf(ws) === String.prototype) {
                 for(const key in this.servers) {
@@ -324,8 +322,20 @@ export class WSSbackend extends Service {
                 }
             }
 
-            if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+            if(res instanceof Promise) {
+                res.then((v) => {
+                    res = {args:v, callbackId}; //route straight to the message listener we created with the request function
+                    if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+    
+                })
+            }
+            else { 
+                res = {args:res, callbackId}; //route straight to the message listener we created with the request function
+                if(ws instanceof WebSocket) ws.send(JSON.stringify(res));
+            }//console.log(this.nodes.keys());
+    
         }
+
         return res;
     }
 

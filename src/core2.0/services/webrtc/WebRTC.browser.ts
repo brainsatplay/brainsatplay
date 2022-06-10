@@ -7,9 +7,11 @@ export type WebRTCProps = {
         [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
     },
     config?:RTCConfiguration,
-    description?:RTCSessionDescriptionInit,
+    hostdescription?:RTCSessionDescriptionInit,
+    peerdescription?:RTCSessionDescriptionInit,
     offer?:RTCOfferOptions,
-    icecandidates?:{[key:string]:RTCIceCandidate},
+    hostcandidates?:{[key:string]:RTCIceCandidate},
+    peercandidates?:{[key:string]:RTCIceCandidate},
     answer?:RTCAnswerOptions,
     ontrack?:(ev:RTCTrackEvent)=>void,
     onicecandidate?:(ev:RTCPeerConnectionIceEvent)=>void,
@@ -80,9 +82,8 @@ export class WebRTCfrontend extends Service {
     }
 
     openRTC = async (
-        options?:WebRTCProps, 
-        host=true
-    ) => {
+        options?:WebRTCProps
+    ):Promise<WebRTCInfo> => {
         if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`
         if(!options.config) options.config = {}
         let rtc = new RTCPeerConnection(options.config);
@@ -97,7 +98,7 @@ export class WebRTCfrontend extends Service {
                     options.channels[channel] = this.addDataChannel(rtc,channel,(options.channels as any)[channel]);
                 } else options.channels[channel] = this.addDataChannel(rtc,channel);
             }
-        }
+        } 
 
         this.rtc[options._id] = {
             rtc,
@@ -107,22 +108,6 @@ export class WebRTCfrontend extends Service {
 
         //console.log('opening webrtc channel',this.rtc)
 
-        if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
-            if(ev.candidate) {
-                let sdpMLineIndex = ev.candidate.sdpMLineIndex;
-                let icecandidate = ev.candidate; 
-
-                if(!this.rtc[options._id].icecandidates) this.rtc[options._id].icecandidates = {};
-                this.rtc[options._id].icecandidates[`candidate${Math.floor(Math.random()*1000000000000000)}`] = icecandidate;
-
-                this.run('webrtcemit',{
-                    origin:options.origin,
-                    _id:options._id,
-                    sdpMLineIndex,
-                    icecandidate
-                });
-            }
-        }
 
         if(!options.ondatachannel) options.ondatachannel = (ev:RTCDataChannelEvent) => {
             this.rtc[options._id].channels[ev.channel.label] = ev.channel;
@@ -140,32 +125,77 @@ export class WebRTCfrontend extends Service {
         rtc.onnegotiationneeded = options.onnegotiationneeded;
         rtc.oniceconnectionstatechange = options.oniceconnectionstatechange
         rtc.onconnectionstatechange = options.onconnectionstatechange;
-
-        if(host) {
-            return await new Promise((res,rej) => {
-                rtc.createOffer(options.offer).then((desc) => {
-                    rtc.setLocalDescription(desc).then(()=>{
-                        this.rtc[options._id].description = desc;
-                        res(this.rtc[options._id]); //this is to be transmitted to the user 
-                    });
-                });
-            });
-        } else {
-            if(options.icecandidates) {
-                for(const prop in options.icecandidates) {
-                    rtc.addIceCandidate(options.icecandidates[prop]);
+    
+        if(options.hostdescription)   {
+            if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
+                if(ev.candidate) {
+                    let icecandidate = ev.candidate; 
+    
+                    if(!this.rtc[options._id].peercandidates) this.rtc[options._id].peercandidates = {};
+                    this.rtc[options._id].peercandidates[`peercandidate${Math.floor(Math.random()*1000000000000000)}`] = icecandidate;
+    
                 }
             }
-            if(options.description) return await new Promise((res,rej) => {
-                rtc.setRemoteDescription(options.description).then((desc)=>{
-                    rtc.createAnswer(options.answer).then(()=>{
-                        this.rtc[options._id].description = desc;
-                        res(this.rtc[options._id]);
+    
+            return await new Promise((res,rej) => {
+                options.hostdescription.sdp = (options.hostdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
+                rtc.setRemoteDescription(options.hostdescription).then((desc)=>{
+                    if(options.hostcandidates) {
+                        for(const prop in options.hostcandidates) {
+                            rtc.addIceCandidate(options.hostcandidates[prop]);
+                        }
+                    }
+                    rtc.createAnswer(options.answer).then((answer)=>{
+                        rtc.setLocalDescription(answer).then(()=>{
+                            console.log(answer, desc, answer)
+                            this.rtc[options._id].peerdescription = answer;
+                            res(this.rtc[options._id]);
+
+                        });
                     });
                 }); //we can now receive data
             });
-            else return await this.rtc[options._id];
         }
+    
+        if(options.peerdescription)  {
+            return await new Promise((res,rej) => {
+                options.peerdescription.sdp = (options.peerdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
+                rtc.setRemoteDescription(options.peerdescription).then(()=>{
+                    if(options.peercandidates) {
+                        for(const prop in options.peercandidates) {
+                            rtc.addIceCandidate(options.peercandidates[prop]);
+                        }
+                    }
+                    rtc.createAnswer(options.answer).then((answer)=>{
+                        rtc.setLocalDescription(answer).then(()=>{
+                            this.rtc[options._id].peerdescription = answer;
+                            res(this.rtc[options._id]);
+
+                        });
+                    });
+                }); //we can now receive data
+            });
+        }
+
+        if(!options.onicecandidate && !this.rtc[options._id]?.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
+            if(ev.candidate) {
+                let icecandidate = ev.candidate; 
+
+                if(!this.rtc[options._id].hostcandidates) this.rtc[options._id].hostcandidates = {};
+                this.rtc[options._id].hostcandidates[`hostcandidate${Math.floor(Math.random()*1000000000000000)}`] = icecandidate;
+
+            }
+        }
+
+        return await new Promise((res,rej) => {
+            rtc.createOffer(options.offer).then((offer) => {
+                rtc.setLocalDescription(offer).then(()=>{
+                    this.rtc[options._id].hostdescription = offer;
+                    res(this.rtc[options._id]); //this is to be transmitted to the user 
+                });
+            });
+        });
+        
     }
 
     addUserMedia = (
@@ -209,7 +239,7 @@ export class WebRTCfrontend extends Service {
     addDataChannel = ( //send arbitrary strings
         rtc:RTCPeerConnection, 
         name:string,
-        options:RTCDataChannelInit = { negotiated: false }
+        options?:RTCDataChannelInit//{ negotiated: false }
     ) => {
         return rtc.createDataChannel(name,options);
     }
@@ -275,24 +305,30 @@ export class WebRTCfrontend extends Service {
 
     runRequest = (message:any, channel:RTCDataChannel|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
-        res = {args:res, callbackId};
         if(channel) {
             if(Object.getPrototypeOf(channel) === String.prototype) {
                 for(const key in this.rtc) {
                     if(key === channel) {channel = this.rtc[key].channels.data; break;}
                 }
             }
-            if(channel instanceof RTCDataChannel) channel.send(JSON.stringify(res));
-        }
+            if(res instanceof Promise)
+                res.then((v) => {
+                    res = {args:v, callbackId};
 
+                    if(channel instanceof RTCDataChannel) channel.send(JSON.stringify(res));
+                    
+                    return res;
+                })
+            else {
+                res = {args:res, callbackId};
+                if(channel instanceof RTCDataChannel) channel.send(JSON.stringify(res));
+            }
+        }
         return res;
     }
     
     routes:Routes = {
         //just echos webrtc info for server subscriptions to grab onto
-        webrtcemit:(info:{_id:string,label:number,candidate:string,origin:string}) => {
-            return info;
-        },
         openRTC:this.openRTC,
         request:this.request,
         runRequest:this.runRequest,
