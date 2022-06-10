@@ -913,6 +913,8 @@ export class UserRouter extends Router {
                         if( sesh.data.shared[user]) delete sesh.data.shared[user];
                         if( sesh.data.private[user]) delete sesh.data.shared[user];
                         if(sesh.settings.host === user) this.swapHost(sesh);
+                        updateObj.settings.users = sesh.settings.users;
+                        updateObj.settings.host = sesh.settings.host;
                         continue;
                     }
                     if(user !== sesh.settings.host) {
@@ -960,6 +962,8 @@ export class UserRouter extends Router {
                         if( sesh.data.shared[user]) delete sesh.data.shared[user];
                         if( sesh.data.private[user]) delete sesh.data.shared[user];
                         if(sesh.settings.host === user) this.swapHost(sesh);
+                        updateObj.settings.users = sesh.settings.users;
+                        updateObj.settings.host = sesh.settings.host;
                         continue;
                     }
                     sharedData[user] = {};
@@ -1079,7 +1083,8 @@ export class UserRouter extends Router {
             if(update.shared) {
                 for(const key in update.shared) {
                     if(!user.sessions[key]) continue;
-                    console.log(user.sessions[key].data,JSON.stringify(update.shared[key].data))
+                    if(update.shared[key].settings.users) user.sessions[key].settings.users = update.shared[key].settings.users;
+                    if(update.shared[key].settings.host) user.sessions[key].settings.host = update.shared[key].settings.host;
                     if(update.shared[key].data.private) this.recursivelyAssign(user.sessions[key].data.private, update.shared[key].data.private);
                     if(update.shared[key].data.shared)  this.recursivelyAssign(user.sessions[key].data.shared, update.shared[key].data.shared);
                     if(user.sessions[key].onmessage)
