@@ -98,14 +98,19 @@ let p = router.addUser(
                     if(ev.candidate) {
                         if(!user.rooms) user.rooms = {};
                         if(!user.rooms[room._id]) {
-                            if(!room.icecandidates) room.icecandidates = {};
+                            if(!room.hostcandidates) room.hostcandidates = {};
+                            //console.log(room)
                             user.rooms[room._id] = {
                                 _id:room._id,
-                                icecandidates:room.icecandidates
+                                hostdescription:room.hostdescription,
+                                hostcandidates:room.hostcandidates
                             }
                         }
-                        else user.rooms[room._id].icecandidates[`candidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
-                        //in another client, join this session
+                        else {
+                            user.rooms[room._id].hostdescription = room.hostdescription;
+                            user.rooms[room._id].hostcandidates[`hostcandidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
+                        }
+                            //in another client, join this session
                         //need to send this info to the server which should happen automatically via the userupdateloop
                     }
                 })
@@ -114,20 +119,65 @@ let p = router.addUser(
                     
             let us = {};
             router.subscribeToSession('webrtcrooms',user._id,(res)=>{
-                console.log(res)
                 if(Object.keys(res.data.shared).length > 0) {
                     //console.log(res.data.shared);
-                    let k = 0;
                     for(const key in res.data.shared) {
                         let u = res.data.shared[key];
+                        if(u.rooms) {
+                            for(const r in u.rooms) {
+                                if(us[key]) {
+                                    if(!us[key][r]?.peerdescription && u.rooms[r].peerdescription) {
+                                        (router.services.webrtc as WebRTCfrontend).openRTC(u.rooms[r] as WebRTCProps).then((room:WebRTCInfo) => { //this will confirm the peer connection
+                                            console.log('got peer description, connection is live!')
+                                        })
+                                    }  
+                                }
+                            }
+                        }
                         if(u.rooms && !us[key]) {
                             document
                             .getElementById('webrtc')
                             .insertAdjacentHTML(
                                 'beforeend',
-                                `<div><span>User: ${key}</span><span>Rooms: <table>${Object.keys(u.rooms).map((room:any) => { return `<tr><td>ID: ${u.rooms[room]._id}</td><td>Ice Candidates: ${u.rooms[room].icecandidates ? Object.keys(u.rooms[room].icecandidates).length : 0 }</td>${user._id !== key ? `<td><button id='${u.rooms[room]._id}'>Connect</button></td>` : ``}</tr>`; })}</table></span></div>`
+                                `<div><span>User: ${key}</span><span>Rooms: <table>${Object.keys(u.rooms).map((room:any) => { return `<tr><td>ID: ${u.rooms[room]._id}</td><td>Ice Candidates: ${u.rooms[room].hostcandidates ? Object.keys(u.rooms[room].hostcandidates).length : 0 }</td>${user._id !== key ? `<td><button id='${u.rooms[room]._id}'>Connect</button></td>` : ``}</tr>`; })}</table></span></div>`
                                 )
                             us[key] = true;
+
+                            if(user._id !== key) Object.keys(u.rooms).map((roomid:any) => {
+                                document.getElementById(u.rooms[roomid]._id).onclick = () => {
+                                    (router.services.webrtc as WebRTCfrontend).openRTC(u.rooms[roomid] as WebRTCProps).then((room:WebRTCInfo) => {
+                                        room.rtc.addEventListener('icecandidate',(ev)=>{
+                                            if(ev.candidate) {
+                                                //console.log(room);
+                                                if(!user.rooms) user.rooms = {};
+                                                if(!user.rooms[room._id]) {
+                                                    if(!room.peercandidates) room.peercandidates = {};
+                                                    user.rooms[room._id] = {
+                                                        _id:room._id,
+                                                        peerdescription:room.peerdescription,
+                                                        peercandidates:room.peercandidates
+                                                    }
+                                                }
+                                                else {
+                                                    user.rooms[room._id].peerdescription = room.peerdescription;
+                                                    user.rooms[room._id].peercandidates[`peercandidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
+                                                }
+                                                //in another client, join this session
+                                                //need to send this info to the server which should happen automatically via the userupdateloop
+                                            }
+                                        })
+                                        //console.log('connected to peer, waiting for handshake')
+                                        document.getElementById(u.rooms[roomid]._id).innerHTML = 'Ping!';                                            
+                                        // document.getElementById(u.rooms[roomid]._id).innerHTML = 'Disconnect';
+                                        document.getElementById(u.rooms[roomid]._id).onclick = () => {
+                                            (router.services.webrtc as WebRTCfrontend).request({route:'ping',origin:user._id},room.channels.data as RTCDataChannel,room._id)
+
+                                            // (router.services.webrtc as WebRTCfrontend).terminate(room);
+                                            // console.log('terminated', room._id);
+                                        }
+                                    })
+                                }
+                            })
                         }
                     }
                 }

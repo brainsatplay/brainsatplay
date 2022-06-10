@@ -2,7 +2,7 @@ import { Service, Routes, ServiceMessage } from "../Service";
 
 export type WebRTCProps = {
     _id?:string,
-    origin:string,
+    origin?:string,
     channels?:{
         [key:string]:(true|RTCDataChannelInit|RTCDataChannel)
     },
@@ -84,8 +84,10 @@ export class WebRTCfrontend extends Service {
     openRTC = async (
         options?:WebRTCProps
     ):Promise<WebRTCInfo> => {
+        if(!options) options = {};
         if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`
         if(!options.config) options.config = {}
+        
         let rtc = new RTCPeerConnection(options.config);
 
         if(!options.channels) options.channels = { 'data':true }; //need one channel at least for the default service stuff to work
@@ -100,11 +102,15 @@ export class WebRTCfrontend extends Service {
             }
         } 
 
-        this.rtc[options._id] = {
+        if(!this.rtc[options._id]) {
+            this.rtc[options._id] = {
             rtc,
             _id:options._id,
             ...options
-        };
+            }
+        } else {
+            Object.assign(this.rtc[options._id],options);
+        }
 
         //console.log('opening webrtc channel',this.rtc)
 
@@ -126,7 +132,7 @@ export class WebRTCfrontend extends Service {
         rtc.oniceconnectionstatechange = options.oniceconnectionstatechange
         rtc.onconnectionstatechange = options.onconnectionstatechange;
     
-        if(options.hostdescription)   {
+        if(options.hostdescription && !options.peerdescription)   {
             if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
                 if(ev.candidate) {
                     let icecandidate = ev.candidate; 
@@ -137,8 +143,10 @@ export class WebRTCfrontend extends Service {
                 }
             }
     
+           // console.log(options.hostdescription)
             return await new Promise((res,rej) => {
                 options.hostdescription.sdp = (options.hostdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
+                //console.log(options.hostdescription);
                 rtc.setRemoteDescription(options.hostdescription).then((desc)=>{
                     if(options.hostcandidates) {
                         for(const prop in options.hostcandidates) {
@@ -147,8 +155,8 @@ export class WebRTCfrontend extends Service {
                     }
                     rtc.createAnswer(options.answer).then((answer)=>{
                         rtc.setLocalDescription(answer).then(()=>{
-                            console.log(answer, desc, answer)
-                            this.rtc[options._id].peerdescription = answer;
+                            //console.log(answer, desc, answer)
+                            this.rtc[options._id].peerdescription =  {type:answer.type,sdp:answer.sdp};
                             res(this.rtc[options._id]);
 
                         });
@@ -158,6 +166,7 @@ export class WebRTCfrontend extends Service {
         }
     
         if(options.peerdescription)  {
+            console.log(this.rtc[options._id]);
             return await new Promise((res,rej) => {
                 options.peerdescription.sdp = (options.peerdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
                 rtc.setRemoteDescription(options.peerdescription).then(()=>{
@@ -166,13 +175,7 @@ export class WebRTCfrontend extends Service {
                             rtc.addIceCandidate(options.peercandidates[prop]);
                         }
                     }
-                    rtc.createAnswer(options.answer).then((answer)=>{
-                        rtc.setLocalDescription(answer).then(()=>{
-                            this.rtc[options._id].peerdescription = answer;
-                            res(this.rtc[options._id]);
-
-                        });
-                    });
+                    res(this.rtc[options._id]);
                 }); //we can now receive data
             });
         }
@@ -190,7 +193,7 @@ export class WebRTCfrontend extends Service {
         return await new Promise((res,rej) => {
             rtc.createOffer(options.offer).then((offer) => {
                 rtc.setLocalDescription(offer).then(()=>{
-                    this.rtc[options._id].hostdescription = offer;
+                    this.rtc[options._id].hostdescription = {type:offer.type,sdp:offer.sdp};
                     res(this.rtc[options._id]); //this is to be transmitted to the user 
                 });
             });
