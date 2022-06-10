@@ -66,7 +66,7 @@ export type GraphNodeProperties = {
     forward?:boolean, //pass output to child nodes
     backward?:boolean, //pass output to parent node
     children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or GraphNodes, or null
-    parent?:GraphNode|undefined, //parent graph node
+    parent?:GraphNode|Graph|undefined, //parent graph node
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
