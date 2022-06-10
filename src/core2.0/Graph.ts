@@ -269,6 +269,10 @@ export class GraphNode {
     run = (...args:any[]) => {
         return this._run(this,undefined,...args); //will be a promise
     }
+    
+    runAsync = (...args:any[]) => {
+        return new Promise((res,rej) => {res(this._run(this,undefined,...args))}); //will be a promise
+    }
 
     _run = (
         node:GraphNode=this, 
