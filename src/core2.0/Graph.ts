@@ -374,16 +374,11 @@ export class GraphNode {
     
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
     
-                    if(node.backward && node.parent) {
+                    if(node.backward && node.parent?._run) {
                         await node.parent._run(node.parent, this, res);
                     }
                     if(node.children && node.forward) {
-                        if(Array.isArray(node.children)) {
-                            for(let i = 0; i < node.children.length; i++) {
-                                await node.children[i]._run(node.children[i], this, res);
-                            }
-                        }
-                        else await node.children._run(node.children, this, res);
+                        await this.runChildren(node,res);
                     }
     
                     return res;
@@ -404,6 +399,33 @@ export class GraphNode {
             }
             else resolve(undefined);
         });
+    }
+
+    runChildren = async (node:GraphNode, ...args) => {
+        if(Array.isArray(node.children)) {
+            for(let i = 0; i < node.children.length; i++) { 
+                if (typeof node.children[i] === 'string') {
+                    if(node.graph && node.graph.get(node.children[i])) {
+                        node.children[i] = node.graph.get(node.children[i]); //try graph scope
+                        if(!node.nodes.get(node.children[i].tag)) node.nodes.set(node.children[i].tag,node.children[i]);
+                    }
+                    if(!node.children[i] && node.nodes.get(node.children[i])) node.children[i] = node.nodes.get(node.children[i]); //try local scope
+                }
+                if(node.children[i]?.runOp)
+                    await node.children[i]._run(node.children[i], node, ...args);
+            }
+        }
+        else {
+            if (typeof node.children === 'string') {
+                if(node.graph && node.graph.get(node.children)) {
+                    node.children = node.graph.get(node.children); //try graph scope
+                    if(!node.nodes.get(node.children.tag)) node.nodes.set(node.children.tag,node.children);
+                }
+                if(!node.children && node.nodes.get(node.children)) node.children = node.nodes.get(node.children); //try local scope
+            }
+            if(node.children?.runOp)
+                await node.children._run(node.children, node, ...args);
+        }
     }
     
     runAnimation = (
@@ -430,16 +452,11 @@ export class GraphNode {
                     }
                     if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
-                        if(node.backward && node.parent) {
-                            await node.parent._run(node.parent, this, result);
+                        if(node.backward && node.parent?._run)) {
+                            await node.parent._run(node.parent, this, ...result);
                         }
                         if(node.children && node.forward) {
-                            if(Array.isArray(node.children)) {
-                                for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i]._run(node.children[i], this, result);
-                                }
-                            }
-                            else await node.children._run(node.children, this, result);
+                            await this.runChildren(node,...result);
                         }
                         this.setState({[node.tag]:result});
                     }
@@ -474,16 +491,11 @@ export class GraphNode {
                     }
                     if(result !== undefined) {
                         if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
-                        if(node.backward && node.parent) {
+                        if(node.backward && node.parent?._run)) {
                             await node.parent._run(node.parent, node,  result);
                         }
                         if(node.children && node.forward) {
-                            if(Array.isArray(node.children)) {
-                                for(let i = 0; i < node.children.length; i++) {
-                                    await node.children[i]._run(node.children[i], node, result);
-                                }
-                            }
-                            else await node.children._run(node.children, node, result);
+                            await this.runChildren(node,...result);
                         }
                         node.setState({[node.tag]:result});
                     }
@@ -594,14 +606,38 @@ export class GraphNode {
         const origin = this // NOTE: This node must be the origin
         let result;
         if(Array.isArray(this.children)) {
-            if(idx) result = this.children[idx]?.runOp(this.children[idx], origin, ...args);
+            if(idx) {
+                if (typeof this.children[idx] === 'string') {
+                if(this.graph && this.graph.get(this.children[idx])) {
+                    this.children[idx] = this.graph.get(this.children[idx]); //try graph scope
+                    if(!this.nodes.get(this.children[idx].tag)) this.nodes.set(this.children[idx].tag,this.children[idx]);
+                }
+                if(!this.children[idx] && this.nodes.get(this.children[idx])) this.children[idx] = this.nodes.get(this.children[idx]); //try local scope
+            }
+            if(this.children[idx]?.runOp) 
+                result = this.children[idx].runOp(this.children[idx], origin, ...args);
+            }
             else {
                 result = [];
                 for(let i = 0; i < this.children.length; i++) {
-                    result.push(this.children[i]?.runOp(this.children[i], origin, ...args));
+                    if (typeof this.children[i] === 'string') {
+                        if(this.graph && this.graph.get(this.children[i])) {
+                            this.children[i] = this.graph.get(this.children[i]); //try graph scope
+                            if(!this.nodes.get(this.children[i].tag)) this.nodes.set(this.children[i].tag,this.children[i]);
+                        }
+                        if(!this.children[i] && this.nodes.get(this.children[i])) this.children[i] = this.nodes.get(this.children[i]); //try local scope
+                    }
+                    if(this.children[i]?.runOp) result.push(this.children[i].runOp(this.children[i], origin, ...args));
                 } 
             }
         } else if(this.children) {
+            if (typeof this.children === 'string') {
+                if(this.graph && this.graph.get(this.children)) {
+                    this.children = this.graph.get(this.children); //try graph scope
+                    if(!this.nodes.get(this.children.tag)) this.nodes.set(this.children.tag,this.children);
+                }
+                if(!this.children && this.nodes.get(this.children)) this.children = this.nodes.get(this.children); //try local scope
+            }
             result = this.children.runOp(this.children, origin, ...args);
         }
         return result;
