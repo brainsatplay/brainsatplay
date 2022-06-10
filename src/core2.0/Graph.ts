@@ -30,7 +30,7 @@ export function parseFunctionFromText(method='') {
         newFunc = new Function(varName, newFuncBody.substring(newFuncBody.indexOf('{')+1,newFuncBody.length-1));
         }
         else {
-        try {newFunc = (0, eval)(newFuncHead + newFuncBody + "}");} catch {}
+        try {newFunc = (0,eval)(newFuncHead + newFuncBody + "}");} catch {}
         }
     }
 
@@ -315,7 +315,7 @@ export class GraphNode {
                 node.runLoop(node.looper,args,node,origin);
             }
 
-            if(node.loop || node.animat) 
+            if(node.loop || node.animate) 
                 return;
 
         }
