@@ -68,7 +68,7 @@ export function runOnChange(
     if(args.length > 0) {
         args.forEach((a)=>{
        
-            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
                 watchPaths = a.split('=')[1];
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
@@ -77,7 +77,7 @@ export function runOnChange(
                 }
             }
 
-            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
+            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -86,7 +86,7 @@ export function runOnChange(
                 }
             }
             
-            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
                 let ignorePaths = a.split('=')[1];
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
@@ -180,9 +180,10 @@ export function runAndWatch(
     let watchPaths = process.cwd();
 
     if(args.length > 0) {
+        console.log(args)
         args.forEach((a)=>{
        
-            if(a.includes('watch')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
                 watchPaths = a.split('=')[1];
                 if(watchPaths.includes('[')) watchPaths = JSON.parse(watchPaths).push(process.cwd());
                 else {
@@ -191,7 +192,7 @@ export function runAndWatch(
                 }
             }
 
-            if(a.includes('extensions')) { //watchext='../../otherlibraryfolder'
+            if(a.slice(0,10) === 'extensions') { //watchext='../../otherlibraryfolder'
                 let extPaths = a.split('=')[1];
                 if(extPaths.includes('[')) extensions = JSON.parse(extPaths).push(...extensions);
                 else {
@@ -200,7 +201,7 @@ export function runAndWatch(
                 }
             }
             
-            if(a.includes('ignore')) { //watch='../../otherlibraryfolder'
+            if(a.slice(0,6) === 'ignore') { //watch='../../otherlibraryfolder'
                 let ignorePaths = a.split('=')[1];
                 if(ignorePaths.includes('[')) ignore = JSON.parse(ignorePaths).push(...ignore);
                 else {
