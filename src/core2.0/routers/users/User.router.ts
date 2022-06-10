@@ -243,6 +243,7 @@ export class UserRouter extends Router {
         if(!user.send) { //default send will select first available (fastest) protocol representing the target endpoint, which can be specified with connections
             user.send = (message:ServiceMessage|any, channel?:string) => {
                 //console.log(this.users[user._id].sendAll)
+                if(!this.users[user._id]) return;
                 //use the fastest available endpoint for the user, swap when no longer available to next possible endpoint
                 if(this.users[user._id].sendAll instanceof Object) { //can transmit on multiple endpoints in an object
                     if(message instanceof Object) message = JSON.stringify(message);
