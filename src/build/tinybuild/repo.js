@@ -180,7 +180,6 @@ export function runAndWatch(
     let watchPaths = process.cwd();
 
     if(args.length > 0) {
-        console.log(args)
         args.forEach((a)=>{
        
             if(a.slice(0,5) === 'watch') { //watch='../../otherlibraryfolder'
