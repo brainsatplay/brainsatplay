@@ -452,7 +452,7 @@ export class GraphNode {
                     }
                     if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
-                        if(node.backward && node.parent?._run)) {
+                        if(node.backward && node.parent?._run) {
                             await node.parent._run(node.parent, this, ...result);
                         }
                         if(node.children && node.forward) {
@@ -491,7 +491,7 @@ export class GraphNode {
                     }
                     if(result !== undefined) {
                         if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
-                        if(node.backward && node.parent?._run)) {
+                        if(node.backward && node.parent?._run) {
                             await node.parent._run(node.parent, node,  result);
                         }
                         if(node.children && node.forward) {
