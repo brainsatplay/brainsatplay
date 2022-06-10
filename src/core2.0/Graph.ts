@@ -667,7 +667,7 @@ export class GraphNode {
         }
         else if (Array.isArray(n.children)) {
             for(let i = 0; i < n.children.length; i++) {
-                if(n.children[i].name === 'Graph') { 
+                if(n.children[i] instanceof GraphNode) { 
                     if(!this.graph?.nodes.get(n.children[i].tag)) this.graph.nodes.set(n.children[i].tag,n.children[i]);
                     if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
                     continue; 
@@ -678,11 +678,11 @@ export class GraphNode {
                     this.convertChildrenToNodes(n.children[i]);
                 } 
                 else if (typeof n.children[i] === 'string') {
-                    if(this.graph) {
+                    if(this.graph && this.graph.get(n.children[i])) {
                         n.children[i] = this.graph.get(n.children[i]); //try graph scope
                         if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
                     }
-                    if(!n.children[i]) n.children[i] = this.nodes.get(n.children[i]); //try local scope
+                    if(!n.children[i] && this.nodes.get(n.children[i])) n.children[i] = this.nodes.get(n.children[i]); //try local scope
                 }
                 
             }
@@ -693,11 +693,11 @@ export class GraphNode {
             this.convertChildrenToNodes(n.children);
         } 
         else if (typeof n.children === 'string') {
-            if(this.graph) {
+            if(this.graph && this.graph.get(n.children)) {
                 n.children = this.graph.get(n.children); //try graph scope
                 if(!this.nodes.get(n.children.tag)) this.nodes.set(n.children.tag,n.children);
             }
-            if(!n.children) n.children = this.nodes.get(n.children); //try local scope
+            if(!n.children && this.nodes.get(n.children)) n.children = this.nodes.get(n.children); //try local scope
         }
         return n.children;
     }

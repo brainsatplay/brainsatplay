@@ -98,11 +98,10 @@ let p = router.addUser(
                     if(ev.candidate) {
                         if(!user.rooms) user.rooms = {};
                         if(!user.rooms[room._id]) {
+                            if(!room.icecandidates) room.icecandidates = {};
                             user.rooms[room._id] = {
                                 _id:room._id,
-                                icecandidates:{
-                                    [`candidate${Math.floor(Math.random()*1000000000000000)}`]:ev.candidate
-                                }
+                                icecandidates:room.icecandidates
                             }
                         }
                         else user.rooms[room._id].icecandidates[`candidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
@@ -113,19 +112,23 @@ let p = router.addUser(
             });
 
                     
+            let us = {};
             router.subscribeToSession('webrtcrooms',user._id,(res)=>{
                 console.log(res)
                 if(Object.keys(res.data.shared).length > 0) {
                     //console.log(res.data.shared);
+                    let k = 0;
                     for(const key in res.data.shared) {
-                        let user = res.data.shared[key];
-                        if(user.rooms)
+                        let u = res.data.shared[key];
+                        if(u.rooms && !us[key]) {
                             document
                             .getElementById('webrtc')
                             .insertAdjacentHTML(
                                 'beforeend',
-                                `<div><span>User: ${key}</span><span>Rooms: <table>${Object.keys(user.rooms).map((room:any) => { return `<tr><td>ID: ${user.rooms[room]._id}</td><td>Ice Candidates: ${user.rooms[room].icecandidates ? Object.keys(user.rooms[room].icecandidates).length : 0 }</td><td><button id='${user.rooms[room]._id}'>Connect</button></td></tr>`; })}</table></span></div>`
+                                `<div><span>User: ${key}</span><span>Rooms: <table>${Object.keys(u.rooms).map((room:any) => { return `<tr><td>ID: ${u.rooms[room]._id}</td><td>Ice Candidates: ${u.rooms[room].icecandidates ? Object.keys(u.rooms[room].icecandidates).length : 0 }</td>${user._id !== key ? `<td><button id='${u.rooms[room]._id}'>Connect</button></td>` : ``}</tr>`; })}</table></span></div>`
                                 )
+                            us[key] = true;
+                        }
                     }
                 }
 

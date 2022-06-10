@@ -10,8 +10,6 @@ process.on('exit', exitHandler.bind(null,{cleanup:true}));
 //catches ctrl+c event
 process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
-
-import { GraphNode } from "../../Graph";
 //run backends
 //import { Router } from "../../routers/Router";
 import { UserProps, UserRouter } from "../../routers/users/User.router";
@@ -136,14 +134,16 @@ let session = router.openSharedSession({
 ///console.log('session',session, 'sessions', router.sessions);
 
 router.subscribe('addUser', (res) =>{
-    console.log('user joining webrtcrooms', res._id);
+    //console.log('user joining webrtcrooms', res._id);
     if (res instanceof Object) {
         let user = res;
         let joined = router.joinSession('webrtcrooms',user);
-        console.log('user joined session:',joined);
-        if(joined) user.send(
-            JSON.stringify({route:'joinSession',args:[joined._id,user._id,joined]})
-        );
+        
+        if(joined) {
+            user.send(
+                JSON.stringify({route:'joinSession',args:[joined._id,user._id,joined]})
+            );
+     }
     }
 })
 

@@ -499,6 +499,15 @@ export class UserRouter extends Router {
         return user;
     }
 
+    recursivelyAssign = (target,obj) => {
+        for(const key in obj) {
+            if(obj[key] instanceof Object) {
+                if(target[key]) this.recursivelyAssign(target[key], obj[key]);
+                else target[key] = obj[key]
+            } else target[key] = obj[key];
+        }
+    }
+
     setUser = (user:string|UserProps & GraphNode, props:{[key:string]:any}|string) => {
         if(user) if(Object.getPrototypeOf(user) === String.prototype) {
             user = this.users[user as string];
@@ -507,7 +516,8 @@ export class UserRouter extends Router {
         if(props) if(Object.getPrototypeOf(props) === String.prototype) {
             props = JSON.parse(props as string);
         }
-        Object.assign(user,props);
+
+        this.recursivelyAssign(user,props);
         return true;
     }
             
@@ -617,12 +627,12 @@ export class UserRouter extends Router {
     ) => {
         if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
-            options._id = `private${Math.floor(Math.random()*1000000000000000)}`;
-        }          
-        if(this.sessions.private[options._id]) {
-            delete options._id;
-            this.openPrivateSession(options,userId); //regen id
-        }
+            options._id = `private${Math.floor(Math.random()*1000000000000000)}`;       
+            if(this.sessions.private[options._id]) {
+                delete options._id;
+                this.openPrivateSession(options,userId); //regen id
+            }
+        }   
         if(userId){
             if(!options.settings) options.settings = { listener:userId, source:userId, propnames:{latency:true}, admins:{[userId]:true}, ownerId:userId };
             if(!options.settings.listener) options.settings.listener = userId;
@@ -647,11 +657,11 @@ export class UserRouter extends Router {
         if(typeof userId === 'object') userId = userId._id;
         if(!options._id) {
             options._id = `shared${Math.floor(Math.random()*1000000000000000)}`;
+            if(this.sessions.shared[options._id]) {
+                delete options._id;
+                this.openSharedSession(options,userId); //regen id
+            }
         }   
-        if(this.sessions.shared[options._id]) {
-            delete options._id;
-            this.openSharedSession(options,userId); //regen id
-        }
         if(userId) {
             if(!options.settings) options.settings = { name:'shared', propnames:{latency:true}, users:{[userId]:true}, admins:{[userId]:true}, ownerId:userId };
             if(!options.settings.users) options.settings.users = {[userId]:true};
@@ -660,13 +670,12 @@ export class UserRouter extends Router {
             if(!this.users[userId].sessions) this.users[userId].sessions = {};
             this.users[userId].sessions[options._id] = options;
         } else if (!options.settings) options.settings = {name:'shared', propnames:{latency:true}, users:{}};
-        if(!options.data) options.data = { private:{}, shared:{}};
+        if(!options.data) options.data = { private:{}, shared:{} };
         if(!options.settings.name) options.name = options.id;
         if(this.sessions.shared[options._id]) {
             return this.updateSession(options,userId);
         }
         else this.sessions.shared[options._id] = options;
-        
         return options;
     }
 
@@ -713,6 +722,7 @@ export class UserRouter extends Router {
             if(!this.users[userId].sessions) this.users[userId].sessions = {};
             this.users[userId].sessions[sessionId] = options;
             if(options) { return this.updateSession(options,userId); };
+            //console.log(sesh)
             return sesh;
         } else if (options?.source || options?.listener) return this.openPrivateSession(options as PrivateSessionProps,userId);
         else if (options) return this.openSharedSession(options as SharedSessionProps,userId);
@@ -879,7 +889,7 @@ export class UserRouter extends Router {
                 else updateObj.data[prop] = this.users[sesh.source][prop];
             }
             if(Object.keys(updateObj.data).length > 0) {
-                Object.assign(this.sessions.private[session].data, updateObj.data); //set latest data on the source object as reference
+                this.recursivelyAssign(this.sessions.private[session].data, updateObj.data); //set latest data on the source object as reference
                 updates.private[sesh._id] = updateObj;
             }
         }
@@ -951,10 +961,10 @@ export class UserRouter extends Router {
                     sharedData[user] = {};
                     for(const prop in sesh.settings.propnames) {
                         if(this.users[user][prop]) {
-                            if(!sesh.data.shared[user]) sharedData[user][prop] = this.users[user][prop];
+                            if(!sesh.data.shared[user]?.[prop]) sharedData[user][prop] = this.users[user][prop];
                             else if(sesh.data.shared[user][prop] instanceof Object) {
                                 if(this.users[user][prop] && (stringifyFast(sesh.data.shared[user][prop]) !== stringifyFast(this.users[user][prop]) || !(prop in sesh.data.shared[user]))) { 
-                                    console.log(user,prop,sesh.data[prop],this.users[user][prop])
+                                    //console.log(user,prop,sesh.data[prop],this.users[user][prop])
                                     sharedData[user][prop] = this.users[user][prop]; 
                                 }
                             }
@@ -965,13 +975,23 @@ export class UserRouter extends Router {
                     if(Object.keys(sharedData[user]).length === 0) delete sharedData[user];
                 }
                 if(Object.keys(sharedData).length > 0) {
+                    //console.log(sharedData);
                     updateObj.data.shared = sharedData;
-                }
+                }  
             }
-            if(updateObj.data.shared || updateObj.data.private) {
+
+            if(updateObj.data.shared || updateObj.data.private) 
                 updates.shared[sesh._id] = updateObj;
-                Object.assign(this.sessions.shared[session].data,updateObj.data); //set latest data on the source object as reference
+
+            if(updateObj.data.shared) {
+                this.recursivelyAssign(this.sessions.shared[session].data.shared,updateObj.data.shared)
+               //set latest data on the source object as reference
             }
+            if(updateObj.data.private) {
+                this.recursivelyAssign(this.sessions.shared[session].data.private,updateObj.data.private)
+                //set latest data on the source object as reference
+            }
+           
         }
 
         if(Object.keys(updates.private).length === 0) delete updates.private;
@@ -1023,9 +1043,7 @@ export class UserRouter extends Router {
                 }
             }
         }
-
-        //console.log(updates,users)
-            
+ 
 
         let message = {route:'receiveSessionUpdates', args:null, origin:null}
         for(const u in users) {
@@ -1049,7 +1067,7 @@ export class UserRouter extends Router {
             if(update.private) {
                 for(const key in update.private) {
                     if(!user.sessions[key]) continue;
-                    user.sessions[key].data = update.private[key].data;
+                    this.recursivelyAssign(user.sessions[key].data,update.private[key].data);
                     if(user.sessions[key].onmessage)
                         user.sessions[key].onmessage(user.sessions[key],user._id)
                 }
@@ -1057,7 +1075,9 @@ export class UserRouter extends Router {
             if(update.shared) {
                 for(const key in update.shared) {
                     if(!user.sessions[key]) continue;
-                    user.sessions[key].data = update.shared[key].data;
+                    console.log(user.sessions[key].data,JSON.stringify(update.shared[key].data))
+                    if(update.shared[key].data.private) this.recursivelyAssign(user.sessions[key].data.private, update.shared[key].data.private);
+                    if(update.shared[key].data.shared)  this.recursivelyAssign(user.sessions[key].data.shared, update.shared[key].data.shared);
                     if(user.sessions[key].onmessage)
                         user.sessions[key].onmessage(user.sessions[key],user._id)
                 }
@@ -1114,10 +1134,9 @@ export class UserRouter extends Router {
                 }
             }
 
-            console.log(updateObj)
+            //console.log(updateObj)
 
             if(Object.keys(updateObj).length > 0) {
-                //console.log(updateObj)
                 if(user.send) user.send({ route:'setUser', args:updateObj, origin:user._id });
                 return updateObj;
             } 
