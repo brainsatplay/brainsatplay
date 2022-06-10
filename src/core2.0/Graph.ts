@@ -30,7 +30,7 @@ export function parseFunctionFromText(method='') {
         newFunc = new Function(varName, newFuncBody.substring(newFuncBody.indexOf('{')+1,newFuncBody.length-1));
         }
         else {
-        try {newFunc = eval(newFuncHead + newFuncBody + "}");} catch {}
+        try {newFunc = (0, eval)(newFuncHead + newFuncBody + "}");} catch {}
         }
     }
 
