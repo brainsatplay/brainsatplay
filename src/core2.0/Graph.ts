@@ -308,6 +308,8 @@ export class GraphNode {
                 node.runLoop(node.looper,args,node,origin);
             }
             node.firstRun = false;
+
+            if(!node.operator) return;
         }
     
         //no async/flow logic so just run and return the operator result (which could still be a promise if the operator is async)
