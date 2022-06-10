@@ -932,7 +932,7 @@ export class Graph {
     runAsync = (node:string|GraphNode,...args) => {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node instanceof GraphNode)
-            return new Promise((res,rej) => {res(node._run(node,this,...args))})
+            return new Promise((res,rej) => {res((node as GraphNode)._run((node as GraphNode),this,...args))})
         else return new Promise((res,rej) => {res(undefined)});
     }
 
