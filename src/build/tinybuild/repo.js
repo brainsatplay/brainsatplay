@@ -421,7 +421,7 @@ export async function checkTSConfig() {
     if(!fs.existsSync(path.join(process.cwd(),'tsconfig.json'))) {
         fs.writeFileSync(path.join(process.cwd(),'tsconfig.json'),
         `{
-            "include": ["index.ts"],
+            "include": ["index.js"],
             "compilerOptions": {
               /* Visit https://aka.ms/tsconfig.json to read more about this file */
               /* Basic Options */
