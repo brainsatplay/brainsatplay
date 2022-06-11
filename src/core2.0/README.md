@@ -1,18 +1,19 @@
 
 # READMEs (WIP):
 
-## [Graph](./docs/Graph.md)
-## [Service](./docs/Service.md)
-## [Router](./docs//Router.md)
+## * [Graph](./docs/Graph.md)
+## * [Service](./docs/Service.md)
+## * [Router](./docs//Router.md)
 
 This is the new Brains@Play core, which seeks to be a true graph based programming api and unified interface for microservices and otherwise automating major frontend and backend execution needs with minimal mental work (once you learn the basics).
 
 
-The core stack is as follows:
-### [Graph](./Graph.ts) GraphNode and Graph
-### [Service](./services/Service.ts)
-### [Router](./routers/Router.ts)
-### [UserRouter](./routers/user/UserRouter.ts)
+The core stack of classes are as follows:
+### * [Graph](./Graph.ts) 
+GraphNode and Graph
+### * [Service](./services/Service.ts)
+### * [Router](./routers/Router.ts)
+### * [UserRouter](./routers/user/UserRouter.ts)
 
 
 This is kind of a bloated example right now but this is actively being used to test bugs and think even bigger for the framework:
