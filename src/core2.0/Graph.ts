@@ -757,7 +757,7 @@ export class GraphNode {
                     if(!this.nodes.get(n.children[i].tag)) this.nodes.set(n.children[i].tag,n.children[i]);
                     continue; 
                 }
-                else if(typeof n.children[i] === 'object') {
+                else if(typeof n.children[i] === 'object' || typeof n.children[i] === 'function') {
                     n.children[i] = new GraphNode(n.children[i],n,this.graph);
                     this.nodes.set(n.children[i].tag,n.children[i]);
                     this.convertChildrenToNodes(n.children[i]);
@@ -769,7 +769,6 @@ export class GraphNode {
                     }
                     if(!n.children[i] && this.nodes.get(n.children[i])) n.children[i] = this.nodes.get(n.children[i]); //try local scope
                 }
-                
             }
         }
         else if(typeof n.children === 'object') {
@@ -783,6 +782,11 @@ export class GraphNode {
                 if(!this.nodes.get(n.children.tag)) this.nodes.set(n.children.tag,n.children);
             }
             if(!n.children && this.nodes.get(n.children)) n.children = this.nodes.get(n.children); //try local scope
+        }
+        else if (typeof n.children === 'function') {
+            n.children = new GraphNode(n.children,n,this.graph);
+            this.nodes.set(n.children.tag,n.children);
+            this.convertChildrenToNodes(n.children);
         }
         return n.children;
     }
