@@ -231,13 +231,13 @@ let graph = new Graph(tree);
 
         .removeTree(node) // remove a node tree by head node
 
-        .removeNode(node) // remove a node and any references
+        .remove(node) // remove a node and any references
 
-        .appendNode(node, parentNode) // append a node to a parent node
+        .append(node, parentNode) // append a node to a parent node
 
-        .callParent(node,input,origin=node,cmd) // call a parent ndoe of a given node
+        .callParent(node, origin, ...args) // call a parent ndoe of a given node
 
-        .callChildren(node, input, origin=node, cmd, idx) // call the children of a given node
+        .callChildren(node, idx?, ...args) // call the children of a given node
 
         .subscribe(tag, callback=(res)=>{}) //subscribe to a node tag, callbacks contain that node's operator output, returns an int sub number
 
