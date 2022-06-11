@@ -178,7 +178,7 @@ node
 ```js
 
 
-export type Tree = {
+type Tree = {
     [key:string]: //the key becomes the node tag on the graph
         GraphNode |
         GraphNodeProperties |
