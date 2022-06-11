@@ -200,13 +200,20 @@ let tree = { //you may pass an object to register a list of nodes from prototype
         width:200,
         height:200,
         operator:function anim(...args) {
+            
             if(!this.ctx) {
                 document.body.insertAdjacentHTML('beforeend',`<canvas id='square' width='${this.width}px' height='${this.height}px' style='width:${this.width}px; height:${this.height}px;'></canvas>`);
                 let square = document.getElementById('square');
                 this.ctx = square.getContext('2d'); 
             }
             
+            this.ctx.clearRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
+            
+            this.ctx.fillStyle = `#00${Math.floor(Math.sin(performance.now()*0.001)*89+10)}00`;
+            
         }
+        animate:true
+        //animation:(...args)=>{} //can also use this and set the operator as a separate function to modify the node e.g. to control an animation with graph-based controls
     }
 } 
 
