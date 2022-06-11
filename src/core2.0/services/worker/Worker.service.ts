@@ -1,10 +1,10 @@
 import { Service, Routes, ServiceMessage } from "../Service";
-import Worker from 'web-worker' //cross platform 
+import Worker from 'web-worker' //cross platform for node and browser
 
 declare var WorkerGlobalScope;
 
 export type WorkerProps = {
-    url:URL|string,
+    url?:URL|string,
     _id?:string|number,
     port?:MessagePort, //message channel for this instance
     onmessage?:(ev)=>void,
@@ -34,13 +34,14 @@ export class WorkerService extends Service {
 
     addWorker = (options:{
         url:URL|string,
-        _id:string,
+        _id?:string,
         onmessage?:(ev)=>void,
         onerror?:(ev)=>void
     }) => { //pass file location, web url, or javascript dataurl string
         if(options.url) {
             
             let worker = new Worker(options.url);
+
             if(!options._id) 
                 options._id = `worker${Math.floor(Math.random()*1000000000000000)}`;
 
@@ -90,11 +91,15 @@ export class WorkerService extends Service {
         }
     }
 
-    transmit = (message:ServiceMessage|any, worker?:Worker|string, transfer?:any[]) => {
-        if(worker instanceof Worker) {
+    transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:any[]) => {
+        if(worker instanceof Worker || worker instanceof MessagePort) {
             worker.postMessage(message,transfer);
         } else if(Object.getPrototypeOf(worker) === String.prototype) {
-            this.workers[worker as string].worker.postMessage(message,transfer);
+            if(this.workers[worker]) {
+            if(this.workers[worker as string].port)
+                this.workers[worker as string].port.postMessage(message,transfer);
+            else if (this.workers[worker as string].worker) this.workers[worker as string].worker.postMessage(message,transfer);
+            }
         } else {
             let keys = Object.keys(this.workers);
             this.workers[keys[this.threadRot]].worker.postMessage(message,transfer);
@@ -116,8 +121,30 @@ export class WorkerService extends Service {
     }
 
     //if no second id provided, message channel will exist to this thread
-    establishMessageChannel = (workerId:Worker, worker2Id?:Worker) => {
+    establishMessageChannel = (worker:Worker|string, worker2?:Worker|string) => {
+        if(typeof worker === 'string') {
+            if(this.workers[worker]){
+                worker = this.workers[worker].worker;
+            }
+        }
+        if(typeof worker2 === 'string') {
+            if(this.workers[worker2]){
+                worker2 = this.workers[worker2].worker;
+            }
+        } 
 
+        if(worker instanceof Worker) {
+            let channel = new MessageChannel();
+            let port1 = channel.port1;
+            let port2 = channel.port2;
+            let portId = `port${Math.floor(Math.random()*1000000000000000)}`;
+
+            worker.postMessage({route:'recursivelyAssign',args:{workers:{_id:portId,port:port1}}},[port1])
+
+            if(worker2 instanceof Worker) {
+                worker2.postMessage({route:'recursivelyAssign',args:{workers:{_id:portId,port:port2}}},[port2]);
+            }
+        }
     }
 
     request = (message:ServiceMessage|any, worker:Worker, transfer?:any, origin?:string, method?:string) => {

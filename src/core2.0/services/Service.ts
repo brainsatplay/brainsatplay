@@ -319,6 +319,17 @@ export class Service extends Graph {
         return (ArrayBuffer.isView(x) && Object.prototype.toString.call(x) !== "[object DataView]");
     }
 
+    recursivelyAssign = (target,obj) => {
+        for(const key in obj) {
+            if(obj[key] instanceof Object) {
+                if(target[key] instanceof Object) this.recursivelyAssign(target[key], obj[key]);
+                else target[key] = this.recursivelyAssign({},obj[key]); 
+            } else target[key] = obj[key];
+        }
+
+        return target;
+    }
+    
     defaultRoutes:Routes = { //declared at the end so everything on this class is defined to pass through as node props
         '/':{ //if no start page provided to HTTPbackend this will print instead on GET
             get:()=>{ //if only a get or post are defined the will become the operator for making graph calls
@@ -335,7 +346,14 @@ export class Service extends Graph {
             return args;
         },
         assign:(source:{[key:string]:any}) => { //assign source to this
-            Object.assign(this,source);
+            if(source instanceof Object) 
+            {Object.assign(this,source);
+            return true;} return false;
+        },
+        recursivelyAssign:(source:{[key:string]:any}) => { //assign source object to this
+            if(source instanceof Object) 
+            {this.recursivelyAssign(this,source);
+            return true;} return false;
         },
         log:{ //console.log/info
             post:(...args:any)=>{

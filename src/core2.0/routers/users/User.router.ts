@@ -500,16 +500,7 @@ export class UserRouter extends Router {
         return user;
     }
 
-    recursivelyAssign = (target,obj) => {
-        for(const key in obj) {
-            if(obj[key] instanceof Object) {
-                if(target[key] instanceof Object) this.recursivelyAssign(target[key], obj[key]);
-                else target[key] = this.recursivelyAssign({},obj[key]); 
-            } else target[key] = obj[key];
-        }
 
-        return target;
-    }
 
     setUser = (user:string|UserProps & GraphNode, props:{[key:string]:any}|string) => {
         if(user) if(Object.getPrototypeOf(user) === String.prototype) {

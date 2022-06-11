@@ -22,6 +22,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     get = this.service.get;
     reconstruct = this.service.reconstruct;
     setState = this.service.setState;
+    recursivelyAssign = this.service.recursivelyAssign;
 
     state = this.service.state;
 

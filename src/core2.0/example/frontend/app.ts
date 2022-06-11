@@ -94,7 +94,7 @@ let p = router.addUser(
         console.log('joinSessions fired', res);
         if(res?.settings.name === 'webrtcrooms') {
             (router.services.webrtc as WebRTCfrontend).openRTC({origin:user._id} as WebRTCProps).then((room:WebRTCInfo) => {
-                room.rtc.addEventListener('icecandidate',(ev)=>{
+                room.rtcTransmit.addEventListener('icecandidate',(ev)=>{
                     if(ev.candidate) {
                         if(!user.rooms) user.rooms = {};
                         if(!user.rooms[room._id]) {
@@ -127,8 +127,10 @@ let p = router.addUser(
                             for(const r in u.rooms) {
                                 if(us[key]) {
                                     if(!us[key][r]?.peerdescription && u.rooms[r].peerdescription) {
+                                        //console.log(u.rooms[r],router.services.webrtc.rtc)
+                                        console.log(u.rooms[r],us[key][r]);
                                         (router.services.webrtc as WebRTCfrontend).openRTC(u.rooms[r] as WebRTCProps).then((room:WebRTCInfo) => { //this will confirm the peer connection
-                                            console.log('got peer description, connection is live!')
+                                            console.log('got peer description, connection is live')
                                         })
                                     }  
                                 }
@@ -146,7 +148,7 @@ let p = router.addUser(
                             if(user._id !== key) Object.keys(u.rooms).map((roomid:any) => {
                                 document.getElementById(u.rooms[roomid]._id).onclick = () => {
                                     (router.services.webrtc as WebRTCfrontend).openRTC(u.rooms[roomid] as WebRTCProps).then((room:WebRTCInfo) => {
-                                        room.rtc.addEventListener('icecandidate',(ev)=>{
+                                        room.rtcReceive.addEventListener('icecandidate',(ev)=>{
                                             if(ev.candidate) {
                                                 //console.log(room);
                                                 if(!user.rooms) user.rooms = {};

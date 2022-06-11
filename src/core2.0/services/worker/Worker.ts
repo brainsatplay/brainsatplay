@@ -1,4 +1,5 @@
 import { Router } from '../../routers/Router';
+import { GPUService } from '../gpu/gpu.service';
 import { WorkerService } from './Worker.service';
 
 //wonder if we can have a scheme to dynamic import within the services? e.g. to bring in node-only or browser-only services without additional workers
@@ -9,7 +10,8 @@ if(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope
     (self as any).SERVICE = new WorkerService();
 
     (self as any).ROUTER = new Router([ //this links nodes in different services to each other if loaded in this context
-        (self as any).SERVICE
+        (self as any).SERVICE,
+        GPUService
         //load additional services in node or browser workers e.g. http service in node or threejs service in browser
     ]);
 
