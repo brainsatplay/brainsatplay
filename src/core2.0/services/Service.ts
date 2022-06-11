@@ -34,7 +34,7 @@ export type Routes = { //same as the tree in the base acyclic graph but adds ali
 }
 
 export type ServiceMessage = {
-    route:string,  //the function/node to execute
+    route?:string,  //the function/node to execute
     args?:any, //route args or data depending on what we're handling
     method?:string, //can specify get, post, etc. on http requests or on multiplexed routes using the RouteProp format
     node?:string|GraphNode, //alt tag for routes
