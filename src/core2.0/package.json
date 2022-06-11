@@ -1,5 +1,5 @@
 {
-    "name": "corev2",
+    "name": "servicegraph",
     "version": "0.0.0",
     "description": "Barebones esbuild and test node server implementation. For building",
     "main": "index.js",
@@ -23,6 +23,9 @@
     "license": "AGPL-3.0-or-later",
     "dependencies": {
         "better-sse": "^0.7.1",
+        "brainsatplay-math": "^0.0.19",
+        "gpujsutils": "^1.0.7",
+        "web-worker": "^1.2.0",
         "ws": "^8.7.0"
     },
     "nodemonConfig": {
