@@ -1,7 +1,10 @@
 # brainsatplay
-`brainsatplay` is a concurrency framework for interactive, high-performance applications controlled by the browser.
+`brainsatplay` is a framework for quickly assembling interactive, high-performance applications. 
+
+Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs!
 
 ### Supporting Projects
+- [**core**](https://github.com/brainsatplay/brainsatplay/tree/main/src/core2.0) provides easy acyclic graph-based programming, microservices, and interoperable web frameworks!
 - [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
 - [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
 - [**tinybuild**](https://github.com/brainsatplay/brainsatplay/tree/main/src/build) combines ultra fast and lightweight esbuild, hot reloading node and python (optional), and quick config/setup via boilerplate.
@@ -41,59 +44,6 @@ This monorepo contains several NPM libraries for high-performance computing and 
 
 ## Concepts
 *List and explain all design intuitions here*
-
-### Processes
-A **Process** is a `Function` that can be stringified and offloaded (e.g. to a Web Worker, to a Node.js server, etc.).
-
-### Inputs, Modifiers, and Outputs
-```javascript
-const add = new brainsatplay.Process((
-    self,           // Reference to this process
-    input,          // Drives execution
-    increment       // Modifies input
-) => {
-    const output = input + increment
-    return output   // Passed to other Processes
-})
-
-add.set('increment', 1) // or add.set(0, 1)
-add.run(2)
-```
-
-In this example, there are two inputs (`input` and `increment`) where `input` drives the execution of the process and `increment` modifies the final `output`. 
-
-### Assembling Processes
-Each `Process` can be subscribed to, enabling the formation of Directed Acyclic Graphs (DAGs).
-
-```javascript
-const log = new brainsatplay.Process((self, input) => console.log(input))
-add.subscribe(log) // This should output 3 to the console
-add.run(2)
-```
-
-This prints the outcome of `add.run(2)` to the Developer Console.
-
-### Nesting Processes
-Additionally, a `Process` can be set as a modifier of another to support  complicated behaviors.
-```javascript
-const random = new brainsatplay.Process((self) => Math.floor(100*Math.random()))
-const increment = add.set('increment', random)
-log.subscribe(increment)
-random.run()
-add.run(2)
-```
-
-This will update the value for `increment` with a random number after every run.
-
-### Ensure Performance
-To offload a `Process` to a Web Worker:
-*Coming soon*
-
-### Router
-A `Router` will host a `Process` and send outputs back to the requester.
-
-### Socket
-An `Socket` will forward data to a `Process`.
 
 ## Documentation
 Coming soon at https://docs.brainsatplay.com
