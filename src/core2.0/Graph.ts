@@ -771,7 +771,7 @@ export class GraphNode {
                 }
             }
         }
-        else if(typeof n.children === 'object') {
+        else if(typeof n.children === 'object' || typeof n.children === 'function') {
             n.children = new GraphNode(n.children,n,this.graph);
             this.nodes.set(n.children.tag,n.children);
             this.convertChildrenToNodes(n.children);
@@ -782,11 +782,6 @@ export class GraphNode {
                 if(!this.nodes.get(n.children.tag)) this.nodes.set(n.children.tag,n.children);
             }
             if(!n.children && this.nodes.get(n.children)) n.children = this.nodes.get(n.children); //try local scope
-        }
-        else if (typeof n.children === 'function') {
-            n.children = new GraphNode(n.children,n,this.graph);
-            this.nodes.set(n.children.tag,n.children);
-            this.convertChildrenToNodes(n.children);
         }
         return n.children;
     }
