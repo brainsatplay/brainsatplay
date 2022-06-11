@@ -13,7 +13,7 @@ The core stack of classes are as follows:
 GraphNode and Graph
 ### * [Service](./services/Service.ts)
 ### * [Router](./routers/Router.ts)
-### * [UserRouter](./routers/user/UserRouter.ts)
+### * [UserRouter](./routers/users/UserRouter.ts)
 
 
 This is kind of a bloated example right now but this is actively being used to test bugs and think even bigger for the framework:
