@@ -334,6 +334,9 @@ export class Service extends Graph {
             this.transmit(...args);
             return args;
         },
+        assign:(source:{[key:string]:any}) => { //assign source to this
+            Object.assign(this,source);
+        },
         log:{ //console.log/info
             post:(...args:any)=>{
                 console.log("Log: ",...args);

@@ -30,7 +30,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     [key:string]:any;
 
-    constructor(services:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
+    constructor(services?:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
         this.load(this.defaultRoutes);
         if(this.routes) 
             if(Object.keys(this.routes).length > 0)
@@ -560,7 +560,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     receive = (
         message:any|ServiceMessage, 
-        service:Protocol|string, 
+        service?:Protocol|string, 
         ...args:any[]
     ) => {
         if(service) for(const key in this.services) {
@@ -573,7 +573,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     transmit = (
         message:any|ServiceMessage, 
-        service:Protocol|string, 
+        service?:Protocol|string, 
         ...args:any[]
     ) => {
         if(service) for(const key in this.services) {

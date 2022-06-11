@@ -24,7 +24,8 @@ export type WebRTCProps = {
 }
 
 export type WebRTCInfo = {
-    rtc:RTCPeerConnection
+    rtcTransmit:RTCPeerConnection,
+    rtcReceive:RTCPeerConnection
 } & WebRTCProps
 
 //webrtc establishes secure P2P contexts between two users directly.
@@ -37,15 +38,15 @@ export class WebRTCfrontend extends Service {
         [key:string]:any
     } = {}
 
-    iceServers:{urls:string}[] = [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'stun:stun4.l.google.com:19302' }
+    iceServers:{urls:string[]}[] = [
+        { urls: ['stun:stun.l.google.com:19302'] },
+        { urls: ['stun:stun1.l.google.com:19302'] },
+        { urls: ['stun:stun2.l.google.com:19302'] },
+        { urls: ['stun:stun3.l.google.com:19302'] },
+        { urls: ['stun:stun4.l.google.com:19302'] }
     ];
 
-    constructor(routes?:Routes, name?:string, iceServers?:{urls:string}[] ) {
+    constructor(routes?:Routes, name?:string, iceServers?:{urls:string[]}[] ) {
         super(routes, name);
 
         if(iceServers) this.iceServers = iceServers;
@@ -85,10 +86,11 @@ export class WebRTCfrontend extends Service {
         options?:WebRTCProps
     ):Promise<WebRTCInfo> => {
         if(!options) options = {};
-        if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`
-        if(!options.config) options.config = {}
+        if(!options._id) options._id = `rtc${Math.floor(Math.random()*1000000000000000)}`;
+        if(!options.config) options.config = {iceServers:this.iceServers};
         
-        let rtc = new RTCPeerConnection(options.config);
+        let rtcTransmit = new RTCPeerConnection(options.config);
+        let rtcReceive = new RTCPeerConnection(options.config);
 
         if(!options.channels) options.channels = { 'data':true }; //need one channel at least for the default service stuff to work
         if(options.channels) {
@@ -97,16 +99,17 @@ export class WebRTCfrontend extends Service {
                    //OK
                 }
                 else if( typeof options.channels[channel] === 'object') {
-                    options.channels[channel] = this.addDataChannel(rtc,channel,(options.channels as any)[channel]);
-                } else options.channels[channel] = this.addDataChannel(rtc,channel);
+                    options.channels[channel] = this.addDataChannel(rtcTransmit,channel,(options.channels as any)[channel]);
+                } else options.channels[channel] = this.addDataChannel(rtcTransmit,channel);
             }
         } 
 
         if(!this.rtc[options._id]) {
             this.rtc[options._id] = {
-            rtc,
-            _id:options._id,
-            ...options
+                rtcTransmit,
+                rtcReceive,
+                _id:options._id,
+                ...options
             }
         } else {
             Object.assign(this.rtc[options._id],options);
@@ -124,13 +127,20 @@ export class WebRTCfrontend extends Service {
             else ev.channel.onmessage = (mev) => { options.ondata(mev.data, ev.channel, this.rtc[options._id]); }
         }
 
-        rtc.ontrack = options.ontrack;
-        rtc.onicecandidate = options.onicecandidate;
-        rtc.onicecandidateerror = options.onicecandidateerror; 
-        rtc.ondatachannel = options.ondatachannel;
-        rtc.onnegotiationneeded = options.onnegotiationneeded;
-        rtc.oniceconnectionstatechange = options.oniceconnectionstatechange
-        rtc.onconnectionstatechange = options.onconnectionstatechange;
+        rtcTransmit.ontrack = options.ontrack;
+        rtcTransmit.onicecandidate = options.onicecandidate;
+        rtcTransmit.onicecandidateerror = options.onicecandidateerror; 
+        rtcTransmit.ondatachannel = options.ondatachannel;
+        rtcTransmit.onnegotiationneeded = options.onnegotiationneeded;
+        rtcTransmit.oniceconnectionstatechange = options.oniceconnectionstatechange
+        rtcTransmit.onconnectionstatechange = options.onconnectionstatechange;
+        rtcReceive.ontrack = options.ontrack;
+        rtcReceive.onicecandidate = options.onicecandidate;
+        rtcReceive.onicecandidateerror = options.onicecandidateerror; 
+        rtcReceive.ondatachannel = options.ondatachannel;
+        rtcReceive.onnegotiationneeded = options.onnegotiationneeded;
+        rtcReceive.oniceconnectionstatechange = options.oniceconnectionstatechange
+        rtcReceive.onconnectionstatechange = options.onconnectionstatechange;
     
         if(options.hostdescription && !options.peerdescription)   {
             if(!options.onicecandidate) options.onicecandidate = (ev:RTCPeerConnectionIceEvent) => {
@@ -147,16 +157,16 @@ export class WebRTCfrontend extends Service {
             return await new Promise((res,rej) => {
                 options.hostdescription.sdp = (options.hostdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
                 //console.log(options.hostdescription);
-                rtc.setRemoteDescription(options.hostdescription).then((desc)=>{
+                rtcReceive.setRemoteDescription(options.hostdescription).then((desc)=>{
                     if(options.hostcandidates) {
                         for(const prop in options.hostcandidates) {
-                            rtc.addIceCandidate(options.hostcandidates[prop]);
+                            rtcReceive.addIceCandidate(options.hostcandidates[prop]);
                         }
                     }
-                    rtc.createAnswer(options.answer).then((answer)=>{
-                        rtc.setLocalDescription(answer).then(()=>{
+                    rtcReceive.createAnswer(options.answer).then((answer)=>{
+                        rtcReceive.setLocalDescription(answer).then(()=>{
                             //console.log(answer, desc, answer)
-                            this.rtc[options._id].peerdescription =  {type:answer.type,sdp:answer.sdp};
+                            this.rtc[options._id].peerdescription =  {type:rtcReceive.localDescription.type,sdp:rtcReceive.localDescription.sdp};
                             res(this.rtc[options._id]);
 
                         });
@@ -166,13 +176,13 @@ export class WebRTCfrontend extends Service {
         }
     
         if(options.peerdescription)  {
-            console.log(this.rtc[options._id]);
+            
             return await new Promise((res,rej) => {
                 options.peerdescription.sdp = (options.peerdescription.sdp as any).replaceAll('rn',`\r\n`); //fix the jsonified newlines
-                rtc.setRemoteDescription(options.peerdescription).then(()=>{
+                rtcReceive.setRemoteDescription(options.peerdescription).then(()=>{
                     if(options.peercandidates) {
                         for(const prop in options.peercandidates) {
-                            rtc.addIceCandidate(options.peercandidates[prop]);
+                            rtcReceive.addIceCandidate(options.peercandidates[prop]);
                         }
                     }
                     res(this.rtc[options._id]);
@@ -191,8 +201,8 @@ export class WebRTCfrontend extends Service {
         }
 
         return await new Promise((res,rej) => {
-            rtc.createOffer(options.offer).then((offer) => {
-                rtc.setLocalDescription(offer).then(()=>{
+            rtcTransmit.createOffer(options.offer).then((offer) => {
+                rtcTransmit.setLocalDescription(offer).then(()=>{
                     this.rtc[options._id].hostdescription = {type:offer.type,sdp:offer.sdp};
                     res(this.rtc[options._id]); //this is to be transmitted to the user 
                 });
@@ -275,15 +285,26 @@ export class WebRTCfrontend extends Service {
 
     //close a channel
     terminate = (rtc:RTCPeerConnection|WebRTCInfo|string) => {
+        let rx, tx;
         if(typeof rtc === 'string') {
             let room = this.rtc[rtc];
             delete this.rtc[rtc];
-            if(room) rtc = room.rtc;
+            if(room) {
+                tx = room.rtcTransmit;
+                rx = room.rtcReceive;
+            }
         }
-        else if (typeof rtc === 'object') rtc = (rtc as WebRTCInfo).rtc;
+        else if (typeof rtc === 'object') {
+            tx = (rtc as WebRTCInfo).rtcTransmit;
+            rx = (rtc as WebRTCInfo).rtcReceive;
+        }
     
-        if(rtc instanceof RTCPeerConnection)
+        if(rtc instanceof RTCPeerConnection) {
             rtc.close();
+        } else if(rx || tx) {
+            if(rx) rx.close();
+            if(tx) tx.close();
+        }
     }
 
     request = (message:ServiceMessage|any, channel:RTCDataChannel, _id:string, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
