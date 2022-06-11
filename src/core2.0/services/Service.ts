@@ -393,6 +393,7 @@ export class Service extends Graph {
         add:this.add,
         remove:this.remove,
         setTree:this.setTree,
+        setState:this.setState,
         print:this.print,
         reconstruct:this.reconstruct,
         handleMethod:this.handleMethod,

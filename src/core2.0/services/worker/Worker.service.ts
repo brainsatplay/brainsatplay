@@ -89,6 +89,7 @@ export class WorkerService extends Service {
                 ...options
             }
         }
+        return false;
     }
 
     transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:any[]) => {
@@ -109,7 +110,7 @@ export class WorkerService extends Service {
         return message;
     }
 
-    terminate = (worker:Worker|string) => {
+    terminate = (worker:Worker|MessagePort|string) => {
         if(typeof worker === 'string') {
             let obj = this.workers[worker];
             if(obj) delete this.workers[worker];
@@ -117,7 +118,13 @@ export class WorkerService extends Service {
         }
         if(worker instanceof Worker) {
             worker.terminate();
+            return true;
         }
+        if(worker instanceof MessagePort) {
+            worker.close();
+            return true;
+        }
+        return false;
     }
 
     //if no second id provided, message channel will exist to this thread
@@ -144,7 +151,12 @@ export class WorkerService extends Service {
             if(worker2 instanceof Worker) {
                 worker2.postMessage({route:'recursivelyAssign',args:{workers:{_id:portId,port:port2}}},[port2]);
             }
+        
+            return channel;
         }
+
+        return false;
+        
     }
 
     request = (message:ServiceMessage|any, worker:Worker, transfer?:any, origin?:string, method?:string) => {
@@ -163,7 +175,7 @@ export class WorkerService extends Service {
             }
             worker.addEventListener('message',onmessage)
             this.transmit(req, worker, transfer);
-        })
+        });
     }
 
     runRequest = (message:ServiceMessage|any, worker:undefined|string|Worker|MessagePort, callbackId:string|number) => {   
@@ -185,12 +197,15 @@ export class WorkerService extends Service {
             else if(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
                 globalThis.postMessage({args:res,callbackId});
         }
+
+        return res;
     }
 
     routes:Routes={
         addWorker:this.addWorker,
         request:this.request,
-        runRequest:this.runRequest
+        runRequest:this.runRequest,
+        establishMessageChannel:this.establishMessageChannel
     }
 
 }

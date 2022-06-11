@@ -693,7 +693,7 @@ export class UserRouter extends Router {
         } else if(options.settings.source) {
             return this.openPrivateSession(options as PrivateSessionProps,userId);
         } else return this.openSharedSession(options as SharedSessionProps,userId);
-        return undefined;
+        return false;
     }
 
     //add a user id to a session, supply options e.g. to make them a moderator or update properties to be streamed dynamically
@@ -758,7 +758,9 @@ export class UserRouter extends Router {
                     }
                 }
             }
+            return true;
         }
+        return false;
     }
 
     getFirstMatch(obj1:{[key:string]:any},obj2:{[key:string]:any}) {
@@ -767,7 +769,7 @@ export class UserRouter extends Router {
                 if(i === j) return i;
             }
         }
-        return undefined;
+        return false;
     }
 
     swapHost = (
@@ -813,6 +815,7 @@ export class UserRouter extends Router {
                 else if(this.sessions.shared[sessionId]) delete this.sessions.private[sessionId]
             }
         }
+        return true;
     }
 
     subscribeToSession = (
@@ -849,7 +852,7 @@ export class UserRouter extends Router {
             
             // this.setState({[session._id]:session});
         }
-        
+        return session;
     }
 
     //iterate all subscriptions
@@ -1162,7 +1165,7 @@ export class UserRouter extends Router {
         pipeAs:this.pipeAs,
         addUser:this.addUser,
         setUser:(self,origin,update)=>{
-            this.setUser(origin,update);
+            return this.setUser(origin,update);
         },
         removeUser:this.removeUser,
         updateUser:this.updateUser,

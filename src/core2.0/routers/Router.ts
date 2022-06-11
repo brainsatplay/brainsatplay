@@ -108,9 +108,10 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         } else { //search every service connection for a matching path
             let endpoint = this.getEndpointInfo(transmitter);
             if(endpoint) { 
-                this.services[endpoint.service].pipe(source,destination,transmitter,origin,method,callback);
+                return this.services[endpoint.service].pipe(source,destination,transmitter,origin,method,callback);
             }
         }
+        return false;
     }
 
     //one-shot callback pipe e.g. to return results back through an endpoint
@@ -150,9 +151,10 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         } else { //search every service connection for a matching path
             let endpoint = this.getEndpointInfo(transmitter);
             if(endpoint) { 
-                this.services[endpoint.service].pipeOnce(source,destination,transmitter,origin,method,callback);
+                return this.services[endpoint.service].pipeOnce(source,destination,transmitter,origin,method,callback);
             }
         }
+        return false;
     }
 
 
@@ -298,6 +300,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
                 return this.pipe(source,destination,'worker',origin,method,callback);
             }
         }
+        return false;
     }
     
     //get the first remote endpoint that exists on this router in order of fastest. 
@@ -332,6 +335,8 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         let keys = Object.keys(serviceInfo);
         if(keys[0])
             return serviceInfo[keys[0]];
+            
+        return false;
     }
     
 	STREAMLATEST = 0;
@@ -456,6 +461,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
 		if(!this.streamSettings[name].settings[key].callback) this.streamSettings[name].settings[key].callback = this.streamFunctions.allLatestValues; //default
 		
+        return true;
 	}
 
 	addStreamFunc = (name,callback=(data)=>{}) => {
@@ -519,7 +525,9 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 				this.streamSettings[streamName].settings.keys.splice(idx,1);
 			if(this.streamSettings[streamName].settings[key]) 
 				delete this.streamSettings[streamName].settings[key];
+            return true;
 		}
+        return false;
 	}
 
 	//can update a stream object by object assignment (if you don't have a direct reference)
@@ -528,7 +536,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 			Object.assign(this.streamSettings[streamName].object,data);
 			return this.streamSettings[streamName].object;
 		}
-		return undefined;
+		return false;
 	} 
 
     streamLoop = (

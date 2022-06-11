@@ -247,6 +247,7 @@ export class WebRTCfrontend extends Service {
 
     removeTrack = (rtc:RTCPeerConnection,sender:RTCRtpSender) => {
         rtc.removeTrack(sender); //e.g. remove the senders removed by addUserMedia
+        return true;
     }
 
     addDataChannel = ( //send arbitrary strings
@@ -281,6 +282,8 @@ export class WebRTCfrontend extends Service {
 
         if(channel instanceof RTCDataChannel)
             channel.send(data);
+    
+        return true;
     }
 
     //close a channel
@@ -305,6 +308,8 @@ export class WebRTCfrontend extends Service {
             if(rx) rx.close();
             if(tx) tx.close();
         }
+
+        return true;
     }
 
     request = (message:ServiceMessage|any, channel:RTCDataChannel, _id:string, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
@@ -324,7 +329,7 @@ export class WebRTCfrontend extends Service {
 
             channel.addEventListener('message',onmessage);
             channel.send(JSON.stringify(req));
-        })
+        });
     }
 
     runRequest = (message:any, channel:RTCDataChannel|string, callbackId:string|number) => { //send result back

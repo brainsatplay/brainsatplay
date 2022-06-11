@@ -259,12 +259,12 @@ export class GraphNode {
         let result = node.operator(node,origin,...args);
         if(result instanceof Promise) {
             result.then((res) => {
-                this.setState({[node.tag]:res})
+                if(res !== undefined) this.setState({[node.tag]:res}) //return null at minimum to setState
                 return res;
             })
         }
         else {
-            this.setState({[node.tag]:result});
+            if(result !== undefined) this.setState({[node.tag]:result}); //return null at minimum to setState
         }
         
         return result;
@@ -651,7 +651,7 @@ export class GraphNode {
     }
     
     //call children operators directly (.run calls the flow logic)
-    callChildren = (idx:number, ...args) => {
+    callChildren = (idx?:number, ...args) => {
         const origin = this // NOTE: This node must be the origin
         let result;
         if(Array.isArray(this.children)) {

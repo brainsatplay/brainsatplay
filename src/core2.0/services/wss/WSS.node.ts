@@ -255,6 +255,8 @@ export class WSSbackend extends Service {
         if(ws instanceof WebSocket) 
             if(ws.readyState === ws.OPEN) 
                 ws.close();
+
+        return true;
     }
 
     terminate = (ws:WebSocketServer|WebSocket|string) => {
@@ -284,6 +286,8 @@ export class WSSbackend extends Service {
         else if(ws instanceof WebSocket)
             if(ws.readyState === ws.OPEN) 
                 ws.close();
+    
+        return true;
     }
 
     request = (message:ServiceMessage|any, ws:WebSocket, _id:string, origin?:string, method?:string) => { //return a promise which can resolve with a server route result through the socket
@@ -359,6 +363,7 @@ export class WSSbackend extends Service {
                 this.terminate(this.servers[path].wss);
                 delete this.servers[path];
             }
+            return true;
         }
     }
 
