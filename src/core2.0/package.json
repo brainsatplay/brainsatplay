@@ -23,8 +23,8 @@
     "license": "AGPL-3.0-or-later",
     "dependencies": {
         "better-sse": "^0.7.1",
-        "brainsatplay-math": "^0.0.19",
-        "gpujsutils": "^1.0.7",
+        "brainsatplay-math": "^0.0.22",
+        "gpujsutils": "^1.0.8",
         "web-worker": "^1.2.0",
         "ws": "^8.7.0"
     },
