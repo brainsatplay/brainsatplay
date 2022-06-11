@@ -171,6 +171,18 @@ export class GraphNode {
         }
 
         if(typeof properties === 'object') {
+
+            if(properties.tag) {
+                if(graph?.nodes) {
+                    let hasnode = graph.nodes.get(properties.tag);
+                    if(hasnode) return hasnode;
+                }
+                if(parentNode?.nodes) {
+                    let hasnode = parentNode.nodes.get(properties.tag);
+                    if(hasnode) return hasnode; 
+                } //return a different node if it already exists (implying we're chaining it in a flow graph using objects)
+            }
+
             if(properties?.operator) {
 
                 let params = getFnParamNames(properties.operator);
