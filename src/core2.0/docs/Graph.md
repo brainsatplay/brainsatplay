@@ -210,6 +210,8 @@ let tree = { //you may pass an object to register a list of nodes from prototype
             this.ctx.clearRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
             
             this.ctx.fillStyle = `#00${Math.floor(Math.sin(performance.now()*0.001)*89+10)}00`;
+
+            this.ctx.fillRect(0,0,this.ctx.canvas.width,this.ctx.canvas.height);
             
         }
         animate:true
