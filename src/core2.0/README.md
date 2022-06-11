@@ -8,7 +8,7 @@
 
 This is the new Brains@Play core, which seeks to be a true graph based programming api and unified interface for microservices and otherwise automating major frontend and backend execution needs with minimal mental work (once you learn the basics).
 
-[exg](./docs/graphex.png)
+![exg](./docs/graphex.png)
 
 The core stack of classes are as follows:
 ### * [Graph](./Graph.ts) 
