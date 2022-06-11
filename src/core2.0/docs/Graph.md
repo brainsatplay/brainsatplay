@@ -2,11 +2,6 @@
 
 The Graph and GraphNode classes are an implementation of the acyclic graphs and node-based hierarchical programming. Best jargon I could come up with is that this is an "object-oriented functional programming" approach to a generalized javascript programming API. 
 
-It handles synchronous and asynchronous programming approaches including flowgraph execution and inbuilt loops, animations, recursion, forward and backprop, and dynamic node generation with simple objects or straight functions with minimal specification and any properties and arguments you want.
-
-If that sounds like a lot, we took this a few steps further with the higher level Service and Router implementations to enable interoperable programming and one-liner pipes through networking protocols, web workers, peer 2 peer connections. This let's you focus more on creating mroe robust, performant, and dynamic application and computation pipelines. This even includes unified end 2 end encryption pipes to simplify app security with common accepted standards like AES and SHA256 (WIP). 
-
-To make the best use of this API it's important to have strong internal concepts of scoping, sync/async/promises, threading, and basic javascript object usage and referencing. However, it ought to make learning these concepts easier.
 
 ### Basic usage
 ```js
@@ -28,7 +23,7 @@ const tree = {
             return this.result;
         },
         children:[{
-            tag:'add',
+            tag:'add', //you may construct graphs just by naming existing nodes you want to pipe data through. It will look for them on the graph or in the nodes if the tagged nodes are declared later
             children:{
                 tag:'square',
                 children:[
@@ -52,10 +47,17 @@ graph.run('sequence',21,23).then((res) => {
 
 ```
 
+The Graph handles synchronous and asynchronous programming approaches as you need them, including flowgraph execution and inbuilt loops, animations, recursion, forward and backprop, and dynamic node generation with simple objects or straight functions with minimal specification and any properties and arguments you want.
+
+If that sounds like a lot, we took this a few steps further with the higher level Service and Router implementations to enable interoperable programming and one-liner pipes through networking protocols, web workers, peer 2 peer connections. This let's you focus more on creating mroe robust, performant, and dynamic application and computation pipelines. This even includes unified end 2 end encryption pipes to simplify app security with common accepted standards like AES and SHA256 (WIP). 
+
+To make the best use of this API it's important to have strong internal concepts of scoping, sync/async/promises, threading, and basic javascript object usage and referencing. However, it ought to make learning these concepts easier.
 
 ### GraphNode class
 
-These are the objects created to represent each node in the tree. They can be created without belonging to a graph. The graph simply makes it easier to instantiate and index nodes.
+These are the objects created to represent each node in the tree. They can be created without belonging to a graph. The graph simply makes it easier to instantiate and index nodes. 
+
+Every node shares a state with a common state object that allows for quick subscription for function outputs across your graph/tree. Access this feature simply by calling .subscribe on a node or on the graph class where you specify the node by tag.
 
 GraphNode properties
 ```ts
