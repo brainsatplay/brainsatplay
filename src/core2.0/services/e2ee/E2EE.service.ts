@@ -14,13 +14,22 @@ export class E2EEService extends Service {
         [key:string]:{ key:string, _id:string } //if method undefined, default to AES (the one that is considered most secure/general)
     }
 
+    securedKeys:boolean=false;
+    encryptedkeys?:string;
+    secret?:string; 
+
     constructor(routes?:Routes, name?:string, keys?:{ //match ids to decryption keys then attempt to reroute the data
         [key:string]:{ key:string, _id?:string } //if method undefined, default to AES (the one that is considered most secure/general)
-    }) {
+    }, secureKeys?:boolean, secret?:string) {
         super(routes, name);
 
         if(keys) {
-            Object.assign(this.keys,keys);
+            if(secureKeys && secret) {
+                this.securedKeys = true;
+                this.encryptedkeys = sjcl.encrypt(secret,JSON.stringify(keys)).cipher;
+                this.secret = secret;
+            }
+            else Object.assign(this.keys,keys);
         }
     }
 
@@ -29,8 +38,14 @@ export class E2EEService extends Service {
        _id?:string
     ) => {
         if(!_id) _id = `key${Math.floor(Math.random()*1000000000000000)}`;
-        this.keys[_id] = {key, _id};
-
+        
+        if(this.securedKeys && this.secret && this.encryptedkeys) {
+            let decrypted = JSON.parse(sjcl.decrypt(this.secret,this.encryptedkeys))
+            decrypted[_id] = {key, _id};
+            this.encryptedkeys = sjcl.encrypt(this.secret,decrypted).cipher as string;
+            return this.encryptedkeys;
+        }
+        else this.keys[_id] = {key, _id};
         return this.keys[_id];
     }
 
@@ -62,16 +77,24 @@ export class E2EEService extends Service {
     ) => {
         if(typeof message === 'object') message = JSON.stringify(message);
         let key:any;
-        if(this.keys[keyId as string]) 
-        if(!key) key = keyId;
-        message = this.encrypt(message,key);
+        if(this.securedKeys && this.secret && this.encryptedkeys) {
+            let decrypted = JSON.parse(sjcl.decrypt(this.secret,this.encryptedkeys))
+            if(decrypted[keyId]?.key) {
+                message = sjcl.encrypt(this.secret,decrypted[keyId].key).cipher as string;
+            }
+        } else {
+            if(this.keys[keyId as string]) {
+                if(!key) key = keyId;
+                message = this.encrypt(message,key);
+            }
+        }
         message = {route:'decryptRoute', args:[message,keyId]} //even better to scramble the origin too
         return message;
     }
 
     decryptRoute = (
         message:ServiceMessage|string,
-        keyId?:string //decryption key table Id
+        keyId:string //decryption key table Id
     ) => {
         let decryptedMessage = message;
         if(typeof message === 'object') {
@@ -83,13 +106,31 @@ export class E2EEService extends Service {
             }
             if(keyId) {
                 let key:any;
-                if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
-                if(key) decryptedMessage = this.decrypt(message.args,keyId as string);
+                if(this.securedKeys && this.secret && this.encryptedkeys) {
+                    let decrypted = JSON.parse(sjcl.decrypt(this.secret,this.encryptedkeys))
+                    if(decrypted[keyId]?.key) {
+                        decryptedMessage = sjcl.decrypt(this.secret,decrypted[keyId].key);
+                        return decryptedMessage;
+                    }
+                }
+                else {
+                    if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
+                    if(key) decryptedMessage = this.decrypt(message.args,key as string);
+                }
             }
         } else {
             let key:any;
-            if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
-            decryptedMessage = this.decrypt(message, key as string)
+            if(this.securedKeys && this.secret && this.encryptedkeys) {
+                let decrypted = JSON.parse(sjcl.decrypt(this.secret,this.encryptedkeys))
+                if(decrypted[keyId]?.key) {
+                    decryptedMessage = sjcl.decrypt(this.secret,decrypted[keyId].key);
+                    return decryptedMessage;
+                }
+            }
+            else {
+                if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
+                if(key) decryptedMessage = this.decrypt(message,key as string);
+            }
             //this.receive(decryptedMessage);
         }
         return decryptedMessage;
