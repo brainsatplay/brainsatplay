@@ -255,7 +255,7 @@ export class ProxyManager {
 }
 
 
-//just load these into the worker service :D
+//just load these into the worker service front and back
 export const proxyWorkerRoutes = {
     initProxyElement:initProxyElement,
     makeProxy:(self,origin,id) => {
