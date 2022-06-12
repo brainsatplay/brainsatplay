@@ -131,6 +131,8 @@ export class E2EEService extends Service {
         encryptRoute:this.encryptRoute,
         decryptRoute:this.decryptRoute,
         encrypt:this.encrypt,
-        decrypt:this.decrypt
+        decrypt:this.decrypt,
+        generateSecret:E2EEService.generateSecret,
+        addKey:this.addKey
     }
 }
