@@ -84,4 +84,4 @@ export const workerCanvasRoutes = {
     }
 }
 
-//todo: threejs and easy draw loop macros
+//todo: threejs
