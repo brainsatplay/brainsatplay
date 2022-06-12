@@ -34,7 +34,7 @@ export class ButtonNode extends NodeElement {
         console.log(this.template)
         let button = this.querySelector('button');
         if (button) button.onclick = (ev) => {
-            props.node.run(props.input);
+            props.run(props.input);
         }
     } //after rendering
     //onresize=(props)=>{} //on window resize

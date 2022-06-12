@@ -98,7 +98,7 @@ export class CanvasNode extends NodeElement {
         this.ctx = this.context;
         props.ctx = this.context;
 
-        setTimeout(()=>{if(props.animate) props.node.runAnimation();},10) //manually triggered
+        setTimeout(()=>{if(props.animate) props.runAnimation();},10) //manually triggered
 
     }
 

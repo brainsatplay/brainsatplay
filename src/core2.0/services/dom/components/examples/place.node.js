@@ -391,7 +391,7 @@ export class PlaceNode extends NodeElement {
             this.props.colorPicked = ev.target.value;
         }
 
-        setTimeout(()=>{if(props.animate) props.node.runAnimation();},10)
+        setTimeout(()=>{if(props.animate) props.runAnimation();},10)
 
     }
 

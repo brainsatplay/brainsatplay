@@ -49,7 +49,7 @@ export class GraphElement extends DOMElement {
         this.querySelector('#rungraph').onclick = () => { //test 
             //console.log('all children on graph:',all_children,', tree-top nodes: ',top_children);
             top_children.forEach((c)=>{
-                c.props.node._run(c.props.node,c.props.graph,c.props.input);
+                c.props._run(c.props,c.props.graph,c.props.input);
             });
         }
     }

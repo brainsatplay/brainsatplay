@@ -27,8 +27,7 @@ export class NodeElement extends DOMElement {
         loop:undefined, //milliseconds or false
         tag:undefined, //generated if not specified, or use to get another node by tag instead of generating a new one
         input:undefined,// can set on the attribute etc
-        graph:undefined, //parent AcyclicGraph instance, can set manually or via enclosing acyclic-graph div
-        node:undefined, //GraphNode instance, will be created or you can set manually or as a string to grab a node by tag (or use tag)
+        graph:undefined //parent AcyclicGraph instance, can set manually or via enclosing acyclic-graph div
     }; //can specify properties of the element which can be subscribed to for changes.
 
     input_delay=1 //onload runNode delay for graph nodes to run operations on inputs, they will not recognize their children otherwise as the DOM loads
@@ -70,22 +69,22 @@ export class NodeElement extends DOMElement {
         //add this here which will run a routine AFTER rendering so the elements can be updated
         this.setupNode(props);
 
-        //console.log('Node tag: ',props.node.tag,', parent: ',props.node.parent);
+        //console.log('Node tag: ',props.tag,', parent: ',props.parent);
         if(this.props.input) { //e.g. run the node on input
             setTimeout(async()=>{
-                if(Array.isArray(this.props.input)) this.props.node._run(this.props.node,this.props.graph,...this.props.input); 
-                else this.props.node._run(this.props.node,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
+                if(Array.isArray(this.props.input)) this.props._run(this.props,this.props.graph,...this.props.input); 
+                else this.props._run(this.props,this.props.graph,this.props.input); //run the inputs on the nodes once the children are loaded on the DOM so things propagate correctly
             },
             this.input_delay //makes sure children are loaded (e.g. on a DOM with a lot of loading, should add some execution delay to anticipate it as initial nodes are not aware of later-rendered nodes on the DOM)
             );
         }
-        if(this.oncreate) this.oncreate(props); //set scripted behaviors
+        if(this.oncreate) this.oncreate(props,this); //set scripted behaviors
     }
 
     setupNode(props) {
         let parent = this.parentNode;
         if(parent.props?.operator) { //has operator, this is a graph-node (in case you extend it with a new tagName)
-            if(parent.props?.node) props.parent = parent.props.node;
+            if(parent.props?.node) props.parent = parent.props;
         }
         if(!props.graph) {   
             while(!parent.props?.nodes) { //has nodes prop, is an acyclic-graph
@@ -104,17 +103,18 @@ export class NodeElement extends DOMElement {
         }
         if(this.id && !props.tag) props.tag = this.id;
 
-        if(props.graph && !props.node && props.tag) props.node = props.graph.nodes.get(props.tag); //can try to get graph nodes by id or tag
-        else if(props.graph && typeof props.node === 'string') props.node = props.graph.nodes.get(props.node); //can try to get graph nodes by id or tag
+        if(props.graph && !props && props.tag) props = props.graph.nodes.get(props.tag); //can try to get graph nodes by id or tag
+        else if(props.graph && typeof props === 'string') props = props.graph.nodes.get(props); //can try to get graph nodes by id or tag
         
-        if(!props.node) props.node = new GraphNode(props, props.parent, props.graph); //you could pass a graphnode 
+        if(props instanceof GraphNode) props = props;
+        if(!props) props = new GraphNode(props, props.parent, props.graph); //you could pass a graphnode 
 
-        props.tag = props.node.tag;
+        props.tag = props.tag;
         if(!this.id) this.id = props.tag;
 
 
         if(props.parent) {
-            props.parent.addChildren(props.node);
+            props.parent.addChildren(props);
         }
     }
 

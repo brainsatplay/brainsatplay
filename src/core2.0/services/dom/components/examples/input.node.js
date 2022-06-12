@@ -34,7 +34,7 @@ export class InputNode extends NodeElement {
         input.type = this.type;
 
         input.oninput = (ev) => {
-            if(props.node) props.node.callChildren(null,ev.target.value); 
+            if(props) props.callChildren(null,ev.target.value); 
             //passes inputs to child nodes without triggering them to pass on
         }
     } //after rendering
