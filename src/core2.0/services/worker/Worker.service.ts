@@ -94,6 +94,12 @@ export class WorkerService extends Service {
         return false;
     }
 
+    //new Worker(urlFromString)
+    toObjectURL = (scriptTemplate:string) => {
+        let blob = new Blob([scriptTemplate],{type:'text/javascript'});
+        return URL.createObjectURL(blob);
+    }
+
     transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:StructuredSerializeOptions ) => {
         if(worker instanceof Worker || worker instanceof MessagePort) {
             worker.postMessage(message,transfer);
@@ -205,6 +211,7 @@ export class WorkerService extends Service {
 
     routes:Routes={
         addWorker:this.addWorker,
+        toObjectURL:this.toObjectURL,
         request:this.request,
         runRequest:this.runRequest,
         establishMessageChannel:this.establishMessageChannel
