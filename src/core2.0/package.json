@@ -24,7 +24,7 @@
     "dependencies": {
         "better-sse": "^0.7.1",
         "brainsatplay-math": "^0.0.22",
-        "fragelement": "^1.3.11",
+        "fragelement": "^1.3.13",
         "gpujsutils": "^1.0.8",
         "web-worker": "^1.2.0",
         "ws": "^8.7.0"
