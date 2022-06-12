@@ -9,8 +9,8 @@ export type SSEProps = {
     channels?:string[],
     onconnection?:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
     onclose?:(sse:any)=>void,
-    onconnectionclose:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
-    type:'sse'|string,
+    onconnectionclose?:(session:any,sseinfo:any,_id:string,req:http.IncomingMessage,res:http.ServerResponse)=>void,
+    type?:'sse'|string,
     [key:string]:any
 }
 
@@ -63,7 +63,7 @@ export class SSEbackend extends Service {
         }
 
         let onRequest = (req:http.IncomingMessage,res:http.ServerResponse) => {
-            if(req.method === 'GET' && req.url.includes(path)) {
+            if(req.method === 'GET' && req.url?.includes(path)) {
                 if(this.debug) console.log('SSE Request', path);
 
                 createSession(req,res).then((session) => {
@@ -79,7 +79,7 @@ export class SSEbackend extends Service {
                     };
 
                     session.push(JSON.stringify({route:'setId',args:_id})); //associate this user's connection with a server generated id 
-                    if(options.onconnectionclose) session.on('close',()=>{options.onconnectionclose(session,sse,_id,req,res)})
+                    if(options.onconnectionclose) session.on('close',()=>{(options.onconnectionclose as any)(session,sse,_id,req,res)})
                     if(sse.onconnection) {sse.onconnection(session,sse,_id,req,res);}
                 
                 });
@@ -96,7 +96,7 @@ export class SSEbackend extends Service {
         }
         
         const sseListener =  (req:http.IncomingMessage,res:http.ServerResponse) => { 
-            if(req.url.indexOf(path) > -1) { //redirect requests to this listener if getting this path
+            if(req.url) if(req.url.indexOf(path) > -1) { //redirect requests to this listener if getting this path
                 if(!this.servers[path]) { //removes this listener if not found and returns to the original listener array
                     server.removeListener('request',sseListener);
                     server.addListener('request',otherListeners);
@@ -128,11 +128,11 @@ export class SSEbackend extends Service {
                     if(keys.length > 0) 
                         {
                             let evs = this.servers[keys[0]];
-                            if(evs.channels.includes(data.route)) {
+                            if(evs.channels?.includes(data.route)) {
                                 path = evs.path;
                                 channel = data.route;
                             }
-                            else if (evs.channels.includes((data as any).origin)) {
+                            else if (evs.channels?.includes((data as any).origin)) {
                                 path = evs.path;
                                 channel = data.origin as string;
                             }

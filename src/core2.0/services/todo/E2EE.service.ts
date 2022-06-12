@@ -65,9 +65,9 @@ export class E2EEService extends Service {
             else if(!keyId && typeof message.keyId === 'string') 
                 keyId = message.keyId;
             
-            decryptedMessage = this.decrypt(message.args,keyId);
+            decryptedMessage = this.decrypt(message.args,keyId as string);
         } else {
-            decryptedMessage = this.decrypt(message, keyId)
+            decryptedMessage = this.decrypt(message, keyId as string)
             //this.receive(decryptedMessage);
         }
         return decryptedMessage;
@@ -100,7 +100,7 @@ export class E2EEService extends Service {
 
         if(typeof message === 'object') {
             if(typeof message.method === 'string') { //run a route method directly, results not linked to graph
-                return this.handleMethod(message.route, message.method, message.args);
+                return this.handleMethod(message.route as string, message.method, message.args);
             } else if(typeof message.route === 'string') {
                 return this.handleServiceMessage(message);
             } else if ((typeof message.node === 'string' || message.node instanceof GraphNode)) {

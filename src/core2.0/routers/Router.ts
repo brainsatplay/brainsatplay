@@ -89,26 +89,28 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             }); //local pipe
             return this.subscribe(source,(res:any) => { this.run(destination, res); }); //local pipe
         }
-        if(transmitter === 'sockets') transmitter = 'wss';
-        const radio = this.services[transmitter];
-        if(radio) {
-            if(callback) {
-                return this.subscribe(source,(res) => {
-                    let mod = callback(res);
-                    if(mod) res = mod;
-                    radio.transmit(
-                        {route:destination,args:res,origin,method}
-                    );
-                });
+        if(transmitter) {
+            if(transmitter === 'sockets') transmitter = 'wss';
+            const radio = this.services[transmitter];
+            if(radio) {
+                if(callback) {
+                    return this.subscribe(source,(res) => {
+                        let mod = callback(res);
+                        if(mod) res = mod;
+                        radio.transmit(
+                            {route:destination,args:res,origin,method}
+                        );
+                    });
 
-            }
-            else return this.subscribe(source,(res) => {
-                radio.transmit({route:destination,args:res,origin,method});
-            });
-        } else { //search every service connection for a matching path
-            let endpoint = this.getEndpointInfo(transmitter);
-            if(endpoint) { 
-                return this.services[endpoint.service].pipe(source,destination,transmitter,origin,method,callback);
+                }
+                else return this.subscribe(source,(res) => {
+                    radio.transmit({route:destination,args:res,origin,method});
+                });
+            } else { //search every service connection for a matching path
+                let endpoint = this.getEndpointInfo(transmitter);
+                if(endpoint) { 
+                    return this.services[endpoint.service].pipe(source,destination,transmitter,origin,method,callback);
+                }
             }
         }
         return false;
@@ -124,7 +126,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         callback?:(res:any)=>any|void
     ) => {
         if(source instanceof GraphNode) source = source.tag;
-        if(!transmitter && source && destination) {
+        if(!transmitter && typeof source === 'string' && destination) {
             if(callback) return  this.state.subscribeTriggerOnce(source,(res:any) => { 
                 let mod = callback(res);
                 if(mod) res = mod;
@@ -132,26 +134,28 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             }); //local pipe
             return this.state.subscribeTriggerOnce(source,(res:any) => { this.run(destination, res); }); //local pipe
         }
-        if(transmitter === 'sockets') transmitter = 'wss';
-        const radio = this.services[transmitter];
-        if(radio) {
-            if(callback) {
-                return this.state.subscribeTriggerOnce(source,(res) => {
-                    let mod = callback(res);
-                    if(mod) res = mod;
-                    radio.transmit(
-                        {route:destination,args:res,origin,method}
-                    );
-                });
+        if(transmitter) {
+            if(transmitter === 'sockets') transmitter = 'wss';
+            const radio = this.services[transmitter];
+            if(radio) {
+                if(callback) {
+                    return this.state.subscribeTriggerOnce(source as string,(res) => {
+                        let mod = callback(res);
+                        if(mod) res = mod;
+                        radio.transmit(
+                            {route:destination,args:res,origin,method}
+                        );
+                    });
 
-            }
-            else return this.state.subscribeTriggerOnce(source,(res) => {
-                radio.transmit({route:destination,args:res,origin,method});
-            });
-        } else { //search every service connection for a matching path
-            let endpoint = this.getEndpointInfo(transmitter);
-            if(endpoint) { 
-                return this.services[endpoint.service].pipeOnce(source,destination,transmitter,origin,method,callback);
+                }
+                else return this.state.subscribeTriggerOnce(source as string,(res) => {
+                    radio.transmit({route:destination,args:res,origin,method});
+                });
+            } else { //search every service connection for a matching path
+                let endpoint = this.getEndpointInfo(transmitter);
+                if(endpoint) { 
+                    return this.services[endpoint.service].pipeOnce(source,destination,transmitter,origin,method,callback);
+                }
             }
         }
         return false;
@@ -353,12 +357,12 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         }
     } = {};
 
-    streamFunctions = {
+    streamFunctions:any = {
         //these default functions will only send the latest of an array or value if changes are detected, and can handle single nested objects 
         // you can use the setting to create watch properties (e.g. lastRead for these functions). 
         // All data must be JSONifiable
         allLatestValues:(prop:any, setting:any)=>{ //return arrays of hte latest values on an object e.g. real time data streams. More efficient would be typedarrays or something
-            let result = undefined;
+            let result:any = undefined;
 
             if(Array.isArray(prop)) {
                 if(prop.length !== setting.lastRead) {
@@ -402,7 +406,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             
         },
         latestValue:(prop:any,setting:any)=>{
-            let result = undefined;
+            let result:any = undefined;
             if(Array.isArray(prop)) {
                 if(prop.length !== setting.lastRead) {
                     result = prop[prop.length-1];
@@ -519,10 +523,10 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 	//can remove a whole stream or just a key from a stream if supplied
 	removeStream = (streamName,key) => {
 		if(streamName && !key) delete this.streamSettings[streamName];
-		else if (key) {
-			let idx = this.streamSettings[streamName].settings.keys.indexOf(key);
+		else if (key && this.streamSettings[streamName]?.settings?.keys) {
+			let idx = (this.streamSettings[streamName].settings.keys as any).indexOf(key);
 			if(idx > -1) 
-				this.streamSettings[streamName].settings.keys.splice(idx,1);
+            (this.streamSettings[streamName].settings.keys as any).splice(idx,1);
 			if(this.streamSettings[streamName].settings[key]) 
 				delete this.streamSettings[streamName].settings[key];
             return true;
@@ -546,7 +550,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         let updateObj = {};
 
         for(const prop in this.streamSettings) {
-            this.streamSettings[prop].settings.keys.forEach((key) => {
+            (this.streamSettings[prop].settings.keys as any).forEach((key) => {
                 if(this.streamSettings[prop].settings[key]) {
                     let data = this.streamSettings[prop].settings[key].callback(
                         this.streamSettings[prop].object[key],

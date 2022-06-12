@@ -75,7 +75,7 @@ export class WSSbackend extends Service {
         const port = options.port;
         let path = options.path;
         const server = options.server;
-        delete options.server
+        delete (options as any).server
         if(!('keepState' in options)) options.keepState = true;
 
         let opts = {
@@ -121,8 +121,8 @@ export class WSSbackend extends Service {
     
             }
 
-            if(options.onmessage) 
-                ws.on('message',(data)=>{options.onmessage(data,ws,this.servers[address])}) //default onmessage response
+            if((options as any).onmessage) 
+                ws.on('message',(data)=>{(options as any).onmessage(data,ws,this.servers[address])}) //default onmessage response
             if(options.onconnectionclosed) ws.on('close',(code,reason)=>{
                 if(options.onconnectionclosed) options.onconnectionclosed(code,reason,ws, this.servers[address], clientId);
             });
@@ -137,9 +137,9 @@ export class WSSbackend extends Service {
         let onUpgrade = (request:http.IncomingMessage,socket:any,head:Buffer) => { //https://github.com/websockets/ws
             
             if(this.debug) console.log("Upgrade request at: ", request.url);
-            let addr = request.headers.host.split(':')[0];
+            let addr = (options as any).headers.host.split(':')[0];
             addr += ':'+port;
-            addr += request.url.split('?')[0];
+            addr += (options as any).url.split('?')[0];
 
             if(addr === address && this.servers[addr]) {
                 this.servers[addr].wss.handleUpgrade(request,socket,head, (ws) => {
@@ -174,7 +174,7 @@ export class WSSbackend extends Service {
 
         if(!('keepState' in options)) options.keepState = true;
 
-        if(options.onmessage) socket.on('message',(data)=>{options.onmessage(data,socket,this.sockets[address]);}); 
+        if(options.onmessage) socket.on('message',(data)=>{(options as any).onmessage(data,socket,this.sockets[address]);}); 
         else {
             let socketonmessage = (data:any)=>{ 
           
@@ -203,9 +203,9 @@ export class WSSbackend extends Service {
             socket.on('message',socketonmessage); //add default callback if none specified
             options.onmessage = socketonmessage;
         }
-        if(options.onopen) socket.on('open',()=>{options.onopen(socket,this.sockets[address]);});
-        if(options.onclose) socket.on('close',(code,reason)=>{options.onclose(code,reason,socket,this.sockets[address]);});
-        if(options.onerror) socket.on('error',(er)=>{options.onerror(er,socket,this.sockets[address]);});
+        if(options.onopen) socket.on('open',()=>{(options as any).onopen(socket,this.sockets[address]);});
+        if(options.onclose) socket.on('close',(code,reason)=>{(options as any).onclose(code,reason,socket,this.sockets[address]);});
+        if(options.onerror) socket.on('error',(er)=>{(options as any).onerror(er,socket,this.sockets[address]);});
 
         this.sockets[address] = {
             type:'socket',

@@ -36,7 +36,7 @@ export type ReqOptions = {
     method:string,
     path?:string,
     headers?:{
-        [key:string]:string | number | string[],
+        [key:string]:any,
         'Content-Type'?:string, //e.g...
         'Content-Length'?:number
     }
@@ -129,14 +129,14 @@ export class HTTPbackend extends Service {
         if(!('keepState' in options)) options.keepState = true; //default true
 
         const served = {
-            server:undefined,
+            server:undefined as any,
             type:'httpserver',
             address,
             ...options
         }
 
         if(!requestListener) requestListener =  (request:http.IncomingMessage,response:http.ServerResponse) => { 
-            this.receive({route:request.url.slice(1), args:{request, response}, method:request.method, served}); 
+            this.receive({route:(request as any).url.slice(1), args:{request, response}, method:request.method, served:(served as any)}); 
         } //default requestListener
 
         //var http = require('http');
@@ -197,7 +197,7 @@ export class HTTPbackend extends Service {
         if(!('keepState' in options)) options.keepState = true; //default true
 
         const served = {
-            server:undefined,
+            server:undefined as any,
             type:'httpserver',
             address:`${host}:${port}`,
             ...options
@@ -206,7 +206,7 @@ export class HTTPbackend extends Service {
         //default requestListener
         if(!requestListener) requestListener = (request:http.IncomingMessage,response:http.ServerResponse) => { 
             this.receive({
-                route:request.url.slice(1), //gets rid of the '/' for the node tree to interpret... 
+                route:(request as any).url.slice(1), //gets rid of the '/' for the node tree to interpret... 
                 args:{request, response}, 
                 method:request.method, 
                 served
@@ -249,7 +249,7 @@ export class HTTPbackend extends Service {
             method:string,
             path?:string,
             headers?:{
-                [key:string]:string | number | string[],
+                [key:string]:any,
                 'Content-Type'?:string,
                 'Content-Length'?:number
             }
@@ -267,7 +267,7 @@ export class HTTPbackend extends Service {
         if(!options) { //fill a generic post request for the first server if none provided
             let server = this.servers[Object.keys(this.servers)[0]];
             options = {
-                protocol:server.protocol,
+                protocol:server.protocol as any,
                 host:server.host,
                 port:server.port,
                 method:'POST',
@@ -304,7 +304,7 @@ export class HTTPbackend extends Service {
             if(typeof result === 'string') {
                 if(result.includes('<') && result.includes('>') && (result.indexOf('<') < result.indexOf('>'))) //probably an html template
                     {
-                        if(message?.served?.pageOptions?.all || message?.served?.pageOptions[message.route]) {
+                        if(message?.served?.pageOptions?.all || message?.served?.pageOptions?.[message.route]) {
                             result = this.injectPageCode(result,message.route,message.served) as any;
                         }
                         response.writeHead(200,{'Content-Type':'text/html'});
@@ -331,7 +331,7 @@ export class HTTPbackend extends Service {
         served:ServerInfo 
     ) => { 
         
-        if (served?.pageOptions[url]?.inject) { //inject per url
+        if (served?.pageOptions?.[url]?.inject) { //inject per url
             if(typeof served.pageOptions[url].inject === 'object') 
                 templateString = this.buildPage(served.pageOptions[url].inject, templateString);
             else if (typeof served.pageOptions[url].inject === 'function') 
@@ -339,7 +339,7 @@ export class HTTPbackend extends Service {
             else if (typeof served.pageOptions[url].inject === 'string' || typeof served.pageOptions[url].inject === 'number') 
                 templateString += served.pageOptions[url].inject;
         }
-        if(served?.pageOptions.all?.inject) { //any per server
+        if(served?.pageOptions?.all?.inject) { //any per server
             if(typeof served.pageOptions.all.inject === 'object') 
                 templateString = this.buildPage(served.pageOptions.all.inject, templateString);
             else if (typeof served.pageOptions.all.inject === 'function') 
@@ -374,7 +374,7 @@ export class HTTPbackend extends Service {
             response.on('error', (err) => {
                 if(!response.writableEnded || !response.destroyed ) {
                     response.statusCode = 400;
-                    response.end(undefined,undefined,()=>{                
+                    response.end(undefined,undefined as any,()=>{                
                         reject(err);
                     });
                 }
@@ -384,19 +384,19 @@ export class HTTPbackend extends Service {
                 if(response.writableEnded || response.destroyed) reject(requestURL); 
                 if(requestURL == './' || requestURL == served?.startpage) {
                     let template = `<!DOCTYPE html><html><head></head><body style='background-color:#101010 color:white;'><h1>Brains@Play Server</h1></body></html>`; //start page dummy
-                    if(served.pageOptions?.all || served.pageOptions?.error) {
+                    if(served?.pageOptions?.all || served?.pageOptions?.error) {
                         template = this.injectPageCode(template,message.route,served) as any;
                     }
                     response.writeHead(200, { 'Content-Type': 'text/html' });
                     response.end(template,'utf-8',() => {
                         resolve(template);
                     }); //write some boilerplate server page, we should make this an interactive debug page
-                    if(served.keepState) this.setState({[served.address]:template});
+                    if(served?.keepState) this.setState({[served.address]:template});
                     //return;
                 }
                 else if(this.debug) console.log(`File ${requestURL} does not exist on path!`);
                 response.writeHead(500); //set response headers
-                response.end(undefined,undefined,()=>{
+                response.end(undefined,undefined as any,()=>{
                     reject(requestURL);
                 });
                
@@ -440,8 +440,8 @@ export class HTTPbackend extends Service {
                                 else {
                                     response.writeHead(404, { 'Content-Type': 'text/html' });
                                     let content = `<!DOCTYPE html><html><head></head><body style='background-color:#101010 color:white;'><h1>Error: ${error.code}</h1></body></html>`
-                                    if(served.pageOptions?.all || served.pageOptions[message.route]) {
-                                        content = this.injectPageCode(content.toString(),message.route,served) as any;
+                                    if(served?.pageOptions?.all || served?.pageOptions?.[message.route]) {
+                                        content = this.injectPageCode(content.toString(),message.route,served as any) as any;
                                     }
                                     response.end(content,'utf-8', () => {
                                         reject(error.code);
@@ -464,8 +464,8 @@ export class HTTPbackend extends Service {
     
                             var contentType = this.mimeTypes[extname] || 'application/octet-stream';
 
-                            if(contentType === 'text/html' && (served.pageOptions?.all || served.pageOptions[message.route])) {
-                                content = this.injectPageCode(content.toString(),message.route,served) as any;
+                            if(contentType === 'text/html' && (served?.pageOptions?.all || served?.pageOptions?.[message.route])) {
+                                content = this.injectPageCode(content.toString(),message.route,served as any) as any;
                             }
 
                             response.writeHead(200, { 'Content-Type': contentType }); //set response headers
@@ -481,7 +481,7 @@ export class HTTPbackend extends Service {
                 } else if (message.route) {
                     let route = this.routes[message.route];
                     if(!route) {
-                        route = this.routes[request.url];
+                        route = this.routes[request.url as string];
                     }
                     if(route) {
                         let res:any;
@@ -494,14 +494,14 @@ export class HTTPbackend extends Service {
                         else res = this.handleServiceMessage(message);
     
                         if(res instanceof Promise) res.then((r) => {
-                            if(served.keepState) this.setState({[served.address]:res});
+                            if(served?.keepState) this.setState({[served.address]:res});
                             this.withResult(response,r,message);
                             resolve(res);
                             
                             //return;
                         })
                         else if(res) {
-                            if(served.keepState) this.setState({[served.address]:res});
+                            if(served?.keepState) this.setState({[served.address]:res});
                             this.withResult(response,res,message);
                             resolve(res);
                            // return;
@@ -544,7 +544,7 @@ export class HTTPbackend extends Service {
                             args = message.args;
                             origin = message.origin;
                             if(!route) {
-                                if(typeof message.route === 'string') if(message.route.includes('/') && message.route.length > 1) message.route = message.route.split('/').pop();
+                                if(typeof message.route === 'string') if(message.route.includes('/') && message.route.length > 1) message.route = message.route.split('/').pop() as string;
                                 route = this.routes[message.route];
                             }
                         }
@@ -562,18 +562,18 @@ export class HTTPbackend extends Service {
                         if(res instanceof Promise) {
                             res.then((r) => {
                                 this.withResult(response,r,message);
-                                if(served.keepState) this.setState({[served.address]:res});
+                                if(served?.keepState) this.setState({[served.address]:res});
                                 resolve(res);
                             });
                         } else {
                             this.withResult(response,res,message);
-                            if(served.keepState) this.setState({[served.address]:res});
+                            if(served?.keepState) this.setState({[served.address]:res});
                             resolve(res);
                         }
                     }
                     else if(!response.writableEnded || !response.destroyed) {
                         response.statusCode = 200;
-                        response.end(undefined,undefined, () => {
+                        response.end(undefined,undefined as any, () => {
                             resolve(res);
                         }); //posts etc. shouldn't return anything but a 200 usually
                     } else resolve(res); //get requests resolve first and return otherwise this will resolve 
@@ -588,7 +588,7 @@ export class HTTPbackend extends Service {
     }
 
     request = ( 
-        options:ReqOptions,
+        options:ReqOptions|any,
         send?:any,
         ondata?:(chunk:any)=>void,
         onend?:()=>void
@@ -625,7 +625,7 @@ export class HTTPbackend extends Service {
         headers?:{
             'Content-Type'?:string,
             'Content-Length'?:number,
-            [key:string]:string | number | string[]
+            [key:string]:any
         }
     ) => {
 
@@ -673,7 +673,7 @@ export class HTTPbackend extends Service {
             }
         
             client.get(url, (resp) => {
-            let chunks = [];
+            let chunks:any[] = [];
         
             // A chunk of data has been recieved.
             resp.on('data', (chunk) => {
@@ -700,7 +700,7 @@ export class HTTPbackend extends Service {
     }
 
     getRequestBody(req:http.IncomingMessage) {
-        let chunks = [];
+        let chunks:any[] = [];
         return new Promise<Buffer>((resolve,reject) => {
             req.on('data',(chunk) => {
                 chunks.push(chunk);

@@ -88,14 +88,14 @@ export const state = {
     pushToState:{},
     data:{},
     triggers:{},
-    setState(updateObj){
+    setState(updateObj:{[key:string]:any}){
         Object.assign(state.data, updateObj);
         for (const prop of Object.getOwnPropertyNames(updateObj)) {
             if (state.triggers[prop]) state.triggers[prop].forEach((obj) => obj.onchange(state.data[prop]));
         }
         return state.data;
     },
-    subscribeTrigger(key,onchange:(res:any)=>void){
+    subscribeTrigger(key:string,onchange:(res:any)=>void){
         if(key) {
             if(!state.triggers[key]) {
                 state.triggers[key] = [];
@@ -105,7 +105,7 @@ export const state = {
             return state.triggers[key].length-1;
         } else return undefined;
     },
-    unsubscribeTrigger(key,sub){
+    unsubscribeTrigger(key:string,sub:number){
         let idx = undefined;
         let triggers = state.triggers[key]
         if (triggers){
@@ -119,8 +119,9 @@ export const state = {
             }
         }
     },
-    subscribeTriggerOnce(key=undefined,onchange:(res:any)=>void) {
+    subscribeTriggerOnce(key:string,onchange:(res:any)=>void) {
         let sub;
+        
         let changed = (value) => {
             onchange(value);
             state.unsubscribeTrigger(key,sub);
@@ -246,7 +247,7 @@ export class GraphNode {
     }
     
     // I/O scheme for this node in the graph
-    operator = (self:GraphNode=this, origin:string|GraphNode|Graph, ...args:any[]) => {
+    operator:OperatorType = (self:GraphNode=this, origin:string|GraphNode|Graph, ...args:any[]) => {
         return args as any;
     }
     
@@ -288,7 +289,7 @@ export class GraphNode {
 
     _run = (
         node:GraphNode=this, 
-        origin:string|GraphNode|Graph, 
+        origin?:string|GraphNode|Graph, 
         ...args:any[]
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
@@ -296,7 +297,7 @@ export class GraphNode {
         if(!(node instanceof GraphNode)) {
             if(!node) return undefined;
             if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
-                let fnd:GraphNode;
+                let fnd:any = undefined;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
                 node = fnd;
@@ -351,7 +352,7 @@ export class GraphNode {
                                         r(await run(node,tick, ...input));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && window?.requestAnimationFrame) {
+                                } else if (node.frame && window?.requestAnimationFrame as any) {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...input));
                                     });
@@ -372,7 +373,7 @@ export class GraphNode {
                                         r(await run(node,tick, ...res));
                                     },node.delay);
                                     break;
-                                } else if (node.frame && window?.requestAnimationFrame) {
+                                } else if (node.frame && window?.requestAnimationFrame as any) {
                                     requestAnimationFrame(async ()=>{
                                         r(await run(node,tick, ...res));
                                     });
@@ -412,7 +413,7 @@ export class GraphNode {
                     setTimeout(async ()=>{
                         resolve(await runnode());
                     },node.delay);
-                } else if (node.frame && window?.requestAnimationFrame) {
+                } else if (node.frame && window?.requestAnimationFrame as any) {
                     requestAnimationFrame(async ()=>{
                         resolve(await runnode());
                     });
@@ -467,20 +468,20 @@ export class GraphNode {
     }
     
     runAnimation = (
-        animation:OperatorType=this.animation, 
-        args=[], 
+        animation:OperatorType=this.animation as any, 
+        args:any[]=[], 
         node:GraphNode&GraphNodeProperties|any=this, 
-        origin:string|GraphNode|Graph
+        origin?:string|GraphNode|Graph
     ) => {
         //can add an animationFrame coroutine, one per node //because why not
-        this.animation = animation;
-        if(!animation) this.animation = this.operator;
+        this.animation = animation as any;
+        if(!animation) this.animation = this.operator as any;
         if(node.animate && !node.isAnimating) {
             node.isAnimating = true;
             let anim = async () => {
                 //console.log('anim')
                 if(node.isAnimating) {
-                    let result = this.animation( 
+                    let result = (this.animation  as any)( 
                         node,
                         origin,
                         ...args
@@ -508,8 +509,8 @@ export class GraphNode {
     }
     
     runLoop = (
-        loop:OperatorType=this.looper, 
-        args=[], 
+        loop:OperatorType=this.looper as any, 
+        args:any[]=[], 
         node:GraphNode&GraphNodeProperties|any=this, 
         origin?:string|GraphNode|Graph,
         timeout:number=node.loop
@@ -813,7 +814,7 @@ export class GraphNode {
     
     //recursively print a snapshot reconstructible json hierarchy of the node and the children. 
     // Start at the top/initially called nodes to print the whole hierarchy in one go
-    print = (node:string|GraphNode=this,printChildren=true,nodesPrinted=[]) => {
+    print = (node:string|GraphNode=this,printChildren=true,nodesPrinted:any[]=[]) => {
     
         let dummyNode = new GraphNode(); //test against this for adding props
     
@@ -893,7 +894,7 @@ export class Graph {
 
     [key:string]:any;
 
-    constructor( tree:Tree, tag:string ) {
+    constructor( tree?:Tree, tag?:string ) {
         this.tag = tag ? tag : `graph${Math.floor(Math.random()*100000000000)}`;
 
         if(tree || Object.keys(this.tree).length > 0) this.setTree(tree);
@@ -1121,7 +1122,7 @@ export function reconstructObject(json:string|{[x:string]: any}='{}') {
 
 export const stringifyWithCircularRefs = (function() {
     const refs = new Map();
-    const parents = [];
+    const parents:any[] = [];
     const path = ["this"];
 
     function clear() {
@@ -1191,7 +1192,7 @@ if((JSON as any).stringifyWithCircularRefs === undefined) {
 //partial stringification for objects and removing circular references. This allows MUCH faster object equivalency comparison with three-tier depth checking
 export const stringifyFast = (function() {
     const refs = new Map();
-    const parents = [];
+    const parents:any = [];
     const path = ["this"];
 
     function clear() {

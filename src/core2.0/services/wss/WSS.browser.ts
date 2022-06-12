@@ -85,14 +85,14 @@ export class WSSfrontend extends Service {
             } //default onmessage
         }
 
-        if(options.onmessage) {
+        if((options as any).onmessage) {
             socket.addEventListener('message',(ev)=>{
-                options.onmessage(ev.data, socket, this.sockets[address]);
+                (options as any).onmessage(ev.data, socket, this.sockets[address]);
             });
         }
-        if(options.onopen) socket.addEventListener('open',(ev)=>{options.onopen(ev,socket, this.sockets[address]);});
-        if(options.onclose) socket.addEventListener('close',(ev)=>{options.onclose(ev,socket, this.sockets[address]);});
-        if(options.onerror) socket.addEventListener('error',(ev)=>{options.onerror(ev,socket, this.sockets[address]);});
+        if(options.onopen) socket.addEventListener('open',(ev)=>{(options as any).onopen(ev,socket, this.sockets[address]);});
+        if(options.onclose) socket.addEventListener('close',(ev)=>{(options as any).onclose(ev,socket, this.sockets[address]);});
+        if(options.onerror) socket.addEventListener('error',(ev)=>{(options as any).onerror(ev,socket, this.sockets[address]);});
 
         this.sockets[address] = {
             socket,

@@ -1,4 +1,5 @@
 import { Service, Routes, ServiceMessage } from "../Service";
+import { proxyWorkerRoutes } from "./ProxyListener";
 import Worker from 'web-worker' //cross platform for node and browser
 
 declare var WorkerGlobalScope;
@@ -30,6 +31,7 @@ export class WorkerService extends Service {
 
     constructor(routes?:Routes, name?:string, ) {
         super(routes, name);
+        this.load(proxyWorkerRoutes); //add support for element proxying
     }
 
     addWorker = (options:{
@@ -70,7 +72,7 @@ export class WorkerService extends Service {
 
             if(!options.onmessage) options.onmessage = (ev) => {
                 let res = this.receive(ev.data);
-                this.setState({[options._id]:res});
+                this.setState({[options._id as string]:res});
             }
 
             if(!options.onerror) {
@@ -92,13 +94,13 @@ export class WorkerService extends Service {
         return false;
     }
 
-    transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:any[]) => {
+    transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:StructuredSerializeOptions ) => {
         if(worker instanceof Worker || worker instanceof MessagePort) {
             worker.postMessage(message,transfer);
         } else if(Object.getPrototypeOf(worker) === String.prototype) {
-            if(this.workers[worker]) {
+            if(this.workers[worker as string]) {
             if(this.workers[worker as string].port)
-                this.workers[worker as string].port.postMessage(message,transfer);
+                (this.workers[worker as string].port as any).postMessage(message,transfer);
             else if (this.workers[worker as string].worker) this.workers[worker as string].worker.postMessage(message,transfer);
             }
         } else {

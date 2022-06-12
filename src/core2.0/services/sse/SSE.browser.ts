@@ -7,7 +7,7 @@ export type EventSourceProps = {
         open?:(ev:any,sseinfo?:EventSourceInfo)=>void,
         close?:(ev:any,sseinfo?:EventSourceInfo)=>void,
         error?:(ev:any,sseinfo?:EventSourceInfo)=>void,
-        [key:string]:(ev:any,sseinfo?:EventSourceInfo)=>void
+        [key:string]:any
     }
     evoptions?:boolean|AddEventListenerOptions,
     type?:'eventsource'|string,
@@ -57,7 +57,7 @@ export class SSEfrontend extends Service {
                         //console.log(message)
                         data = JSON.parse(data); //parse stringified objects
 
-                        if(data.route === 'setId') {
+                        if(data.route === 'setId' && sse) {
                             sse._id = data.args;
                             options.events.message = (ev, sse) => { //clear extra logic after id is set
                                 const result = this.receive(ev.data,sse);
@@ -72,7 +72,7 @@ export class SSEfrontend extends Service {
             }
         }
         if(!options.events.error) options.events.error = (ev, sse) => {
-            this.terminate(sse);
+            this.terminate(sse as any);
             delete this.eventsources[options.url];
         }
 
