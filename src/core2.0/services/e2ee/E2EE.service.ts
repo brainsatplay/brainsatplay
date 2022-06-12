@@ -61,8 +61,11 @@ export class E2EEService extends Service {
         keyId:string //decryption key table Id
     ) => {
         if(typeof message === 'object') message = JSON.stringify(message);
-        message = this.encrypt(message,keyId);
-        message = {route:'decryptRoute', args:message, origin:keyId} //even better to scramble the origin too
+        let key:any;
+        if(this.keys[keyId as string]) 
+        if(!key) key = keyId;
+        message = this.encrypt(message,key);
+        message = {route:'decryptRoute', args:[message,keyId]} //even better to scramble the origin too
         return message;
     }
 
@@ -72,14 +75,21 @@ export class E2EEService extends Service {
     ) => {
         let decryptedMessage = message;
         if(typeof message === 'object') {
-            if(!keyId && typeof message.origin === 'string') 
-                keyId = message.origin;
-            else if(!keyId && typeof message.keyId === 'string') 
-                keyId = message.keyId;
-            
-            decryptedMessage = this.decrypt(message.args,keyId as string);
+            if(!keyId){
+                if(typeof message.origin === 'string') //other ways to try to match keyIds
+                    keyId = message.origin;
+                else if(typeof message.keyId === 'string') 
+                    keyId = message.keyId;
+            }
+            if(keyId) {
+                let key:any;
+                if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
+                if(key) decryptedMessage = this.decrypt(message.args,keyId as string);
+            }
         } else {
-            decryptedMessage = this.decrypt(message, keyId as string)
+            let key:any;
+            if(this.keys[keyId as string]) key = this.keys[keyId as string].key;
+            decryptedMessage = this.decrypt(message, key as string)
             //this.receive(decryptedMessage);
         }
         return decryptedMessage;
@@ -90,7 +100,7 @@ export class E2EEService extends Service {
             keyId = Object.keys(this.keys)[0];
         }
         message = this.encryptRoute(message,keyId);
-        return this.handleServiceMessage(message); //??
+        return this.handleServiceMessage(message); //?? this should be piped out to remote connections instead but you can follow this model
     }
 
     receive = (message:ServiceMessage|string,keyId?:string) => { //decrypt then pass message to typical message handlers
