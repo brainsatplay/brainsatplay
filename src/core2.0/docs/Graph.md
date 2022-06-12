@@ -124,9 +124,9 @@ node
 
     .runAsync(...args) //force the operation to run as a promise for cleaner chaining
 
-    .runAnimation(input,node=this,origin) //run the operator loop on the animation loop with the given input conditions, the cmd will be 'animate' so you can put an if statement in to run animation logic in the operator
+    .runAnimation(animation=this.operator,node=this,args=[],origin) //run the operator loop on the animation loop with the given input conditions, the cmd will be 'animate' so you can put an if statement in to run animation logic in the operator
 
-    .runLoop(input,node=this,origin) //runs a setTimeout loop according to the node.loop setting (ms)
+    .runLoop(looper=this.operator,node=this,args=[],origin) //runs a setTimeout loop according to the node.loop setting (ms)
 
     .setOperator(operator) //set the operator functions
 
