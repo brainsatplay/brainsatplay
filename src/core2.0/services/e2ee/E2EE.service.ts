@@ -1,7 +1,8 @@
-//End to end encryption using cryptojs and keygen stuff, should involve webworkers 
+//End to end encryption using sjcl and keygen stuff, should involve webworkers 
 
 import { GraphNode } from "../../Graph";
 import { Service, Routes, ServiceMessage } from "../Service";
+import sjcl from "./sjcl"; //stanford javascript cryptography library, super minimal!
 
 //End to end encryption service, this will redirect transmits/receives through an encoder/decoder framework
 export class E2EEService extends Service {
@@ -10,37 +11,48 @@ export class E2EEService extends Service {
     
     //should encrypt the key table too with an environment variable key
     keys:{ //match ids to decryption keys then attempt to reroute the data
-        [key:string]:{ key:string, method?:'aes'|'sha256' } //if method undefined, default to AES (the one that is considered most secure/general)
+        [key:string]:{ key:string, _id:string } //if method undefined, default to AES (the one that is considered most secure/general)
     }
 
-    constructor(routes?:Routes, name?:string) {
+    constructor(routes?:Routes, name?:string, keys?:{ //match ids to decryption keys then attempt to reroute the data
+        [key:string]:{ key:string, _id?:string } //if method undefined, default to AES (the one that is considered most secure/general)
+    }) {
         super(routes, name);
+
+        if(keys) {
+            Object.assign(this.keys,keys);
+        }
     }
 
     addKey = (
-        _id:string,
         key:string,
-        method:'aes'|'sha256'|undefined
+       _id?:string
     ) => {
-        this.keys[_id] = {key, method};
+        if(!_id) _id = `key${Math.floor(Math.random()*1000000000000000)}`;
+        this.keys[_id] = {key, _id};
+
+        return this.keys[_id];
     }
 
-    //cryptojs calls, should be done
+    //generate an base 64 secret
+    static generateSecret() {
+        return sjcl.codec.base64.fromBits(sjcl.random.randomWords(8,10));
+    }
+
+    //sjcl calls, should be done
     encrypt(
         message:string,
-        key:string,
-        method?:string
+        key:string //e.g. from generateKey()
     ) {
-
+        message = sjcl.encrypt(key,message).cipher as string;
         return message;
     }
 
     decrypt(
         message:string,
-        key:string,
-        method?:string
+        key:string //e.g. from generateKey()
     ) {
-
+        message = sjcl.decrypt(key,message);
         return message;
     }
 

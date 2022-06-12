@@ -1,1 +1,0 @@
-Should think of an interesting way to use the services to build html element graphs with the graph node elements

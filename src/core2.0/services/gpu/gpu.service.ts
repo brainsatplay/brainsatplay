@@ -48,7 +48,7 @@ export class GPUService extends Service {
         const cordfts = dfts[1].splice(buffered.length, buffer.length - buffered.length);
         //console.log(cordfts)
 
-        const coherenceResults = [];
+        const coherenceResults:any[] = [];
         const nChannels = buffered.length;
 
         //cross-correlation dfts arranged like e.g. for 4 channels: [0:0, 0:1, 0:2, 0:3, 1:1, 1:2, 1:3, 2:2, 2:3, 3:3] etc.
@@ -68,7 +68,7 @@ export class GPUService extends Service {
 
         //Outputs FFT coherence data in order of channel data inputted e.g. for 4 channels resulting DFTs = [0:1,0:2,0:3,1:2,1:3,2:3];
 
-        var autoFFTproducts = [];
+        var autoFFTproducts:any[] = [];
         k = 0;
         l = 1;
         cordfts.forEach((dft, i) => {
