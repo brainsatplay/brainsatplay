@@ -4,7 +4,7 @@ import { Routes, Service } from "../Service";
 
 export type DOMElementProps = {
     route:string|GraphNode,
-    template:string|((props:any)=>string), //string or function that passes the modifiable props on the element (the graph node properties)
+    template?:string|((props:any)=>string), //string or function that passes the modifiable props on the element (the graph node properties)
     parentNode?:string|HTMLElement,
     styles?:string, //will use the shadow DOM automatically in this case
     oncreate?:(props:any,self:DOMElement)=>void,
@@ -39,6 +39,10 @@ export class DOMService extends Service {
         [key:string]:DOMElementInfo|CanvasElementInfo
     } = {}
 
+    templates:{ //pass these in as options for quicker iteration
+        [key:string]:DOMElementProps|CanvasElementProps
+    }
+
     //create an element that is tied to a specific node, multiple elements can aggregate
     // with the node
     routeElement=(
@@ -68,12 +72,14 @@ export class DOMService extends Service {
             if(options.onchanged) elm.onchanged = options.onchanged;
             if(options.renderonchanged) elm.renderonchanged = options.renderonchanged;
 
-            if(typeof options.parentNode === 'string') options.parentNode = document.body;
-            if(!options.parentNode) options.parentNode = document.body;
 
             if(!options._id) options._id = `element${Math.floor(Math.random()*1000000000000000)}`
 
+            if(typeof options.parentNode === 'string') options.parentNode = document.body;
+            if(!options.parentNode) options.parentNode = document.body;
             options.parentNode.appendChild(elm);
+
+            this.templates[options._id] = options;
 
             this.elements[options._id] = {
                 element:elm,
@@ -122,13 +128,11 @@ export class DOMService extends Service {
             if(options.onchanged) elm.onchanged = options.onchanged;
             if(options.renderonchanged) elm.renderonchanged = options.renderonchanged;
 
-            if(typeof options.parentNode === 'string') options.parentNode = document.body;
-            if(!options.parentNode) options.parentNode = document.body;
-
             if(!options._id) options._id = `element${Math.floor(Math.random()*1000000000000000)}`
 
+            if(typeof options.parentNode === 'string') options.parentNode = document.body;
+            if(!options.parentNode) options.parentNode = document.body;
             options.parentNode.appendChild(elm);
-
 
             let animation = () => {
                 if((this.elements[options._id as string] as CanvasElementInfo)?.animating) {
@@ -136,6 +140,8 @@ export class DOMService extends Service {
                     requestAnimationFrame(animation);
                 }
             }
+
+            this.templates[options._id] = options;
 
             this.elements[options._id] = {
                 element:elm,
