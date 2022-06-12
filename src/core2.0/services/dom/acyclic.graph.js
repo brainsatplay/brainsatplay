@@ -55,10 +55,11 @@ export class GraphElement extends DOMElement {
     }
 
     //DOMElement custom callbacks:
-    //oncreate=(props)=>{}
-    //onresize=(props)=>{} //on window resize
-    //onchanged=(props)=>{} //on props changed
-    //ondelete=(props)=>{} //on element deleted. Can remove with this.delete() which runs cleanup functions
+    oncreate=undefined;     //(props,self)=>{} when the node is created e.g. setting up buttons (props) => {}
+    ondelete=undefined;     //(props,self)=>{} when the node is deleted, e.g. cleaning up events (props) => {}
+    onresize=undefined;     //(props,self) => {} run on window.onresize event 
+    onchanged=undefined;    //if props change, e.g. re-render? (props,self) => {}. Using past tense to not conflict with built in onchange event in most elements
+    renderonchanged=false;  //(props,self) => {}  //true or a function fired after rerendering, will auto trigger rerenders when props changed
 }
 
 //window.customElements.define('custom-', Custom);
