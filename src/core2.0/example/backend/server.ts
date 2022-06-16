@@ -17,6 +17,10 @@ import { HTTPbackend, ServerProps, ServerInfo } from '../../services/http/HTTP.n
 import { SSEbackend, SSEProps } from '../../services/sse/SSE.node';
 import { WSSbackend, SocketServerProps } from '../../services/wss/WSS.node';
 
+import fs from 'fs'
+
+fs.readdirSync('./')
+
 //create http server
 //create wss
 //create sse
