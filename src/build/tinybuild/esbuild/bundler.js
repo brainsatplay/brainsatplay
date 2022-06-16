@@ -13,7 +13,7 @@ import fs from 'fs'
 import path from 'path'
 
 export const defaultBundler = {
-  bundleBrowser:true, //create plain js build? Can include globals and init scripts
+  bundleBrowser:false, //create plain js build? Can include globals and init scripts
   bundleESM:false,     //create esm module js files
   bundleTypes:false,   //create .d.ts files, the entry point must be a typescript file! (ts, tsx, etc)
   bundleNode:false,   //create node platform plain js build, specify platform:'node' to do the rest of the files 
@@ -85,12 +85,9 @@ export async function bundle(configs) {
   await Promise.all(configs.map(async (config, i) => {
 
     config = Object.assign(defaultBundler, config);
-    // ------------------ START PROVISIONAL CODE ------------------
-    // NOTE: This object works for all Brains@Play bundles. 
-    // To save time, I've just conformed some early syntax to this model.
-    // TODO: In the future, we should use this format (similar to Rollup) for the bundle() function
-
-    // ------------------ END PROVISIONAL CODE ------------------
+    if(!config.bundleBrowser && !config.bundleNode && !config.bundleCommonJS && !config.bundleESM && !config.bundleCommonJS && !config.bundleIIFE) 
+      config.bundleBrowser = true; //need one thing true
+      
     if(config.entryPoints && !Array.isArray(config.entryPoints)) config.entryPoints = [config.entryPoints]; 
     if(config.input)
       config.entryPoints = Array.isArray(config.index) ? config.input : [config.input]
