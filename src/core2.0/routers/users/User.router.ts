@@ -247,6 +247,7 @@ export class UserRouter extends Router {
                     if(!this.users[user._id]) return;
                     //use the fastest available endpoint for the user, swap when no longer available to next possible endpoint
                     if(this.users[user._id].sendAll instanceof Object) { //can transmit on multiple endpoints in an object
+                        if(message.route && !message.origin) message.origin = user._id;
                         if(message instanceof Object) message = JSON.stringify(message);
                         for(const protocol in this.users[user._id].sendAll) {
                             for(const info in this.users[user._id].sendAll[protocol]) {
@@ -358,7 +359,7 @@ export class UserRouter extends Router {
                         if(!connection) return undefined;
                     }
                     let callbackId = `${Math.random()}`;
-                    let req:any = {route:'runRequest', args:[message,connectionId,callbackId]};
+                    let req:any = {route:'runRequest', args:[message,connectionId,callbackId], origin:user._id};
                     if(method) req.method = method;
                     if(origin) req.origin = origin;
                     return new Promise((res,rej) => {

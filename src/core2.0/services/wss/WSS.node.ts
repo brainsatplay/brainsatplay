@@ -136,16 +136,18 @@ export class WSSbackend extends Service {
 
         let onUpgrade = (request:http.IncomingMessage,socket:any,head:Buffer) => { //https://github.com/websockets/ws
             
-            if(this.debug) console.log("Upgrade request at: ", request.url);
-            let addr = (options as any).headers.host.split(':')[0];
-            addr += ':'+port;
-            addr += (options as any).url.split('?')[0];
+            if(request.headers && request.url) {
+                if(this.debug) console.log("Upgrade request at: ", request.url);
+                let addr = (request as any).headers.host.split(':')[0];
+                addr += ':'+port;
+                addr += request.url.split('?')[0];
 
-            if(addr === address && this.servers[addr]) {
-                this.servers[addr].wss.handleUpgrade(request,socket,head, (ws) => {
-                    if(options.onupgrade) options.onupgrade(ws, this.servers[address], request, socket, head);
-                    this.servers[addr].wss.emit('connection',ws,request);
-                });
+                if(addr === address && this.servers[addr]) {
+                    this.servers[addr].wss.handleUpgrade(request,socket,head, (ws) => {
+                        if(options.onupgrade) options.onupgrade(ws, this.servers[address], request, socket, head);
+                        this.servers[addr].wss.emit('connection',ws,request);
+                    });
+                }
             }
         }
 
