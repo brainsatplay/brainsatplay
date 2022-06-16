@@ -29,7 +29,7 @@ export const defaultBundler = {
   sourcemap: false,
   plugins:[streamingImportsPlugin,workerPlugin({blobWorkers:true}),installerPlugin], //{importmap:{imports:{[key:string]: string}}, directory: string}
   //plugins:[cache(defaultBundler.cachePluginSettings), dtsPlugin()],
-  external: ['node-fetch'], // [];
+  external: ['node-fetch'], //node-fetch here by default excludes a lot of default libraries if we want to compile the same code for browser and node envs (e.g. checking if process exists)
   allowOverwrite:true, 
   loader: { //just a bunch of path import resolvers, will supply urls if marked 'file', text if marked 'text', and dataurls (blobs) if marked 'dataurl'
     '.html': 'text', //not always necessary but it doesn't hurt
@@ -62,7 +62,9 @@ export const defaultBundler = {
     //commonjs:{}
     //browser:{}
     //esm:{}
-    //iife:{}
+    iife:{
+      external:[] //we only use the iife for types so it doesn't really matter if it bundles node, just note otherwise if you need iife for some obscure reason
+    }
   },
   defaultConfig: true //indicates this object is the default config
   //globalThis:null //'brainsatplay'
