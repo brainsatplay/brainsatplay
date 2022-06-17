@@ -93,7 +93,7 @@ export class UserRouter extends Router {
         shared:{}
     }
 
-    constructor(services:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) {
+    constructor(services:(Service|Routes|any)[]|{[key:string]:Service|Routes|any}|any[]) {
         super(services);
         this.load(this.routes);
     }
@@ -225,7 +225,7 @@ export class UserRouter extends Router {
 
     //pass user info and any service connections we want specific to this users. Pass properties of services 
     //   to create fresh connections e.g. with custom callbacks
-    addUser = async (user:UserProps|any, timeout=5000) => { 
+    addUser = async (user:UserProps|any, timeout=5000):Promise<UserProps|any> => { 
         if(!user) user = {};
         if(!user._id) user._id = `user${Math.floor(Math.random()*1000000000000000)}` as string;
 

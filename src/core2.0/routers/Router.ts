@@ -31,7 +31,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
 
     [key:string]:any;
 
-    constructor(services?:(Service|Routes)[]|{[key:string]:Service|Routes}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
+    constructor(services?:(Service|Routes|any)[]|{[key:string]:Service|Routes|any}|any[]) { //preferably pass services but you can pass route objects in too to just add more base routes
         this.load(this.defaultRoutes);
         if(this.routes) 
             if(Object.keys(this.routes).length > 0)
@@ -45,24 +45,30 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         
     }
 
-    load = (service:Service|Routes|any) => { //load a service class instance or service prototoype class
+    load = (service:Service|Routes|{name:string,module:any}|any) => { //load a service class instance or service prototoype class
         if(!(service instanceof Service) && typeof service === 'function')    //class
         {   
             service = new service(undefined, service.name); //we can instantiate a class)
             service.load();
         }
         else if(!service) return;
+
         if(service instanceof Service) {
             this.services[service.name] = service;
+        } else {
+            let name = Object.prototype.toString.call(service);
+            if(name) name = name.split(' ')[1];
+            if(name) name = name.split(']')[0];
+            if(name && name !== 'Object') { 
+                this.services[name] = service;
+            }
         }
-
-
+        
         this.service.load(service);
-
         
         for(const name in this.services) { //tie node references together across service node maps so they can call each other
             this.service.nodes.forEach((n) => {
-                if(!this.services[name].nodes.get(n.tag)) {
+                if(this.services[name]?.nodes) if(!this.services[name].nodes.get(n.tag)) {
                     this.services[name].nodes.set(n.tag,n);
                 }
             });

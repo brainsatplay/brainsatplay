@@ -59,19 +59,40 @@ export class Service extends Graph {
     }
 
     
-    load = (routes?:Service|Routes|any) => {    
+    load = (routes?:Service|Routes|{name:string,module:{[key:string]:any}}|any) => {    
         if(!routes && !this.firstLoad) return;
         //console.log(this.routes);
         let service;
         if(!(routes instanceof Service) && (routes as any)?.name) { //class prototype
-            service = new routes();
-            service.load();
-            routes = service.routes;
+            if(routes.module) {
+                let mod = routes;
+                routes = {};
+                Object.getOwnPropertyNames(routes.module).forEach((prop) => { //iterate through 
+                    routes[mod.name+'/'+prop] = routes.module[prop];
+                });
+            } else { //it's a service prototype... probably
+                service = new routes();
+                service.load();
+                routes = service.routes;
+            }
         } //we can instantiate a class and load the routes. Routes should run just fine referencing the classes' internal data structures without those being garbage collected.
         else if (routes instanceof Service) { //class instance
             service = routes;
             routes = routes.routes; //or pull routes from an existing class
         }
+        else if (typeof routes === 'object') {
+            let name = Object.prototype.toString.call(routes);
+            if(name) name = name.split(' ')[1];
+            if(name) name = name.split(']')[0];
+            if(name && name !== 'Object') { 
+                let module = routes;
+                routes = {};
+                Object.getOwnPropertyNames(module).forEach((route) => {
+                    routes[name+'/'+route] = module[route];
+                });
+            }
+        }
+
         if(service instanceof Service) {     
             //the routes provided from a service will add the route name in front of the route so like 'name/route' to minimize conflicts, 
             //incl making generic service routes accessible per service. The services are still independently usable while the loader 
@@ -82,7 +103,7 @@ export class Service extends Graph {
                 delete routes[prop]; 
                 routes[service.name+'/'+prop] = route;  //store the routes in the loaded service under aliases including the service name
             }
-        }
+        } 
         
         if(this.firstLoad) {
             let rts = Object.assign({},this.defaultRoutes); //load all default routes
