@@ -70,7 +70,7 @@ export type GraphNodeProperties = {
     branch?:{ //based on the operator result, automatically do something
         [label:string]:{ //apply any label for your own indexing
             if:any, //if this value
-            then:string|((operator_result:any)=>any)|GraphNode //then do this, e.g. use a node tag, a GraphNode, or supply any function
+            then:string|((...operator_result:any[])=>any)|GraphNode //then do this, e.g. use a node tag, a GraphNode, or supply any function
         } //it still returns afterward but is treated like an additional flow statement :D
     },
     delay?:false|number, //ms delay to fire the node
@@ -494,7 +494,8 @@ export class GraphNode {
                                 else await node.branch[k].then.run(output);
                             }
                             else if (typeof node.branch[k].then === 'function') {
-                                await node.branch[k].then(output);
+                                if(Array.isArray(output)) await node.branch[k].then(...output)
+                                else await node.branch[k].then(output);
                             } else if (typeof node.branch[k].then === 'string') {
                                 if(node.graph) node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
                                 else node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
@@ -506,10 +507,10 @@ export class GraphNode {
                             }
                             return true;
                         }
-                    } else if (typeof node.branch[k].then === 'function') {
+                    } else {
                         await node.branch[k].then(output); 
                         return true;
-                    } else return;
+                    } 
             }))
         }
     }
