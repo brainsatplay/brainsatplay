@@ -15,7 +15,8 @@ const router = new UserRouter([
     HTTPfrontend,
     WSSfrontend,
     SSEfrontend,
-    WebRTCfrontend
+    WebRTCfrontend,
+    Math
 ]);
 
 router.run( 
@@ -95,30 +96,32 @@ let p = router.addUser(
         if(res?.settings.name === 'webrtcrooms') {
             (router.services.webrtc as WebRTCfrontend).openRTC({origin:user._id} as WebRTCProps).then((room:WebRTCInfo) => {
                 room.rtcTransmit.addEventListener('icecandidate',(ev)=>{
-                    if(ev.candidate) {
-                        if(!user.rooms) user.rooms = {};
-                        if(!user.rooms[room._id]) {
-                            if(!room.hostcandidates) room.hostcandidates = {};
-                            //console.log(room)
-                            user.rooms[room._id] = {
-                                _id:room._id,
-                                hostdescription:room.hostdescription,
-                                hostcandidates:room.hostcandidates
+                    if(room._id) {
+                        if(ev.candidate) {
+                            if(!user.rooms) user.rooms = {};
+                            if(!user.rooms[room._id]) {
+                                if(!room.hostcandidates) room.hostcandidates = {};
+                                //console.log(room)
+                                user.rooms[room._id] = {
+                                    _id:room._id,
+                                    hostdescription:room.hostdescription,
+                                    hostcandidates:room.hostcandidates
+                                }
                             }
+                            else {
+                                user.rooms[room._id].hostdescription = room.hostdescription;
+                                user.rooms[room._id].hostcandidates[`hostcandidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
+                            }
+                                //in another client, join this session
+                            //need to send this info to the server which should happen automatically via the userupdateloop
                         }
-                        else {
-                            user.rooms[room._id].hostdescription = room.hostdescription;
-                            user.rooms[room._id].hostcandidates[`hostcandidate${Math.floor(Math.random()*1000000000000000)}`] = ev.candidate;
-                        }
-                            //in another client, join this session
-                        //need to send this info to the server which should happen automatically via the userupdateloop
                     }
                 })
             });
 
                     
             let us = {};
-            router.subscribeToSession('webrtcrooms',user._id,(res)=>{
+            router.subscribeToSession('webrtcrooms',(user as any)._id,(res:any)=>{
                 if(Object.keys(res.data.shared).length > 0) {
                     //console.log(res.data.shared);
                     for(const key in res.data.shared) {
@@ -137,7 +140,7 @@ let p = router.addUser(
                             }
                         }
                         if(u.rooms && !us[key]) {
-                            document
+                            (document as any)
                             .getElementById('webrtc')
                             .insertAdjacentHTML(
                                 'beforeend',
@@ -146,10 +149,10 @@ let p = router.addUser(
                             us[key] = true;
 
                             if(user._id !== key) Object.keys(u.rooms).map((roomid:any) => {
-                                document.getElementById(u.rooms[roomid]._id).onclick = () => {
+                                (document as any).getElementById(u.rooms[roomid]._id).onclick = () => {
                                     (router.services.webrtc as WebRTCfrontend).openRTC(u.rooms[roomid] as WebRTCProps).then((room:WebRTCInfo) => {
                                         room.rtcReceive.addEventListener('icecandidate',(ev)=>{
-                                            if(ev.candidate) {
+                                            if(ev.candidate && room._id) {
                                                 //console.log(room);
                                                 if(!user.rooms) user.rooms = {};
                                                 if(!user.rooms[room._id]) {
@@ -167,12 +170,12 @@ let p = router.addUser(
                                                 //in another client, join this session
                                                 //need to send this info to the server which should happen automatically via the userupdateloop
                                             }
-                                        })
+                                        });
                                         //console.log('connected to peer, waiting for handshake')
-                                        document.getElementById(u.rooms[roomid]._id).innerHTML = 'Ping!';                                            
+                                        (document as any).getElementById(u.rooms[roomid]._id).innerHTML = 'Ping!';                                            
                                         // document.getElementById(u.rooms[roomid]._id).innerHTML = 'Disconnect';
-                                        document.getElementById(u.rooms[roomid]._id).onclick = () => {
-                                            (router.services.webrtc as WebRTCfrontend).request({route:'ping',origin:user._id},room.channels.data as RTCDataChannel,room._id)
+                                        (document as any).getElementById(u.rooms[roomid]._id).onclick = () => {
+                                            (router.services.webrtc as WebRTCfrontend).request({route:'ping',origin:user._id},(room as any).channels.data as RTCDataChannel,(room as any)._id)
 
                                             // (router.services.webrtc as WebRTCfrontend).terminate(room);
                                             // console.log('terminated', room._id);
@@ -187,10 +190,10 @@ let p = router.addUser(
             })
 
         }
-    })
+    });
 
 
-    user.send(JSON.stringify({route:'addUser',args:info}));
+    (user as any).send(JSON.stringify({route:'addUser',args:info}));
     
     router.run('userUpdateLoop',user); //initialize the user updates 
 
@@ -198,7 +201,7 @@ let p = router.addUser(
     //     console.log('getSessionInfo',res);
     // });
 
-    user.request({route:'openSharedSession',args:{settings:{name:'testsession',propnames:{x:true, test:true}}}})
+    (user as any).request({route:'openSharedSession',args:{settings:{name:'testsession',propnames:{x:true, test:true}}}})
         .then(session => {
             let res;
             if(session?._id) res = router.run('joinSession',session._id,user,session); //this will call the state
