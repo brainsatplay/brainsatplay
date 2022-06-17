@@ -487,7 +487,8 @@ export class GraphNode {
             let keys = Object.keys(node.branch);
             await Promise.all(keys.map(async (k) => {
                     if(output instanceof Object) {
-                        if(stringifyFast(output) === stringifyFast(node.branch[k].if)) {
+                        if(node.branch[k].if instanceof Object) node.branch[k].if = stringifyFast(node.branch[k].if);
+                        if(stringifyFast(output) === node.branch[k].if) {
                             if(node.branch[k].then instanceof GraphNode) {
                                 if(Array.isArray(output))  await node.branch[k].then.run(...output);
                                 else await node.branch[k].then.run(output);
@@ -505,10 +506,10 @@ export class GraphNode {
                             }
                             return true;
                         }
-                    } else if (output === node.branch[k].if) {
+                    } else if (typeof node.branch[k].then === 'function') {
                         await node.branch[k].then(output); 
                         return true;
-                    }
+                    } else return;
             }))
         }
     }
