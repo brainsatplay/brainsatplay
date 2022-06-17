@@ -77,6 +77,12 @@ type GraphNodeProperties = {
     backward?:boolean, //pass output to parent node
     children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or GraphNodes, or null
     parent?:GraphNode|undefined, //parent graph node
+    branch?:{ //based on the operator result, automatically do something
+        [label:string]:{ //apply any label for your own indexing
+            if:any, //if this value
+            then:string|((operator_result:any)=>any)|GraphNode //then do this, e.g. use a node tag, a GraphNode, or supply any function
+        } //it still returns afterward but is treated like an additional flow statement :D
+    },
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
@@ -105,6 +111,7 @@ GraphNode utilities
         backward:false, //pass output to parent node
         children:undefined, //child node(s), can be tags of other nodes, properties objects like this, or graphnodes, or null
         parent:undefined, //parent graph node
+        branch:undefined,  //based on the operator result, automatically do something
         delay:false, //ms delay to fire the node
         repeat:false, // set repeat as an integer to repeat the input n times
         recursive:false, //or set recursive with an integer to pass the output back in as the next input n times

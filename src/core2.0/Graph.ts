@@ -67,6 +67,12 @@ export type GraphNodeProperties = {
     backward?:boolean, //pass output to parent node
     children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or GraphNodes, or null
     parent?:GraphNode|Graph|undefined, //parent graph node
+    branch?:{ //based on the operator result, automatically do something
+        [label:string]:{ //apply any label for your own indexing
+            if:any, //if this value
+            then:string|((operator_result:any)=>any)|GraphNode //then do this, e.g. use a node tag, a GraphNode, or supply any function
+        } //it still returns afterward but is treated like an additional flow statement :D
+    },
     delay?:false|number, //ms delay to fire the node
     repeat?:false|number, // set repeat as an integer to repeat the input n times, cmd will be the number of times the operation has been repeated
     recursive?:false|number, //or set recursive with an integer to pass the output back in as the next input n times, cmd will be the number of times the operation has been repeated
@@ -318,7 +324,8 @@ export class GraphNode {
                    (node.children && node.forward) || 
                    (node.parent && node.backward) || 
                    node.repeat || node.delay || 
-                    node.frame || node.recursive
+                    node.frame || node.recursive ||
+                    node.branch
                 )
             ) node.runSync = true;
 
@@ -400,13 +407,18 @@ export class GraphNode {
     
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
     
-                    if(node.backward && node.parent?._run) {
-                        if(Array.isArray(res)) await this.runParent(node,...res);
-                        else await this.runParent(node,res);
-                    }
-                    if(node.children && node.forward) {
-                        if(Array.isArray(res)) await this.runChildren(node,...res);
-                        else await this.runChildren(node,res);
+                    if(res !== undefined) { //if returning void let's not run the additional flow logic
+                        if(node.backward && node.parent?._run) {
+                            if(Array.isArray(res)) await this.runParent(node,...res);
+                            else await this.runParent(node,res);
+                        }
+                        if(node.children && node.forward) {
+                            if(Array.isArray(res)) await this.runChildren(node,...res);
+                            else await this.runChildren(node,res);
+                        }
+                        if(node.branch) {
+                            this.runBranch(node,res);
+                        }
                     }
     
                     return res;
@@ -469,6 +481,37 @@ export class GraphNode {
                 await node.children._run(node.children, node, ...args);
         }
     }
+
+    runBranch = async (node:GraphNode, output:any) => {
+        if(node.branch) {
+            let keys = Object.keys(node.branch);
+            await Promise.all(keys.map(async (k) => {
+                    if(output instanceof Object) {
+                        if(stringifyFast(output) === node.branch[k].if) {
+                            if(node.branch[k].then instanceof GraphNode) {
+                                if(Array.isArray(output))  await node.branch[k].then.run(...output);
+                                else await node.branch[k].then.run(output);
+                            }
+                            else if (typeof node.branch[k].then === 'function') {
+                                await node.branch[k].then(output);
+                            } else if (typeof node.branch[k].then === 'string') {
+                                if(node.graph) node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
+                                else node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
+
+                                if(node.branch[k].then instanceof GraphNode) {
+                                    if(Array.isArray(output))  await node.branch[k].then.run(...output);
+                                    else await node.branch[k].then.run(output);
+                                }
+                            }
+                            return true;
+                        }
+                    } else if (output === node.branch[k].if) {
+                        await node.branch[k].then(output); 
+                        return true;
+                    }
+            }))
+        }
+    }
     
     runAnimation = (
         animation:OperatorType=this.animation as any, 
@@ -501,6 +544,9 @@ export class GraphNode {
                         if(node.children && node.forward) {
                             if(Array.isArray(result)) await this.runChildren(node,...result);
                             else await this.runChildren(node,result);
+                        }
+                        if(node.branch) {
+                            this.runBranch(node,result);
                         }
                         this.setState({[node.tag]:result});
                     }
@@ -542,6 +588,9 @@ export class GraphNode {
                         if(node.children && node.forward) {
                             if(Array.isArray(result)) await this.runChildren(node,...result);
                             else await this.runChildren(node,result);
+                        }
+                        if(node.branch) {
+                            this.runBranch(node,result);
                         }
                         node.setState({[node.tag]:result});
                     }
