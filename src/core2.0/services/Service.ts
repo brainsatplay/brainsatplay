@@ -188,7 +188,10 @@ export class Service extends Graph {
     }
 
     handleServiceMessage(message:ServiceMessage) {
-        let call; if(message.route) call = message.route; else if (message.node) call = message.node;
+        let call; 
+        if(message instanceof Object) {
+            if(message.route) call = message.route; else if (message.node) call = message.node;
+        }
         if(call) {
             if(message.origin) { //origin will be second argument in this case
                 if(Array.isArray(message.args)) return this._run(call,message.origin,...message.args);

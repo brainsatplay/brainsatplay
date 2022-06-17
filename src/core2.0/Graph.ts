@@ -919,7 +919,7 @@ export class Graph {
                 if(typeof tree[node] === 'function') {
                     this.add({tag:node, operator:tree[node] as OperatorType|((...args)=>any|void)});
                 }
-                else if (typeof tree[node] === 'object') {
+                else if (typeof tree[node] === 'object' && !Array.isArray(tree[node])) {
                     if(!(tree[node] as any).tag) (tree[node] as any).tag = node;
                     let newNode = this.add(tree[node]);
                     if((tree[node] as GraphNodeProperties).aliases) {
@@ -927,6 +927,9 @@ export class Graph {
                             this.nodes.set(a,newNode); 
                         });
                     }
+                } else {
+                    //we are trying to load something like a number or array in this case so lets make it a node that just returns the value
+                    this.add({tag:node,operator:(self,origin,...args) => {return tree[node];}});
                 }
             }
         }
