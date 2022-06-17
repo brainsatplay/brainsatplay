@@ -81,9 +81,12 @@ export class Service extends Graph {
             routes = routes.routes; //or pull routes from an existing class
         }
         else if (typeof routes === 'object') {
-            let name = Object.prototype.toString.call(routes);
-            if(name) name = name.split(' ')[1];
-            if(name) name = name.split(']')[0];
+            let name = routes.constructor.name;
+            if(name === 'Object') {
+                name = Object.prototype.toString.call(routes);
+                if(name) name = name.split(' ')[1];
+                if(name) name = name.split(']')[0];
+            } 
             if(name && name !== 'Object') { 
                 let module = routes;
                 routes = {};

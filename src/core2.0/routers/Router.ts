@@ -56,20 +56,24 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         if(service instanceof Service) {
             this.services[service.name] = service;
         } else {
-            let name = Object.prototype.toString.call(service);
-            if(name) name = name.split(' ')[1];
-            if(name) name = name.split(']')[0];
-            if(name && name !== 'Object') { 
-                this.services[name] = service;
-            }
+            if(service.constructor.name === 'Object') {
+                let name = Object.prototype.toString.call(service);
+                if(name) name = name.split(' ')[1];
+                if(name) name = name.split(']')[0];
+                if(name && name !== 'Object' && name !== 'Function') { 
+                    this.services[name] = service;
+                }
+            } else this.services[service.constructor.name] = service; 
         }
         
         this.service.load(service);
         
         for(const name in this.services) { //tie node references together across service node maps so they can call each other
             this.service.nodes.forEach((n) => {
-                if(this.services[name]?.nodes) if(!this.services[name].nodes.get(n.tag)) {
-                    this.services[name].nodes.set(n.tag,n);
+                if(this.services[name]?.nodes) {
+                    if(!this.services[name].nodes.get(n.tag)) {
+                        this.services[name].nodes.set(n.tag,n);
+                    } 
                 }
             });
         }
