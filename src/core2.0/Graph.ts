@@ -226,24 +226,27 @@ export class GraphNode {
             //     }
             //     else this[prop] = properties[prop];
             // }
-            Object.assign(this,properties); //set the node's props as this
-        }
-        else if(graph) {
-            this.tag = `node${graph.nNodes}`;
-        } else {
-            this.tag = `node${Math.floor(Math.random()*10000000000)}`;
-        }
-        
-        this.parent=parentNode;
-        this.graph=graph;
-    
-        if(graph) {
-            graph.nNodes++;
-            graph.nodes.set(this.tag,this);
-        }
-    
-        if(this.children) this.convertChildrenToNodes(this);
+            Object.assign(this,properties); //set the node's props as this  
 
+            if(!this.tag) {
+                if(graph) {
+                    this.tag = `node${graph.nNodes}`;
+                } else {
+                    this.tag = `node${Math.floor(Math.random()*10000000000)}`;
+                }
+            }        
+            this.parent=parentNode;
+            this.graph=graph;
+        
+            if(graph) {
+                graph.nNodes++;
+                graph.nodes.set(this.tag,this);
+            }
+        
+            if(this.children) this.convertChildrenToNodes(this);
+        }
+        else return properties;
+      
     }
     
     // I/O scheme for this node in the graph
