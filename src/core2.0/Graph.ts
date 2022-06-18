@@ -308,7 +308,7 @@ export class GraphNode {
     ) => {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
-        if(!(node instanceof GraphNode)) {
+        if(!(typeof node === 'object')) {
             if(!node) return undefined;
             if(typeof node === 'string') { //can pass the node tag instead
                 let fnd:any = undefined;
