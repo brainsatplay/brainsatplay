@@ -319,7 +319,7 @@ export class WebRTCfrontend extends Service {
             let onmessage = (ev:any) => {
                 let data = ev.data;
                 if(typeof data === 'string') if(data.includes('callbackId')) data = JSON.parse(data);
-                if(data instanceof Object) if(data.callbackId === callbackId) {
+                if(typeof data === 'object') if(data.callbackId === callbackId) {
                     channel.removeEventListener('message',onmessage);
                     res(data.args);
                 }
@@ -333,7 +333,7 @@ export class WebRTCfrontend extends Service {
     runRequest = (message:any, channel:RTCDataChannel|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
         if(channel) {
-            if(Object.getPrototypeOf(channel) === String.prototype) {
+            if(typeof channel === 'string') {
                 for(const key in this.rtc) {
                     if(key === channel) {channel = this.rtc[key].channels.data; break;}
                 }

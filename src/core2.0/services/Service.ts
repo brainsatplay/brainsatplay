@@ -213,7 +213,7 @@ export class Service extends Graph {
 
     handleServiceMessage(message:ServiceMessage) {
         let call; 
-        if(message instanceof Object) {
+        if(typeof message === 'object') {
             if(message.route) call = message.route; else if (message.node) call = message.node;
         }
         if(call) {
@@ -244,7 +244,7 @@ export class Service extends Graph {
     transmit:(...args)=>any|void = (
         ...args:[ServiceMessage|any,...any[]]|any[]
     ) => {
-        if(args[0] instanceof Object) {
+        if(typeof args[0] === 'object') {
             if(args[0].method) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
             } else if(args[0].route) {
@@ -264,7 +264,7 @@ export class Service extends Graph {
     receive:(...args)=>any|void = (
         ...args:[ServiceMessage|any,...any[]]|any[] //generalized args for customizing, it looks weird I know
     ) => {
-        if(args[0]) if(Object.getPrototypeOf(args[0]) === String.prototype) {
+        if(args[0]) if(typeof args[0] === 'string') {
             let substr = args[0].substring(0,8);
             if(substr.includes('{') || substr.includes('[')) {    
                 if(substr.includes('\\')) args[0] = args[0].replace(/\\/g,"");
@@ -274,7 +274,7 @@ export class Service extends Graph {
             }
         }
 
-        if(args[0] instanceof Object) {
+        if(typeof args[0] === 'object') {
             if(args[0].method) { //run a route method directly, results not linked to graph
                 return this.handleMethod(args[0].route, args[0].method, args[0].args);
             } else if(args[0].route) {
@@ -348,8 +348,8 @@ export class Service extends Graph {
 
     recursivelyAssign = (target,obj) => {
         for(const key in obj) {
-            if(obj[key] instanceof Object) {
-                if(target[key] instanceof Object) this.recursivelyAssign(target[key], obj[key]);
+            if(typeof obj[key] === 'object') {
+                if(typeof target[key] === 'object') this.recursivelyAssign(target[key], obj[key]);
                 else target[key] = this.recursivelyAssign({},obj[key]); 
             } else target[key] = obj[key];
         }
@@ -373,12 +373,12 @@ export class Service extends Graph {
             return args;
         },
         assign:(source:{[key:string]:any}) => { //assign source to this
-            if(source instanceof Object) 
+            if(typeof source === 'object') 
             {Object.assign(this,source);
             return true;} return false;
         },
         recursivelyAssign:(source:{[key:string]:any}) => { //assign source object to this
-            if(source instanceof Object) 
+            if(typeof source === 'object') 
             {this.recursivelyAssign(this,source);
             return true;} return false;
         },

@@ -190,7 +190,7 @@ let session = router.openSharedSession({
 
 router.subscribe('addUser', (res) =>{ //we are going to automatically add every new user to a session to show available webrtc rooms from users and connect them to each other
     //console.log('user joining webrtcrooms', res._id);
-    if (res instanceof Object) {
+    if (typeof res === 'object') {
         let user = res;
         let joined = router.joinSession('webrtcrooms',user);
         

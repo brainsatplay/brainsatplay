@@ -58,7 +58,7 @@ export class WorkerService extends Service {
                     if(origin) req.origin = origin;
                     if(method) req.method = method;
                     let onmessage = (ev)=>{
-                        if(ev.data instanceof Object) {
+                        if(typeof ev.data === 'object') {
                             if(ev.data.callbackId === callbackId) {
                                 worker.removeEventListener('message',onmessage);
                                 res(ev.data); //resolve the request with the corresponding message
@@ -103,7 +103,7 @@ export class WorkerService extends Service {
     transmit = (message:ServiceMessage|any, worker?:Worker|MessagePort|string, transfer?:StructuredSerializeOptions ) => {
         if(worker instanceof Worker || worker instanceof MessagePort) {
             worker.postMessage(message,transfer);
-        } else if(Object.getPrototypeOf(worker) === String.prototype) {
+        } else if(typeof worker === 'string') {
             if(this.workers[worker as string]) {
             if(this.workers[worker as string].port)
                 (this.workers[worker as string].port as any).postMessage(message,transfer);
@@ -174,7 +174,7 @@ export class WorkerService extends Service {
             if(origin) req.origin = origin;
             if(method) req.method = method;
             let onmessage = (ev)=>{
-                if(ev.data instanceof Object) {
+                if(typeof ev.data === 'object') {
                     if(ev.data.callbackId === callbackId) {
                         worker.removeEventListener('message',onmessage);
                         res(ev.data); //resolve the request with the corresponding message

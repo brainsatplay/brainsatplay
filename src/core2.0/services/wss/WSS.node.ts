@@ -180,7 +180,7 @@ export class WSSbackend extends Service {
         else {
             let socketonmessage = (data:any)=>{ 
           
-                if(data) if(Object.getPrototypeOf(data) === String.prototype) { //pulling this out of receive to check if setId was called
+                if(data) if(typeof data === 'string') { //pulling this out of receive to check if setId was called
                     let substr = data.substring(0,8);
                     if(substr.includes('{') || substr.includes('[')) {    
                         if(substr.includes('\\')) data = data.replace(/\\/g,"");
@@ -301,7 +301,7 @@ export class WSSbackend extends Service {
             let onmessage = (ev:any) => {
                 let data = ev.data;
                 if(typeof data === 'string') if(data.includes('callbackId')) data = JSON.parse(data);
-                if(data instanceof Object) if(data.callbackId === callbackId) {
+                if(typeof data === 'object') if(data.callbackId === callbackId) {
                     ws.removeEventListener('message',onmessage);
                     res(data.args);
                 }
@@ -315,7 +315,7 @@ export class WSSbackend extends Service {
     runRequest = (message:any, ws:WebSocket|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);        
         if(ws) {
-            if(Object.getPrototypeOf(ws) === String.prototype) {
+            if(typeof ws === 'string') {
                 for(const key in this.servers) {
                     for(const c in this.servers[key].clients) {
                         if(c === ws) {ws = this.servers[key].clients[c]; break;}

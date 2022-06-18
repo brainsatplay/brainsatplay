@@ -11,17 +11,17 @@ import { SSEfrontend, EventSourceProps, EventSourceInfo } from "../../services/s
 import { WSSfrontend, WebSocketProps, WebSocketInfo } from '../../services/wss/WSS.browser';
 import { WebRTCfrontend, WebRTCInfo, WebRTCProps } from '../../services/webrtc/WebRTC.browser';
 
-const router = new UserRouter([
+const router = new UserRouter({
     HTTPfrontend,
     WSSfrontend,
     SSEfrontend,
     WebRTCfrontend,
     Math
-]);
+});
 
-router.run( 
-    'http/listen'
-);
+// router.run( 
+//     'http/listen'
+// );
 
 // const hotreloadinfo = router.run('wss/openWS',{
 //     host:'localhost',

@@ -310,7 +310,7 @@ export class GraphNode {
 
         if(!(node instanceof GraphNode)) {
             if(!node) return undefined;
-            if(Object.getPrototypeOf(node) === String.prototype) { //can pass the node tag instead
+            if(typeof node === 'string') { //can pass the node tag instead
                 let fnd:any = undefined;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
@@ -463,7 +463,7 @@ export class GraphNode {
     runChildren = async (node:GraphNode, ...args) => {
         if(Array.isArray(node.children)) {
             for(let i = 0; i < node.children.length; i++) { 
-                if (Object.getPrototypeOf(node.children[i]) === String.prototype) {
+                if (typeof node.children[i] === 'string') {
                     if(node.graph && node.graph?.get(node.children[i])) {
                         node.children[i] = node.graph.get(node.children[i]); //try graph scope
                         if(!node.nodes.get(node.children[i].tag)) node.nodes.set(node.children[i].tag,node.children[i]);
@@ -475,7 +475,7 @@ export class GraphNode {
             }
         }
         else if(node.children) {
-            if (Object.getPrototypeOf(node.children) === String.prototype) {
+            if (typeof node.children === 'string') {
                 if(node.graph && node.graph?.get(node.children)) {
                     node.children = node.graph.get(node.children); //try graph scope
                     if(!node.nodes.get(node.children.tag)) node.nodes.set(node.children.tag,node.children);
@@ -491,8 +491,8 @@ export class GraphNode {
         if(node.branch) {
             let keys = Object.keys(node.branch);
             await Promise.all(keys.map(async (k) => {
-                    if(output instanceof Object) {
-                        if(node.branch[k].if instanceof Object) node.branch[k].if = stringifyFast(node.branch[k].if);
+                    if(typeof output === 'object') {
+                        if(typeof node.branch[k].if === 'object') node.branch[k].if = stringifyFast(node.branch[k].if);
                         if(stringifyFast(output) === node.branch[k].if) {
                             if(node.branch[k].then instanceof GraphNode) {
                                 if(Array.isArray(output))  await node.branch[k].then.run(...output);
@@ -720,7 +720,7 @@ export class GraphNode {
         let result;
         if(Array.isArray(this.children)) {
             if(idx) {
-                if (Object.getPrototypeOf(this.children[idx]) === String.prototype) {
+                if (typeof this.children[idx] === 'string') {
                 if(this.graph && this.graph.get(this.children[idx])) {
                     this.children[idx] = this.graph.get(this.children[idx]); //try graph scope
                     if(!this.nodes.get(this.children[idx].tag)) this.nodes.set(this.children[idx].tag,this.children[idx]);
@@ -733,7 +733,7 @@ export class GraphNode {
             else {
                 result = [];
                 for(let i = 0; i < this.children.length; i++) {
-                    if (Object.getPrototypeOf(this.children[i]) === String.prototype) {
+                    if (typeof this.children[i] === 'string') {
                         if(this.graph && this.graph.get(this.children[i])) {
                             this.children[i] = this.graph.get(this.children[i]); //try graph scope
                             if(!this.nodes.get(this.children[i].tag)) this.nodes.set(this.children[i].tag,this.children[i]);
@@ -744,7 +744,7 @@ export class GraphNode {
                 } 
             }
         } else if(this.children) {
-            if (Object.getPrototypeOf(this.children) === String.prototype) {
+            if (typeof this.children === 'string') {
                 if(this.graph && this.graph.get(this.children)) {
                     this.children = this.graph.get(this.children); //try graph scope
                     if(!this.nodes.get(this.children.tag)) this.nodes.set(this.children.tag,this.children);
@@ -769,7 +769,7 @@ export class GraphNode {
     }
 
     removeTree = (node:GraphNode|string) => { //stop and dereference nodes to garbage collect them
-        if(node)if(Object.getPrototypeOf(node) === String.prototype) node = this.nodes.get(node);
+        if(node)if(typeof node === 'string') node = this.nodes.get(node);
         if(node instanceof GraphNode) {
             const recursivelyRemove = (node) => {
                 if(node.children) {

@@ -62,7 +62,7 @@ export class WSSfrontend extends Service {
         if(!options.onmessage) {
             options.onmessage = (data:any, ws:WebSocket, wsinfo:WebSocketInfo) => { 
             
-                if(data) if(Object.getPrototypeOf(data) === String.prototype) {
+                if(data) if(typeof data === 'string') {
                     let substr = data.substring(0,8);
                     if(substr.includes('{') || substr.includes('[')) {    
                         if(substr.includes('\\')) data = data.replace(/\\/g,"");
@@ -148,7 +148,7 @@ export class WSSfrontend extends Service {
             let onmessage = (ev:any) => {
                 let data = ev.data;
                 if(typeof data === 'string') if(data.includes('callbackId')) data = JSON.parse(data);
-                if(data instanceof Object) if(data.callbackId === callbackId) {
+                if(typeof data === 'object') if(data.callbackId === callbackId) {
                     ws.removeEventListener('message',onmessage);
                     res(data.args);
                 }
@@ -161,7 +161,7 @@ export class WSSfrontend extends Service {
 
     runRequest = (message:any, ws:WebSocket|string, callbackId:string|number) => { //send result back
         let res = this.receive(message);
-        if(Object.getPrototypeOf(ws) === String.prototype) {
+        if(typeof ws === 'string') {
             for(const s in this.sockets) {
                 if(s === ws) {ws = this.sockets[s].socket; break;}
             }

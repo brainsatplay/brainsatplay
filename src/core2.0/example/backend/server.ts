@@ -139,7 +139,7 @@ let session = router.openSharedSession({
 
 router.subscribe('addUser', (res) =>{
     //console.log('user joining webrtcrooms', res._id);
-    if (res instanceof Object) {
+    if (typeof res === 'object') {
         let user = res;
         let joined = router.joinSession('webrtcrooms',user);
         

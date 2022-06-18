@@ -179,7 +179,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         channel?:string
     ) => {
         let sent = false;
-        if(connections instanceof Object) { //can transmit on multiple endpoints in an object
+        if(typeof connections === 'object') { //can transmit on multiple endpoints in an object
             for(const protocol in connections) {
                 for(const info in connections[protocol]) {
                     let obj = connections[protocol][info];
