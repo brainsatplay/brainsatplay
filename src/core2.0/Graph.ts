@@ -309,16 +309,15 @@ export class GraphNode {
         // NOTE: Should create a sync version with no promises (will block but be faster)
 
         if(!(typeof node === 'object')) {
-            if(!node) return undefined;
             if(typeof node === 'string') { //can pass the node tag instead
                 let fnd:any = undefined;
                 if(this.graph) fnd = this.graph.nodes.get(node);
                 if(!fnd) fnd = this.nodes.get(node);
                 node = fnd;
             }
+            if(!node) return undefined;
         }
         
-
         //console.log('running node ', node.tag, 'children: ', node.children);
             
         //can add an animationFrame coroutine, one per node //because why not
