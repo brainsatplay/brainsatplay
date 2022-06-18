@@ -66,7 +66,7 @@ export type GraphNodeProperties = {
     forward?:boolean, //pass output to child nodes
     backward?:boolean, //pass output to parent node
     children?:string|GraphNodeProperties|GraphNode|(GraphNodeProperties|GraphNode|string)[], //child node(s), can be tags of other nodes, properties objects like this, or GraphNodes, or null
-    parent?:GraphNode|Graph|undefined, //parent graph node
+    parent?:GraphNode|Graph, //parent graph node
     branch?:{ //based on the operator result, automatically do something
         [label:string]:{ //apply any label for your own indexing
             if:any, //if this value
@@ -79,8 +79,9 @@ export type GraphNodeProperties = {
     frame?:boolean, //true or false. If repeating or recursing, execute on requestAnimationFrame? Careful mixing this with animate:true
     animate?:boolean, //true or false, run the operation on an animationFrame loop?
     loop?:false|number, //milliseconds or false, run the operation on a loop?
-    animation?: OperatorType | undefined, //if it outputs something not undefined it will trigger parent/child operators
-    looper?: OperatorType | undefined, //if it outputs something not undefined it will trigger parent/child operators
+    animation?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
+    looper?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
+    DEBUGNODE?:boolean // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
@@ -148,22 +149,23 @@ export const state = {
 
 export class GraphNode {
 
-    nodes = new Map()
+    nodes:Map<any,any> = new Map()
     attributes = new Set()
 
-    tag;
-    parent;
-    children;
-    graph;
+    tag:string;
+    parent:GraphNode|Graph;
+    children:any;
+    graph:Graph;
     state = state; //shared trigger state
     isLooping = false;
     isAnimating = false;
     looper = undefined; //loop function, uses operator if undefined (with cmd 'loop');
     animation = undefined; //animation function, uses operator if undefined (with cmd 'animate')
-    forward = true; /// propagate outputs to children?
-    backward = false; //propagate outputs to parents?
-    runSync = false;
-    firstRun = true;
+    forward:boolean = true; /// propagate outputs to children?
+    backward:boolean = false; //propagate outputs to parents?
+    runSync:boolean = false;
+    firstRun:boolean = true;
+    DEBUGNODE:boolean = false; //prints a console.time and console.timeEnd on each runOp call
 
     [key:string]: any; // any additional attribute
 
@@ -241,8 +243,8 @@ export class GraphNode {
                     this.tag = `node${Math.floor(Math.random()*10000000000)}`;
                 }
             }        
-            this.parent=parentNode;
-            this.graph=graph;
+            if(parentNode) this.parent=parentNode;
+            if(graph) this.graph=graph;
         
             if(graph) {
                 graph.nNodes++;
@@ -266,15 +268,18 @@ export class GraphNode {
         origin:string|GraphNode|Graph=this, // Options: this, this.parent, this.children[n], or an arbitrary node that is subscribed to.
         ...args:any[]
     ) => {
+        if(node.DEBUGNODE) console.time(node.tag);
         let result = node.operator(node,origin,...args);
         if(result instanceof Promise) {
             result.then((res) => {
                 if(res !== undefined) this.setState({[node.tag]:res}) //return null at minimum to setState
+                if(node.DEBUGNODE) {console.timeEnd(node.tag); if(result !== undefined) console.log(`${node.tag} result:`, result)};
                 return res;
             })
         }
         else {
             if(result !== undefined) this.setState({[node.tag]:result}); //return null at minimum to setState
+            if(node.DEBUGNODE) {console.timeEnd(node.tag); if(result !== undefined) console.log(`${node.tag} result:`, result)};
         }
         
         return result;
@@ -408,7 +413,7 @@ export class GraphNode {
                     let res = await run(node, undefined, ...args); //repeat/recurse before moving on to the parent/child
     
                     if(res !== undefined) { //if returning void let's not run the additional flow logic
-                        if(node.backward && node.parent?._run) {
+                        if(node.backward && node.parent instanceof GraphNode) {
                             if(Array.isArray(res)) await this.runParent(node,...res);
                             else await this.runParent(node,res);
                         }
@@ -451,7 +456,7 @@ export class GraphNode {
                 else node.parent = this.nodes.get(node.parent);
             }
             
-            if(node.parent?.run) await node.parent._run(node.parent, this, ...args);
+            if(node.parent instanceof GraphNode) await node.parent._run(node.parent, this, ...args);
         }
     }
 
@@ -498,7 +503,7 @@ export class GraphNode {
                                 else await node.branch[k].then(output);
                             } else if (typeof node.branch[k].then === 'string') {
                                 if(node.graph) node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
-                                else node.branch[k].then = node.graph.nodes.get(node.branch[k].then);
+                                else node.branch[k].then = node.nodes.get(node.branch[k].then);
 
                                 if(node.branch[k].then instanceof GraphNode) {
                                     if(Array.isArray(output))  await node.branch[k].then.run(...output);
@@ -529,6 +534,7 @@ export class GraphNode {
             let anim = async () => {
                 //console.log('anim')
                 if(node.isAnimating) {
+                    if(node.DEBUGNODE) console.time(node.tag);
                     let result = (this.animation  as any)( 
                         node,
                         origin,
@@ -537,6 +543,7 @@ export class GraphNode {
                     if(result instanceof Promise) {
                         result = await result;
                     }
+                    if(node.DEBUGNODE) {console.timeEnd(node.tag); if(result !== undefined) console.log(`${node.tag} result:`, result)};
                     if(result !== undefined) {
                         if(this.tag) this.setState({[this.tag]:result}); //if the anim returns it can trigger state
                         if(node.backward && node.parent?._run) {
@@ -573,6 +580,7 @@ export class GraphNode {
             node.isLooping = true;
             let looping = async () => {
                 if(node.isLooping)  {
+                    if(node.DEBUGNODE) console.time(node.tag);
                     let result = node.looper(
                         node, 
                         origin, 
@@ -581,6 +589,7 @@ export class GraphNode {
                     if(result instanceof Promise) {
                         result = await result;
                     }
+                    if(node.DEBUGNODE) {console.timeEnd(node.tag); if(result !== undefined) console.log(`${node.tag} result:`, result)};
                     if(result !== undefined) {
                         if(node.tag) node.setState({[node.tag]:result}); //if the loop returns it can trigger state
                         if(node.backward && node.parent?._run) {
@@ -795,7 +804,7 @@ export class GraphNode {
                     if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
                 });
                 recursivelyRemove(node);
-                if(this.graph) this.graph.nodes.removeTree(node); //remove from parent graph too 
+                if(this.graph) this.graph.removeTree(node); //remove from parent graph too 
             }
         }
     }
@@ -931,6 +940,14 @@ export class GraphNode {
     }
 
     setState = this.state.setState; //little simpler
+
+    DEBUGNODES = (debugging:boolean=true) => {
+        this.DEBUGNODE = debugging;
+        this.nodes.forEach((n:GraphNode) => {
+            if(debugging) n.DEBUGNODE = true;
+            else n.DEBUGNODE = false;
+        });
+    }
 }
 
 
@@ -940,7 +957,7 @@ export class Graph {
 
     nNodes = 0
     tag:string;
-    nodes = new Map();
+    nodes:Map<any,any> = new Map();
     state=state;
 
     //can create preset node trees on the graph
@@ -958,7 +975,7 @@ export class Graph {
     add = (node:GraphNode|GraphNodeProperties|OperatorType|((...args)=>any|void) ={}) => {
         let props = node;
         if(!(node instanceof GraphNode)) node = new GraphNode(props,undefined,this); 
-        this.tree[node.tag] = props; //set the head node prototype in the tree object
+        if(node.tag) this.tree[node.tag] = props; //set the head node prototype in the tree object
         return node;
     }
 
@@ -1088,11 +1105,10 @@ export class Graph {
 
     subscribe = (node:string|GraphNode,callback:(res:any)=>void) => {
         if(!callback) return;
-        if(typeof node !== 'string') node = node.tag;
         if(node instanceof GraphNode) {
             return node.subscribe(callback);
         }
-        else return this.state.subscribeTrigger(node,callback);
+        else if(typeof node == 'string') return this.state.subscribeTrigger(node,callback);
     }
 
     unsubscribe = (tag:string,sub:number) => {
@@ -1138,6 +1154,13 @@ export class Graph {
     }
 
     setState = this.state.setState;
+
+    DEBUGNODES = (debugging:boolean=true) => {
+        this.nodes.forEach((n:GraphNode) => {
+            if(debugging) n.DEBUGNODE = true;
+            else n.DEBUGNODE = false;
+        });
+    }
 }
 
 

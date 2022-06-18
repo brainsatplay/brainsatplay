@@ -91,6 +91,7 @@ type GraphNodeProperties = {
     loop?:false|number, //milliseconds or false, run the operation on a loop?
     animation?: OperatorType | undefined, //if it outputs something not undefined it will trigger parent/child operators
     looper?: OperatorType | undefined, //if it outputs something not undefined it will trigger parent/child operators
+    DEBUGNODE?:boolean // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
@@ -119,6 +120,7 @@ GraphNode utilities
         animate:false, //true or false
         loop:undefined, //milliseconds or false
         tag:undefined, //generated if not specified, or use to get another node by tag instead of generating a new one
+        DEBUGNODE:false // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
       }; //can specify properties of the element which can be subscribed to for changes.
 
 
