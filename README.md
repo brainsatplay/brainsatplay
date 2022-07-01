@@ -1,5 +1,5 @@
 # brainsatplay
-`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. 
+`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. This repo is an active project but you can follow our development closely if you subscribe to garrettmflynn and joshbrew on github.
 
 Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs!
 
@@ -8,39 +8,6 @@ Our mission is to enable open source biosensing and signal processing research, 
 - [**datastreams-api**](https://github.com/brainsatplay/datastreams-api) supports real-time data acquisition through the browser.
 - [**visualscript**](https://github.com/brainsatplay/visualscript) allows for visual programming with the `brainsatplay` library.
 - [**tinybuild**](https://github.com/brainsatplay/brainsatplay/tree/main/src/build) combines ultra fast and lightweight esbuild, hot reloading node and python (optional), and quick config/setup for webapps, npm libraries, pwas, and mobile applications.
-
-### Features
-🧩 **Composable:** Assemble native and custom components to satisfy your specific requirements.
-
-⚡ **Fast:** Handle streaming data in real-time.
-
-## Monorepo Contents
-This monorepo contains several NPM libraries for high-performance computing and inter-process communication.
-
-### /core
-- **brainsatplay:** A set of generic message handlers written in Universal JavaScript.
-
-### /frontend
-- **brainsatplay-frontend:** Client-side HTTP and Websocket services.
-
-### /backend
-- **brainsatplay-backend:** Server-side HTTP and Websocket services.
-
-### /services
-- **brainsatplay-database:** Store data + router extension for data management (implemented in [MyAlyce](https://github.com/MyAlyce/myalyce)).
-- **brainsatplay-webrtc:** Pass messages to peers over WebRTC.
-
-### /cli
-- **brainsatplay-cli:** Program a new project through the terminal.
-
-### /chrome
-- **Brains@Play Extension:** A Chrome Extension for using Brains@Play applications.
-
-### /pwa
-- **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
-
-### /visualscript
-- **visualscript:** Visual programming system for **brainsatplay** 
 
 ## Concepts
 *List and explain all design intuitions here*
@@ -68,19 +35,6 @@ const brainsatplay = require('brainsatplay')
 ```html
 <script src="https://cdn.jsdelivr.net/npm/brainsatplay@latest"></script>
 ```
-
-## Roadmap
-- [ ] Entirely convert Routes to Processes
-- [ ] Assemble graphs in Node.js
-- [ ] Assemble graphs with CLI
-- [ ] Support Python
-- [ ] Support C/C++
-- [ ] Make Socket / Router entirely Process-centric
-- [ ] Assemble / edit Processes with [visualscript](https://github.com/brainsatplay/visualscript)
-- [ ] Acquire data persistently with a Chrome Extension
-
-## Low Effort Extensions
-*Coming soon...*
 
 
 ## Support
