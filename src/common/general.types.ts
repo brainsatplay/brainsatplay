@@ -1,6 +1,6 @@
-import { Router } from '../core/Router'
-import { Socket } from '../core/Socket'
-import { Graph } from '../core/Graph'
+import { Router } from '../core_old/Router'
+import { Socket } from '../core_old/Socket'
+import { Graph } from '../core_old/Graph'
 export type RouterInterface = Partial<Router>
 
 export type ArbitraryObject = {[x:string]:any}

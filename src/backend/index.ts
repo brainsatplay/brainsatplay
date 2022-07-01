@@ -1,6 +1,6 @@
 // Core Services
-import WebsocketService from '../services/websocket/websocket.backend'
-import HTTPService from '../services/http/http.backend'
+import WebsocketService from '../services_old/websocket/websocket.backend'
+import HTTPService from '../services_old/http/http.backend'
 export {HTTPService, WebsocketService}
 
 // Other Services
