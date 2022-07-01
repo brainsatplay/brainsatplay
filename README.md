@@ -1,5 +1,5 @@
 # brainsatplay
-`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. This repo is in active development but you can follow our development closely if you subscribe to garrettmflynn and joshbrew on github.
+`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. This repo is in active development so you'll see a lot of ideas still getting half baked and tossed out but you can follow our development closely if you subscribe to garrettmflynn and joshbrew on github.
 
 Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs!
 
