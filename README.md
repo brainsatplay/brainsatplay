@@ -2,11 +2,15 @@
 [![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/brainsatplay/awesome-brainsatplay)
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. This repo is in active development so you'll see a lot of ideas still getting half baked and tossed out but you can follow our development closely if you subscribe to [garrettmflynn](https://github.com/garrettmflynn) and [joshbrew](https://github.com/joshbrew) on GitHub.
+`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. 
 
-> **Note:** If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
+This repo is in active development so you'll see a lot of ideas still getting half baked and tossed out but you can follow our development closely if you subscribe to [garrettmflynn](https://github.com/garrettmflynn) and [joshbrew](https://github.com/joshbrew) on GitHub.
 
-Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs!
+> If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
+
+Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs! 
+
+> To learn more about what we're doing at a broad level, check out our [project](https://github.com/brainsatplay/project) repository.
 
 ### Framework Libraries
 Below are the core repositories of the [brainsatplay] framework. Check out the [awesome-brainsatplay](https://github.com/awesome-brainsatplay) repository to see everything created by our community!
