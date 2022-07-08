@@ -5,13 +5,13 @@ Our mission is to enable open source biosensing and signal processing research, 
 
 ### Repo Contents
 ### chrome
-- **Brains@Play Extension:** A Chrome Extension for developing Brains@Play applications.
+A Chrome Extension for developing [brainsatplay](https://github.com/brainsatplay/brainsatplay) applications.
 
 ### cli
-- **brainsatplay-cli:** Program a new project through the terminal.
+Program a new project through the terminal.
 
 ### pwa
-- **Brains@Play:** An example Progressive Web App using the Brains@Play software suite.
+An example Progressive Web App (PWA) using the [brainsatplay](https://github.com/brainsatplay/brainsatplay) framework.
 
 ### Framework Libraries
 - [**graphscript**](https://github.com/brainsatplay/graphscript) provides easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks!
