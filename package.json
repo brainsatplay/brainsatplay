@@ -1,5 +1,5 @@
 {
-  "name": "brainsatplay",
+  "name": "brainsatplay-monorepo",
   "type":"module",
   "private": true,
   "workspaces": [
@@ -9,7 +9,7 @@
     "node": ">=16"
   },
   "scripts": {
-    "start": "concurrently \"yarn node builder.config run:nodejs\" \"yarn node builder.config run:nodejs2\" \"yarn frontend\" -k --kill-others-on-fail -p \"{name}|\" -n \"BE1, BE2, FE\" -c \"green,yellow,blue\"",
+    "start": "tinybuild",
     "frontend": "cd docs && yarn && yarn run start",
     "backend": "node builder.config.js run:nodejs",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage",

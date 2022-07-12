@@ -1,6 +1,6 @@
 # brainsatplay
 [![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/brainsatplay/awesome-brainsatplay)
-[![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
+[![Discord](https://img.shields.io/[](src/core/dist)badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
 `brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. 
 
@@ -28,6 +28,9 @@ A Chrome Extension for developing [brainsatplay] applications.
 
 ### cli
 Program a new project through the terminal.
+
+### core
+A linker library between [graphscript] and [visualscript]
 
 ### pwa
 An example Progressive Web App (PWA) using the [brainsatplay] framework.         |
