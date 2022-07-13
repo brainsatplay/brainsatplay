@@ -1,6 +1,6 @@
 import App from './App'
 import * as editable from './editable'
-import Plugins from './Plugins'
+import Plugins from './editable/Plugins'
 
 export {
     App,

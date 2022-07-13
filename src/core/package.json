@@ -1,29 +1,31 @@
 {
     "name": "brainsatplay",
-    "type":"module",
+    "type": "module",
     "workspaces": [
-      "src/**"
+        "src/**"
     ],
     "engines": {
-      "node": ">=16"
+        "node": ">=16"
     },
     "scripts": {
-      "start": "tinybuild",
-      "build": "tinybuild bundle"
+        "start": "tinybuild",
+        "build": "tinybuild bundle"
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/brainsatplay/brainsatplay.git"
+        "type": "git",
+        "url": "git+https://github.com/brainsatplay/brainsatplay.git"
     },
     "keywords": [],
     "author": "Garrett Flynn <garrettmflynn@gmail.com>",
     "license": "AGPL-3.0-or-later",
     "bugs": {
-      "url": "https://github.com/brainsatplay/brainsatplay/issues"
+        "url": "https://github.com/brainsatplay/brainsatplay/issues"
     },
     "homepage": "https://github.com/brainsatplay/brainsatplay#readme",
     "devDependencies": {
-      "tinybuild": "^0.3.141"
+        "tinybuild": "^0.3.141"
+    },
+    "dependencies": {
+        "freerange": "^0.0.26"
     }
-  }
-  
+}

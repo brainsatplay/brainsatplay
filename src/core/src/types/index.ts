@@ -7,7 +7,7 @@ export type AppInfo = {
         }
     } 
     plugins: {[x:string]: string | any}
-}}
+}
 
 
 export type AssertType = 'json' | 'text'
