@@ -1,7 +1,7 @@
 //another method
 export function getFnParamInfo(fn):Map<string, any>{
     var fstr = fn.toString();
-    const matches = fstr.match(/\(.*?\)/)[0].replace(/[()]/gi,'').replace(/\s/gi,'').split(',');
+    const matches = fstr.match(/\(.*?\)/)[0].replace(/[()]/gi,'').split(',');
     const info = new Map()
     matches.forEach(v => {
         const arr = v.split('=')
@@ -65,6 +65,7 @@ export type OperatorType = ( //can be async
 export type Tree = {
     [key:string]: //the key becomes the node tag on the graph
         GraphNode |
+        Graph | //for graphs, pass an input object to the operator like so: e.g. to run a node in the graph: node.run({run:[arg1,arg2]})
         GraphNodeProperties |
         OperatorType |
         ((...args)=>any|void) |
@@ -178,11 +179,12 @@ export class GraphNode {
     runSync:boolean = false;
     firstRun:boolean = true;
     DEBUGNODE:boolean = false; //prints a console.time and console.timeEnd on each runOp call
+    source:Graph; //if we pass a graph in as properties it will go here so as to not compete with the graphnode overlapping commands
 
     [key:string]: any; // any additional attribute
 
     constructor(
-        properties:GraphNodeProperties|OperatorType|((...args:any[])=>any|void)={}, 
+        properties:GraphNodeProperties|Graph|OperatorType|((...args:any[])=>any|void)={}, 
         parentNode?:GraphNode, 
         graph?:Graph
     ) {    
@@ -192,6 +194,47 @@ export class GraphNode {
         }
 
         if(typeof properties === 'object') {
+
+            //can pass graphs and wrap Graphs with GraphNodes to enable nesting in trees
+            if(properties instanceof Graph) {
+                let source = properties;
+
+                properties = {
+                    source,
+                    operator:(input?:{[key:string]:any}) => {
+                        if(typeof input === 'object') {
+                            let result = {};
+                            for(const key in input) {
+                                if(typeof source[key] === 'function')
+                                    { //attempt to execute a function with arguments
+                                        if(Array.isArray(input[key]))
+                                            result[key] = (source[key](...input[key]));
+                                        else result[key] = source[key](input[key]);
+                                    } 
+                                else source[key] = input[key]; 
+                            }
+                            return result;
+                        }
+                        return source;
+                    }
+                };
+
+                //in case any stuff was added to the graph to indicate flow logic
+                if(source.operator) properties.operator = source.operator;
+                if(source.children) properties.children = source.children;
+                if(source.parent) properties.parent = source.parent;
+                if(source.forward) properties.forward = source.forward;
+                if(source.backward) properties.backward = source.backward;
+                if(source.repeat) properties.repeat = source.repeat;
+                if(source.recurse) properties.recurse = source.recurse;
+                if(source.loop) properties.loop = source.loop;
+                if(source.animate) properties.animate = source.animate;
+                if(source.looper) properties.looper = source.looper;
+                if(source.animation) properties.animation = source.animation;
+                if(source.delay) properties.delay = source.delay;
+                if(source.tag) properties.tag = source.tag;
+                
+            }
 
             if(properties.tag) {
                 if(graph?.nodes) {
@@ -993,10 +1036,12 @@ export class Graph {
 
     [key:string]:any;
 
-    constructor( tree?:Tree, tag?:string ) {
+    constructor( tree?:Tree, tag?:string, props?:{[key:string]:any} ) {
         this.tag = tag ? tag : `graph${Math.floor(Math.random()*100000000000)}`;
 
         if(tree || Object.keys(this.tree).length > 0) this.setTree(tree);
+
+        if(props) Object.assign(this,props); //set other props like flow properties in a nested graph
     }
 
     //converts all children nodes and tag references to GraphNodes also
@@ -1191,6 +1236,7 @@ export class Graph {
             else n.DEBUGNODE = false;
         });
     }
+
 }
 
 

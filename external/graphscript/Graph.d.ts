@@ -7,7 +7,8 @@ origin: string | GraphNode | Graph, //origin node
 ...args: any) => any | void;
 export declare type Tree = {
     [key: string]: //the key becomes the node tag on the graph
-    GraphNode | GraphNodeProperties | OperatorType | ((...args: any[]) => any | void) | ({
+    GraphNode | Graph | //for graphs, pass an input object to the operator like so: e.g. to run a node in the graph: node.run({run:[arg1,arg2]})
+    GraphNodeProperties | OperatorType | ((...args: any[]) => any | void) | ({
         aliases: string[];
     } & GraphNodeProperties);
 };
@@ -81,8 +82,9 @@ export declare class GraphNode {
     runSync: boolean;
     firstRun: boolean;
     DEBUGNODE: boolean;
+    source: Graph;
     [key: string]: any;
-    constructor(properties?: GraphNodeProperties | OperatorType | ((...args: any[]) => any | void), parentNode?: GraphNode, graph?: Graph);
+    constructor(properties?: GraphNodeProperties | Graph | OperatorType | ((...args: any[]) => any | void), parentNode?: GraphNode, graph?: Graph);
     operator: OperatorType;
     runOp: (node?: GraphNode, origin?: string | GraphNode | Graph, ...args: any[]) => any;
     setOperator: (operator: OperatorType) => OperatorType;
@@ -145,7 +147,9 @@ export declare class Graph {
     };
     tree: Tree;
     [key: string]: any;
-    constructor(tree?: Tree, tag?: string);
+    constructor(tree?: Tree, tag?: string, props?: {
+        [key: string]: any;
+    });
     add: (node?: GraphNode | GraphNodeProperties | OperatorType | ((...args: any[]) => any | void)) => GraphNode | GraphNodeProperties;
     setTree: (tree?: Tree) => void;
     get: (tag: string) => any;

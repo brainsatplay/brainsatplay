@@ -1,24 +1,34 @@
 // An integrated freerange + brainsatplay App class
 
+import * as freerange from 'freerange/dist/index.esm'
 import App from "../App";
 import Plugins from "./Plugins";
 
 export default class EditableApp {
 
+
     active: App;
     plugins: Plugins
-    filesystem?: any;
+    filesystem?: string | freerange.System;
     onstart: any
     onstop: any
-
-    constructor(system) {
-        this.filesystem = system
+    ignore: string[] = ['.DS_Store', '.git']
+    debug: boolean = false
+    options: {
+        ignore: string[]
+        debug: boolean
+    } = {
+        ignore: ['.DS_Store', '.git'],
+        debug: false
     }
 
-    set = async () => {
+    constructor(input, options) {
+        this.filesystem = input
+        this.options = Object.assign(this.options, options)
+    }
 
+    compile = async () => {
 
-        
         const packageContents = await (await this.filesystem.open('package.json')).body
         if (packageContents){
 
@@ -39,14 +49,23 @@ export default class EditableApp {
         }
     }
 
-    start = async (system = this.filesystem) => {
+    createFilesystem = async (input, options=this.options) => {
+        if (!input && !(this.filesystem instanceof freerange.System)) input = this.filesystem
+        let system = new freerange.System(input, options)
+        return await system.init().then(() => system).catch(() => undefined)
+    }
+
+    start = async (input) => {
         await this.stop() 
-        this.filesystem = system
-        this.active = new App(this.filesystem.root, this.filesystem.native)
-        this.active.oncompile = this.set
-        this.active.onstart = this.onstart
-        this.active.onstop = this.onstop
-        return await this.active.start()
+        const system = await this.createFilesystem(input)
+        if (system){
+            this.filesystem = system
+            this.active = new App(this.filesystem.root)
+            this.active.compile = this.compile
+            this.active.onstart = this.onstart
+            this.active.onstop = this.onstop
+            return await this.active.start()
+        } else return false
     }   
 
     stop = async () => {
