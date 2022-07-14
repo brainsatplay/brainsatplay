@@ -1,8 +1,6 @@
 import { Graph, GraphNode } from '. ./../../external/graphscript/Graph'
-import { Service } from '. ./../../external/graphscript/Service'
-import { resolve } from 'path'
 
-import { AppAPI } from './types'
+import { AnyObj, AppAPI } from './types'
 import * as utils from './utils'
 
 const scriptLocation = new Error().stack.match(/([^ \n])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0]
@@ -133,7 +131,7 @@ export default class App {
     }
 
     setTree = async (graph = this.info['.brainsatplay'].graph) => {
-        const tree = {}
+        const tree: AnyObj<any> = {}
 
         this.info['.brainsatplay'].graph = graph
 
@@ -177,12 +175,17 @@ export default class App {
 
         // TODO: Use the ports to target specific function arguments...
         graph.edges.forEach(([outputInfo, inputInfo]) => {
-            let [output, outputPort] = outputInfo.split(':')
-            let [input, inputPort] = inputInfo.split(':')
+            let outputPortPath = outputInfo.split(".");
+            let inputPortPath = inputInfo.split(".");
+            const input = inputPortPath[0] // TODO: Target specific input port
 
-            // Assign Children
-            if (!('children' in tree[output])) tree[output].children = []
-            tree[output].children.push(input)
+            let ref = tree
+            outputPortPath.forEach(str =>  {
+            if (ref[str]) ref = ref[str]
+            })
+            if (!("children" in ref)) ref.children = [];
+
+            ref.children.push(input);
         })
 
         this.tree = tree
