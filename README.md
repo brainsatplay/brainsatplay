@@ -17,6 +17,7 @@ Below are the core repositories of the [brainsatplay] framework. Check out the [
 
 | Project               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| **[editor]**         | [![editor-status]][editor] | A low-code editor for brainsatplay applications.       |
 | **[graphscript]**         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
 | **[visualscript]**         | [![visualscript-status]][visualscript]  | A low-code programming system for the [graphscript] library       |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Uniformly acquire real-time data with available browser APIs.                       |
@@ -55,6 +56,10 @@ The `legacy` branch of this repository contains a record of the original brainsa
 <!-- Core Library-->
 [graphscript]: https://github.com/brainsatplay/graphscript
 [graphscript-status]: https://img.shields.io/npm/v/graphscript
+
+<!-- Integrated Editor-->
+[editor]: https://github.com/brainsatplay/editor
+[editor-status]: https://img.shields.io/npm/v/brainsatplay-editor
 
 <!-- Low Code Programming System-->
 [visualscript]: https://github.com/brainsatplay/visualscript
