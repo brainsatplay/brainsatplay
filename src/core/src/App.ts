@@ -31,24 +31,24 @@ export default class App {
 
     // App Object References
     parentNode?: HTMLElement = document.body
-    plugins: {[x:string]: any}
+    plugins: { [x: string]: any }
     tree: any; // graph properties
     router: Router;
     graph: Graph | null
-    nested: {[x:string]: App} = {}
+    nested: { [x: string]: App } = {}
     isNested: boolean = false
 
 
-    animated: {[key: string]: Graph}
+    animated: { [key: string]: Graph }
     compile: () => void
-    
-    constructor(input?: InputType, name?:string, router?: Router) {
+
+    constructor(input?: InputType, name?: string, router?: Router) {
 
         // Set Router
         if (router) {
             this.router = router
             this.isNested = true
-        } else this.router = new Router() 
+        } else this.router = new Router()
 
         this.set(input, name)
         this.graph = null
@@ -146,78 +146,103 @@ export default class App {
         const tree: AnyObj<any> = {}
 
         this.info['.brainsatplay'].graph = graph
-
-        await Promise.all(graph.nodes.map(async info => {
-            const [cls, id] = info.tag.split('_')
-
+        const nodes = Object.entries(graph.nodes ?? {})
+        await Promise.all(nodes.map(async ([tag, info]) => {
+            const [cls, id] = tag.split("_");
             const clsInfo = this.plugins[cls]
 
             // TODO: Actuall nest inside tree notation
             if (clsInfo['.brainsatplay']) {
 
-                const app = this.nested[info.tag] = new App(clsInfo, info.tag, this.router)
+                const app = this.nested[tag] = new App(clsInfo, tag, this.router)
                 app.setParent(this.parentNode)
                 await app.start()
                 this.router.load(app.graph, false) // load nested graph into main router
 
                 // Run nested graph
-                let input = app.info['.brainsatplay'].graph.ports.input
-                let output = app.info['.brainsatplay'].graph.ports.output
-                if (typeof input === 'string') input = {[input]: input}
-                if (typeof output === 'string') output = {[output]: output}
+                if (app.info[".brainsatplay"].graph.ports) {
+
+                    let input = app.info['.brainsatplay'].graph.ports.input
+                    let output = app.info['.brainsatplay'].graph.ports.output
+                    if (typeof input === 'string') input = { [input]: input }
+                    if (typeof output === 'string') output = { [output]: output }
 
 
-                // // old
-                app.graph.operator = async (...args) => {
-                    for (let key in (output as AnyObj<string>)){
-                        console.log(`global operator for ${this.name}`, ...args)
-                        return new Promise(async resolve => {
-                            const sub = app.graph.subscribe(output[key], (res) => {
-                                resolve(res)
+                    // // old
+                    app.graph.operator = async (...args) => {
+                        for (let key in (output as AnyObj<string>)) {
+                            console.log(`global operator for ${this.name}`, ...args)
+                            return new Promise(async resolve => {
+                                const sub = app.graph.subscribe(output[key], (res) => {
+                                    resolve(res)
+                                })
+
+                                await Promise.all(Object.values(input).map(async (n) => {
+                                    await app.graph.run(n, ...args)
+                                }))
+
+                                app.graph.unsubscribe(output[key], sub)
                             })
-
-                            await Promise.all(Object.values(input).map(async (n) => {
-                                await app.graph.run(n, ...args)
-                            }))
-
-                            app.graph.unsubscribe(output[key], sub)
-                        })
+                        }
                     }
                 }
 
-                tree[info.tag] = app.graph // new Service(app.graph.tree, info.tag) // tree as graph node
+                tree[tag] = app.graph // new Service(app.graph.tree, tag) // tree as graph node
 
             } else {
                 let instance = Object.assign({}, clsInfo)
-                instance.tag = info.tag // update tag based on name in the application
-                tree[info.tag] = instance
+                instance.tag = tag
+                instance = Object.assign(instance, info); // provide instance-specific info
+
+
+            // Cache Last Input for Each Argument
+            instance.transformArgs = (args, self) => {
+                let updatedArgs = []
+                let i = 0
+                self.arguments.forEach((v, k) => {
+                    const currentArg = (k.includes('...')) ? args.slice(i) : args[i]
+                    let update = (currentArg !== undefined) ? currentArg : v
+                    self.arguments.set(k, update)
+                    if (!Array.isArray(update)) update = [update]
+                    updatedArgs.push(...update)
+                    i++
+                })
+                return updatedArgs
+            }
+
+                tree[tag] = instance
             }
 
         }))
 
-        // TODO: Use the ports to target specific function arguments...
-        graph.edges.forEach(([outputInfo, inputInfo]) => {
+        if (graph.edges) {
+            for (let outputInfo in graph.edges) {
+                const edges = graph.edges[outputInfo]
+                for (let inputInfo in edges){
+                    // const edgeDetails = edges[inputInfo]
 
-            let outputPortPath = outputInfo.split(".");
-            let inputPortPath = inputInfo.split(".");
+                    let outputPortPath = outputInfo.split(".");
+                    let inputPortPath = inputInfo.split(".");
 
-            // NOTE: Input may be from any graph in the main graph
-            const input = inputPortPath.slice(-1)[0] // TODO: Target specific input port
+                    // NOTE: Input may be from any graph in the main graph
+                    const input = inputPortPath.slice(-1)[0] // target by name | TODO: Target by path...
 
-            // NOTE: Output ports may only be in this graph (if nested)
-            let ref = tree
-            outputPortPath.forEach((str) => {
-              const newRef = ref[str] || ref.nodes.get(str)
-              if (newRef)
-                ref = newRef;
-            });
-    
-            if (!("children" in ref)) ref.children = {};
+                    // NOTE: Output ports may only be in this graph (if nested)
+                    let ref = tree
+                    outputPortPath.forEach((str) => {
+                        const newRef = ref[str] || ref.nodes.get(str)
+                        if (newRef)
+                            ref = newRef;
+                    });
 
-            // Add Child to Node
-            if (ref.addChildren instanceof Function) ref.addChildren({[input]: true})
-            else ref.children[input] = true
-        })
+                    if (!("children" in ref)) ref.children = {};
+
+                    // Add Child to Node
+                    if (ref.addChildren instanceof Function) ref.addChildren({ [input]: true })
+                    else ref.children[input] = true
+                };
+            }
+        }
 
         this.tree = tree
         this.ok = true
@@ -230,7 +255,7 @@ export default class App {
     getBase = utils.getBase
 
     json = async (src) => {
-        return this.checkJSONConversion( await utils.importFromOrigin(src, scriptLocation, !this.remote, 'json'))
+        return this.checkJSONConversion(await utils.importFromOrigin(src, scriptLocation, !this.remote, 'json'))
     }
 
     setPackage = (pkg) => {
@@ -247,10 +272,10 @@ export default class App {
             } as any
             await this.compile() // manually set properties
             return
-         }
-         
-         // Automatic Initialization
-         else {
+        }
+
+        // Automatic Initialization
+        else {
 
             // Set package
             if (!this.package) {
@@ -297,48 +322,45 @@ export default class App {
 
 
     start = async () => {
-            this.stop() // stop existing graph
-            await this.init()
+        this.stop() // stop existing graph
+        await this.init()
 
-            if (this.ok) {
+        if (this.ok) {
 
-                const mainGraph = new DOMService({
-                    name: this.name,
-                    routes: this.tree,
-                })
-                mainGraph.parentNode = this.parentNode
+            const mainGraph = new DOMService({
+                name: this.name,
+                routes: this.tree,
+            }, this.parentNode)
 
-                // Assign Graph
-                if (this.isNested) this.graph = mainGraph
+            // Assign Graph
+            if (this.isNested) this.graph = mainGraph
 
-                // Load Graph into Router + Run (if not nested)
-                else {
-                    this.router.load(mainGraph, false)
-                    this.graph = this.router.service
+            // Load Graph into Router + Run (if not nested)
+            else {
+                this.router.load(mainGraph, false)
+                this.graph = this.router.service
 
-                    // Run the top-level nodes
-                    for (let key in this.graph.tree) {
-                        const nodeInfo = this.graph.tree[key]
-                        const node = this.graph.nodes.get((nodeInfo as any).tag)
-
-                        if (node instanceof GraphNode) {
-                            if (!node.source) {
-                                if (node.loop) {
-                                    node.loop = parseFloat(node.loop) // TODO: fix importing...
-                                    node.run() // Run looping functions
-                                }
+                // Run the top-level nodes
+                this.graph.nodes.forEach(node => {
+                    if (node instanceof GraphNode) {
+                        if (!node.source) {
+                            if (node.loop) {
+                                node.loop = parseFloat(node.loop) // TODO: fix importing...
+                                node.run() // Run looping functions
                             }
-                        } else console.warn(`${key} not recognized`)
-                    }
-                    
-                    // Run onstart event
-                    if (this.onstart instanceof Function) this.onstart()
-                }
-            }
+                        }
+                    } else console.warn(`${node.tag ?? node.name} not recognized`)
+                })
 
-            return this.ok
+
+                // Run onstart event
+                if (this.onstart instanceof Function) this.onstart()
+            }
+        }
+
+        return this.ok
     }
-    
+
     stop = () => {
         if (this.onstop instanceof Function) this.onstop()
         for (let k in this.nested) this.nested[k].stop()
@@ -352,6 +374,6 @@ export default class App {
     }
 
     // -------------- Events --------------
-    onstart = () => {}
-    onstop = () => {}
+    onstart = () => { }
+    onstop = () => { }
 }

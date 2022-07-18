@@ -323,8 +323,19 @@ export class GraphNode {
             //     else this[prop] = properties[prop];
             // }
 
+      // Override Argument Default Values
+      if ('arguments' in properties) {
 
-            Object.assign(this,properties); //set the node's props as this  
+        if (properties.arguments){
+          for (let key in properties.arguments){
+              this.arguments.set(key, properties.arguments[key])
+          }
+        }
+
+        properties.arguments = this.arguments
+      }
+
+            Object.assign(this, properties); //set the node's props as this  
 
             if(!this.tag) {
                 if(graph) {
@@ -339,9 +350,10 @@ export class GraphNode {
             if(graph) this.graph=graph;
         
             if(graph) {
-                if(graph.nodes.get(this.tag)) graph.nodes.set(`${graph.nNodes}${this.tag}`,this);
-                else graph.nodes.set(this.tag,this);
-                graph.nNodes++;
+                if(!graph.nodes.get(this.tag)) {
+                    graph.nNodes++;
+                }
+                graph.nodes.set(this.tag,this);
             }
 
             
@@ -418,8 +430,12 @@ export class GraphNode {
                 return (fn as any)(...args);
             }
 
-            // track argument names
-            this.arguments = params
+            // Track Argument Names + Default Values (if no initial value provided)
+          if (this.arguments){
+            params.forEach((v, k) => {
+              if (!this.arguments.has(k)) this.arguments.set(k, v)
+            })
+          }
         }
 
         this.operator = operator;
@@ -442,11 +458,16 @@ export class GraphNode {
         return new Promise((res,rej) => {res(this._run(this,undefined,...args))}); //will be a promise
     }
 
+    transformArgs: (args:any[], self?:GraphNode) => any[] = (args=[]) => args
+
     _run = (
         node:GraphNode=this, 
         origin?:string|GraphNode|Graph, 
         ...args:any[]
     ) => {
+
+        if (typeof this.transformArgs === 'function') args = this.transformArgs(args, node)
+
         // NOTE: Should create a sync version with no promises (will block but be faster)
         if(!(typeof node === 'object')) {
             if(typeof node === 'string') { //can pass the node tag instead
@@ -942,7 +963,7 @@ export class GraphNode {
                         n.children[key] = n.graph.get(key); //try graph scope
                         if(!n.children[key]) n.children[key] = n.nodes.get(key);
                         if(n.children[key] instanceof GraphNode) {
-                            if(!n.nodes.get(n.children[key].tag)) n.nodes.set(n.children[key].tag,n.children[key]);
+                            n.nodes.set(n.children[key].tag,n.children[key]);
                             if(!(n.children[key].tag in n)) n[n.children[key].tag] = n.children[key].tag; //set it as a property by name too as an additional easy accessor;
                             this.checkNodesHaveChildMapped(n,n.children[key]);   
                         }
@@ -952,7 +973,7 @@ export class GraphNode {
                         n.children[key] = child;
                         if(!child) child = n.nodes.get(key);
                         if(child instanceof GraphNode) {
-                            if(!n.nodes.get(n.children[key].tag)) n.nodes.set(n.children[key].tag,n.children[key]);
+                             n.nodes.set(n.children[key].tag,n.children[key]);
                             if(!(n.children[key].tag in n)) n[n.children[key].tag] = n.children[key].tag; //set it as a property by name too as an additional easy accessor;
                             this.checkNodesHaveChildMapped(n,child);
                         }

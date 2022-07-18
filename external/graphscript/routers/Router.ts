@@ -41,7 +41,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         if(options && 'loadDefaultRoutes' in options) {
             this.loadDefaultRoutes = options.loadDefaultRoutes;
         }
-        if(this.loadDefaultRoutes) this.load(this.defaultRoutes);
+        if(this.loadDefaultRoutes) this.load(this.defaultRoutes,options?.linkServices);
 
         if(Array.isArray(services)){
             services.forEach(s => this.load(s,options?.linkServices));
@@ -73,7 +73,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             } else this.services[service.constructor.name] = service; 
         }
         
-        this.service.load(service,linkServices);
+        this.service.load(service, linkServices);
         
         if(linkServices) {
             for(const name in this.services) { //tie node references together across service node maps so they can call each other
