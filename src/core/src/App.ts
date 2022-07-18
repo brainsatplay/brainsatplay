@@ -1,4 +1,6 @@
-import { Graph, GraphNode } from '. ./../../external/graphscript/Graph'
+import { Graph, GraphNode } from '../../../external/graphscript/Graph'
+import { DOMService } from '../../../external/graphscript/services/dom/DOM.service'
+import { Router } from '../../../external/graphscript/routers/Router'
 
 import { AnyObj, AppAPI } from './types'
 import * as utils from './utils'
@@ -28,16 +30,26 @@ export default class App {
     ok = false
 
     // App Object References
+    parentNode?: HTMLElement = document.body
     plugins: {[x:string]: any}
     tree: any; // graph properties
-    graph: Graph | null;
+    router: Router;
+    graph: Graph | null
     nested: {[x:string]: App} = {}
+    isNested: boolean = false
 
 
     animated: {[key: string]: Graph}
     compile: () => void
     
-    constructor(input?: InputType, name?:string) {
+    constructor(input?: InputType, name?:string, router?: Router) {
+
+        // Set Router
+        if (router) {
+            this.router = router
+            this.isNested = true
+        } else this.router = new Router() 
+
         this.set(input, name)
         this.graph = null
         this.animated = {}
@@ -143,26 +155,36 @@ export default class App {
             // TODO: Actuall nest inside tree notation
             if (clsInfo['.brainsatplay']) {
 
-
-                const app = this.nested[info.tag] = new App(clsInfo, info.tag)
-                await app.start().catch(e => {
-                    throw new Error(`Nested app (${info.tag}) failed: ${e}`)
-                })
+                const app = this.nested[info.tag] = new App(clsInfo, info.tag, this.router)
+                app.setParent(this.parentNode)
+                await app.start()
+                this.router.load(app.graph, false) // load nested graph into main router
 
                 // Run nested graph
-                let firstInput = Object.values(app.info['.brainsatplay'].graph.ports.input)[0]
-                let output =app.info['.brainsatplay'].graph.ports.output
+                let input = app.info['.brainsatplay'].graph.ports.input
+                let output = app.info['.brainsatplay'].graph.ports.output
+                if (typeof input === 'string') input = {[input]: input}
+                if (typeof output === 'string') output = {[output]: output}
 
-                // Instantiate Nested Graph Logic
-                app.graph.operator = async (i) => {
-                    return new Promise(async resolve => {
-                        const sub = app.graph.subscribe(output, (res) => {
-                            resolve(res)
+
+                // // old
+                app.graph.operator = async (...args) => {
+                    for (let key in (output as AnyObj<string>)){
+                        console.log(`global operator for ${this.name}`, ...args)
+                        return new Promise(async resolve => {
+                            const sub = app.graph.subscribe(output[key], (res) => {
+                                resolve(res)
+                            })
+
+                            await Promise.all(Object.values(input).map(async (n) => {
+                                await app.graph.run(n, ...args)
+                            }))
+
+                            app.graph.unsubscribe(output[key], sub)
                         })
-                        await app.graph.run(firstInput, i)
-                        app.graph.unsubscribe(output, sub)
-                    })
+                    }
                 }
+
                 tree[info.tag] = app.graph // new Service(app.graph.tree, info.tag) // tree as graph node
 
             } else {
@@ -175,21 +197,31 @@ export default class App {
 
         // TODO: Use the ports to target specific function arguments...
         graph.edges.forEach(([outputInfo, inputInfo]) => {
+
             let outputPortPath = outputInfo.split(".");
             let inputPortPath = inputInfo.split(".");
-            const input = inputPortPath[0] // TODO: Target specific input port
 
+            // NOTE: Input may be from any graph in the main graph
+            const input = inputPortPath.slice(-1)[0] // TODO: Target specific input port
+
+            // NOTE: Output ports may only be in this graph (if nested)
             let ref = tree
-            outputPortPath.forEach(str =>  {
-            if (ref[str]) ref = ref[str]
-            })
-            if (!("children" in ref)) ref.children = [];
+            outputPortPath.forEach((str) => {
+              const newRef = ref[str] || ref.nodes.get(str)
+              if (newRef)
+                ref = newRef;
+            });
+    
+            if (!("children" in ref)) ref.children = {};
 
-            ref.children.push(input);
+            // Add Child to Node
+            if (ref.addChildren instanceof Function) ref.addChildren({[input]: true})
+            else ref.children[input] = true
         })
 
         this.tree = tree
         this.ok = true
+
         return this.tree
 
     }
@@ -257,29 +289,51 @@ export default class App {
 
     }
 
+    setParent = (parentNode) => {
+        if (parentNode instanceof HTMLElement) {
+            this.parentNode = parentNode
+        } else console.warn('Input is not a valid HTML element', parentNode)
+    }
+
 
     start = async () => {
             this.stop() // stop existing graph
             await this.init()
 
             if (this.ok) {
-                this.graph = new Graph(this.tree, this.name)
 
-                // Run the top-level nodes
-                for (let key in this.graph.tree) {
-                    const nodeInfo = this.graph.tree[key]
-                    const node = this.graph.nodes.get((nodeInfo as any).tag)
+                const mainGraph = new DOMService({
+                    name: this.name,
+                    routes: this.tree,
+                })
+                mainGraph.parentNode = this.parentNode
 
-                    if (node instanceof GraphNode) {
-                        if (!node.source) {
-                            if (node.loop) node.loop = parseFloat(node.loop) // TODO: fix importing...
-                            node.run()
-                        }
-                    } else console.warn(`${key} not recognized`)
+                // Assign Graph
+                if (this.isNested) this.graph = mainGraph
+
+                // Load Graph into Router + Run (if not nested)
+                else {
+                    this.router.load(mainGraph, false)
+                    this.graph = this.router.service
+
+                    // Run the top-level nodes
+                    for (let key in this.graph.tree) {
+                        const nodeInfo = this.graph.tree[key]
+                        const node = this.graph.nodes.get((nodeInfo as any).tag)
+
+                        if (node instanceof GraphNode) {
+                            if (!node.source) {
+                                if (node.loop) {
+                                    node.loop = parseFloat(node.loop) // TODO: fix importing...
+                                    node.run() // Run looping functions
+                                }
+                            }
+                        } else console.warn(`${key} not recognized`)
+                    }
+                    
+                    // Run onstart event
+                    if (this.onstart instanceof Function) this.onstart()
                 }
-                
-                // Run onstart event
-                if (this.onstart instanceof Function) this.onstart()
             }
 
             return this.ok

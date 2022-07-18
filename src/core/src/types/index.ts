@@ -15,8 +15,8 @@ export type AppAPI = {
             nodes: NodeInfo[],
             edges: EdgeInfo[],
             ports: {
-                output: string,
-                input: AnyObj<string>
+                output: string | AnyObj<string>,
+                input: string | AnyObj<string>
             }
         } 
         plugins:AnyObj<string>

@@ -4,7 +4,7 @@
       "target": "es2020", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'es2020'. */
       "rootDir": "./", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
       "outDir": "dist/", /* Redirect output structure to the directory. */
-      "module": "es2020", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
+      "module": "esnext", /* KEEP THIS SO THAT WEBPACK BUILDS PROPERLY (cannot find "tslib") */
       "declaration": true, /* Generates corresponding '.d.ts' file. */
       "lib": ["webworker", "es2020", "dom", "scripthost"],
       "importHelpers": true, /* Import emit helpers from 'tslib'. */

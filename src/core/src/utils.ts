@@ -16,8 +16,11 @@ export const getBase = (path) => {
 
 export const dynamicImport = async (url:string, type?: AssertType) => {
     const assert:any = {}
-    if (type) assert.type = type
-    let imported = await import(url, {assert})
+    // if (type) assert.type = type
+    // let imported = await import(url, {assert})
+
+    let imported = (type) ? await import(url) : await import(url, {assert: {type: 'json'}})
+
     if (imported.default) imported = imported.default
     return imported
 }
