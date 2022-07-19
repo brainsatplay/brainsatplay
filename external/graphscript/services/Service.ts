@@ -116,7 +116,7 @@ export class Service extends Graph {
             }
         }
 
-        if(service instanceof Graph && service.name) {     
+        if(service instanceof Graph && service.name && enumRoutes) {     
             //the routes provided from a service will add the route name in front of the route so like 'name/route' to minimize conflicts, 
             //incl making generic service routes accessible per service. The services are still independently usable while the loader 
             // service provides routes to the other services

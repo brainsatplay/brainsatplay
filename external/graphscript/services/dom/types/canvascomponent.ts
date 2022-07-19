@@ -35,7 +35,7 @@ export type CanvasElementInfo = { //returned from addCanvasComponent
 
 
 export type CanvasOptions = {
-    element:DOMElement & {canvas:HTMLCanvasElement, context:RenderingContext},
+    element:DOMElement & {canvas:HTMLCanvasElement, context:RenderingContext} | HTMLElement,
     tagName?:string, //custom element tagName, requires a '-' in the tag or it gets added to the end
     canvas?:HTMLCanvasElement,
     context:'2d'|'webgl'|'webgl2'|'bitmaprenderer'|'experimental-webgl'|'xrpresent'|RenderingContext, //

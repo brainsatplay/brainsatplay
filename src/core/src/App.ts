@@ -1,9 +1,11 @@
-import { Graph, GraphNode } from '../../../external/graphscript/Graph'
+import { getFnParamInfo, Graph, GraphNode } from '../../../external/graphscript/Graph'
 import { DOMService } from '../../../external/graphscript/services/dom/DOM.service'
 import { Router } from '../../../external/graphscript/routers/Router'
 
 import { AnyObj, AppAPI } from './types'
 import * as utils from './utils'
+
+import extensions from './extensions'
 
 const scriptLocation = new Error().stack.match(/([^ \n])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0]
 
@@ -168,10 +170,9 @@ export default class App {
                     if (typeof output === 'string') output = { [output]: output }
 
 
-                    // // old
+                    // Support for targeting nested graph with multiple inputs and outputs
                     app.graph.operator = async (...args) => {
                         for (let key in (output as AnyObj<string>)) {
-                            console.log(`global operator for ${this.name}`, ...args)
                             return new Promise(async resolve => {
                                 const sub = app.graph.subscribe(output[key], (res) => {
                                     resolve(res)
@@ -190,29 +191,12 @@ export default class App {
                 tree[tag] = app.graph // new Service(app.graph.tree, tag) // tree as graph node
 
             } else {
-                let instance = Object.assign({}, clsInfo)
-                instance.tag = tag
-                instance = Object.assign(instance, info); // provide instance-specific info
-
-
-            // Cache Last Input for Each Argument
-            instance.transformArgs = (args, self) => {
-                let updatedArgs = []
-                let i = 0
-                self.arguments.forEach((v, k) => {
-                    const currentArg = (k.includes('...')) ? args.slice(i) : args[i]
-                    let update = (currentArg !== undefined) ? currentArg : v
-                    self.arguments.set(k, update)
-                    if (!Array.isArray(update)) update = [update]
-                    updatedArgs.push(...update)
-                    i++
-                })
-                return updatedArgs
-            }
-
+                let properties = Object.assign({}, clsInfo);
+                properties.tag = tag;
+                properties = Object.assign(properties, info);
+                const instance = extensions.arguments.transform(properties, this)
                 tree[tag] = instance
             }
-
         }))
 
         if (graph.edges) {
@@ -225,12 +209,12 @@ export default class App {
                     let inputPortPath = inputInfo.split(".");
 
                     // NOTE: Input may be from any graph in the main graph
-                    const input = inputPortPath.slice(-1)[0] // target by name | TODO: Target by path...
+                    const input = inputPortPath.slice(-1)[0] // target by name | TODO: Target by path and support updating arguments...
 
                     // NOTE: Output ports may only be in this graph (if nested)
                     let ref = tree
                     outputPortPath.forEach((str) => {
-                        const newRef = ref[str] || ref.nodes.get(str)
+                        const newRef = ref[str] || ((ref.nodes?.get) ? ref.nodes.get(str) : undefined)
                         if (newRef)
                             ref = newRef;
                     });
@@ -343,12 +327,10 @@ export default class App {
                 // Run the top-level nodes
                 this.graph.nodes.forEach(node => {
                     if (node instanceof GraphNode) {
-                        if (!node.source) {
                             if (node.loop) {
                                 node.loop = parseFloat(node.loop) // TODO: fix importing...
                                 node.run() // Run looping functions
                             }
-                        }
                     } else console.warn(`${node.tag ?? node.name} not recognized`)
                 })
 

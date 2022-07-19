@@ -224,9 +224,9 @@ export class GraphNode {
         if(typeof properties === 'object') {
 
             //can pass graphs and wrap Graphs with GraphNodes to enable nesting in trees
-            let source;
+           
             if(properties instanceof Graph) {
-                source = properties;
+                let source = properties;
                 
                 properties = {
                     source,
@@ -264,6 +264,7 @@ export class GraphNode {
                 if(source.oncreate) properties.oncreate = source.oncreate;
 
                 this.nodes = source.nodes;
+                
                 if(graph) {
                     source.nodes.forEach((n) => {
                         if(!graph.nodes.get(n.tag)) {
@@ -274,22 +275,24 @@ export class GraphNode {
                 } //make sure node references get passed around correctly
             }
 
-            if(properties.tag) {
+            if(properties.tag && (graph || parentNode)) {
                 if(graph?.nodes) {
                     let hasnode = graph.nodes.get(properties.tag);
-                    source = hasnode;
+                    if(hasnode) {
+                        Object.assign(this,hasnode); 
+                        if(!this.source) this.source = hasnode;
+                    }
                     //if(hasnode) return hasnode;
                 }
                 if(parentNode?.nodes) {
                     let hasnode = parentNode.nodes.get(properties.tag);
-                    source = hasnode;
+                    if(hasnode) {
+                        Object.assign(this,hasnode); 
+                        if(!this.source) this.source = hasnode;
+                    }
                     //if(hasnode) return hasnode; 
                 } //return a different node if it already exists (implying we're chaining it in a flow graph using objects)
             
-                if(source) {
-                    Object.assign(this,source); //assign source node properties to self, any custom properties will be specified
-                    if(!this.source) this.source = source;
-                }
             }
 
             if(properties?.operator) {
@@ -323,19 +326,19 @@ export class GraphNode {
             //     else this[prop] = properties[prop];
             // }
 
-      // Override Argument Default Values
-      if ('arguments' in properties) {
+            // Override Argument Default Values
+            if ('arguments' in properties) {
 
-        if (properties.arguments){
-          for (let key in properties.arguments){
-              this.arguments.set(key, properties.arguments[key])
-          }
-        }
+                if (properties.arguments){
+                    for (let key in properties.arguments){
+                        this.arguments.set(key, properties.arguments[key])
+                    }
+                }
 
-        properties.arguments = this.arguments
-      }
+                properties.arguments = this.arguments
+            }
 
-            Object.assign(this, properties); //set the node's props as this  
+            Object.assign(this, properties); //set the node's props as this 
 
             if(!this.tag) {
                 if(graph) {
@@ -372,6 +375,7 @@ export class GraphNode {
             if(this.parent instanceof GraphNode || this.parent instanceof Graph) this.checkNodesHaveChildMapped(this.parent, this);
         
             if(!graph && typeof this.oncreate === 'function') this.oncreate(this);
+            if(!this.firstRun) this.firstRun = true; 
         }
         else return properties;
       
@@ -930,6 +934,7 @@ export class GraphNode {
                 if(child.tag in node.children) {
                     if(!(node.children[child.tag] instanceof GraphNode))
                         node.children[child.tag] = child;
+                        if(!node.firstRun) node.firstRun = true; 
                 }
             }
             if(node.parent) {
@@ -1143,10 +1148,26 @@ export class Graph {
                         if(tree[node] instanceof GraphNode) {
                             if(n.tag !== (tree[node] as GraphNode).tag) this.add(tree[node]);
                         } else if(tree[node] instanceof Graph) {
-                            if(n.tag !== tree[node].name) {
-                                this.removeTree(n);
-                                this.add(tree[node]);
-                            }
+                            //in case any stuff was added to the graph to indicate flow logic
+                            let source = tree[node] as any;
+                            let properties = {} as any;
+                            if(source.operator) properties.operator = source.operator;
+                            if(source.children) properties.children = source.children;
+                            if(source.forward) properties.forward = source.forward;
+                            if(source.backward) properties.backward = source.backward;
+                            if(source.repeat) properties.repeat = source.repeat;
+                            if(source.recursive) properties.recursive = source.recursive;
+                            if(source.loop) properties.loop = source.loop;
+                            if(source.animate) properties.animate = source.animate;
+                            if(source.looper) properties.looper = source.looper;
+                            if(source.animation) properties.animation = source.animation;
+                            if(source.delay) properties.delay = source.delay;
+                            if(source.tag) properties.tag = source.tag;
+                            if(source.oncreate) properties.oncreate = source.oncreate;
+
+                            properties.nodes = source.nodes;
+                            properties.source = source;
+                            n.setProps(properties);
                         } else {
                             n.setProps(tree[node]);
                         }
