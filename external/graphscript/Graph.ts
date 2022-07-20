@@ -24,6 +24,8 @@ export function getFnParamInfo(fn):Map<string, any>{
     matches.forEach(v => {
         let [name, value] = v.split('=')
         name = name.trim()
+        name = name.replace(/\d+$/, ""); // Account for bundling. RULE: No trailing numbers in argument names
+
         try {
             if (name) info.set(name,  (0, eval)(`(${value})`))
         } catch (e) {
@@ -374,7 +376,7 @@ export class GraphNode {
     
             if(this.parent instanceof GraphNode || this.parent instanceof Graph) this.checkNodesHaveChildMapped(this.parent, this);
         
-            if(!graph && typeof this.oncreate === 'function') this.oncreate(this);
+            if(typeof this.oncreate === 'function') this.oncreate(this);
             if(!this.firstRun) this.firstRun = true; 
         }
         else return properties;
@@ -416,12 +418,11 @@ export class GraphNode {
         
         let params = getFnParamInfo(operator);
 
-        if (params.size === 0) params.set('input', undefined) // Set default input param if none specified
-
         const keys = params.keys()
         const paramOne = keys.next().value
         const paramTwo = keys.next().value
 
+        // RULE: Restricted argument names
         const restrictedOne = ['self', 'node']  
         const restrictedTwo = ['origin', 'parent', 'graph', 'router']  
 
@@ -1104,24 +1105,22 @@ export class Graph {
     }
 
     //converts all children nodes and tag references to GraphNodes also
-    add = (node:GraphNode|GraphNodeProperties|OperatorType|((...args)=>any|void)={}, fromTree=false) => {
+    add = (node:GraphNode|GraphNodeProperties|OperatorType|((...args)=>any|void)={}) => {
         let props = node;
         if(!(node instanceof GraphNode)) node = new GraphNode(props,this,this); 
+        else this.nNodes++;
         if(node.tag) this.tree[node.tag] = props; //set the head node prototype in the tree object
-        if(!fromTree) {
-            if(node.oncreate) node.oncreate(node);
-        } 
+        this.nodes.set(node.tag,node);
         return node;
     }
 
     setTree = (tree:Tree = this.tree) => {
         if(!tree) return;
 
-        let oncreate = {};
         for(const node in tree) { //add any nodes not added yet, assuming we aren't overwriting the same tags to the tree.
             if(!this.nodes.get(node)) {
                 if(typeof tree[node] === 'function') {
-                    this.add({tag:node, operator:tree[node] as OperatorType|((...args)=>any|void)},true);
+                    this.add({tag:node, operator:tree[node] as OperatorType|((...args)=>any|void)});
                 }
                 else if (typeof tree[node] === 'object' && !Array.isArray(tree[node])) {
                     if(!(tree[node] as any).tag) (tree[node] as any).tag = node;
@@ -1133,10 +1132,7 @@ export class Graph {
                     }
                 } else {
                     //we are trying to load something like a number or array in this case so lets make it a node that just returns the value
-                    this.add({tag:node,operator:(self,origin,...args) => {return tree[node];}},true);
-                }
-                if(this.nodes.get(node)?.oncreate) {
-                    oncreate[node] = this.nodes.get(node).oncreate;
+                    this.add({tag:node,operator:(self,origin,...args) => {return tree[node];}});
                 }
             } else {
                 let n = this.nodes.get(node);
@@ -1200,12 +1196,7 @@ export class Graph {
                     node.nodes.set(node.parent.tag,node.parent);
                 }
             }
-        })
-
-        for(const key in oncreate) {
-            oncreate[key](this.nodes.get(key)); //now run the oncreate callbacks
-        }
-
+        });
 
     }
 

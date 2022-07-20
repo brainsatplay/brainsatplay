@@ -1,9 +1,6 @@
 {
     "name": "brainsatplay",
     "type": "module",
-    "workspaces": [
-        "src/**"
-    ],
     "engines": {
         "node": ">=16"
     },
@@ -26,6 +23,6 @@
         "tinybuild": "^0.3.141"
     },
     "dependencies": {
-        "freerange": "^0.0.26"
+        "freerange": "^0.0.27"
     }
 }

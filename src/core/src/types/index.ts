@@ -1,3 +1,5 @@
+import { Router } from "external/graphscript/routers/Router"
+
 export type NodeInfo = {
     tag: string,
     offload?: 'websocket'
@@ -25,3 +27,14 @@ export type AppAPI = {
 
 
 export type AssertType = 'json' | 'text'
+
+
+export type EditableAppOptions =  {
+    ignore?: string[]
+} & AppOptions
+
+export type AppOptions =  {
+    name?: string, 
+    router?: Router,
+    debug?: boolean
+}

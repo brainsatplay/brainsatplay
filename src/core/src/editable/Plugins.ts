@@ -137,7 +137,7 @@ export default class Plugins {
 
     get = async (name, type='metadata') => {
 
-        if (type === 'module') await this.module(name)
+        if (type === 'module') return await this.module(name)
         else {
 
             let path = this.getPath(name)

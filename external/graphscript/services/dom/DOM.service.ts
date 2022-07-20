@@ -115,9 +115,10 @@ export class DOMService extends Graph {
             setTimeout(()=>{ //slight delay on appendChild so the graph is up to date after other sync loading calls are finished
                 if(typeof options.parentNode === 'object') options.parentNode.appendChild(elm);
 
-                // TODO: Figure out why newNode and node don't match...
-                const newNode = this.nodes.get(node.tag)
-                this.elements[options.id].node = newNode
+                // // TODO: Figure out why newNode and node don't match...
+                // const newNode = this.nodes.get(node.tag)
+                // this.elements[options.id].node = newNode
+                // // console.log(node.tag, node, newNode, newNode === node)
 
                 if(oncreate) oncreate(elm,this.elements[options.id]);
             },0.01);
@@ -392,7 +393,8 @@ export class DOMService extends Graph {
     
     load = (
         routes?:Service|Graph|DOMRoutes|{name:string,module:{[key:string]:any}}|any,
-        enumRoutes:boolean=true //enumerate routes with the service or class name so they are run as e.g. 'http/createServer' so services don't accidentally overlap
+        includeClassName:boolean=true, //enumerate routes with the service or class name so they are run as e.g. 'http/createServer' so services don't accidentally overlap
+        routeFormat:string='.'
     ) => {    
         if(!routes && !this.loadDefaultRoutes) return;
         //console.log(this.routes);
@@ -402,19 +404,21 @@ export class DOMService extends Graph {
                 let mod = routes;
                 routes = {};
                 Object.getOwnPropertyNames(routes.module).forEach((prop) => { //iterate through 
-                    if(enumRoutes) routes[mod.name+'/'+prop] = routes.module[prop];
+                    if(includeClassName) routes[mod.name+routeFormat+prop] = routes.module[prop];
                     else routes[prop] =  routes.module[prop];
                 });
-            } else if(typeof routes === 'function') { //it's a service prototype... probably
-                service = new routes();
+            } else if (typeof routes === 'function') { //it's a service prototype... probably
+                service = new routes({loadDefaultRoutes:this.loadDefaultRoutes});
                 service.load();
                 routes = service.routes;
             }
         } //we can instantiate a class and load the routes. Routes should run just fine referencing the classes' internal data structures without those being garbage collected.
-        else if (routes instanceof Graph && (routes.routes || routes.tree)) { //class instance
+        else if (routes instanceof Graph) { //class instance
             service = routes;
-            if(routes.routes) routes = routes.routes; //or pull routes from an existing class
-            else if(routes.tree) routes = routes.tree;
+            routes = {};
+            service.nodes.forEach((node)=>{
+                routes[node.tag] = node;
+            });
         }
         else if (typeof routes === 'object') {
             let name = routes.constructor.name;
@@ -427,13 +431,13 @@ export class DOMService extends Graph {
                 let module = routes;
                 routes = {};
                 Object.getOwnPropertyNames(module).forEach((route) => {
-                    if(enumRoutes) routes[name+'/'+route] = module[route];
+                    if(includeClassName) routes[name+routeFormat+route] = module[route];
                     else routes[route] = module[route];
                 });
             }
         }
 
-        if(service instanceof Graph && service.name && enumRoutes) {     
+        if(service instanceof Graph && service.name && includeClassName) {     
             //the routes provided from a service will add the route name in front of the route so like 'name/route' to minimize conflicts, 
             //incl making generic service routes accessible per service. The services are still independently usable while the loader 
             // service provides routes to the other services
@@ -441,7 +445,7 @@ export class DOMService extends Graph {
             for(const prop in routes) { 
                 let route = routes[prop];
                 delete routes[prop]; 
-                routes[service.name+'/'+prop] = route;  //store the routes in the loaded service under aliases including the service name
+                routes[service.name+routeFormat+prop] = route;  //store the routes in the loaded service under aliases including the service name
             }
         } 
         
@@ -481,7 +485,7 @@ export class DOMService extends Graph {
 
         routes = Object.assign({},routes);
         for(const route in routes) {
-            if(typeof routes[route] === 'object') {
+            if(typeof routes[route] === 'object' && !(routes[route] instanceof GraphNode)) {
                 let r = routes[route] as RouteProp | DOMRouteProp;
                 
                 if(typeof r === 'object') {

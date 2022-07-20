@@ -1,27 +1,26 @@
 import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
-import appInfo from '../../../htil/content/signals/index.js'
-// import appInfo from '../../../brainsatplay-starter-kit/index.js'
-const method = 1
+// import appInfo from '../../../htil/content/signals/index.js'
+import appInfo from '../../../brainsatplay-starter-kit/index.js'
+const method = 'remote' // 'local'
 
-let app:brainsatplay.App
-// ------------------- Method #1: Dynamic Import -------------------
+let app: brainsatplay.App | brainsatplay.editable.App
+// ------------------- Method #1: Dynamic Import (package.json) -------------------
 // NOTE: Only works when all files are served to the browser
 
-if (method === 0) {
-    app = new brainsatplay.App() // e.g. 'app'
+if (method === 'remote') {
+    // const local = 'app'
+    const remote = 'https://raw.githubusercontent.com/brainsatplay/brainsatplay-starter-kit/main'
+    app = new brainsatplay.editable.App(remote)
+    // app = new brainsatplay.editable.App(local)
+    // app = new brainsatplay.editable.App() // select from filesystem
 }
 
-// ------------------- Method #2: Direct Import -------------------
-else if (method === 1) {
-    app = new brainsatplay.App(appInfo)
-}
-
-// ------------------- Method #3: Remote URL -------------------
+// ------------------- Method #2: Direct Import (index.js) -------------------
 else {
-    const remoteURL = 'https://raw.githubusercontent.com/brainsatplay/brainsatplay-starter-kit/nightly'
-    app = new brainsatplay.App(remoteURL)
+    // app = new brainsatplay.editable.App(appInfo)
+    app = new brainsatplay.App(appInfo)
 }
 
 app.start().then(() => console.log(app))

@@ -6,7 +6,13 @@ export const join = (...paths: string[]) => {
         return path.split('/')
     }).flat()
 
-    return split.join('/')
+    return split.reduce((a,b) => {
+        if (!a) a = b
+        else if (!b) return a
+        else if (a.split('/')[0] !== b)  a = a + '/' + b
+
+        return a 
+    }, '')
 
 }
 
@@ -15,11 +21,15 @@ export const getBase = (path) => {
 }
 
 export const dynamicImport = async (url:string, type?: AssertType) => {
-    const assert:any = {}
     // if (type) assert.type = type
     // let imported = await import(url, {assert})
 
-    let imported = (type) ? await import(url) : await import(url, {assert: {type: 'json'}})
+    let imported;
+    if (!type){
+        imported = await import(url) 
+    } else {
+        imported = await import(url, {assert: {type: 'json'}})
+    }
 
     if (imported.default) imported = imported.default
     return imported

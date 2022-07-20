@@ -52,7 +52,10 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         
     }
 
-    load = (service:Graph|Routes|{name:string,module:any}|any, linkServices:boolean=true) => { //load a service class instance or service prototoype class
+    load = (
+        service:Graph|Routes|{name:string,module:any}|any, 
+        linkServices:boolean=true
+    ) => { //load a service class instance or service prototoype class
         if(!(service instanceof Graph) && typeof service === 'function')    //class
         {   
             service = new service({loadDefaultRoutes:this.loadDefaultRoutes}, service.name); //we can instantiate a class)

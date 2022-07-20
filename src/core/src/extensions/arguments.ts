@@ -11,11 +11,17 @@ const ArgumentGraphExtension = {
     },
     transform: (treeEntry, app) => {
         const operatorArgs = getFnParamInfo(treeEntry.operator)
+
+
         if (treeEntry.arguments) {
           for (let key in treeEntry.arguments) {
             operatorArgs.set(key, treeEntry.arguments[key]);
           }
         }
+
+        // assign default argument name (to trigger updates)
+        if (operatorArgs.size === 0) operatorArgs.set('trigger', undefined);
+
 
         // Create a Nested Graph Composed of Argument
         const instanceTree = {}

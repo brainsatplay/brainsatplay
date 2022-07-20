@@ -1,24 +1,23 @@
-import { getFnParamInfo, Graph, GraphNode } from '../../../external/graphscript/Graph'
+import { Graph, GraphNode } from '../../../external/graphscript/Graph'
 import { DOMService } from '../../../external/graphscript/services/dom/DOM.service'
 import { Router } from '../../../external/graphscript/routers/Router'
 
-import { AnyObj, AppAPI } from './types'
+import { AnyObj, AppAPI, AppOptions } from './types'
 import * as utils from './utils'
 
 import extensions from './extensions'
 
 const scriptLocation = new Error().stack.match(/([^ \n])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0]
 
-
 type TreeType = any
-type BaseType = string
-type InputType = TreeType | BaseType
+type InputType = AppAPI
 
+
+// Must be manually provided with app information
 export default class App {
 
     // App Location
     name: string
-    base: string
     package: {
         main: string
     }
@@ -26,7 +25,6 @@ export default class App {
     remote: boolean = false
 
     packagePath = '/package.json'
-    pluginPath = '/.brainsatplay/index.plugins.json'
     graphPath = '/.brainsatplay/index.graph.json'
 
     ok = false
@@ -40,19 +38,22 @@ export default class App {
     nested: { [x: string]: App } = {}
     isNested: boolean = false
 
+    debug: boolean
 
     animated: { [key: string]: Graph }
     compile: () => void
 
-    constructor(input?: InputType, name?: string, router?: Router) {
+    constructor(input?: InputType, options: AppOptions = {}) {
+
+        this.debug = options.debug
 
         // Set Router
-        if (router) {
-            this.router = router
+        if (options.router) {
+            this.router = options.router
             this.isNested = true
         } else this.router = new Router()
 
-        this.set(input, name)
+        this.set(input, options.name)
         this.graph = null
         this.animated = {}
     }
@@ -73,73 +74,28 @@ export default class App {
     set = (input?: InputType, name?: string) => {
 
         this.name = name ?? 'graph'
-
-        if (!input) input = '.'
-
-        this['#base'] = null
-        this.base = null
         this.package = null
-        this.remote = false
 
-        if (typeof input === 'string') {
-
-            // Check if URL
-            const url = this.getURL(input)
-            if (url) {
-                this.remote = true
-                this['#base'] = url
-            }
-            else this['#base'] = this.base = input
-
-            this.info = null
-
-        } else {
-
-            this.info = input
-            const appMetadata = this.info['.brainsatplay']
-            for (let key in appMetadata) {
-                if (key === 'base') this['#base'] = this.base = appMetadata[key]
-                else appMetadata[key] = this.checkJSONConversion(appMetadata[key])
-            }
-
-            // if (!this['#base'] && typeof appMetadata.plugins[0] === 'string') throw 'The "base" property (pointing to a valid ESM module) is required in the app info'
-
-        }
-
-
-        this.ok = false
-        this.tree = null
+        if (input){
+            this.plugins = this.setInfo(input)
+            this.ok = false
+            this.tree = null
+        } else console.warn('no info specified.')
     }
 
+    setInfo = (info: InputType) => {
+        this.info = info
 
-
-    setPlugins = async (plugins = this.info['.brainsatplay'].plugins) => {
-
-        this.info['.brainsatplay'].plugins = plugins
-
-        // Only Without Manual Initialization
-        const pluginsObject = {}
-        if (this.base) {
-            for (const name in plugins) {
-                // Plugin Paths
-                if (typeof plugins[name] === 'string') {
-                    let plugin = await utils.importFromOrigin(this.join(this.base, plugins[name]), scriptLocation, !this.remote)
-                    if (typeof plugin === 'string') {
-                        const datauri = "data:text/javascript;base64," + btoa(plugin);
-                        plugin = await utils.dynamicImport(datauri)
-                    }
-                    pluginsObject[name] = plugin
-                }
-
-                // Raw Plugins
-                else pluginsObject[name] = plugins[name]
-            }
-        } else {
-            for (let key in this.info) {
-                if (key !== '.brainsatplay') pluginsObject[key] = this.info[key]
-            }
+        const appMetadata = this.info['.brainsatplay']
+        for (let key in appMetadata) {
+            appMetadata[key] = this.checkJSONConversion(appMetadata[key])
         }
 
+        // Set Plugins
+        const pluginsObject = {}
+        for (let key in info) {
+            if (key !== '.brainsatplay') pluginsObject[key] = info[key]
+        }
         this.plugins = pluginsObject
         return this.plugins
     }
@@ -151,12 +107,17 @@ export default class App {
         const nodes = Object.entries(graph.nodes ?? {})
         await Promise.all(nodes.map(async ([tag, info]) => {
             const [cls, id] = tag.split("_");
-            const clsInfo = this.plugins[cls]
+            const clsInfo = this.plugins[cls] ?? {} // still run without plugin
 
-            // TODO: Actuall nest inside tree notation
+            // TODO: Actually nest inside tree notation
             if (clsInfo['.brainsatplay']) {
 
-                const app = this.nested[tag] = new App(clsInfo, tag, this.router)
+                const app = this.nested[tag] = new App(clsInfo, {
+                    name: tag, 
+                    router: this.router,
+                    debug: this.debug
+                })
+                
                 app.setParent(this.parentNode)
                 await app.start()
                 this.router.load(app.graph, false) // load nested graph into main router
@@ -244,10 +205,16 @@ export default class App {
 
     setPackage = (pkg) => {
         this.package = pkg
-        if (this['#base']) this.base = this.join(this['#base'], this.getBase(this.package.main))
     }
 
-    init = async () => {
+    init = async (input?: InputType) => {
+        if (input) this.set(input)
+
+
+        if (!this.compile){
+            if (!this.info) return false
+            else if (!this.info['.brainsatplay']) return false
+        }
 
         // Manual Initialization
         if (this.compile instanceof Function) {
@@ -263,36 +230,12 @@ export default class App {
 
             // Set package
             if (!this.package) {
-
-                if ('.brainsatplay' in this.info) {
-                    const pkg = this.info['.brainsatplay'].package
-                    if (pkg) this.setPackage(pkg)
-                    else console.error('No package.json has been included...')
-                } else {
-                    let pkg = await this.json(this['#base'] + this.packagePath)
-                    this.setPackage(pkg)
-                }
+                const pkg = this.info['.brainsatplay'].package
+                if (pkg) this.setPackage(pkg)
+                else console.error('No package.json has been included...')
             }
 
-
-            // Set application graph and plugins
-            if (!this.info) {
-
-                // Correct for Remote Files
-                const graphPath = this.join(this.base, this.graphPath)
-                const pluginPath = this.join(this.base, this.pluginPath)
-
-                let graph = await this.json(graphPath)
-                let plugins = await this.json(pluginPath)
-
-                this.info['.brainsatplay'] = {
-                    graph,
-                    plugins
-                }
-            }
-
-            // Get Plugins and Tree
-            this.plugins = await this.setPlugins()
+            // Get Tree
             this.tree = await this.setTree()
         }
 
@@ -305,26 +248,23 @@ export default class App {
     }
 
 
-    start = async () => {
+    start = async (input?: InputType) => {
         this.stop() // stop existing graph
-        await this.init()
+        await this.init(input)
 
         if (this.ok) {
 
-            const mainGraph = new DOMService({
+            this.graph = new DOMService({
                 name: this.name,
                 routes: this.tree,
             }, this.parentNode)
 
-            // Assign Graph
-            if (this.isNested) this.graph = mainGraph
-
             // Load Graph into Router + Run (if not nested)
-            else {
-                this.router.load(mainGraph, false)
-                this.graph = this.router.service
+            if (!this.isNested) {
 
-                // Run the top-level nodes
+                this.router.load(this.graph, false)
+
+                // Run all nodes
                 this.graph.nodes.forEach(node => {
                     if (node instanceof GraphNode) {
                             if (node.loop) {
