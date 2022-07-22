@@ -122,7 +122,7 @@ export type GraphNodeProperties = {
     loop?:false|number, //milliseconds or false, run the operation on a loop?
     animation?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
     looper?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
-    oncreate?:(self:GraphNode)=>void //do something after initializing the node, if loaded in a graph it only runs after setTree
+    oncreate?:(self:GraphNode)=>void //do something after _initializing the node, if loaded in a graph it only runs after setTree
     DEBUGNODE?:boolean // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
@@ -193,7 +193,7 @@ export class GraphNode {
 
     nodes:Map<any,any> = new Map()
     arguments = new Map()
-    initial:{[key:string]:any} = {}; //keep track of custom initial properties added that aren't default on the current class object
+    _initial:{[key:string]:any} = {}; //keep track of custom _initial properties added that aren't default on the current class object
 
     tag:string;
     parent:GraphNode|Graph;
@@ -227,7 +227,7 @@ export class GraphNode {
         if(typeof properties === 'object') {
 
             //can pass graphs and wrap Graphs with GraphNodes to enable nesting in trees
-           
+            if(properties instanceof GraphNode && properties._initial) Object.assign(properties, properties._initial);
             if(properties instanceof Graph) {
                 let source = properties;
                 
@@ -265,8 +265,11 @@ export class GraphNode {
                 if(source.delay) properties.delay = source.delay;
                 if(source.tag) properties.tag = source.tag;
                 if(source.oncreate) properties.oncreate = source.oncreate;
+                if(source.node) if(source.node._initial) Object.assign(properties,source.node._initial);
+                if(source._initial) Object.assign(properties,source._initial);
 
                 this.nodes = source.nodes;
+                source.node = this;
                 
                 if(graph) {
                     source.nodes.forEach((n) => {
@@ -279,35 +282,32 @@ export class GraphNode {
             }
 
             if(properties.tag && (graph || parentNode)) {
+                let hasnode;
                 if(graph?.nodes) {
-                    let hasnode = graph.nodes.get(properties.tag);
-                    if(hasnode) {
-                        // if(hasnode.source instanceof Graph) { //duplicate the graph
-                        //     hasnode = new Graph(hasnode.source.tree,`${hasnode.tag}${graph.nNodes+1}`, properties);
-                        // }
-                        Object.assign(this,hasnode); 
-                        if(!this.source) this.source = hasnode;
-                    }
-                    //if(hasnode) return hasnode;
+                    hasnode = graph.nodes.get(properties.tag);
+                    // if(hasnode) if(hasnode.source instanceof Graph) { //duplicate the graph
+                    //     hasnode = new Graph(hasnode.source.tree,`${hasnode.tag}${graph.nNodes+1}`, properties);
+                    // }
                 }
-                else if(parentNode?.nodes) {
-                    let hasnode = parentNode.nodes.get(properties.tag);
-                    if(hasnode) {
-                        Object.assign(this,hasnode); 
-                        if(!this.source) this.source = hasnode;
-                    }
+                if(!hasnode && parentNode?.nodes) {
+                    hasnode = parentNode.nodes.get(properties.tag);
                     //if(hasnode) return hasnode; 
                 } //return a different node if it already exists (implying we're chaining it in a flow graph using objects)
+                if(hasnode) {
+                    Object.assign(this,hasnode); 
+                    if(!this.source) this.source = hasnode;
+
+                    let props = hasnode.getProps();
+                    delete props.graph;
+                    delete props.parent;
+
+                    Object.assign(properties, props);
+                }
             }
 
             if(properties?.operator) {
                 properties.operator = this.setOperator(properties.operator); //updates an arbitrary function if not fitting our operator format
             }
-            // const keys = Object.keys(this)
-            // const prohibited = ['tag', 'parent', 'graph', 'children', 'operator']    
-            // for (let key in properties){
-            //     if (!keys.includes(key) && !prohibited.includes(key)) this.attributes.add(key)
-            // }
     
             if(!properties.tag && graph) {
                 properties.tag = `node${graph.nNodes}`; //add a sequential id to find the node in the tree 
@@ -345,8 +345,9 @@ export class GraphNode {
 
             let keys = Object.getOwnPropertyNames(this); 
             for(const key in properties) {
-                if(!keys.includes(key)) this.initial[key] = properties[key]; //get custom initial values 
+                if(!keys.includes(key)) this._initial[key] = properties[key]; //get custom _initial values 
             }
+            if(properties.children) this._initial.children = Object.assign({},properties.children); //preserve the prototypes
 
             Object.assign(this, properties); //set the node's props as this 
 
@@ -361,13 +362,14 @@ export class GraphNode {
 
             if(parentNode) this.parent=parentNode;
             
-            if(graph) this.graph=graph;
-        
             if(graph) {
-                if(!graph.nodes.get(this.tag)) {
-                    graph.nNodes++;
+                this.graph=graph;
+                if(graph.nodes.get(this.tag)) {
+                    parentNode.nodes.set(this.tag,this); //parentNode should get a mapped version with the original tag still
+                    this.tag = `${this.tag}${graph.nNodes+1}` //make sure the tags are unique
                 }
                 graph.nodes.set(this.tag,this);
+                graph.nNodes++;
             }
 
             
@@ -444,7 +446,7 @@ export class GraphNode {
                 return (fn as any)(...args);
             }
 
-            // Track Argument Names + Default Values (if no initial value provided)
+            // Track Argument Names + Default Values (if no _initial value provided)
           if (this.arguments){
             params.forEach((v, k) => {
               if (!this.arguments.has(k)) this.arguments.set(k, v)
@@ -698,7 +700,7 @@ export class GraphNode {
         //can add an animationFrame coroutine, one per node //because why not
         this.animation = animation as any;
         if(!animation) this.animation = this.operator as any;
-        if(node.animate && !node.isAnimating) {
+        if(node.animate && !node.isAnimating && 'requestAnimationFrame' in window) {
             node.isAnimating = true;
             let anim = async () => {
                 //console.log('anim')
@@ -881,7 +883,7 @@ export class GraphNode {
          tag:node.tag,
          operator:node.operator,
          graph:node.graph,
-         children:node.children,
+         children:node.children, //will return the original prototypes kept in this._initial if they exist
          parent:node.parent,
          forward:node.forward,
          backward:node.bacward,
@@ -894,7 +896,7 @@ export class GraphNode {
          branch:node.branch,
          oncreate:node.oncreate,
          DEBUGNODE:node.DEBUGNODE,
-         ...this.initial
+         ...this._initial
        };
     }
     
@@ -996,39 +998,38 @@ export class GraphNode {
         if(n?.children) {
             for(const key in n.children) { //object syntax instead of setting single nodes etc.
                 if(!(n.children[key] instanceof GraphNode)) {
-                    if(typeof n.children[key] === 'undefined' || n.children[key] === true) {
-                        n.children[key] = n.graph.get(key); //try graph scope
-                        if(!n.children[key]) n.children[key] = n.nodes.get(key);
+                    if (typeof n.children[key] === 'object') {
+                        if(!n.children[key].tag) n.children[key].tag = key;
+                        n.children[key] = new GraphNode(n.children[key],n,n.graph); //make a brand new graphnode based on the object spec
+                        this.checkNodesHaveChildMapped(n,n.children[key]); //then climb up the tree to make sure each enclosing layer has node references for these children
+                    }
+                    else {
+                        if(typeof n.children[key] === 'undefined' || n.children[key] == true) {
+                            n.children[key] = n.graph.get(key); //try graph scope
+                            if(!n.children[key]) n.children[key] = n.nodes.get(key);
+                        }
+                        else if(typeof n.children[key] === 'string') {
+                            let k = n.children[key];
+                            n.children[key] = n.graph.get(k); //try graph scope
+                            if(!n.children[key]) n.children[key] = n.nodes.get(key);
+                        } 
                         if(n.children[key] instanceof GraphNode) {
-                            if(n.graph) {
+                            if(n.graph) { //lets copy the node in this case so we have an independent instance we can parent properly
                                 let props = (n.children[key] as GraphNode).getProps(); //get the customized values of this node
                                 delete props.parent;
                                 delete props.graph;
-                                if(n.source) 
+                                if(n.source) //map the node to a source graph if it a child of a graphnode that wraps a graph
                                     n.children[key] = new GraphNode(props,n,(n as any).source); //make an new node instead of copying the old one.
                                 else {
-                                    if(props.tag) props.tag = `${props.tag}${n.graph.nNodes+1}`
                                     n.children[key] = new GraphNode(props,n,n.graph); //make an new node instead of copying the old one.
                                 }
                             }
-                            n.nodes.set(n.children[key].tag,n.children[key]);
+                            else {
+                                n.nodes.set(n.children[key].tag, n.children[key]);
+                                this.checkNodesHaveChildMapped(n, n.children[key]);   
+                            }
                             if(!(n.children[key].tag in n)) n[n.children[key].tag] = n.children[key].tag; //set it as a property by name too as an additional easy accessor;
-                            this.checkNodesHaveChildMapped(n,n.children[key]);   
                         }
-                    }
-                    else if(typeof n.children[key] === 'string') {
-                        let child = n.graph.get(n.children[key]); //try graph scope
-                        n.children[key] = child;
-                        if(!child) child = n.nodes.get(key);
-                        if(child instanceof GraphNode) {
-                             n.nodes.set(n.children[key].tag,n.children[key]);
-                            if(!(n.children[key].tag in n)) n[n.children[key].tag] = n.children[key].tag; //set it as a property by name too as an additional easy accessor;
-                            this.checkNodesHaveChildMapped(n,child);
-                        }
-                    } else if (typeof n.children[key] === 'object') {
-                        if(!n.children[key].tag) n.children[key].tag = key;
-                        n.children[key] = new GraphNode(n.children[key],n,n.graph);
-                        this.checkNodesHaveChildMapped(n,n.children[key]);
                     }
                 }
             }
@@ -1058,7 +1059,7 @@ export class GraphNode {
     }
     
     //recursively print a snapshot reconstructible json hierarchy of the node and the children. 
-    // Start at the top/initially called nodes to print the whole hierarchy in one go
+    // Start at the top/_initially called nodes to print the whole hierarchy in one go
     print = (node:string|GraphNode=this,printChildren=true,nodesPrinted:any[]=[]) => {
     
         let dummyNode = new GraphNode(); //test against this for adding props
@@ -1132,6 +1133,7 @@ export class Graph {
     tag:string;
     nodes:Map<any,any> = new Map();
     state=state;
+    _initial:any;
 
     //can create preset node trees on the graph
     tree:Tree = {};
@@ -1141,7 +1143,10 @@ export class Graph {
     constructor( tree?:Tree, tag?:string, props?:{[key:string]:any} ) {
         this.tag = tag ? tag : `graph${Math.floor(Math.random()*100000000000)}`;
 
-        if(props) Object.assign(this,props); //set other props like flow properties in a nested graph
+        if(props) {
+            Object.assign(this,props); //set other props like flow properties in a nested graph
+            this._initial = props;
+        }
         if(tree || Object.keys(this.tree).length > 0) this.setTree(tree);
     }
 
@@ -1201,6 +1206,7 @@ export class Graph {
                             if(source.delay) properties.delay = source.delay;
                             if(source.tag) properties.tag = source.tag;
                             if(source.oncreate) properties.oncreate = source.oncreate;
+                            if(source.node?._initial) Object.assign(properties,source.node._initial);
 
                             properties.nodes = source.nodes;
                             properties.source = source;

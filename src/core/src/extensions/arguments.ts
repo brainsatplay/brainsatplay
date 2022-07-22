@@ -71,8 +71,7 @@ const ArgumentGraphExtension = {
           else return treeEntry.operator(...updatedArgs)
           }
 
-        let graph = new Graph(instanceTree, treeEntry.tag, propsCopy)
-        return graph
+          return new Graph(instanceTree, treeEntry.tag, propsCopy)
     }
 }
 

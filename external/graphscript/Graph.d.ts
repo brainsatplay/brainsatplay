@@ -62,7 +62,7 @@ export declare const state: {
 export declare class GraphNode {
     nodes: Map<any, any>;
     arguments: Map<any, any>;
-    initial: {
+    _initial: {
         [key: string]: any;
     };
     tag: string;
@@ -174,6 +174,7 @@ export declare class Graph {
         unsubscribeTrigger(key: string, sub: number): boolean;
         subscribeTriggerOnce(key: string, onchange: (res: any) => void): void;
     };
+    _initial: any;
     tree: Tree;
     [key: string]: any;
     constructor(tree?: Tree, tag?: string, props?: {
