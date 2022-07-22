@@ -2,7 +2,7 @@
 [![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/brainsatplay/awesome-brainsatplay)
 [![Discord](https://img.shields.io/[](src/core/dist)badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-`brainsatplay` is a framework for quickly assembling interactive, high-performance web applications. 
+[brainsatplay] is a framework for quickly assembling interactive, high-performance web applications.
 
 This repo is in active development so you'll see a lot of ideas still getting half baked and tossed out but you can follow our development closely if you subscribe to [garrettmflynn](https://github.com/garrettmflynn) and [joshbrew](https://github.com/joshbrew) on GitHub.
 
@@ -11,6 +11,7 @@ This repo is in active development so you'll see a lot of ideas still getting ha
 Our mission is to enable open source biosensing and signal processing research, game, and education application development for everyone, We're solving a ton of typical web development problems in the process with a suite of custom frameworks leveraging the latest web APIs! 
 
 > To learn more about what we're doing at a broad level, check out our [project](https://github.com/brainsatplay/project) repository.
+
 
 ### Framework Libraries
 Below are the core repositories of the [brainsatplay] framework. Check out the [awesome-brainsatplay](https://github.com/awesome-brainsatplay) repository to see everything created by our community!
@@ -44,14 +45,13 @@ Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsa
 ## Support
 If you have questions about developing with Brains@Play, feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
 
-
 ## Appendix
 ### Branches
 The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
 
 
 
-[brainsatplay]: https://github.com/brainsatplay/brainsatplay
+[brainsatplay]: ./src/core/README.md
 
 <!-- Core Library-->
 [graphscript]: https://github.com/brainsatplay/graphscript

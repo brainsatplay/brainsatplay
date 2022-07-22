@@ -109,7 +109,10 @@ export default class App {
             const [cls, id] = tag.split("_");
 
             // Shallow copy class info
-            const clsInfo = Object.assign({}, this.plugins[cls]) ?? {};  // still run without plugin
+            const ogClsInfo = this.plugins[cls]
+            if (ogClsInfo) {
+
+            const clsInfo = Object.assign({}, ogClsInfo) ?? {};  // still run without plugin
             for (let key in clsInfo) {
               if (typeof clsInfo[key] === 'object') clsInfo[key] = Object.assign({}, clsInfo[key])
             }
@@ -162,6 +165,7 @@ export default class App {
                 const instance = extensions.arguments.transform(properties, this)
                 tree[tag] = instance
             }
+        } else console.warn(`No information found for the ${cls} plugin. Please export this from your main file.`)
         }))
 
         if (graph.edges) {
