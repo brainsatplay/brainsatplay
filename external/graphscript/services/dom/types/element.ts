@@ -11,7 +11,8 @@ export type ElementProps = {
     ondelete?:(self:HTMLElement,info:ElementInfo)=>void,
     innerText?:string,
     innerHTML?:string,
-    id?:string
+    id?:string,
+    generateChildElementNodes?:boolean //generate these element info and graphnodes for every node in an element hierarchy
 }
 
 export type ElementInfo = { //returned from addElement

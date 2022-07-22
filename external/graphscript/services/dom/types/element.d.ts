@@ -13,6 +13,7 @@ export declare type ElementProps = {
     innerText?: string;
     innerHTML?: string;
     id?: string;
+    generateChildElementNodes?: boolean;
 };
 export declare type ElementInfo = {
     element: HTMLElement;

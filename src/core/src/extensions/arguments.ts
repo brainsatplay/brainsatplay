@@ -10,54 +10,66 @@ const ArgumentGraphExtension = {
         return !(treeEntry instanceof Graph) // run on all tree entries that aren't graphs
     },
     transform: (treeEntry, app) => {
-        const operatorArgs = getFnParamInfo(treeEntry.operator)
-
-
-        if (treeEntry.arguments) {
-          for (let key in treeEntry.arguments) {
-            operatorArgs.set(key, treeEntry.arguments[key]);
-          }
+      const operatorArgs = getFnParamInfo(treeEntry.operator);
+      if (treeEntry.arguments) {
+        for (let key in treeEntry.arguments) {
+          operatorArgs.set(key, treeEntry.arguments[key]);
         }
+      }
+      if (operatorArgs.size === 0)
+        operatorArgs.set("trigger", void 0);
 
-        // assign default argument name (to trigger updates)
-        if (operatorArgs.size === 0) operatorArgs.set('trigger', undefined);
 
 
-        // Create a Nested Graph Composed of Argument
-        const instanceTree = {}
+      // Find and Remove Restricted Names
+      let entries = Array.from(operatorArgs.entries())
+      const restrictedOne = ["self", "node"];
+      const restrictedTwo = ["origin", "parent", "graph", "router"];
+      const notRestrictedOne = entries.reduce((a,b) => a * (restrictedOne.includes(b[0]) ? 0 : 1), 1)
+      const notRestrictedTwo = entries.reduce((a,b) => a * (restrictedTwo.includes(b[0]) ? 0 : 1), 1)
 
-        Array.from(operatorArgs.entries()).forEach(([arg], i) => {
-          instanceTree[arg] = {
-            tag: arg,
-            operator: (input) => {
-              operatorArgs.set(arg, input)
-              if (i === 0) {
-                const nodeToRun = app.graph.nodes.get(treeEntry.tag) // TODO: Change this to pass the main graph from graphscript
-                const res = nodeToRun.run() // run main graph with updated first arg
-                return res
-              }
-              return input
+      if (!notRestrictedOne) restrictedOne.forEach(k => operatorArgs.delete(k))
+      if (!notRestrictedTwo) restrictedTwo.forEach(k => operatorArgs.delete(k))
+
+      // Create Instance Argument Tree
+      const instanceTree = {};
+      Array.from(operatorArgs.entries()).forEach(([arg], i) => {
+        instanceTree[arg] = {
+          tag: arg,
+          operator: (input) => {
+            operatorArgs.set(arg, input);
+            if (i === 0) {
+              const nodeToRun = app.router.routes[`${app.name}.${treeEntry.tag}`];
+              return nodeToRun.run();
             }
+            return input;
           }
-        })
+        };
+      });
+  
+      // Create Proper Global Operator for the Instance
+      const propsCopy = Object.assign({}, treeEntry);
+      propsCopy.operator = (self, origin, ...args) => {
+  
+        let updatedArgs = [];
+        let i = 0;
+        operatorArgs.forEach((v, k) => {
+          const isSpread = k.includes("...");
+          const currentArg = isSpread ? args.slice(i) : args[i];
+          let update = currentArg !== void 0 ? currentArg : v;
+          operatorArgs.set(k, update);
+          if (!isSpread)
+            update = [update];
+          updatedArgs.push(...update);
+          i++;
+        });
 
-        const propsCopy = Object.assign({}, treeEntry)
-        propsCopy.operator = (...args) => {
-            let updatedArgs = [];
-            let i = 0;
-            operatorArgs.forEach((v, k) => {
-              const isSpread = k.includes("...")
-              const currentArg = isSpread ? args.slice(i) : args[i];
-              let update = currentArg !== undefined ? currentArg : v;
-              operatorArgs.set(k, update);
-              if (!isSpread)  update = [update];
-              updatedArgs.push(...update);
-              i++;
-            });
-
-            const res = treeEntry.operator(...updatedArgs)
-            return res
-        }
+  
+          if (!notRestrictedOne && !notRestrictedTwo) return treeEntry.operator(self, origin, ...updatedArgs)
+          else if (!notRestrictedOne) return treeEntry.operator(self, ...updatedArgs)
+          else if (!notRestrictedTwo) return treeEntry.operator(origin, ...updatedArgs)
+          else return treeEntry.operator(...updatedArgs)
+          }
 
         let graph = new Graph(instanceTree, treeEntry.tag, propsCopy)
         return graph

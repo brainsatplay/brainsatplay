@@ -95,11 +95,57 @@ export class Service extends Graph {
                 routes = service.routes;
             }
         } //we can instantiate a class and load the routes. Routes should run just fine referencing the classes' internal data structures without those being garbage collected.
-        else if (routes instanceof Graph) { //class instance
+        else if (routes instanceof Graph || routes.source instanceof Graph) { //class instance
             service = routes;
             routes = {};
+            let name;
+            if(includeClassName) {
+                name = service.name;
+                if(!name) {
+                    name = service.tag;
+                    service.name = name;
+                }
+                if(!name) {
+                    name = `graph${Math.floor(Math.random()*1000000000000000)}`;
+                    service.name = name; 
+                    service.tag = name;
+                }
+            } 
+
             service.nodes.forEach((node)=>{
+                //if(includeClassName) routes[name+routeFormat+node.tag] = node;
+                //else 
                 routes[node.tag] = node;
+                
+                let checked = {};
+                let checkChildGraphNodes = (nd:GraphNode, prev?:GraphNode) => {
+                    if(!checked[nd.tag] || (prev && includeClassName && !checked[prev?.tag+routeFormat+nd.tag])) {
+                        if(!prev) checked[nd.tag] = true;
+                        else checked[prev.tag+routeFormat+nd.tag] = true;
+
+                        if(nd instanceof Graph || nd.source instanceof Graph) {
+                            if(includeClassName) {
+                                let nm = nd.name;
+                                if(!nm) {
+                                    nm = nd.tag;
+                                    nd.name = nm;
+                                }
+                                if(!nm) {
+                                    nm = `graph${Math.floor(Math.random()*1000000000000000)}`;
+                                    nd.name = nm; 
+                                    nd.tag = nm;
+                                }
+                            } 
+                            nd.nodes.forEach((n) => {
+                                if(includeClassName) routes[nd.tag+routeFormat+n.tag] = n;
+                                else if(!routes[n.tag]) routes[n.tag] = n; 
+                                checkChildGraphNodes(n,nd);
+                            });
+                        }
+                    }
+                }
+
+                checkChildGraphNodes(node);
             });
         }
         else if (typeof routes === 'object') {

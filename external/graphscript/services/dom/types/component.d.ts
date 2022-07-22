@@ -13,6 +13,7 @@ export declare type DOMElementProps = {
     innerText?: string;
     innerHTML?: string;
     id?: string;
+    generateChildElementNodes?: boolean;
 } & GraphNodeProperties;
 export declare type DOMElementInfo = {
     element: DOMElement;

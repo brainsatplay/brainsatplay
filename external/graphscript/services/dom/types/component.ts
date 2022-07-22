@@ -13,7 +13,8 @@ export type DOMElementProps = {
     renderonchanged?:boolean|((self:DOMElement,info:DOMElementInfo)=>void), //set true to auto refresh the element render (it re-appends a new fragment in its container)
     innerText?:string,
     innerHTML?:string,
-    id?:string
+    id?:string,
+    generateChildElementNodes?:boolean //generate these element info and graphnodes for every node in an element hierarchy
 } & GraphNodeProperties
 
 export type DOMElementInfo = { //returned from addComponent

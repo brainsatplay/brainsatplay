@@ -55,14 +55,9 @@ export default class EditableApp {
 
     join = utils.join
 
-    createFilesystem = async (input, options=this.options) => {
-
-        // Derive the input to freerange.System
-        if (!input && !(this.filesystem instanceof freerange.System)) input = this.filesystem
-        else this.filesystem = input
+    createFilesystem = async (input=this.filesystem, options=this.options) => {
 
         // Correct input (if remote)
-
         try {
             new URL(input ?? '').href
             input = this.join(input, this.packagePath)
@@ -83,14 +78,21 @@ export default class EditableApp {
         } else console.warn('Input is not a valid HTML element', parentNode)
     }
 
-    start = async (input?) => {
+    start = async (input = this.filesystem) => {
+        this.filesystem = input
         await this.stop() 
         const system = await this.createFilesystem(input)
         this.active = new App(undefined, this.options)
+
+        // Compile From Filesystem
         if (system){
             this.filesystem = system
             this.active.compile = this.compile
-        } else {
+        } 
+        
+        // Pass Directly into the App
+        else {
+            this.active.set(input)
             delete this.filesystem
             delete this.compile
         }
@@ -108,7 +110,7 @@ export default class EditableApp {
     
     save = async () => {
         await this.stop()
-        await this.filesystem.save()
+        if (this.filesystem) await this.filesystem.save()
         await this.active.start()
     }
 }

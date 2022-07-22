@@ -3,6 +3,7 @@ import { Routes, Service, ServiceMessage } from '../services/Service';
 export declare type Protocol = 'http' | 'wss' | 'sse' | 'webrtc' | 'osc' | 'worker' | 'ble' | 'serial' | 'unsafe' | 'struct' | 'fs' | 'lsl' | 'hdf5' | 'unity' | 'e2ee';
 export declare type RouterOptions = {
     linkServices?: boolean;
+    includeClassName?: boolean;
     loadDefaultRoutes?: boolean;
 };
 export declare class Router {
@@ -47,7 +48,7 @@ export declare class Router {
     load: (service: Graph | Routes | {
         name: string;
         module: any;
-    } | any, linkServices?: boolean) => Service;
+    } | any, linkServices?: boolean, includeClassName?: boolean) => Service;
     pipe: (source: string | GraphNode, destination: string, transmitter?: Protocol | string, origin?: string, method?: string, callback?: (res: any) => any | void) => number | false;
     pipeOnce: (source: string | GraphNode, destination: string, transmitter?: Protocol | string, origin?: string, method?: string, callback?: (res: any) => any | void) => false | void;
     sendAll: (message: ServiceMessage | any, connections: {

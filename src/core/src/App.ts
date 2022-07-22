@@ -84,7 +84,7 @@ export default class App {
     }
 
     setInfo = (info: InputType) => {
-        this.info = info
+        this.info = Object.assign({}, info)
 
         const appMetadata = this.info['.brainsatplay']
         for (let key in appMetadata) {
@@ -107,9 +107,14 @@ export default class App {
         const nodes = Object.entries(graph.nodes ?? {})
         await Promise.all(nodes.map(async ([tag, info]) => {
             const [cls, id] = tag.split("_");
-            const clsInfo = this.plugins[cls] ?? {} // still run without plugin
 
-            // TODO: Actually nest inside tree notation
+            // Shallow copy class info
+            const clsInfo = Object.assign({}, this.plugins[cls]) ?? {};  // still run without plugin
+            for (let key in clsInfo) {
+              if (typeof clsInfo[key] === 'object') clsInfo[key] = Object.assign({}, clsInfo[key])
+            }
+
+            // Nest Inside Tree Notation
             if (clsInfo['.brainsatplay']) {
 
                 const app = this.nested[tag] = new App(clsInfo, {
@@ -120,7 +125,7 @@ export default class App {
                 
                 app.setParent(this.parentNode)
                 await app.start()
-                this.router.load(app.graph, false) // load nested graph into main router
+                this.router.load(app.graph, false, true); // load nested graph into main router
 
                 // Run nested graph
                 if (app.info[".brainsatplay"].graph.ports) {
@@ -152,9 +157,8 @@ export default class App {
                 tree[tag] = app.graph // new Service(app.graph.tree, tag) // tree as graph node
 
             } else {
-                let properties = Object.assign({}, clsInfo);
-                properties.tag = tag;
-                properties = Object.assign(properties, info);
+                clsInfo.tag = tag;
+                const properties = Object.assign(clsInfo, info);
                 const instance = extensions.arguments.transform(properties, this)
                 tree[tag] = instance
             }
@@ -262,7 +266,7 @@ export default class App {
             // Load Graph into Router + Run (if not nested)
             if (!this.isNested) {
 
-                this.router.load(this.graph, false)
+                this.router.load(this.graph, false, true);
 
                 // Run all nodes
                 this.graph.nodes.forEach(node => {

@@ -1,9 +1,9 @@
 import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
-// import appInfo from '../../../htil/content/signals/index.js'
-import appInfo from '../../../brainsatplay-starter-kit/index.js'
-const method = 'remote' // 'local'
+import appInfo from '../../../htil/content/signals/index.js'
+// import appInfo from '../../../brainsatplay-starter-kit/index.js'
+const method = 'remote' //'local'
 
 let app: brainsatplay.App | brainsatplay.editable.App
 // ------------------- Method #1: Dynamic Import (package.json) -------------------

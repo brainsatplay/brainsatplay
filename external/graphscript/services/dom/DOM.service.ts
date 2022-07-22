@@ -96,6 +96,8 @@ export class DOMService extends Graph {
         let node = new GraphNode(
             options
         ,undefined,this);
+
+        (elm as any).node = node; //self.node references the graphnode on the div now
         
         let divs:any[] = Array.from(elm.querySelectorAll('*'));
         if(generateChildElementNodes) { //convert all child divs to additional nodes
@@ -250,6 +252,8 @@ export class DOMService extends Graph {
             options
         ,undefined,this);
 
+        (elm as any).node = node; //self.node references the graphnode on the div now
+
         this.components[completeOptions.id] = {
             element:elm as any,
             class:CustomElement,
@@ -356,6 +360,8 @@ export class DOMService extends Graph {
             options
         ,undefined,this);
 
+        (elm as any).node = node; //self.node references the graphnode on the div now
+
         let canvas = elm.querySelector('canvas');
         if(completeOptions.style) Object.assign(canvas.style,completeOptions.style); //assign the style object
 
@@ -413,11 +419,58 @@ export class DOMService extends Graph {
                 routes = service.routes;
             }
         } //we can instantiate a class and load the routes. Routes should run just fine referencing the classes' internal data structures without those being garbage collected.
-        else if (routes instanceof Graph) { //class instance
+        else if (routes instanceof Graph || routes.source instanceof Graph) { //class instance
             service = routes;
             routes = {};
+            let name;
+            if(includeClassName) {
+                name = service.name;
+                if(!name) {
+                    name = service.tag;
+                    service.name = name;
+                }
+                if(!name) {
+                    name = `graph${Math.floor(Math.random()*1000000000000000)}`;
+                    service.name = name; 
+                    service.tag = name;
+                }
+            } 
+
             service.nodes.forEach((node)=>{
+                //if(includeClassName) routes[name+routeFormat+node.tag] = node;
+                //else 
                 routes[node.tag] = node;
+                
+                let checked = {};
+
+                let checkChildGraphNodes = (nd:GraphNode, prev?:GraphNode) => {
+                    if(!checked[nd.tag] || (prev && includeClassName && !checked[prev?.tag+routeFormat+nd.tag])) {
+                        if(!prev) checked[nd.tag] = true;
+                        else checked[prev.tag+routeFormat+nd.tag] = true;
+
+                        if(nd instanceof Graph || nd.source instanceof Graph) {
+                            if(includeClassName) {
+                                let nm = nd.name;
+                                if(!nm) {
+                                    nm = nd.tag;
+                                    nd.name = nm;
+                                }
+                                if(!nm) {
+                                    nm = `graph${Math.floor(Math.random()*1000000000000000)}`;
+                                    nd.name = nm; 
+                                    nd.tag = nm;
+                                }
+                            } 
+                            nd.nodes.forEach((n) => {
+                                if(includeClassName) routes[nd.tag+routeFormat+n.tag] = n;
+                                else if(!routes[n.tag]) routes[n.tag] = n; 
+                                checkChildGraphNodes(n,nd);
+                            });
+                        }
+                    }
+                }
+
+                checkChildGraphNodes(node);
             });
         }
         else if (typeof routes === 'object') {
@@ -491,7 +544,7 @@ export class DOMService extends Graph {
                 if(typeof r === 'object') {
                     if(r.template) { //assume its a component node
                         if(!routes[route].tag) routes[route].tag = route;
-                        this.addComponent(routes[route]);
+                        this.addComponent(routes[route],routes[route].generateChildElementNodes);
                     }
                     else if(r.context) { //assume its a canvas node
                         if(!routes[route].tag) routes[route].tag = route;
@@ -499,7 +552,7 @@ export class DOMService extends Graph {
                     }
                     else if(r.tagName || r.element) { //assume its an element node
                         if(!routes[route].tag) routes[route].tag = route;
-                        this.addElement(routes[route]);
+                        this.addElement(routes[route],routes[route].generateChildElementNodes);
                     }
 
                     if(r.get) { //maybe all of the http method mimics should get some shared extra specifications? 

@@ -62,6 +62,9 @@ export declare const state: {
 export declare class GraphNode {
     nodes: Map<any, any>;
     arguments: Map<any, any>;
+    initial: {
+        [key: string]: any;
+    };
     tag: string;
     parent: GraphNode | Graph;
     children: any;
@@ -121,6 +124,24 @@ export declare class GraphNode {
     }) => void;
     callParent: (...args: any[]) => any;
     callChildren: (idx?: number, ...args: any[]) => any;
+    getProps: (node?: this) => {
+        tag: string;
+        operator: OperatorType;
+        graph: Graph;
+        children: any;
+        parent: GraphNode | Graph;
+        forward: boolean;
+        backward: any;
+        loop: any;
+        animate: any;
+        frame: any;
+        delay: any;
+        recursive: any;
+        repeat: any;
+        branch: any;
+        oncreate: any;
+        DEBUGNODE: boolean;
+    };
     setProps: (props?: GraphNodeProperties) => void;
     removeTree: (node: GraphNode | string) => void;
     checkNodesHaveChildMapped: (node: GraphNode | Graph, child: GraphNode, checked?: {}) => void;
