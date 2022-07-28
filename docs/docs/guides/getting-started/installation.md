@@ -13,10 +13,10 @@ To get started, import `brainsatplay` into your project:
 
 #### ES6
 ``` js
-import router from 'brainsatplay'
+import * as brainsatplay from 'brainsatplay'
 ```
 
 #### Node
 ``` js
-const router = require('brainsatplay')
+const brainsatplay = require('brainsatplay')
 ```
