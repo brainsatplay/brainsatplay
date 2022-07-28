@@ -29,9 +29,7 @@ const config = {
       {
         tsconfig: './tsconfig.json',
         entryPoints: [
-          "../src/backend", 
-          "../src/frontend", 
-          "../src/core", 
+          "../src/core/src", 
           // "../src/services/database",
           // "../src/services/http",
           // "../src/services/osc",
@@ -110,24 +108,35 @@ const config = {
             position: 'left',
             label: 'Docs',
           },
-          {
-            to: 'examples',
-            position: 'left',
-            label: 'Examples',
-          },
-          // { 
-          //   type: 'doc',
-          //   docId: 'reference/index',
-          //   label: "Reference", 
-          //   position: 'left'
+          // {
+          //   to: 'examples',
+          //   position: 'left',
+          //   label: 'Examples',
           // },
+          { 
+            type: 'doc',
+            docId: 'reference/index',
+            label: "Reference", 
+            position: 'left'
+          },
           // { href: repoUrl, label: "GitHub", external: true },
           // { blog: true, label: "Blog" },
-          // { href: helpUrl, label: "Need Help?", external: true }
-          // {to: 'blog', label: 'Blog', position: 'left'},
+
+          {
+            type: 'doc',
+            docId: 'resources/index',
+            position: 'left',
+            label: 'Resources',
+          },
+
+          {to: 'blog', label: 'Blog', position: 'right'},
+          {
+            href: 'https://discord.gg/CDxskSh9ZB',
+            position: 'right',
+            className: 'discord-icon-menu',
+          },
           {
             href: 'https://github.com/brainsatplay/brainsatplay',
-            // label: 'GitHub',
             position: 'right',
             className: 'github-icon-menu',
           },

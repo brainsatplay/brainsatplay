@@ -1,4 +1,4 @@
-#### [Development Resources](./Development.md)
+#### Development Resources
 
 ### Really some of the best resources:
 

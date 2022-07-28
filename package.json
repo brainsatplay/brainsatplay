@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "tinybuild",
-    "frontend": "cd docs && yarn && yarn run start",
+    "docs": "cd docs && yarn && yarn run start",
     "backend": "node builder.config.js run:nodejs",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --coverage",
     "typecheck": "tsc --watch --preserveWatchOutput --noEmit",

@@ -26,7 +26,7 @@
 
 - [Github](https://github.com/raspberrypi)
 
-#### [CircuitPython]()
+#### [CircuitPython](circuitpython.org)
 
 - [Github](https://github.com/adafruit/circuitpython)
 
