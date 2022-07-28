@@ -125,7 +125,13 @@ If you have questions about developing with [brainsatplay], feel free to start a
 
 ## Appendix
 ### Branches
-The `legacy` branch of this repository contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform) and presented in **Developing Brain-Computer Interfaces with Everyone (submitted)**. 
+The `main` branch of this repository contains the latest release of the [brainsatplay] framework.
+
+The `nightly` branch hosts regular changes between official releases.
+
+The `docs` branch is used to trigger Netlify to update our documentation site at https://docs.brainsatplay.com.
+
+The `legacy` branch contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform) and presented in **Developing Brain-Computer Interfaces with Everyone (submitted)**. 
 
 ### Additional Repositories
 #### Hardware
