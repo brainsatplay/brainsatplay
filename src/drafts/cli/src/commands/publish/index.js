@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import simpleGit from 'simple-git'
-import {boolean, text} from '../../commands/create/inquiries.js'
+import {boolean, text} from '../create/inquiries.js'
 import { cliConfig } from '../../index.js'
 
 
