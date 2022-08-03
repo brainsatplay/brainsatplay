@@ -1,6 +1,6 @@
 //gpujs implementation
 
-import { Routes, Service } from "../Service";
+import { Routes, Service, ServiceOptions } from "../Service";
 import {gpuUtils} from 'gpujsutils'
 import {Math2} from 'brainsatplay-math'
 import { parseFunctionFromText } from "../../Graph";
@@ -10,6 +10,13 @@ import { parseFunctionFromText } from "../../Graph";
 export class GPUService extends Service {
 
     gpu = new gpuUtils()
+
+    
+    constructor(options?:ServiceOptions) {
+        super(options)
+        this.load(this.routes);
+    }
+
 
     addFunc=(fn:string|Function)=>{
         if(typeof fn === 'string') fn = parseFunctionFromText(fn);

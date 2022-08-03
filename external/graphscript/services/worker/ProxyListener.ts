@@ -137,6 +137,10 @@ export function initProxyElement(element, worker) {
 
 /////////////https://threejsfundamentals.org/threejs/lessons/threejs-offscreencanvas.html
 export class EventDispatcher {
+
+  _listeners:any;
+
+
 	addEventListener( type, listener ) {
 		if ( this._listeners === undefined ) this._listeners = {};
 		const listeners = this._listeners;
@@ -186,6 +190,14 @@ export class EventDispatcher {
 
 /////////////https://threejsfundamentals.org/threejs/lessons/threejs-offscreencanvas.html
 export class ElementProxyReceiver extends EventDispatcher {
+
+  style:any;
+  width:any;
+  left:any;
+  right:any;
+  top:any;
+  height:any;
+
     constructor() {
         super();
         // because OrbitControls try to set style.touchAction;
@@ -233,6 +245,10 @@ export class ElementProxyReceiver extends EventDispatcher {
 
 /////////////https://threejsfundamentals.org/threejs/lessons/threejs-offscreencanvas.html
 export class ProxyManager {
+
+    id:any;
+    targets:any;
+
     constructor() {
       this.id = 'proxy'+Math.floor(Math.random()*10000);
       this.targets = {};
@@ -269,4 +285,4 @@ export const proxyWorkerRoutes = {
         self.graph.PROXYELEMENTS.handleEvent(data,id);
         return id;
     }
-}
+} 

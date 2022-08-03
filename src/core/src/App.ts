@@ -267,6 +267,8 @@ export default class App {
                 routes: this.tree,
             }, this.parentNode)
 
+            console.log('graph', this.graph.name, this.name)
+
             // Load Graph into Router + Run (if not nested)
             if (!this.isNested) {
 

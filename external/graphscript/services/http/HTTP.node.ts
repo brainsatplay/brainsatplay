@@ -74,6 +74,7 @@ export class HTTPbackend extends Service {
         settings?:{ host?:string, port?:number, protocol?:'http'|'https', certpath?:string, keypath?:string }
     ) {
         super(options);
+        this.load(this.routes);
 
         if(settings) {
             if(settings.protocol === 'https') {

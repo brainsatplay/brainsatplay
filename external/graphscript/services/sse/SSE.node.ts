@@ -1,4 +1,4 @@
-import { Routes, Service, ServiceMessage } from "../Service";
+import { Routes, Service, ServiceMessage, ServiceOptions } from "../Service";
 import {createSession, createChannel, Session, SessionState} from 'better-sse'; //third party lib. SSEs really just push notifications to an http endpoint but it's minimal overhead
 import http from 'http'
 import https from 'https'
@@ -33,6 +33,12 @@ export class SSEbackend extends Service {
     eventsources:{ //the session instances
         [key:string]:{ _id:string, session:Session<SessionState>, served:SSESessionInfo }
     }={}
+
+    
+    constructor(options?:ServiceOptions) {
+        super(options)
+        this.load(this.routes);
+    }
 
     setupSSE = (options:SSEProps) => {
 

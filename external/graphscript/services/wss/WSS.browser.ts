@@ -1,4 +1,4 @@
-import { Service, Routes, ServiceMessage } from "../Service";
+import { Service, Routes, ServiceMessage, ServiceOptions } from "../Service";
 
 export type WebSocketProps = {
     host:string,
@@ -28,6 +28,12 @@ export class WSSfrontend extends Service {
     sockets:{
         [key:string]:WebSocketInfo
     } = { }
+
+    
+    constructor(options?:ServiceOptions) {
+        super(options)
+        this.load(this.routes);
+    }
 
     openWS = (
         options:WebSocketProps = {

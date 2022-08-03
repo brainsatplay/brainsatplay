@@ -56,7 +56,7 @@ export const workerCanvasRoutes = {
         }
         return false;
     },
-    animate:(self, origin, _id, drawfn?:string|((canvas:any,context:any)=>void))=>{ //run the draw function applied to the animation or provide a new one
+    startAnim:(self, origin, _id, drawfn?:string|((canvas:any,context:any)=>void))=>{ //run the draw function applied to the animation or provide a new one
         let canvasopts = self.graph.CANVASES[_id];
 
         if(canvasopts && drawfn) {

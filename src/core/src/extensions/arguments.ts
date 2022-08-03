@@ -10,15 +10,16 @@ const ArgumentGraphExtension = {
         return !(treeEntry instanceof Graph) // run on all tree entries that aren't graphs
     },
     transform: (treeEntry, app) => {
-      const operatorArgs = getFnParamInfo(treeEntry.operator);
+      let operatorArgs = getFnParamInfo(treeEntry.operator);
       if (treeEntry.arguments) {
         for (let key in treeEntry.arguments) {
           operatorArgs.set(key, treeEntry.arguments[key]);
         }
       }
-      if (operatorArgs.size === 0)
+      if (operatorArgs === undefined) {
+        operatorArgs = new Map()
         operatorArgs.set("trigger", void 0);
-
+      }
 
 
       // Find and Remove Restricted Names
@@ -39,7 +40,7 @@ const ArgumentGraphExtension = {
           operator: (input) => {
             operatorArgs.set(arg, input);
             if (i === 0) {
-              const nodeToRun = app.router.routes[`${app.name}.${treeEntry.tag}`];
+              const nodeToRun = app.router.routes[`${app.graph.name}.${treeEntry.tag}`];
               return nodeToRun.run();
             }
             return input;

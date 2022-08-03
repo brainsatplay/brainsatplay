@@ -1,7 +1,7 @@
 //from 'fragelement' on npm by Joshua Brewster (AGPL v3.0)
 export class DOMElement extends HTMLElement { 
 
-    template = (props, self=this) => { //return a string or html node
+    template = (self=this, props) => { //return a string or html node
         return `<div> Custom Fragment Props: ${JSON.stringify(props)} </div>`
     }; //override the default template string by extending the class, or use options.template if calling the base class
     props = {};
@@ -14,7 +14,7 @@ export class DOMElement extends HTMLElement {
     onchanged; //(props) => {} fires when props change
     renderonchanged=false; //(self,props) => {} fires after rerendering on props change
 
-    FRAGMENT;
+    FRAGMENT; STYLE;
     attachedShadow = false;
 
     obsAttributes=["props","options","onchanged","onresize","ondelete","oncreate","template"]
@@ -41,7 +41,7 @@ export class DOMElement extends HTMLElement {
         addCustomElement(cls,tag,extend);
     }
 
-    attributeChangedCallback(name, old, val) {
+    attributeChangedCallback = (name, old, val) => {
         if(name === 'onchanged') {
             let onchanged = val;
             if(typeof onchanged === 'string') onchanged = parseFunctionFromText(onchanged);
@@ -128,7 +128,7 @@ export class DOMElement extends HTMLElement {
                 }
             }
             this[name] = parsed; // set arbitrary props 
-            if(name !== 'props') this.props[name] = parsed; //reflect it in the props object (to set props via attributes more easily)
+            if(name !== 'props' && this.props) this.props[name] = parsed; //reflect it in the props object (to set props via attributes more easily)
             //this.props[name] = val; //set arbitrary props via attributes
         }
     }
@@ -136,13 +136,17 @@ export class DOMElement extends HTMLElement {
     connectedCallback() {
 
         // set initial props
+        if(!this.props) this.props = {};
+        //debugger;
         let newProps = this.getAttribute('props');
         if(typeof newProps === 'string') newProps = JSON.parse(newProps);
 
         Object.assign(this.props,newProps);
+
         this.state.setState({props:this.props});
 
         //Observe arbitrary attributes
+            //console.log(this,this.attributes)
         Array.from(this.attributes).forEach((att) => {
             let name = att.name;
             //console.log(name,this.getAttribute(name),this[name])
@@ -185,23 +189,9 @@ export class DOMElement extends HTMLElement {
         //now we can add event listeners for our custom events
 
         
-        if(this.styles) {
-            let elm = `
-            <style>
-                ${templateStr}
-            </style>
-            `;
-
-            if(this.template.indexOf('<style')) {
-                this.template.splice(this.template.indexOf('<style'+7),this.template.indexOf('</style'),templateStr);
-            } else {
-                if(this.template.indexOf('<head')) {
-                    this.template.splice(this.template.indexOf('<head'+6),0,elm);
-                } else this.template = elm + this.template;
-            }
-
-            this.useShadow = true;
-        }
+        // if(this.styles) {
+        //     this.useShadow = true;
+        // }
 
         this.render(this.props);
         this.dispatchEvent(created);
@@ -255,9 +245,10 @@ export class DOMElement extends HTMLElement {
 
     render = (props=this.props) => {
 
-        if(typeof this.template === 'function') this.templateResult = this.template(props, this); //can pass a function
+        if(typeof this.template === 'function') this.templateResult = this.template(this, props); //can pass a function
         else this.templateResult = this.template;
 
+        if(this.styles) this.templateResult = `<style>${this.styles}</style>${this.templateResult}`;
         //this.innerHTML = this.templateResult;
 
         const t = document.createElement('template');
@@ -274,20 +265,36 @@ export class DOMElement extends HTMLElement {
 
         if(this.FRAGMENT) { //will reappend the fragment without reappending the whole node if already rendered once
             if(this.useShadow) {
+                //this.removeChild(this.shadowRoot)
+                if(this.STYLE) this.shadowRoot.removeChild(this.STYLE);
                 this.shadowRoot.removeChild(this.FRAGMENT);
             }   
             else this.removeChild(this.FRAGMENT); 
         }
         if(this.useShadow) {
-            if(!this.attachedShadow) this.attachShadow({mode:'open'});
+            if(!this.attachedShadow) {
+                this.attachShadow({mode:'open'}).innerHTML = '<slot></slot>';
+                this.attachedShadow = true;
+            }
+            if(this.styles) {
+                let style = document.createElement('style');
+                style.textContent = this.styles;
+                this.shadowRoot.prepend(style);
+                this.STYLE = style;
+            }
+
             this.shadowRoot.prepend(fragment); //now you need to use the shadowRoot.querySelector etc.
             this.FRAGMENT = this.shadowRoot.childNodes[0];
+            //this.prepend(this.shadowRoot)
         }   
-        else this.prepend(fragment);
-        this.FRAGMENT = this.childNodes[0];
+        else {
+            this.prepend(fragment);
+            this.FRAGMENT = this.childNodes[0];
+        }
+        
 
         let rendered = new CustomEvent('rendered', {detail: { props:this.props, self:this }});
-        this.dispatchEvent('rendered');
+        this.dispatchEvent(rendered);
         
         if(this.oncreate) this.oncreate(this,props); //set scripted behaviors
     }
@@ -391,28 +398,18 @@ export class DOMElement extends HTMLElement {
     }
 
     set styles(templateStr) {
-        let elm = `
-        <style>
-            ${templateStr}
-        </style>
-        `;
-
-        if(this.template.indexOf('<style')) {
-            this.template.splice(this.template.indexOf('<style'+7),this.template.indexOf('</style'),templateStr);
-        } else {
-            if(this.template.indexOf('<head')) {
-                this.template.splice(this.template.indexOf('<head'+6),0,elm);
-            } else this.template = elm + this.template;
-        }
+        
+        this.styles = templateStr;
 
         if(this.querySelector('style')) { //get the top style 
-            if(!this.useShadow) {
-                this.useShadow = true;
-                this.render()
-            } else this.querySelector('style').innerHTML = templateStr;
+            // if(!this.useShadow) {
+            //     this.useShadow = true;
+            //     this.render()
+            // } else 
+            this.querySelector('style').innerHTML = templateStr;
 
         } else {
-            this.useShadow = true;
+            //this.useShadow = true;
             this.render();
         }
     }
@@ -488,7 +485,7 @@ export function parseFunctionFromText(method) {
 
     let newFunc;
     try{
-        if (newFuncHead.includes('function ')) {
+        if (newFuncHead.includes('function')) {
             let varName = newFuncHead.split('(')[1].split(')')[0]
             newFunc = new Function(varName, newFuncBody);
         } else {

@@ -25,6 +25,7 @@ export class StructFrontend extends Service {
         user?:Partial<UserStruct>
     ) {
         super(options);
+        this.load(this.routes);
 
         if (user instanceof Object && Object.keys(user).length > 0) this.setupUser(user) // Declares currentUser
     }

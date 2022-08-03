@@ -1,12 +1,14 @@
 import { DOMElement } from "../DOMElement"
-import { GraphNode, GraphNodeProperties } from "../../../Graph"
+import { Graph, GraphNode, GraphNodeProperties } from "../../../Graph"
+import { ElementProps } from "./element"
+import { CanvasElementProps } from "./canvascomponent"
 
-export type DOMElementProps = {
+export type DOMElementProps = GraphNodeProperties & {
     tagName?:string, //custom node tag name, requires a '-' in it 
-    template?:string|((props:any)=>string|HTMLElement)|HTMLElement, //string or function that passes the modifiable props on the element (the graph node properties)
+    template?:string|((self:DOMElement, props:any)=>string|HTMLElement)|HTMLElement, //string or function that passes the modifiable props on the element (the graph node properties)
     parentNode?:string|HTMLElement,
     styles?:string, //will use the shadow DOM automatically in this case
-    oncreate?:(self:DOMElement,info?:DOMElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
+    onrender?:(self:DOMElement,info?:DOMElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:DOMElementInfo)=>void,
     ondelete?:(self:DOMElement,info?:DOMElementInfo)=>void,
     onchanged?:(props:any)=>void,
@@ -14,8 +16,9 @@ export type DOMElementProps = {
     innerText?:string,
     innerHTML?:string,
     id?:string,
+    children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},
     generateChildElementNodes?:boolean //generate these element info and graphnodes for every node in an element hierarchy
-} & GraphNodeProperties
+}
 
 export type DOMElementInfo = { //returned from addComponent
     element:DOMElement,
@@ -25,12 +28,13 @@ export type DOMElementInfo = { //returned from addComponent
 } & DOMElementProps
 
 
-export type ComponentOptions = {
+export type ComponentOptions = GraphNodeProperties & {
     tagName?:string,
-    template?:string|((props:any)=>string|HTMLElement)|HTMLElement, //string or function that passes the modifiable props on the element (the graph node properties)
+    template?:string|((self:DOMElement, props:any)=>string|HTMLElement)|HTMLElement, //string or function that passes the modifiable props on the element (the graph node properties)
     parentNode?:string|HTMLElement,
-    styles?:string, //will use the shadow DOM automatically in this case
-    oncreate?:(self:DOMElement,info?:DOMElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
+    styles?:string, //Insert a stylesheet in front of the template
+    useShadow?:boolean, //use the shadow root for style/html nesting? breaks document.querySelector...
+    onrender?:(self:DOMElement,info?:DOMElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:DOMElementInfo)=>void,
     ondelete?:(self:DOMElement,info?:DOMElementInfo)=>void,
     onchanged?:(props:any)=>void,
@@ -38,5 +42,6 @@ export type ComponentOptions = {
     props?:{[key:string]:any},
     innerText?:string,
     innerHTML?:string,
+    children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},
     id?:string
-} & GraphNodeProperties
+}

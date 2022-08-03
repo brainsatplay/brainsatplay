@@ -1,5 +1,5 @@
 import { Graph, GraphNode } from "../Graph";
-import { Routes, Service, ServiceMessage } from '../services/Service';
+import { Routes, Service, ServiceMessage, ServiceOptions } from '../services/Service';
 //should match existing service names, services have matching frontend and backend names as well
 export type Protocol = 'http'|'wss'|'sse'|'webrtc'|'osc'|'worker'|'ble'|'serial'|'unsafe'|'struct'|'fs'|'lsl'|'hdf5'|'unity'|'e2ee'; //??? could make alternates too like express etc. services, everything is pluggable. 
 
@@ -9,7 +9,10 @@ export type Protocol = 'http'|'wss'|'sse'|'webrtc'|'osc'|'worker'|'ble'|'serial'
 export type RouterOptions = {
     linkServices?:boolean, //have all services map each other's nodes?
     includeClassName?:boolean, //reroute services with their class/variable/service name if defined (anonymous objects won't add reroutes!!)
-    loadDefaultRoutes?:boolean
+    loadDefaultRoutes?:boolean,
+    routeFormat?:string,
+    customRoutes?:ServiceOptions['customRoutes'],
+    customChildren?:ServiceOptions['customChildren']
 }
 
 export class Router { //instead of extending acyclicgraph or service again we are going to keep this its own thing
@@ -42,13 +45,13 @@ export class Router { //instead of extending acyclicgraph or service again we ar
         if(options && 'loadDefaultRoutes' in options) {
             this.loadDefaultRoutes = options.loadDefaultRoutes;
         }
-        if(this.loadDefaultRoutes) this.load(this.defaultRoutes,options?.linkServices,options?.includeClassName);
+        if(this.loadDefaultRoutes) this.load(this.defaultRoutes,options?.linkServices,options?.includeClassName,options?.routeFormat,options?.customRoutes,options?.customChildren);
 
         if(Array.isArray(services)){
-            services.forEach(s => this.load(s,options?.linkServices,options?.includeClassName));
+            services.forEach(s => this.load(s,options?.linkServices,options?.includeClassName,options?.routeFormat,options?.customRoutes,options?.customChildren));
         }
         else if (typeof services === 'object') {
-            Object.keys(services).forEach(s => this.load(services[s],options?.linkServices,options?.includeClassName));
+            Object.keys(services).forEach(s => this.load(services[s],options?.linkServices,options?.includeClassName,options?.routeFormat,options?.customRoutes,options?.customChildren));
         }
         
     }
@@ -56,7 +59,10 @@ export class Router { //instead of extending acyclicgraph or service again we ar
     load = (
         service:Graph|Routes|{name:string,module:any}|any, 
         linkServices:boolean=true,
-        includeClassName:boolean=true
+        includeClassName:boolean=true,
+        routeFormat:string='.',
+        customRoutes:ServiceOptions["customRoutes"],
+        customChildren:ServiceOptions["customChildren"]
     ) => { //load a service class instance or service prototoype class
         if(!(service instanceof Graph) && typeof service === 'function')    //class
         {   
@@ -78,7 +84,7 @@ export class Router { //instead of extending acyclicgraph or service again we ar
             } else this.services[service.constructor.name] = service; 
         }
         
-        this.service.load(service, includeClassName);
+        this.service.load(service, includeClassName, routeFormat, customRoutes, customChildren);
         
         if(linkServices) {
             for(const name in this.services) { //tie node references together across service node maps so they can call each other

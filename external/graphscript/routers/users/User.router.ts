@@ -95,7 +95,7 @@ export class UserRouter extends Router {
 
     constructor(services:(Service|Graph|Routes|any)[]|{[key:string]:Service|Graph|Routes|any}|any[], options?:RouterOptions) {
         super(services,options);
-        this.load(this.routes);
+        this.load(this.routes, options.linkServices,options.includeClassName,options.routeFormat,options.customRoutes,options.customChildren);
     }
 
     //just an alias for service._run with clear usage for user Id as origin, you'll need to wire up how responses are handled at the destination based on user id

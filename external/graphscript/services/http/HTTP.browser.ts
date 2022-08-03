@@ -1,5 +1,5 @@
 import { GraphNode } from "../../Graph";
-import { Routes, Service, ServiceMessage } from "../Service";
+import { Routes, Service, ServiceMessage, ServiceOptions } from "../Service";
 
 
 export type RequestOptions = { //frontend request options (not http or https)
@@ -24,6 +24,11 @@ export class HTTPfrontend extends Service {
 
     fetchProxied = false;
     listening = {}
+
+    constructor(options?:ServiceOptions) {
+        super(options)
+        this.load(this.routes);
+    }
 
     request = (
         options:RequestOptions

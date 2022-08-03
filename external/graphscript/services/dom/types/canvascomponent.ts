@@ -1,8 +1,9 @@
 import { DOMElementProps } from "./component"
 import { DOMElement } from "../DOMElement"
-import { GraphNode, GraphNodeProperties } from "../../../Graph"
+import { Graph, GraphNode, GraphNodeProperties } from "../../../Graph"
+import { ElementProps } from "./element"
 
-export type CanvasElementProps = {
+export type CanvasElementProps = GraphNodeProperties & {
     tagName?:string, //custom node tag name, requires a '-' in it 
     parentNode?:string|HTMLElement,
     styles?:string, //will use the shadow DOM automatically in this case
@@ -13,11 +14,12 @@ export type CanvasElementProps = {
     draw:((self:DOMElement,info:CanvasElementInfo)=>void), //string or function that passes the modifiable props on the element (the graph node properties)
     width?:string, //e.g. '300px'
     height?:string, //e.g. '300px'
-    oncreate?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
+    onrender?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     ondelete?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     renderonchanged?:boolean|((self:DOMElement,info?:CanvasElementInfo)=>void),
-} & GraphNodeProperties
+    children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},
+} 
 
 export type CanvasElementInfo = { //returned from addCanvasComponent
     element:DOMElement & {canvas:HTMLCanvasElement, context:RenderingContext},
@@ -42,14 +44,15 @@ export type CanvasOptions = {
     draw:((self:DOMElement,info:CanvasElementInfo)=>void), //string or function that passes the modifiable props on the element (the graph node properties)
     width?:string, //e.g. '300px'
     height?:string, //e.g. '300px'
-    style?:CSSStyleDeclaration, //canvas inline style string
+    style?:Partial<CSSStyleDeclaration>, //canvas inline style string
     parentNode?:string|HTMLElement,
     styles?:string, //stylesheet text, goes inside a <style> tag. This will use the shadow DOM automatically in this case
-    oncreate?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
+    onrender?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     ondelete?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     onchanged?:(props:any)=>void,
     renderonchanged?:boolean|((self:DOMElement,info?:CanvasElementInfo)=>void),
-    props?:{[key:string]:any}
+    props?:{[key:string]:any},
+    children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},
     id?:string
 } & GraphNodeProperties
