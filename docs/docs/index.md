@@ -3,15 +3,17 @@ sidebar_position: 1
 title: Introduction
 ---
 # Introduction
+## Brains@Play Explained
+`brainsatplay` is a rapid application design (RAD) framework for assembling interactive, high-performance web applications. This follows a datastream programming paradigm, which models a program as a directed graph of the data flowing between operations, to provides the following advantages: 
+1. An operation runs as soon as all of its inputs become valid. Thus, this paradigm is inherently parallel and can work well in large, decentralized systems.
+2. The task of maintaining state is removed from the programmer and given to the runtime.
+3. Various transport protocols can be used to carry messages.
 
-## What is Brains@Play?
-`brainsatplay` is a concurrency framework for interactive, high-performance applications controlled by the browser. It gives you [Sockets](./guides/basic/sockets) that carry messages across various transport protocols, as well as [Graphs](./guides/basic/graphs) that can be dynamically modified at runtime. You may also integrate software written for other environments such as Node.js, Python, or C++. 
-
-This framework is [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html) and maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Josh Brewster](https://github.com/joshbrew) from [Brains@Play](https://brainsatplay.com).
+Our framework is composed of several libraries that we intend to grow into a software ecosystem for open-source scientific application development on the Open Web: 
 
 :::note
 
-This documentation is still in development. Let us know if anything isn't clear!
+This framework is [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html) and maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Josh Brewster](https://github.com/joshbrew) from [Brains@Play](https://brainsatplay.com).
 
 :::
 
@@ -28,5 +30,43 @@ More generally, `brainsatplay` refers to the culture of rapid prototyping that p
 ## Architecture
 `brainsatplay` uses the [Web Application Specification Language (wasl)](./guides/libraries/wasl) to construct high-performance applications in [graphscript](./guides/libraries/graphscript). The underlying `wasl` configuration can then be visualized using [visualscript](./guides/libraries/visualscript) and constructed alongside `brainsatplay` plugins using our [editor](./guides/libraries/editor).
 
+| Library               | Status                                                       | Description                                             |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| [brainsatplay]         | [![brainsatplay-status]][brainsatplay] | An application synchronization library for [graphscript] and [visualscript].
+| [graphscript]         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
+| [visualscript]         | [![visualscript-status]][visualscript]  | A low-code programming system for [wasl] applications       |
+| [wasl]         | [![wasl-status]][wasl] | The web application specification language used by the [graphscript] library       |
+| [editor]         | [![editor-status]][editor] | A low-code editor for brainsatplay applications.       |
+| [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Uniformly acquire real-time data with available browser APIs.                       |
+| [tinybuild]     | [![tinybuild-status]][tinybuild]                   | Custom build tool for web applications.     
+
 ## Audience
 This documentation is written for **programmers who care about the agency of their users**. We assume that you can read JavaScript code—as all of the examples here are written for the browser (specifically the latest Chromium browsers) or Node.js. Other than that basic background, we try to present all the concepts you will need to use `brainsatplay`.
+
+[brainsatplay]: https://github.com/brainsatplay/brainsatplay
+[brainsatplay-status]: https://img.shields.io/npm/v/brainsatplay
+
+<!-- Specification Language -->
+[wasl]: https://github.com/brainsatplay/wasl
+[wasl-status]: https://img.shields.io/npm/v/wasl
+
+<!-- Core Library-->
+[graphscript]: https://github.com/brainsatplay/graphscript
+[graphscript-status]: https://img.shields.io/npm/v/graphscript
+
+<!-- Integrated Editor-->
+[editor]: https://github.com/brainsatplay/editor
+[editor-status]: https://img.shields.io/npm/v/brainsatplay-editor
+
+<!-- Low Code Programming System-->
+[visualscript]: https://github.com/brainsatplay/visualscript
+[visualscript-status]: https://img.shields.io/npm/v/visualscript
+
+
+<!-- Data Acquisition-->
+[datastreams-api]: https://github.com/brainsatplay/datastreams-api
+[datastreams-api-status]: https://img.shields.io/npm/v/datastreams-api.svg
+
+<!-- Build Tool-->
+[tinybuild]: https://github.com/brainsatplay/tinybuild
+[tinybuild-status]: https://img.shields.io/npm/v/tinybuild
