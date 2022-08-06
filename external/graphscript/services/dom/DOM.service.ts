@@ -36,10 +36,9 @@ export class DOMService extends Service {
     //routes denote paths and properties callable across interfaces and inherited by parent services (adding the service name in the 
     // front of the route like 'http/createServer'.
     loadDefaultRoutes = false; //load default routes?
-    name:string=`dom${Math.floor(Math.random()*1000000000000000)}`;
     keepState:boolean = true; //routes that don't trigger the graph on receive can still set state
     parentNode:HTMLElement=document.body; //default parent elements for elements added
-
+    name:string;
     
 
     customRoutes:ServiceOptions["customRoutes"] = {
@@ -75,8 +74,7 @@ export class DOMService extends Service {
     }
 
     constructor(options?:ServiceOptions,parentNode?:HTMLElement) {
-            super({props:options.props,name:options.name});
-
+            super({props:options.props,name:options.name ? options.name : `dom${Math.floor(Math.random()*1000000000000000)}`});
             if(parentNode instanceof HTMLElement) this.parentNode = parentNode;
             else if(options.parentNode instanceof HTMLElement) this.parentNode = parentNode;
 
@@ -145,6 +143,11 @@ export class DOMService extends Service {
         }
 
         this.elements[options.id] = {element:elm, node, parentNode: (options as CompleteOptions).parentNode, divs};
+        
+        if(!node.ondelete) node.ondelete = (node) => { 
+            elm.remove(); 
+            if(options.onremove) options.onremove(elm, this.elements[options.id]); 
+        } //in this case we need to remove the element from the dom via the node and run callbacks here due to elements lacking an 'onremove' event
 
         if(options.onresize) {
             let onresize = options.onresize;
@@ -238,9 +241,9 @@ export class DOMService extends Service {
                 onresize(self, options as DOMElementInfo);
             }
         }
-        if(options.ondelete) {
-            let ondelete = options.ondelete;
-            (options.ondelete as any) = (self:DOMElement) => {
+        if(options.onremove) {
+            let ondelete = options.onremove;
+            (options.onremove as any) = (self:DOMElement) => {
                 ondelete(self, options as DOMElementInfo);
             }
         }
@@ -258,7 +261,7 @@ export class DOMService extends Service {
             template = options.template as any;
             oncreate = options.onrender;
             onresize = options.onresize;
-            ondelete = options.ondelete;
+            ondelete = options.onremove;
             renderonchanged = options.renderonchanged as any;
         }
 
@@ -306,6 +309,8 @@ export class DOMService extends Service {
                 this
             );
         }
+
+        if(!node.ondelete) node.ondelete = (node) => { (elm as DOMElement).delete(); }
 
         (elm as any).node = node; //self.node references the graphnode on the div now
 
@@ -358,8 +363,8 @@ export class DOMService extends Service {
             }
         }
         if(options.ondelete) {
-            let ondelete = options.ondelete;
-            (options.ondelete as any) = (self:DOMElement) => {
+            let ondelete = options.onremove;
+            (options.onremove as any) = (self:DOMElement) => {
                 ondelete(self, options as any);
             }
         }
@@ -377,7 +382,7 @@ export class DOMService extends Service {
             template = options.template;
             oncreate = options.onrender;
             onresize = options.onresize;
-            ondelete = options.ondelete;
+            ondelete = options.onremove;
             renderonchanged = options.renderonchanged as any;
         }
 
@@ -429,6 +434,8 @@ export class DOMService extends Service {
         }
 
         (elm as any).node = node; //self.node references the graphnode on the div now
+
+        if(!node.ondelete) node.ondelete = (node) => { (elm as DOMElement).delete(); }
 
         let canvas = elm.querySelector('canvas');
         if(completeOptions.style) Object.assign(canvas.style,completeOptions.style); //assign the style object

@@ -67,13 +67,14 @@ export class Service extends Graph {
     // front of the route like 'http/createServer'.
     routes:Routes={}
     loadDefaultRoutes = false;
-    name:string=`service${Math.floor(Math.random()*100000000000000)}`;
     keepState:boolean = true; //routes that don't trigger the graph on receive can still set state
     firstLoad = true;
 
     constructor(options:ServiceOptions={}) {
-        super(undefined,options.name,options.props);
+        super(undefined,options.name ? options.name : `service${Math.floor(Math.random()*100000000000000)}`,options.props);
         if(options.name) this.name = options.name;
+        else options.name = this.tag;
+        
         if(options.routes || Object.keys(this.routes).length > 0) this.init(options);
     }
 

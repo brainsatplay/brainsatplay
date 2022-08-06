@@ -36,7 +36,7 @@ export type ComponentOptions = GraphNodeProperties & {
     useShadow?:boolean, //use the shadow root for style/html nesting? breaks document.querySelector...
     onrender?:(self:DOMElement,info?:DOMElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:DOMElementInfo)=>void,
-    ondelete?:(self:DOMElement,info?:DOMElementInfo)=>void,
+    onremove?:(self:DOMElement,info?:DOMElementInfo)=>void,
     onchanged?:(props:any)=>void,
     renderonchanged?:boolean|((self:DOMElement,info:DOMElementInfo)=>void), //set true to auto refresh the element render (it re-appends a new fragment in its container)
     props?:{[key:string]:any},

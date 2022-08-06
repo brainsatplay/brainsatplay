@@ -16,7 +16,7 @@ export type CanvasElementProps = GraphNodeProperties & {
     height?:string, //e.g. '300px'
     onrender?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:CanvasElementInfo)=>void,
-    ondelete?:(self:DOMElement,info?:CanvasElementInfo)=>void,
+    onremove?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     renderonchanged?:boolean|((self:DOMElement,info?:CanvasElementInfo)=>void),
     children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},
 } 
@@ -49,7 +49,7 @@ export type CanvasOptions = {
     styles?:string, //stylesheet text, goes inside a <style> tag. This will use the shadow DOM automatically in this case
     onrender?:(self:DOMElement,info?:CanvasElementInfo)=>void, //use self.querySelector to select nested elements without worrying about the rest of the page.
     onresize?:(self:DOMElement,info?:CanvasElementInfo)=>void,
-    ondelete?:(self:DOMElement,info?:CanvasElementInfo)=>void,
+    onremove?:(self:DOMElement,info?:CanvasElementInfo)=>void,
     onchanged?:(props:any)=>void,
     renderonchanged?:boolean|((self:DOMElement,info?:CanvasElementInfo)=>void),
     props?:{[key:string]:any},

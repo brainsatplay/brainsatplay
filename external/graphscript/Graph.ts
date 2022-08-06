@@ -133,8 +133,9 @@ export type GraphNodeProperties = {
     loop?:false|number, //milliseconds or false, run the operation on a loop?
     animation?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
     looper?: OperatorType, //if it outputs something not undefined it will trigger parent/child operators
-    oncreate?:(self:GraphNode|any,...args:any[])=>void //do something after _initializing the node, if loaded in a graph it only runs after setTree
-    DEBUGNODE?:boolean // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
+    oncreate?:(self:GraphNode|any,...args:any[])=>void, //do something after _initializing the node, if loaded in a graph it only runs after setTree
+    ondelete?:(self:GraphNode|any,...args:any[])=>void, //do something after deleting the node
+    DEBUGNODE?:boolean, // print a console.time and the result for a node by tag, run DEBUGNODES on a GraphNode or Graph to toggle debug on all attached nodes.
     [key:string]:any //add whatever variables and utilities
 }; //can specify properties of the element which can be subscribed to for changes.
 
@@ -852,6 +853,8 @@ export class GraphNode {
             this.nodes.forEach((n:GraphNode) => {
                 if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
             }); 
+            
+            if(node.ondelete) node.ondelete(node);
         }
     }
     
@@ -958,8 +961,10 @@ export class GraphNode {
     removeTree = (node:GraphNode|string) => { //stop and dereference nodes to garbage collect them
         if(node)if(typeof node === 'string') node = this.nodes.get(node);
         if(node instanceof GraphNode) {
+            let checked = {};
             const recursivelyRemove = (node) => {
-                if(typeof node.children === 'object') {
+                if(typeof node.children === 'object' && !checked[node.tag]) {
+                    checked[node.tag] = true;
                     for(const key in node.children) {
                         if(node.children[key].stopNode) node.children[key].stopNode();
                             if(node.children[key].tag) {
@@ -986,6 +991,7 @@ export class GraphNode {
                 });
                 recursivelyRemove(node);
                 if(this.graph) this.graph.removeTree(node); //remove from parent graph too 
+                else if(node.ondelete) node.ondelete(node);
             }
         }
     }
@@ -1322,8 +1328,10 @@ export class Graph {
     removeTree = (node:string|GraphNode) => {
         if(typeof node === 'string') node = this.nodes.get(node);
         if(node instanceof GraphNode) {
+            let checked = {};
             const recursivelyRemove = (node:GraphNode) => {
-                if(node.children) {
+                if(node.children && !checked[node.tag]) {
+                    checked[node.tag] = true;
                     if(Array.isArray(node.children)) {
                         node.children.forEach((c)=>{
                             if(c.stopNode) c.stopNode();
@@ -1357,13 +1365,14 @@ export class Graph {
                 this.nNodes = this.nodes.size;
                 recursivelyRemove(node as GraphNode);
             }
+            if(node.ondelete) node.ondelete(node);
         }
         return node;
     }
 
     remove = (node:string|GraphNode) => {
         if(typeof node === 'string') node = this.nodes.get(node);
-        if((node as GraphNode)?.tag) {
+        if(node instanceof GraphNode) {
             (node as GraphNode).stopNode();
             if((node as GraphNode)?.tag) {
                 if(this.nodes.get((node as GraphNode).tag)) 
@@ -1374,8 +1383,8 @@ export class Graph {
                         if(n.nodes.get((node as GraphNode).tag)) n.nodes.delete((node as GraphNode).tag);
                     });
                 }
-
             }
+            if(node.ondelete) node.ondelete(node);
         }
         return node;
     }

@@ -33,7 +33,7 @@ export type ElementOptions = GraphNodeProperties & {
     parentNode?:string|HTMLElement,
     onrender?:(self:HTMLElement,info:ElementInfo)=>void,
     onresize?:(ev,self:HTMLElement,info:ElementInfo)=>void,
-    ondelete?:(self:HTMLElement,info:ElementInfo)=>void,
+    onremove?:(self:HTMLElement,info:ElementInfo)=>void,
     innerText?:string,
     innerHTML?:string,
     children?:{[key:string]:string|boolean|undefined|GraphNodeProperties|GraphNode|Graph|DOMElementProps|ElementProps|CanvasElementProps},

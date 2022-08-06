@@ -3,8 +3,8 @@ sidebar_position: 1
 title: Introduction
 ---
 # Introduction
-## Brains@Play Explained
-`brainsatplay` is a rapid application design (RAD) framework for assembling interactive, high-performance web applications. This follows a datastream programming paradigm, which models a program as a directed graph of the data flowing between operations, to provides the following advantages: 
+## A New Way to Compose the Web
+`brainsatplay` is a rapid application design (RAD) framework for composing interactive, high-performance web applications. This follows a datastream programming paradigm, which models a program as a directed graph of the data flowing between operations, to provides the following advantages: 
 1. An operation runs as soon as all of its inputs become valid. Thus, this paradigm is inherently parallel and can work well in large, decentralized systems.
 2. The task of maintaining state is removed from the programmer and given to the runtime.
 3. Various transport protocols can be used to carry messages.

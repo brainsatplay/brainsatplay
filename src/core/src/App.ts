@@ -21,7 +21,7 @@ export default class App {
     package: {
         main: string
     }
-    info: AppAPI;
+    info: AppAPI; // Original information about the graph
     remote: boolean = false
 
     packagePath = '/package.json'
@@ -267,7 +267,6 @@ export default class App {
                 routes: this.tree,
             }, this.parentNode)
 
-            console.log('graph', this.graph.name, this.name)
 
             // Load Graph into Router + Run (if not nested)
             if (!this.isNested) {
