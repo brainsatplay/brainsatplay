@@ -83,13 +83,20 @@ export default class App {
         } else console.warn('no info specified.')
     }
 
+    checkJSONConversionAll = (info) => {
+        const appMetadata = info['.brainsatplay']
+        for (let key in info['.brainsatplay']) appMetadata[key] = this.checkJSONConversion(appMetadata[key])
+
+        for (let key in info) {
+            if (key === '.brainsatplay') {
+                for (let key in info['.brainsatplay']) appMetadata[key] = this.checkJSONConversion(appMetadata[key])
+            } else if (typeof info[key] === 'object') this.checkJSONConversionAll(info[key])
+        }
+    }
+
     setInfo = (info: InputType) => {
         this.info = Object.assign({}, info)
-
-        const appMetadata = this.info['.brainsatplay']
-        for (let key in appMetadata) {
-            appMetadata[key] = this.checkJSONConversion(appMetadata[key])
-        }
+        this.checkJSONConversionAll(this.info)
 
         // Set Plugins
         const pluginsObject = {}
