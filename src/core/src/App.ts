@@ -43,6 +43,39 @@ export default class App {
     animated: { [key: string]: Graph }
     compile: () => void
 
+
+    // Return Active WASL Information
+    // TODO: Support src: string rather than grabbing from info via keys
+    get wasl() {
+        const wasl = this.info['.brainsatplay'].graph
+        const info = this.info
+
+        // merge wasl graph with src information
+        const mergeWASLWithInfo = (wasl, info) => {
+
+            // merge basic graph with src information
+            for (let key in wasl.nodes) {
+                wasl.nodes[key] = Object.assign({}, wasl.nodes[key])
+                const src = wasl.nodes[key].src
+                if (!src || typeof src != 'object') {
+                    if (info[key] && '.brainsatplay' in info[key])  {
+                        const newWASL = info[key]['.brainsatplay'].graph
+                        wasl.nodes[key].src = newWASL
+                        mergeWASLWithInfo(newWASL, info[key]) // catch nested graphs
+                    } else {
+                        const [classId, _] = key.split('_')
+                        wasl.nodes[key].src = (info) ? info[classId] : {} // replace with plugin information
+                    }
+                }
+            }
+        }
+
+        mergeWASLWithInfo(wasl, info)
+
+        return wasl
+    }
+
+
     constructor(input?: InputType, options: AppOptions = {}) {
 
         this.debug = options.debug
