@@ -34,7 +34,7 @@ export function getFnParamInfo(fn):Map<string, any>{
 
         try {
             if (name) info.set(name,  {
-              default: (0, eval)(`(${value})`),
+              state: (0, eval)(`(${value})`),
               spread
             })
         } catch (e) {
@@ -472,7 +472,7 @@ export class GraphNode {
 
             if (this.arguments){
                 params.forEach((o, k) => {
-                    if (!this.arguments.has(k)) this.arguments.set(k, o.default)
+                    if (!this.arguments.has(k)) this.arguments.set(k, o.state)
                 })
             }
         }// else console.log(operator.toString())
