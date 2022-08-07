@@ -117,14 +117,18 @@ export default class App {
     }
 
     checkJSONConversionAll = (info) => {
-        const appMetadata = info['.brainsatplay']
-        for (let key in info['.brainsatplay']) appMetadata[key] = this.checkJSONConversion(appMetadata[key])
-
         for (let key in info) {
-            if (key === '.brainsatplay') {
-                for (let key in info['.brainsatplay']) appMetadata[key] = this.checkJSONConversion(appMetadata[key])
-            } else if (typeof info[key] === 'object') this.checkJSONConversionAll(info[key])
-        }
+
+            if (key === ".brainsatplay") {
+              for (let innerKey in info[".brainsatplay"]) info[".brainsatplay"][innerKey] = this.checkJSONConversion(info[".brainsatplay"][innerKey]);
+            } else if (
+              info[key] && // exists
+              typeof info[key] === "object" && // is an object
+              info[key]?.constructor?.name === 'Object' // is a bare object
+              ){
+              this.checkJSONConversionAll(info[key]);
+            }
+          }
     }
 
     setInfo = (info: InputType) => {

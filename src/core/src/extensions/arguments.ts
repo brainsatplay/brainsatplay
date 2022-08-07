@@ -13,12 +13,13 @@ const ArgumentGraphExtension = {
       let operatorArgs = getFnParamInfo(treeEntry.operator);
       if (treeEntry.arguments) {
         for (let key in treeEntry.arguments) {
-          operatorArgs.set(key, treeEntry.arguments[key]);
+          const o = operatorArgs.get(key)
+          o.state = treeEntry.arguments[key]
         }
       }
       if (operatorArgs === undefined) {
         operatorArgs = new Map()
-        operatorArgs.set("trigger", void 0);
+        operatorArgs.set("trigger", {});
       }
 
 
@@ -38,7 +39,8 @@ const ArgumentGraphExtension = {
         instanceTree[arg] = {
           tag: arg,
           operator: (input) => {
-            operatorArgs.set(arg, input);
+            const o = operatorArgs.get(arg)
+            o.state = input
             if (i === 0) {
               const nodeToRun = app.router.routes[`${app.graph.name}.${treeEntry.tag}`];
               return nodeToRun.run();
@@ -54,12 +56,12 @@ const ArgumentGraphExtension = {
   
         let updatedArgs = [];
         let i = 0;
-        operatorArgs.forEach((v, k) => {
-          const isSpread = k.includes("...");
-          const currentArg = isSpread ? args.slice(i) : args[i];
-          let update = currentArg !== void 0 ? currentArg : v;
-          operatorArgs.set(k, update);
-          if (!isSpread)
+        operatorArgs.forEach((o, k) => {
+          const argO = operatorArgs.get(k)
+          const currentArg = argO.spread ? args.slice(i) : args[i];
+          let update = currentArg !== void 0 ? currentArg : o.state;
+          argO.state = update
+          if (!argO.spread)
             update = [update];
           updatedArgs.push(...update);
           i++;

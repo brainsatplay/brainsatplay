@@ -18,7 +18,10 @@ export default class EditableApp {
     debug: boolean = false
     options: EditableAppOptions = {
         ignore: ['.DS_Store', '.git'],
-        debug: false
+        debug: false,
+        forceSave: [
+            '.brainsatplay'
+        ]
     }
 
     packagePath = '/package.json'
@@ -69,7 +72,10 @@ export default class EditableApp {
         let clonedOptions = Object.assign({}, options)
         let system = new freerange.System(input, clonedOptions)
 
-        return await system.init().then(() => system).catch(() => undefined)
+        return await system.init().then(() => system).catch((e) => {
+            console.warn('system init failed', e)
+            return undefined
+        })
     }
 
     setParent = (parentNode) => {
@@ -78,10 +84,11 @@ export default class EditableApp {
         } else console.warn('Input is not a valid HTML element', parentNode)
     }
 
-    start = async (input = this.filesystem) => {
+    start = async (input) => {
         this.filesystem = input
-        await this.stop() 
         const system = await this.createFilesystem(input)
+        await this.stop() 
+
         this.active = new App(undefined, this.options)
 
         // Compile From Filesystem

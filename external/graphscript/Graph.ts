@@ -29,11 +29,16 @@ export function getFnParamInfo(fn):Map<string, any>{
         let [name, value] = v.split('=')
         name = name.trim()
         name = name.replace(/\d+$/, ""); // Account for bundling. RULE: No trailing numbers in argument names
+        const spread = name.includes('...')
+        name = name.replace("...", ""); // Remove spread operator
 
         try {
-            if (name) info.set(name,  (0, eval)(`(${value})`))
+            if (name) info.set(name,  {
+              default: (0, eval)(`(${value})`),
+              spread
+            })
         } catch (e) {
-            info.set(name,  undefined)
+            info.set(name,  {})
             console.warn(`Argument ${name} could be parsed for`, fn.toString());
         }
     })
@@ -466,8 +471,8 @@ export class GraphNode {
                 })
 
             if (this.arguments){
-                params.forEach((v, k) => {
-                    if (!this.arguments.has(k)) this.arguments.set(k, v)
+                params.forEach((o, k) => {
+                    if (!this.arguments.has(k)) this.arguments.set(k, o.default)
                 })
             }
         }// else console.log(operator.toString())

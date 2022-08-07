@@ -30,7 +30,8 @@ export type AssertType = 'json' | 'text'
 
 
 export type EditableAppOptions =  {
-    ignore?: string[]
+    ignore?: string[], // files to ignore
+    save?: string[] // files to always save
 } & AppOptions
 
 export type AppOptions =  {
