@@ -43,7 +43,7 @@ export default class Plugins {
     } = regexp as any
 
 
-    constructor(source:string | freerange.System ='https://raw.githubusercontent.com/brainsatplay/awesome-brainsatplay/main/plugins.js') {
+    constructor(source:string | freerange.System ='https://raw.githubusercontent.com/brainsatplay/plugins/index.js') {
         if (typeof source === 'string') this.source = source
         else {
             this.source = source.name
