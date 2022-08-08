@@ -19,7 +19,7 @@ export default class EditableApp {
     options: EditableAppOptions = {
         ignore: ['.DS_Store', '.git'],
         debug: false,
-        forceSave: [
+        autosync: [
             '.brainsatplay'
         ]
     }
