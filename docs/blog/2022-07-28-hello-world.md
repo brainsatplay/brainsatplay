@@ -10,10 +10,10 @@ image: https://i.imgur.com/mErPwqL.png
 hide_table_of_contents: false
 ---
 
-Welcome to this blog. This blog is created with [**Docusaurus 2**](https://docusaurus.io/).
+citizens of the internet,
 
-<!--truncate-->
+for too long, you have been considered passive consumers of the world wide web. join us to take back the original mission: to make the internet accessible to everyone.
 
-This is my first post.
+we are hosting a community application at https://brainsatplay.com. explore it. copy it. edit it. show us what you can do. 
 
-A whole bunch of exploration to follow.
+garrett flynn and josh brewster

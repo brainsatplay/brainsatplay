@@ -3,13 +3,21 @@ sidebar_position: 1
 title: Introduction
 ---
 # Introduction
-## A New Way to Compose the Web
-`brainsatplay` is a rapid application design (RAD) framework for composing interactive, high-performance web applications. This follows a datastream programming paradigm, which models a program as a directed graph of the data flowing between operations, to provides the following advantages: 
+## A Better Way to Compose the Web
+`brainsatplay` is a rapid application design (RAD) framework for composing interactive, high-performance web applications. 
+
+:::note
+
+**TL;DR:** We have chosen to standardize our usage of ES Modules to create a huge collection of copyleft (AGPL) building blocks to re-compose the Web.
+
+:::
+
+It follows a datastream programming paradigm, which models a program as a directed graph of the data flowing between operations, to provides the following advantages: 
 1. An operation runs as soon as all of its inputs become valid. Thus, this paradigm is inherently parallel and can work well in large, decentralized systems.
 2. The task of maintaining state is removed from the programmer and given to the runtime.
 3. Various transport protocols can be used to carry messages.
 
-Our framework is composed of several libraries that we intend to grow into a software ecosystem for open-source scientific application development on the Open Web: 
+While this framework was initially designed to re-envision physiological computing education, we intend to grow its [component libraries](#architecture-at-a-glance) into a software ecosystem for open-source scientific application development on the Open Web.
 
 :::note
 
@@ -18,16 +26,23 @@ This framework is [AGPLv3](https://www.gnu.org/licenses/agpl-3.0.en.html) and ma
 :::
 
 ## How It Began
-We took the latest latest APIs for data acquisition (e.g. Web Bluetooth, Web Serial, etc.) and developed a way to process and forward data as fast as possible. 
+With the release of ECMAScript 2015 (ES6) in 2015, ECMAScript Modules (ES Modules) became the standard format to package JavaScript code for reuse and provide modularity to the Web. 
 
-We believe that physiological signals represent the next frontier of interactive programming—beyond traditional events such as mouse movements and button presses.
+```javascript
+import hello from './world'
+hello()
+```
+
+The release of Firefox 60 (May 2018) marked its support in all major browsers. And Node.js 14 (April 2021) finally made these capabilities stable for server-side code. But had anything really changed about reuse?
+
+Working with browser-based physiological computing systems at this time, Joshua Brewster and Garrett Flynn designed a way to use modularity to compose Web applications as graphs. Then they took the latest latest APIs for data acquisition (e.g. Web Bluetooth, Web Serial, etc.) and developed a way to process and forward data as fast as possible. 
 
 ## Playing with Code
 `brainstplay` embodies our desire to support the joy of developers as they create high-performance code. It encompasses many different goals including **first-class TypeScript support**, a focus on **inspectability and interactivity**, and **accessibility** for use by everyone with a brain. 
 
 More generally, `brainsatplay` refers to the culture of rapid prototyping that permeates the project by extending functionality from simple components rather than adding unneccesary complexity.
 
-## Architecture
+## Architecture at a Glance
 `brainsatplay` uses the [Web Application Specification Language (wasl)](./guides/libraries/wasl) to construct high-performance applications in [graphscript](./guides/libraries/graphscript). The underlying `wasl` configuration can then be visualized using [visualscript](./guides/libraries/visualscript) and constructed alongside `brainsatplay` plugins using our [editor](./guides/libraries/editor).
 
 | Library               | Status                                                       | Description                                             |

@@ -1,6 +1,5 @@
 # brainsatplay
-[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/brainsatplay/awesome-brainsatplay)
-[![Discord](https://img.shields.io/[](src/core/dist)badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
+[![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
 `brainsatplay` is a framework for quickly assembling interactive, high-performance web applications.
 
@@ -11,7 +10,7 @@
 
 ⚡ **Performant:** High-performance event-based logic using the [graphscript] library.
 
-🌐 **Social:** Derivative plugins can be published as NPM packages and registered on the [awesome-brainsatplay] library to be shared with the world.
+🌐 **Social:** Derivative plugins can be published as NPM packages and registered on the [plugins] library to be shared with the world.
 
 📜 **Radically Open:** This library is licensed under the AGPL license. All derivatives are also free and open-source software!
 
@@ -52,10 +51,10 @@ Information about the plugin is jointly specified by the closest `package.json` 
 📡 **Backend Support:** Edit workspaces running in Node.js, local or the cloud.
 
 ## Contributing Guidelines
-If you've created a plugin for [brainsatplay], make sure to link to the source `package.json` file with a pull request to [awesome-brainsatplay].
+If you've created a plugin for [brainsatplay], make sure to link to the source `package.json` file with a pull request to [plugins].
 
 [brainsatplay]: https://github.com/brainsatplay/brainsatplay
-[awesome-brainsatplay]: https://github.com/brainsatplay/awesome-brainsatplay
+[plugins]: https://github.com/brainsatplay/plugins
 [graphscript]: https://github.com/brainsatplay/graphscript
 [visualscript]: https://github.com/brainsatplay/visualscript
 [editor]: https://github.com/brainsatplay/editor

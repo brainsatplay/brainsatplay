@@ -1,8 +1,7 @@
 # brainsatplay
-[![Awesome](https://awesome.re/badge-flat2.svg)](https://github.com/brainsatplay/awesome-brainsatplay)
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-[brainsatplay] is a framework for quickly assembling interactive, high-performance web applications, intended to grow **an ecosystem of AGPL software infrastructure for open-source scientific application development** on the Open Web. 
+[brainsatplay] is a rapid application design (RAD) framework for composing interactive, high-performance web applications, intended to cultivate **an ecosystem of AGPL software infrastructure for open-source scientific application development** on the Open Web. 
 
 > If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
 
@@ -10,7 +9,7 @@
 Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application!
 
 ## Framework Libraries
-Below are the core repositories of the [brainsatplay] framework. Check out the [awesome-brainsatplay](https://github.com/awesome-brainsatplay) repository to see everything created by our community!
+Below are the core repositories of the [brainsatplay] framework. Check out the [plugins](https://github.com/plugins) repository to see everything created by our community!
 
 | Library               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
