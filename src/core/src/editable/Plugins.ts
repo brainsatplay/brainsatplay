@@ -3,17 +3,6 @@ import * as utils from '../utils'
 
 const base = '.brainsatplay'
 
-const suffixes = {
-    metadata: 'metadata.json',
-    graph: 'graph.json',
-    plugins: 'plugins.json'
-}
-
-const regexp = {}
- Object.keys(suffixes).forEach(k => {
-    regexp[k] = new RegExp(`${base}/(.+).${suffixes[k]}`, 'g')
-})
-
 
 export default class Plugins {
 
@@ -35,12 +24,7 @@ export default class Plugins {
 
     // Expected File Organization
     base = base
-    suffixes = suffixes
-    regexp :{
-        metadata: RegExp,
-        graph: RegExp,
-        plugins: RegExp
-    } = regexp as any
+    regexp : RegExp = new RegExp(`(.+).wasl`, 'g')
 
 
     constructor(source:string | freerange.System ='https://raw.githubusercontent.com/brainsatplay/plugins/index.js') {
@@ -192,14 +176,15 @@ export default class Plugins {
         return base.split('/').filter(v => v != '').join('/')
     } 
 
-    path = (path, type='metadata') => {
-        if (this.regexp[type].test(path)) return path
+    path = (path) => {
+        console.log('path', path, path.match(this.regexp))
+        if (this.regexp.test(path)) return path
         else {
             const splitPath = path.split('/')
             const fullFileName = splitPath.pop()
             if (fullFileName){
                 const filePrefix = fullFileName.split('.').at(-2)
-                return  `${splitPath.join('/')}/${this.base}/${filePrefix}.${this.suffixes[type]}`
+                return  `${splitPath.join('/')}/${this.base}/${filePrefix}.wasl`
             } else {
                 console.warn('Something went wrong...')
                 return path
@@ -214,7 +199,7 @@ export default class Plugins {
 
         // Convert Metadata Path to Module
         let isMetadata = false
-        const match = path.match(this.regexp.metadata)?.[0]
+        const match = path.match(this.regexp)?.[0]
         if (match){
             name = name.replace(match,`${match.split('/').at(-1).split('.')[0]}.js`)
             isMetadata = true

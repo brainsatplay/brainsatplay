@@ -11,7 +11,7 @@ export type EdgeInfo = [string, string]
 
 export type AppAPI = {
     [x:string]: any,
-    ['.brainsatplay']: {
+    default: {
         package?: AnyObj<any>
         graph: {
             nodes: NodeInfo[],

@@ -2,8 +2,10 @@ import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
 // import appInfo from '../../../htil/content/phaser/index.js'
-import appInfo from '../../../brainsatplay-starter-kit/index.js'
+import * as appInfo from '../../../brainsatplay-starter-kit/index.js'
 const method = 'local'
+
+console.log('App Info', appInfo)
 
 let app: brainsatplay.App | brainsatplay.editable.App
 // ------------------- Method #1: Dynamic Import (package.json) -------------------

@@ -20,7 +20,7 @@ export default class EditableApp {
         ignore: ['.DS_Store', '.git'],
         debug: false,
         autosync: [
-            '.brainsatplay'
+            '*.wasl'
         ]
     }
 

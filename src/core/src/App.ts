@@ -25,7 +25,6 @@ export default class App {
     remote: boolean = false
 
     packagePath = '/package.json'
-    graphPath = '/.brainsatplay/index.graph.json'
 
     ok = false
 
@@ -47,7 +46,7 @@ export default class App {
     // Return Active WASL Information
     // TODO: Support src: string rather than grabbing from info via keys
     get wasl() {
-        const wasl = this.info['.brainsatplay'].graph
+        const wasl = this.info.default.graph // always have a graph at the top-level
         const info = this.info
 
         // merge wasl graph with src information
@@ -58,8 +57,8 @@ export default class App {
                 wasl.nodes[key] = Object.assign({}, wasl.nodes[key])
                 const src = wasl.nodes[key].src
                 if (!src || typeof src != 'object') {
-                    if (info[key] && '.brainsatplay' in info[key])  {
-                        const newWASL = info[key]['.brainsatplay'].graph
+                    if (info[key] && this.isMetadata(info[key]))  {
+                        const newWASL = info[key].default.graph
                         wasl.nodes[key].src = newWASL
                         mergeWASLWithInfo(newWASL, info[key]) // catch nested graphs
                     } else {
@@ -116,11 +115,15 @@ export default class App {
         } else console.warn('no info specified.')
     }
 
+    isMetadata = (info, key='default') => {
+        return key === "default" && typeof info.default !== 'function'
+    }
+
     checkJSONConversionAll = (info) => {
         for (let key in info) {
 
-            if (key === ".brainsatplay") {
-              for (let innerKey in info[".brainsatplay"]) info[".brainsatplay"][innerKey] = this.checkJSONConversion(info[".brainsatplay"][innerKey]);
+            if (this.isMetadata(info, key)) {
+              for (let innerKey in info.default) info.default[innerKey] = this.checkJSONConversion(info.default[innerKey]);
             } else if (
               info[key] && // exists
               typeof info[key] === "object" && // is an object
@@ -138,16 +141,16 @@ export default class App {
         // Set Plugins
         const pluginsObject = {}
         for (let key in info) {
-            if (key !== '.brainsatplay') pluginsObject[key] = info[key]
+            if (!this.isMetadata(info, key)) pluginsObject[key] = info[key]
         }
         this.plugins = pluginsObject
         return this.plugins
     }
 
-    setTree = async (graph = this.info['.brainsatplay'].graph) => {
+    setTree = async (graph = this.info.default.graph) => {
         const tree: AnyObj<any> = {}
 
-        this.info['.brainsatplay'].graph = graph
+        this.info.default.graph = graph
         const nodes = Object.entries(graph.nodes ?? {})
         await Promise.all(nodes.map(async ([tag, info]) => {
             const [cls, id] = tag.split("_");
@@ -162,7 +165,7 @@ export default class App {
             }
 
             // Nest Inside Tree Notation
-            if (clsInfo['.brainsatplay']) {
+            if (this.isMetadata(clsInfo)) {
 
                 const app = this.nested[tag] = new App(clsInfo, {
                     name: tag, 
@@ -175,10 +178,10 @@ export default class App {
                 this.router.load(app.graph, false, true); // load nested graph into main router
 
                 // Run nested graph
-                if (app.info[".brainsatplay"].graph.ports) {
+                if (app.info.default.graph.ports) {
 
-                    let input = app.info['.brainsatplay'].graph.ports.input
-                    let output = app.info['.brainsatplay'].graph.ports.output
+                    let input = app.info.default.graph.ports.input
+                    let output = app.info.default.graph.ports.output
                     if (typeof input === 'string') input = { [input]: input }
                     if (typeof output === 'string') output = { [output]: output }
 
@@ -265,13 +268,13 @@ export default class App {
 
         if (!this.compile){
             if (!this.info) return false
-            else if (!this.info['.brainsatplay']) return false
+            else if (!this.isMetadata(this.info)) return false
         }
 
         // Manual Initialization
         if (this.compile instanceof Function) {
             if (!this.info) this.info = {
-                '.brainsatplay': {}
+                default: {}
             } as any
             await this.compile() // manually set properties
             return
@@ -282,7 +285,7 @@ export default class App {
 
             // Set package
             if (!this.package) {
-                const pkg = this.info['.brainsatplay'].package
+                const pkg = this.info.default.package
                 if (pkg) this.setPackage(pkg)
                 else console.error('No package.json has been included...')
             }
