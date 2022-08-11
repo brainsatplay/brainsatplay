@@ -1,12 +1,15 @@
 # brainsatplay
+Functional Building Blocks for the Web
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-[brainsatplay] is a rapid application design (RAD) framework for composing interactive, high-performance web applications, intended to cultivate **an ecosystem of AGPL software infrastructure for open-source scientific application development** on the Open Web. 
+[brainsatplay] is a rapid application design (RAD) framework for composing interactive, high-performance web applications, intended to cultivate **an ecosystem of copyleft software infrastructure for open-source application development** on the Open Web. 
 
 > If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
 
 ## Quickstart Guide
 Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application!
+
+> Full documentation for this framework is published at https://docs.brainsatplay.com.
 
 ## Framework Libraries
 Below are the core repositories of the [brainsatplay] framework. Check out the [plugins](https://github.com/plugins) repository to see everything created by our community!
@@ -23,7 +26,7 @@ Below are the core repositories of the [brainsatplay] framework. Check out the [
 
 ## Contents
 ### Documentation (docs)
-> Full documentation will be published at https://docs.brainsatplay.com.
+The documentation site for the `brainsatplay` framework.
 
 #### [Guides](./docs/docs/index.md)
 A comprehensive introduction to the Brains@Play ecosystem.

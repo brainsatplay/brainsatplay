@@ -1,59 +1,55 @@
 ---
 sidebar_position: 2
+title: Conventions
 ---
 
-## Glossary
-### Modules
-A **module** is an ESM file that contains a default export (Function) and named exports that are used to provide additional instructions about using the default export.
+##  Modules
+A **module** is an ESM file that contains one default export and named exports that are used to provide additional metadata about the usage of the former.
 
-::: note 
+:::info
 
-1. Default exports should be Functions
-2. Named exports should be modifiers for this function
-
-:::
-
-### Plugins
-A **plugin** is a collection of one or more **modules** indexed with a `package.json` file (for NPM distribution) and accompanied with an `index.wasl` file (to specify module assembly).
-
-::: note 
-
-1. The default export should be a `package` and a `graph` object
-2. Named exports should be imported modules
+1. **Any default export should be a function**—ideally stateless.
+2. **Named exports should be modifiers** for this function, consistent with the [WASL](../libraries/wasl/index.md) standard.
 
 :::
 
+```javascript title="hello.js"
+export default (message="world") => console.log(`hello ${message}!`)
+```
 
-#### Native vs. Encapsulated
-Native **plugins** contain all of their logic internally.
+## Plugins
+A **plugin** is specified by a `[name].wasl.json` file and accompanied by a `package.json` file, which may use its `main` field to specify an exposed library—composed of **modules**—for distribution on Node Package Manager (NPM).
+
+:::tip 
+
+When exposing the default export of each **module**, the exposed library functions will only work properly if **all functions are stateless** and don't require access to additional variables in the module files.
+
+:::
+
+### Native vs. Remix
+**Native plugins** contain all of their logic internally.
 
 ``` javascript
 // self-contained logic
-export default () => console.log('hello world')
+export default (message="world") => console.log(`hello ${message}!`)
 ```
 
-Encapsulated **plugins** warp existing NPM libraries.
+**Remix plugins** adapt existing NPM libraries by wrapping their essential classes and function calls.
 
 ``` javascript
 // external library usage
 import * as graphscript from 'https://cdn.jsdelivr.net/npm/graphscript/dist/index.esm.js'
 const graph = new graphscript.Graph({
-    operator: () => console.log('hello world')
+    operator: (message="world") => console.log(`hello ${message}!`)
 })
 
 // encapsulated library object
-export default () => graph.run()
+export default () => graph.run('world')
 ```
 
-#### NPM Compatibility
-We expect that users may want to publish their brainsatplay plugins to NPM. To do so, simply export the default functions to the file specified in the `main` field of your `package.json` file.
+## Graphs
+A **graph** is a connected set of **plugins** that pass messages between each other. 
 
-::: warning 
-
-These exports will only work properly if you've declared stateless functions that don't require end-users to access additional variables in the ESM file.
-
+:::info 
+Although specified in the WASL standard, these are *not* handled by the [wasl](../libraries/wasl/index.md) library itself. Instead, **graphs** are assembled by external libraries such as [graphscript](../libraries/graphscript/index.md).
 :::
-
-
-### Graphs
-A **graph** is an active set of plugins that pass messages between each other.

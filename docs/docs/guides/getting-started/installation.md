@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+title: Installation
 ---
 
 # Installation
@@ -16,7 +17,7 @@ To get started, import `brainsatplay` into your project:
 import * as brainsatplay from 'brainsatplay'
 ```
 
-#### Node
+#### Node.js
 ``` js
 const brainsatplay = require('brainsatplay')
 ```

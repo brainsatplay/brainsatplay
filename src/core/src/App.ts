@@ -143,7 +143,7 @@ export default class App {
                 
                 app.setParent(this.parentNode)
                 await app.start()
-                this.router.load(app.graph, false, true); // load nested graph into main router
+                this.router.load(app.graph, false, true, undefined, undefined, undefined); // load nested graph into main router
 
                 // Run nested graph
                 if (app.wasl.graph.ports) {
@@ -163,7 +163,7 @@ export default class App {
                                     resolve(res)
                                 })
 
-                                await Promise.all(Object.values(input).map(async (n) => {
+                                await Promise.all(Object.values(input).map(async (n:any) => {
                                     await app.graph.run(n, ...args)
                                 }))
 
@@ -282,7 +282,7 @@ export default class App {
             // Load Graph into Router + Run (if not nested)
             if (!this.isNested) {
 
-                this.router.load(this.graph, false, true);
+                this.router.load(this.graph, false, true, undefined, undefined, undefined);
 
                 // Run all nodes
                 this.graph.nodes.forEach(node => {
