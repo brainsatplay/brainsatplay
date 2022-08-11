@@ -24,8 +24,6 @@ export default class EditableApp {
         ]
     }
 
-    packagePath = '/package.json'
-
     // TODO: Actually inherit from the main App class...
     parentNode?: HTMLElement = document.body
 
@@ -49,7 +47,6 @@ export default class EditableApp {
             if (file) {
                 const main = await this.plugins.get(packageContents.main, 'module')
                 const mainGraph = await this.plugins.get(packageContents.main, 'graph')
-                this.active.setPackage(packageContents)
                 await this.active.setInfo(main)
                 await this.active.setTree(mainGraph)
             } else console.error('The "main" field in the supplied package.json is not pointing to an appropriate entrypoint.')
@@ -63,7 +60,7 @@ export default class EditableApp {
         // Correct input (if remote)
         try {
             new URL(input ?? '').href
-            input = this.join(input, this.packagePath)
+            input = this.join(input)
         } catch {
             
         }
@@ -85,7 +82,7 @@ export default class EditableApp {
     }
 
     start = async (input) => {
-        this.filesystem = input
+        if (typeof this.filesystem !== 'string') this.filesystem = input
         const system = await this.createFilesystem(input)
         await this.stop() 
 

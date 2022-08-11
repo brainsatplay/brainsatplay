@@ -1,30 +1,28 @@
+// Graphscript
 import { Graph, GraphNode } from '../../../external/graphscript/Graph'
 import { DOMService } from '../../../external/graphscript/services/dom/DOM.service'
 import { Router } from '../../../external/graphscript/routers/Router'
 
-import { AnyObj, AppAPI, AppOptions } from './types'
-import * as utils from './utils'
+// WASL
+import * as wasl from '../../../external/wasl/index.esm'
 
+// Internal Imports
+import { AnyObj, AppAPI, AppOptions, WASL, WASLLoadInput, WASLOptions } from './types'
+import * as utils from './utils'
 import extensions from './extensions'
 
 const scriptLocation = new Error().stack.match(/([^ \n])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0]
-
-type TreeType = any
-type InputType = AppAPI
-
 
 // Must be manually provided with app information
 export default class App {
 
     // App Location
     name: string
-    package: {
-        main: string
-    }
-    info: AppAPI; // Original information about the graph
+    wasl: any; // Original information about the graph
     remote: boolean = false
 
-    packagePath = '/package.json'
+    options: WASLOptions = {}
+
 
     ok = false
 
@@ -42,40 +40,7 @@ export default class App {
     animated: { [key: string]: Graph }
     compile: () => void
 
-
-    // Return Active WASL Information
-    // TODO: Support src: string rather than grabbing from info via keys
-    get wasl() {
-        const wasl = this.info.default.graph // always have a graph at the top-level
-        const info = this.info
-
-        // merge wasl graph with src information
-        const mergeWASLWithInfo = (wasl, info) => {
-
-            // merge basic graph with src information
-            for (let key in wasl.nodes) {
-                wasl.nodes[key] = Object.assign({}, wasl.nodes[key])
-                const src = wasl.nodes[key].src
-                if (!src || typeof src != 'object') {
-                    if (info[key] && this.isMetadata(info[key]))  {
-                        const newWASL = info[key].default.graph
-                        wasl.nodes[key].src = newWASL
-                        mergeWASLWithInfo(newWASL, info[key]) // catch nested graphs
-                    } else {
-                        const [classId, _] = key.split('_')
-                        wasl.nodes[key].src = (info) ? info[classId] : {} // replace with plugin information
-                    }
-                }
-            }
-        }
-
-        mergeWASLWithInfo(wasl, info)
-
-        return wasl
-    }
-
-
-    constructor(input?: InputType, options: AppOptions = {}) {
+    constructor(input?: WASLLoadInput, options: WASLOptions = {}) {
 
         this.debug = options.debug
 
@@ -85,7 +50,7 @@ export default class App {
             this.isNested = true
         } else this.router = new Router()
 
-        this.set(input, options.name)
+        this.wasl =this.set(input, options)
         this.graph = null
         this.animated = {}
     }
@@ -103,27 +68,30 @@ export default class App {
         }
     }
 
-    set = (input?: InputType, name?: string) => {
+    set = async (input?: WASLLoadInput, options: WASLOptions=this.options) => {
 
-        this.name = name ?? 'graph'
-        this.package = null
+        this.name = 'graph'
+        this.options = options
+
+        if (!input && this.wasl) input = await this.wasl // could be a promise initalized in the constructor...
 
         if (input){
-            this.plugins = this.setInfo(input)
+            const loaded = await wasl.load(input, options)
+            if (loaded.name) this.name = loaded.name
+
+            this.plugins = this.setInfo(loaded)
             this.ok = false
             this.tree = null
         } else console.warn('no info specified.')
-    }
 
-    isMetadata = (info, key='default') => {
-        return key === "default" && typeof info.default !== 'function'
+        return this.wasl
     }
 
     checkJSONConversionAll = (info) => {
         for (let key in info) {
 
-            if (this.isMetadata(info, key)) {
-              for (let innerKey in info.default) info.default[innerKey] = this.checkJSONConversion(info.default[innerKey]);
+            if (utils.isMetadata(info)) {
+                info.graph = this.checkJSONConversion(info.graph);
             } else if (
               info[key] && // exists
               typeof info[key] === "object" && // is an object
@@ -134,40 +102,40 @@ export default class App {
           }
     }
 
-    setInfo = (info: InputType) => {
-        this.info = Object.assign({}, info)
-        this.checkJSONConversionAll(this.info)
+    setInfo = (wasl: WASL) => {
+        this.wasl = wasl
+        this.checkJSONConversionAll(this.wasl)
 
         // Set Plugins
         const pluginsObject = {}
-        for (let key in info) {
-            if (!this.isMetadata(info, key)) pluginsObject[key] = info[key]
+        for (let key in wasl) {
+            if (!utils.isMetadata(wasl)) pluginsObject[key] = wasl[key]
         }
         this.plugins = pluginsObject
         return this.plugins
     }
 
-    setTree = async (graph = this.info.default.graph) => {
+    setTree = async (graph = this.wasl.graph) => {
         const tree: AnyObj<any> = {}
 
-        this.info.default.graph = graph
+        this.wasl.graph = graph
         const nodes = Object.entries(graph.nodes ?? {})
-        await Promise.all(nodes.map(async ([tag, info]) => {
-            const [cls, id] = tag.split("_");
+        await Promise.all(nodes.map(async (arr) => {
+            const tag = arr[0]
+            const info = arr[1] as any
 
-            // Shallow copy class info
-            const ogClsInfo = this.plugins[cls]
-            if (ogClsInfo) {
+            const src = info.src
 
-            const clsInfo = Object.assign({}, ogClsInfo) ?? {};  // still run without plugin
-            for (let key in clsInfo) {
-              if (typeof clsInfo[key] === 'object') clsInfo[key] = Object.assign({}, clsInfo[key])
+            // Copy Source Object for this Class Instance
+            const clsSrc = Object.assign({}, src) ?? {} as any;
+            for (let key in clsSrc) {
+              if (typeof clsSrc[key] === 'object') clsSrc[key] = Object.assign({}, clsSrc[key])
             }
 
             // Nest Inside Tree Notation
-            if (this.isMetadata(clsInfo)) {
+            if (utils.isMetadata(clsSrc)) {
 
-                const app = this.nested[tag] = new App(clsInfo, {
+                const app = this.nested[tag] = new App(clsSrc, {
                     name: tag, 
                     router: this.router,
                     debug: this.debug
@@ -178,16 +146,17 @@ export default class App {
                 this.router.load(app.graph, false, true); // load nested graph into main router
 
                 // Run nested graph
-                if (app.info.default.graph.ports) {
+                if (app.wasl.graph.ports) {
 
-                    let input = app.info.default.graph.ports.input
-                    let output = app.info.default.graph.ports.output
+                    let input = app.wasl.graph.ports.input
+                    let output = app.wasl.graph.ports.output
                     if (typeof input === 'string') input = { [input]: input }
                     if (typeof output === 'string') output = { [output]: output }
 
 
                     // Support for targeting nested graph with multiple inputs and outputs
                     app.graph.operator = async (...args) => {
+
                         for (let key in (output as AnyObj<string>)) {
                             return new Promise(async resolve => {
                                 const sub = app.graph.subscribe(output[key], (res) => {
@@ -207,13 +176,20 @@ export default class App {
                 tree[tag] = app.graph // new Service(app.graph.tree, tag) // tree as graph node
 
             } else {
-                clsInfo.tag = tag;
-                const properties = Object.assign(clsInfo, info);
-                const instance = extensions.arguments.transform(properties, this)
+
+                // transform for graphscript
+                info.tag = tag;
+                console.log(tag, info)
+                const flatInfo = Object.assign(Object.assign({}, info.src), info)
+                flatInfo.operator = flatInfo.default
+                delete flatInfo.src
+                const instance = extensions.arguments.transform(flatInfo, this)
+                delete flatInfo.default
+                
                 tree[tag] = instance
+
             }
-        } else console.warn(`No information found for the ${cls} plugin. Please export this from your main file.`)
-        }))
+    }))
 
         if (graph.edges) {
             for (let outputInfo in graph.edges) {
@@ -258,37 +234,24 @@ export default class App {
         return this.checkJSONConversion(await utils.importFromOrigin(src, scriptLocation, !this.remote, 'json'))
     }
 
-    setPackage = (pkg) => {
-        this.package = pkg
-    }
+    init = async (input?: WASLLoadInput, options: WASLOptions=this.options) => {
 
-    init = async (input?: InputType) => {
-        if (input) this.set(input)
-
+        await this.set(input, options)
 
         if (!this.compile){
-            if (!this.info) return false
-            else if (!this.isMetadata(this.info)) return false
+            if (!this.wasl) return false
+            else if (!utils.isMetadata(this.wasl)) return false
         }
 
         // Manual Initialization
         if (this.compile instanceof Function) {
-            if (!this.info) this.info = {
-                default: {}
-            } as any
+            if (!this.wasl) this.wasl = {graph: {}} as any
             await this.compile() // manually set properties
             return
         }
 
         // Automatic Initialization
         else {
-
-            // Set package
-            if (!this.package) {
-                const pkg = this.info.default.package
-                if (pkg) this.setPackage(pkg)
-                else console.error('No package.json has been included...')
-            }
 
             // Get Tree
             this.tree = await this.setTree()
@@ -303,9 +266,10 @@ export default class App {
     }
 
 
-    start = async (input?: InputType) => {
+    start = async (input?: WASLLoadInput, options?: WASLOptions) => {
         this.stop() // stop existing graph
-        await this.init(input)
+
+        await this.init(input, options)
 
         if (this.ok) {
 

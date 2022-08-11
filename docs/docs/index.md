@@ -35,7 +35,9 @@ hello()
 
 The release of Firefox 60 (May 2018) marked its support in all major browsers. And Node.js 14 (April 2021) finally made these capabilities stable for server-side code. But had anything really changed about reuse?
 
-Working with browser-based physiological computing systems at this time, Joshua Brewster and Garrett Flynn designed a way to use modularity to compose Web applications as graphs. Then they took the latest latest APIs for data acquisition (e.g. Web Bluetooth, Web Serial, etc.) and developed a way to process and forward data as fast as possible. 
+Package managers such as NPM and Yarn made the process of reusing code easier by  installing sub-dependencies, configuring your dependency tree, and much more. Yet since packages don't have a uniform structure, they aren't composable.
+
+Working with browser-based physiological computing systems at this time, Joshua Brewster and Garrett Flynn designed **a standard that combine ESM and JSON to specify composable Web plugins**. Then they took the latest latest APIs for data acquisition (e.g. Web Bluetooth, Web Serial, etc.) and developed a way to process and forward data in graphs as fast as possible. 
 
 ## Playing with Code
 `brainstplay` embodies our desire to support the joy of developers as they create high-performance code. It encompasses many different goals including **first-class TypeScript support**, a focus on **inspectability and interactivity**, and **accessibility** for use by everyone with a brain. 
@@ -43,17 +45,18 @@ Working with browser-based physiological computing systems at this time, Joshua 
 More generally, `brainsatplay` refers to the culture of rapid prototyping that permeates the project by extending functionality from simple components rather than adding unneccesary complexity.
 
 ## Architecture at a Glance
-`brainsatplay` uses the [Web Application Specification Language (wasl)](./guides/libraries/wasl) to construct high-performance applications in [graphscript](./guides/libraries/graphscript). The underlying `wasl` configuration can then be visualized using [visualscript](./guides/libraries/visualscript) and constructed alongside `brainsatplay` plugins using our [editor](./guides/libraries/editor).
+`brainsatplay` uses the [Web Application Specification Language (wasl)](./guides/libraries/wasl) to construct high-performance applications in [graphscript](./guides/libraries/graphscript). The underlying `wasl` configuration can then be visualized using [visualscript](./guides/libraries/visualscript) and extended with `brainsatplay` [plugins](https://github.com/brainsatplay/plugins) using our [editor](./guides/libraries/editor).
 
 | Library               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
-| [brainsatplay]         | [![brainsatplay-status]][brainsatplay] | An application synchronization library for [graphscript] and [visualscript].
-| [graphscript]         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
-| [visualscript]         | [![visualscript-status]][visualscript]  | A low-code programming system for [wasl] applications       |
-| [wasl]         | [![wasl-status]][wasl] | The web application specification language used by the [graphscript] library       |
 | [editor]         | [![editor-status]][editor] | A low-code editor for brainsatplay applications.       |
+| [wasl]         | [![wasl-status]][wasl] | The Web Application Specification Language, used by the [graphscript] and [visualscript] libraries to represent web apps.       |
+| [brainsatplay]         | [![brainsatplay-status]][brainsatplay] | A Module Management System (MMS) for [graphscript] applications.
+| [graphscript]         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
+| [visualscript]         | [![visualscript-status]][visualscript]  | A Web Component library for rapid prototyping of low-code programming systems using the [wasl] standard       |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Uniformly acquire real-time data with available browser APIs.                       |
 | [tinybuild]     | [![tinybuild-status]][tinybuild]                   | Custom build tool for web applications.     
+| [@brainsatplay/plugins]         | [![@brainsatplay/plugins-status]][plugins] | The official plugin registry for brainsatplay applications.
 
 ## Audience
 This documentation is written for **programmers who care about the agency of their users**. We assume that you can read JavaScript code—as all of the examples here are written for the browser (specifically the latest Chromium browsers) or Node.js. Other than that basic background, we try to present all the concepts you will need to use `brainsatplay`.
@@ -85,3 +88,7 @@ This documentation is written for **programmers who care about the agency of the
 <!-- Build Tool-->
 [tinybuild]: https://github.com/brainsatplay/tinybuild
 [tinybuild-status]: https://img.shields.io/npm/v/tinybuild
+
+<!-- Plugin Registry -->
+[@brainsatplay/plugins]: https://github.com/brainsatplay/plugins
+[@brainsatplay/plugins-status]: https://img.shields.io/npm/v/@brainsatplay/plugins

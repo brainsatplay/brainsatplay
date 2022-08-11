@@ -10,10 +10,12 @@ image: https://i.imgur.com/mErPwqL.png
 hide_table_of_contents: false
 ---
 
-citizens of the internet,
+Denizens of the Internet,
 
-for too long, you have been considered passive consumers of the world wide web. join us to take back the original mission: to make the internet accessible to everyone.
+For too long, you have been considered passive consumers of the World Wide Web. Since the development of the first web browser-editor ([WorldWideWeb / Nexus](https://www.w3.org/People/Berners-Lee/WorldWideWeb.html)) in 1990, the web has transitioned into a passive, constrained medium for transaction.
 
-we are hosting a community application at https://brainsatplay.com. explore it. copy it. edit it. show us what you can do. 
+Join us to reinvigorate its original mission: To make the internet accessible to everyone.
 
-garrett flynn and josh brewster
+We are hosting a community application at https://brainsatplay.com. This was designed on top of the Web Application Specification Language (WASL) to allow for the entire web to be architected as an indexable set of composable units.
+
+Explore it. Copy it. Remix it. Plagiarize it. Show us what you can do. 

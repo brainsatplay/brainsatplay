@@ -9,40 +9,41 @@ const ArgumentGraphExtension = {
     condition: (treeEntry) => {
         return !(treeEntry instanceof Graph) // run on all tree entries that aren't graphs
     },
-    transform: (treeEntry, app) => {
-      let operatorArgs = getFnParamInfo(treeEntry.operator);
-      if (treeEntry.arguments) {
-        for (let key in treeEntry.arguments) {
-          const o = operatorArgs.get(key)
-          o.state = treeEntry.arguments[key]
+    transform: (node, app) => {
+
+      let args = getFnParamInfo(node.default);
+      if (node.arguments) {
+        for (let key in node.arguments) {
+          const o = args.get(key)
+          o.state = node.arguments[key]
         }
       }
-      if (operatorArgs === undefined) {
-        operatorArgs = new Map()
-        operatorArgs.set("trigger", {});
+      if (args === undefined) {
+        args = new Map()
+        args.set("trigger", {});
       }
 
 
       // Find and Remove Restricted Names
-      let entries = Array.from(operatorArgs.entries())
+      let entries = Array.from(args.entries())
       const restrictedOne = ["self", "node"];
       const restrictedTwo = ["origin", "parent", "graph", "router"];
       const notRestrictedOne = entries.reduce((a,b) => a * (restrictedOne.includes(b[0]) ? 0 : 1), 1)
       const notRestrictedTwo = entries.reduce((a,b) => a * (restrictedTwo.includes(b[0]) ? 0 : 1), 1)
 
-      if (!notRestrictedOne) restrictedOne.forEach(k => operatorArgs.delete(k))
-      if (!notRestrictedTwo) restrictedTwo.forEach(k => operatorArgs.delete(k))
+      if (!notRestrictedOne) restrictedOne.forEach(k => args.delete(k))
+      if (!notRestrictedTwo) restrictedTwo.forEach(k => args.delete(k))
 
       // Create Instance Argument Tree
       const instanceTree = {};
-      Array.from(operatorArgs.entries()).forEach(([arg], i) => {
+      Array.from(args.entries()).forEach(([arg], i) => {
         instanceTree[arg] = {
           tag: arg,
           operator: (input) => {
-            const o = operatorArgs.get(arg)
+            const o = args.get(arg)
             o.state = input
             if (i === 0) {
-              const nodeToRun = app.router.routes[`${app.graph.name}.${treeEntry.tag}`];
+              const nodeToRun = app.router.routes[`${app.graph.name}.${node.tag}`];
               return nodeToRun.run();
             }
             return input;
@@ -51,14 +52,14 @@ const ArgumentGraphExtension = {
       });
   
       // Create Proper Global Operator for the Instance
-      const propsCopy = Object.assign({}, treeEntry);
-      propsCopy.operator = (self, origin, ...args) => {
+      const propsCopy = Object.assign({}, node);
+      propsCopy.operator = (self, origin, ...argsArr) => {
   
         let updatedArgs = [];
         let i = 0;
-        operatorArgs.forEach((o, k) => {
-          const argO = operatorArgs.get(k)
-          const currentArg = argO.spread ? args.slice(i) : args[i];
+        args.forEach((o, k) => {
+          const argO = args.get(k)
+          const currentArg = argO.spread ? argsArr.slice(i) : argsArr[i];
           let update = currentArg !== void 0 ? currentArg : o.state;
           argO.state = update
           if (!argO.spread)
@@ -67,14 +68,14 @@ const ArgumentGraphExtension = {
           i++;
         });
 
-  
-          if (!notRestrictedOne && !notRestrictedTwo) return treeEntry.operator(self, origin, ...updatedArgs)
-          else if (!notRestrictedOne) return treeEntry.operator(self, ...updatedArgs)
-          else if (!notRestrictedTwo) return treeEntry.operator(origin, ...updatedArgs)
-          else return treeEntry.operator(...updatedArgs)
+
+          if (!notRestrictedOne && !notRestrictedTwo) return propsCopy.default(self, origin, ...updatedArgs)
+          else if (!notRestrictedOne) return propsCopy.default(self, ...updatedArgs)
+          else if (!notRestrictedTwo) return propsCopy.default(origin, ...updatedArgs)
+          else return propsCopy.default(...updatedArgs)
           }
 
-          return new Graph(instanceTree, treeEntry.tag, propsCopy)
+          return new Graph(instanceTree, propsCopy.tag, propsCopy)
     }
 }
 

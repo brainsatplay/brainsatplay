@@ -1,11 +1,11 @@
 import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
-// import appInfo from '../../../htil/content/phaser/index.js'
-import * as appInfo from '../../../brainsatplay-starter-kit/index.js'
-const method = 'local'
+// import { appInfo, options } from './demos/signals'
+// import {appInfo, options} from './demos/phaser'
+import {appInfo, options} from './demos/starter'
 
-console.log('App Info', appInfo)
+const method = 'local'
 
 let app: brainsatplay.App | brainsatplay.editable.App
 // ------------------- Method #1: Dynamic Import (package.json) -------------------
@@ -22,7 +22,7 @@ if (method === 'remote') {
 // ------------------- Method #2: Direct Import (index.js) -------------------
 else {
     // app = new brainsatplay.editable.App(appInfo)
-    app = new brainsatplay.App(appInfo)
+    app = new brainsatplay.App(appInfo, options)    
 }
 
 app.start().then(() => console.log(app))

@@ -16,6 +16,14 @@ export const join = (...paths: string[]) => {
 
 }
 
+export const isMetadata = (info) => {
+    return 'graph' in info && 'nodes' in info.graph
+}
+
+export const isWASL = (path) => {
+    return path.slice(-5) === '.wasl'
+}
+
 export const getBase = (path) => {
     return path.split('/').slice(0,-1).join('/')
 }

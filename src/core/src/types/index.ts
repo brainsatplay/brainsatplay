@@ -1,5 +1,11 @@
 import { Router } from "external/graphscript/routers/Router"
 
+export type WASLOptions = any
+
+export type WASLLoadInput = any
+
+export type WASL = any
+
 export type NodeInfo = {
     tag: string,
     offload?: 'websocket'
