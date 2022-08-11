@@ -7,12 +7,12 @@
 [context.docs]
   base = ""
   publish = "docs/build/"
-  command = "npm install && cd docs && npm run build"
+  command = "cd docs && npm install && npm run build"
   environment = { NODE_VERSION="16.16.0" }
 
 
 [context.main]
   base = ""
   publish = "docs/build/"
-  command = "npm install && cd docs && npm run build"
+  command = "cd docs && npm install && npm run build"
     environment = { NODE_VERSION="16.16.0" }
