@@ -1,0 +1,14 @@
+{
+  "name": "@brainsatplay/docs",
+  "version": "0.0.0",
+  "main": "src/index.js",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "showdown": "^2.1.0"
+  }
+}

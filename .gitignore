@@ -6,6 +6,7 @@ node_modules
 *.log
 **/.temp
 assets
+**/build
 
 lib
 lib-esm

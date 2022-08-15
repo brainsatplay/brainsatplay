@@ -1,0 +1,34 @@
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@brainsatplay/studio"></script>
+</head>
+<body>
+    <div id="editor"></div>
+</body>
+<script>
+    import * as brainsatplay from 'brainsatplay/dist/index.esm.js'
+    import * as studio from '@brainsatplay/studio/dist/index.esm.js'
+    import appInfo from '@brainsatplay/docs/appInfo' // template string
+
+    const app = new brainsatplay.editable.App()
+    const editor = new studio.Editor()
+    editor.setApp(app)
+
+    const ui = document.createElement('div')
+    ui.style.width = ui.style.height = '100%'
+    editor.setUI(ui)
+
+    app.setParent(ui)
+
+    let activeApp = app
+    if (activeApp.active) activeApp = activeApp.active
+    app.onstart = editor.start
+    
+
+    const ok = await app.start(appInfo).catch(e => console.error('Invalid App', e))
+    if (ok) editor.setGraph(activeApp.graph)
+
+    document.getElementById('editor').appendChild(editor)
+
+    // app.save() // Global save.
+</script>
