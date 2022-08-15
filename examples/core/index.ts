@@ -2,8 +2,8 @@ import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
 // import { appInfo, options } from './demos/signals'
-// import {appInfo, options} from './demos/phaser'
-import {appInfo, options} from './demos/starter'
+import {appInfo, options} from './demos/phaser'
+// import {appInfo, options} from './demos/starter'
 
 const method = 'local'
 

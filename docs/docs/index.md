@@ -21,7 +21,7 @@ All core software for The Brains@Play Framework has been released under the [AGP
 - Transforms function arguments into [`graphscript`](./guides/libraries/graphscript) graphs that can be targeted independently
 - Compiles source text from other languages (e.g. Python, C++, etc) into functional nodes (TBD)
 
-Using the [`@brainsatplay/studio`](./guides/libraries/studio), the underlying WASL structure can be inspected, modified, and extended with official [plugins](https://github.com/brainsatplay/plugins).
+Using the [`@brainsatplay/studio`](./guides/libraries/studio), the underlying WASL structure can be inspected, modified, and extended with official [components](https://github.com/brainsatplay/components).
 
 ## How It Began
 At the core of `brainsatplay` is our decision to standardize the usage of ES Modules.
@@ -43,7 +43,7 @@ The release of Firefox 60 (May 2018) marked its support in all major browsers. A
 
 Package managers such as NPM and Yarn made the process of reusing code easier by installing sub-dependencies, configuring your dependency tree, and much more. But packages aren't composable. They don't have a shared structure.
 
-While working on browser-based physiological computing systems, Joshua Brewster and Garrett Flynn designed the [Web Application Specification Language (WASL)](./guides/libraries/wasl): a standard that combines ESM and JSON to specify composable Web plugins. 
+While working on browser-based physiological computing systems, Joshua Brewster and Garrett Flynn designed the [Web Application Specification Language (WASL)](./guides/libraries/wasl): a standard that combines ESM and JSON to specify [Web Components](https://developer.mozilla.org/en-US/docs/Web/Web_Components). 
 
 ```javascript title="trigger.js"
 export const loop = 1000/10
@@ -76,7 +76,7 @@ export default (message="world") => console.log(`hello ${message}!`)
 }
 ```
 
-At that point, they hooked up Web Bluetooth, Web Serial, and other data acquisition APIs to these plugins and optimized [`brainsatplay` and its dependencies](./guides/libraries/index.md) to be as fast as possible. 
+At that point, they hooked up Web Bluetooth, Web Serial, and other data acquisition APIs to these components and optimized [`brainsatplay` and its dependencies](./guides/libraries/index.md) to be as fast as possible. 
 
 ## Playing with Code
 `brainstplay` embodies our desire to support the joy of developers as they create high-performance applications. It encompasses many different goals including **free software use**, a focus on **inspectability and interactivity**, and **accessibility** for everyone with a brain. 
@@ -114,6 +114,6 @@ This documentation is written for **programmers who care about the future of com
 [tinybuild]: https://github.com/brainsatplay/tinybuild
 [tinybuild-status]: https://img.shields.io/npm/v/tinybuild
 
-<!-- Plugin Registry -->
-[@brainsatplay/plugins]: https://github.com/brainsatplay/plugins
-[@brainsatplay/plugins-status]: https://img.shields.io/npm/v/@brainsatplay/plugins
+<!-- Component Registry -->
+[@brainsatplay/components]: https://github.com/brainsatplay/components
+[@brainsatplay/components-status]: https://img.shields.io/npm/v/@brainsatplay/components

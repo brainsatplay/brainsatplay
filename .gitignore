@@ -5,6 +5,7 @@ node_modules
 *.lock
 *.log
 **/.temp
+assets
 
 lib
 lib-esm

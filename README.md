@@ -12,7 +12,7 @@ Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsa
 > Full documentation for this framework is published at https://docs.brainsatplay.com.
 
 ## Framework Libraries
-Below are the core repositories of the [brainsatplay] framework. Check out the [plugins](https://github.com/plugins) repository to see everything created by our community!
+Below are the core repositories of the [brainsatplay] framework. Check out the [components](https://github.com/components) repository to see everything created by our community!
 
 | Library               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |

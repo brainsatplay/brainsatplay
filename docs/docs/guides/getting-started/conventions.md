@@ -17,8 +17,12 @@ A **module** is an ESM file that contains one default export and named exports t
 export default (message="world") => console.log(`hello ${message}!`)
 ```
 
-## Plugins
-A **plugin** is specified by a `[name].wasl.json` file and accompanied by a `package.json` file, which may use its `main` field to specify an exposed library—composed of **modules**—for distribution on Node Package Manager (NPM).
+## Components
+A **component** is specified by a `[name].wasl.json` file and accompanied by a `package.json` file, which may use its `main` field to specify an exposed library—composed of **modules**—for distribution on Node Package Manager (NPM).
+
+:::note 
+This is what is visualized by the Files tab of the `brainsatplay-editor`.
+:::
 
 :::tip 
 
@@ -26,15 +30,17 @@ When exposing the default export of each **module**, the exposed library functio
 
 :::
 
+To be editable by `brainsatplay.editable` classes, you must have your source code accessible from Github, NPM, or other locations.
+
 ### Native vs. Remix
-**Native plugins** contain all of their logic internally.
+**Native components** contain all of their logic internally.
 
 ``` javascript
 // self-contained logic
 export default (message="world") => console.log(`hello ${message}!`)
 ```
 
-**Remix plugins** adapt existing NPM libraries by wrapping their essential classes and function calls.
+**Remix components** adapt existing NPM libraries by wrapping their essential classes and function calls.
 
 ``` javascript
 // external library usage
@@ -48,7 +54,11 @@ export default () => graph.run('world')
 ```
 
 ## Graphs
-A **graph** is a connected set of **plugins** that pass messages between each other. 
+A **graph** is a connected set of **components** that pass messages between each other. 
+
+:::note 
+Nodes in the **graph** are individually visualized by the Properties tab (TBD) of the `@brainsatplay/studio`, while edges are visualized by the Graph tab.
+:::
 
 :::info 
 Although specified in the WASL standard, these are *not* handled by the [wasl](../libraries/wasl/index.md) library itself. Instead, **graphs** are assembled by external libraries such as [graphscript](../libraries/graphscript/index.md).
