@@ -2,10 +2,10 @@ import * as brainsatplay from '../../src/core/src/index'
 
 // JSON Files
 // import { appInfo, options } from './demos/signals'
-import {appInfo, options} from './demos/phaser'
-// import {appInfo, options} from './demos/starter'
+// import {appInfo, options} from './demos/phaser'
+import {appInfo, options} from './demos/starter'
 
-const method = 'local'
+const method = 'remote'
 
 let app: brainsatplay.App | brainsatplay.editable.App
 // ------------------- Method #1: Dynamic Import (package.json) -------------------
@@ -14,7 +14,9 @@ let app: brainsatplay.App | brainsatplay.editable.App
 if (method === 'remote') {
     // const local = 'app'
     const remote = 'https://raw.githubusercontent.com/brainsatplay/brainsatplay-starter-kit/main'
-    app = new brainsatplay.editable.App(remote)
+    // app = new brainsatplay.editable.App(remote)
+    app = new brainsatplay.App(remote)//, options)    
+
     // app = new brainsatplay.editable.App(local)
     // app = new brainsatplay.editable.App() // select from filesystem
 }

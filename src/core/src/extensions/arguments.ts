@@ -1,4 +1,4 @@
-import { getFnParamInfo, Graph } from "external/graphscript/Graph";
+import { Graph } from "external/graphscript/Graph";
 
 
 // This graphscript extension allows operators to be triggered with their first argument
@@ -11,17 +11,7 @@ const ArgumentGraphExtension = {
     },
     transform: (node, app) => {
 
-      let args = getFnParamInfo(node.default);
-      if (node.arguments) {
-        for (let key in node.arguments) {
-          const o = args.get(key)
-          o.state = node.arguments[key]
-        }
-      }
-      if (args === undefined) {
-        args = new Map()
-        args.set("trigger", {});
-      }
+      const args = node.arguments as Map<string, any>
 
 
       // Find and Remove Restricted Names

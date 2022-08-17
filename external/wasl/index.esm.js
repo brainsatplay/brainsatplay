@@ -7,6 +7,10 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
+var __export = (target, all) => {
+  for (var name2 in all)
+    __defProp(target, name2, { get: all[name2], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -182,9 +186,9 @@ var require_scope = __commonJS({
     exports.ValueScope = exports.ValueScopeName = exports.Scope = exports.varKinds = exports.UsedValueState = void 0;
     var code_1 = require_code();
     var ValueError = class extends Error {
-      constructor(name) {
-        super(`CodeGen: "code" for ${name} not defined`);
-        this.value = name.value;
+      constructor(name2) {
+        super(`CodeGen: "code" for ${name2} not defined`);
+        this.value = name2.value;
       }
     };
     var UsedValueState;
@@ -251,8 +255,8 @@ var require_scope = __commonJS({
         var _a;
         if (value.ref === void 0)
           throw new Error("CodeGen: ref must be passed in value");
-        const name = this.toName(nameOrPrefix);
-        const { prefix } = name;
+        const name2 = this.toName(nameOrPrefix);
+        const { prefix } = name2;
         const valueKey = (_a = value.key) !== null && _a !== void 0 ? _a : value.ref;
         let vs = this._values[prefix];
         if (vs) {
@@ -262,12 +266,12 @@ var require_scope = __commonJS({
         } else {
           vs = this._values[prefix] = /* @__PURE__ */ new Map();
         }
-        vs.set(valueKey, name);
+        vs.set(valueKey, name2);
         const s = this._scope[prefix] || (this._scope[prefix] = []);
         const itemIndex = s.length;
         s[itemIndex] = value.ref;
-        name.setValue(value, { property: prefix, itemIndex });
-        return name;
+        name2.setValue(value, { property: prefix, itemIndex });
+        return name2;
       }
       getValue(prefix, keyOrRef) {
         const vs = this._values[prefix];
@@ -276,17 +280,17 @@ var require_scope = __commonJS({
         return vs.get(keyOrRef);
       }
       scopeRefs(scopeName, values = this._values) {
-        return this._reduceValues(values, (name) => {
-          if (name.scopePath === void 0)
-            throw new Error(`CodeGen: name "${name}" has no value`);
-          return (0, code_1._)`${scopeName}${name.scopePath}`;
+        return this._reduceValues(values, (name2) => {
+          if (name2.scopePath === void 0)
+            throw new Error(`CodeGen: name "${name2}" has no value`);
+          return (0, code_1._)`${scopeName}${name2.scopePath}`;
         });
       }
       scopeCode(values = this._values, usedValues, getCode) {
-        return this._reduceValues(values, (name) => {
-          if (name.value === void 0)
-            throw new Error(`CodeGen: name "${name}" has no value`);
-          return name.value.code;
+        return this._reduceValues(values, (name2) => {
+          if (name2.value === void 0)
+            throw new Error(`CodeGen: name "${name2}" has no value`);
+          return name2.value.code;
         }, usedValues, getCode);
       }
       _reduceValues(values, valueCode, usedValues = {}, getCode) {
@@ -296,20 +300,20 @@ var require_scope = __commonJS({
           if (!vs)
             continue;
           const nameSet = usedValues[prefix] = usedValues[prefix] || /* @__PURE__ */ new Map();
-          vs.forEach((name) => {
-            if (nameSet.has(name))
+          vs.forEach((name2) => {
+            if (nameSet.has(name2))
               return;
-            nameSet.set(name, UsedValueState.Started);
-            let c = valueCode(name);
+            nameSet.set(name2, UsedValueState.Started);
+            let c = valueCode(name2);
             if (c) {
               const def = this.opts.es5 ? exports.varKinds.var : exports.varKinds.const;
-              code = (0, code_1._)`${code}${def} ${name} = ${c};${this.opts._n}`;
-            } else if (c = getCode === null || getCode === void 0 ? void 0 : getCode(name)) {
+              code = (0, code_1._)`${code}${def} ${name2} = ${c};${this.opts._n}`;
+            } else if (c = getCode === null || getCode === void 0 ? void 0 : getCode(name2)) {
               code = (0, code_1._)`${code}${c}${this.opts._n}`;
             } else {
-              throw new ValueError(name);
+              throw new ValueError(name2);
             }
-            nameSet.set(name, UsedValueState.Completed);
+            nameSet.set(name2, UsedValueState.Completed);
           });
         }
         return code;
@@ -386,10 +390,10 @@ var require_codegen = __commonJS({
       }
     };
     var Def = class extends Node {
-      constructor(varKind, name, rhs) {
+      constructor(varKind, name2, rhs) {
         super();
         this.varKind = varKind;
-        this.name = name;
+        this.name = name2;
         this.rhs = rhs;
       }
       render({ es5, _n }) {
@@ -609,17 +613,17 @@ var require_codegen = __commonJS({
       }
     };
     var ForRange = class extends For {
-      constructor(varKind, name, from, to) {
+      constructor(varKind, name2, from, to) {
         super();
         this.varKind = varKind;
-        this.name = name;
+        this.name = name2;
         this.from = from;
         this.to = to;
       }
       render(opts) {
         const varKind = opts.es5 ? scope_1.varKinds.var : this.varKind;
-        const { name, from, to } = this;
-        return `for(${varKind} ${name}=${from}; ${name}<${to}; ${name}++)` + super.render(opts);
+        const { name: name2, from, to } = this;
+        return `for(${varKind} ${name2}=${from}; ${name2}<${to}; ${name2}++)` + super.render(opts);
       }
       get names() {
         const names = addExprNames(super.names, this.from);
@@ -627,11 +631,11 @@ var require_codegen = __commonJS({
       }
     };
     var ForIter = class extends For {
-      constructor(loop, varKind, name, iterable) {
+      constructor(loop, varKind, name2, iterable) {
         super();
         this.loop = loop;
         this.varKind = varKind;
-        this.name = name;
+        this.name = name2;
         this.iterable = iterable;
       }
       render(opts) {
@@ -648,9 +652,9 @@ var require_codegen = __commonJS({
       }
     };
     var Func = class extends BlockNode {
-      constructor(name, args, async) {
+      constructor(name2, args, async) {
         super();
-        this.name = name;
+        this.name = name2;
         this.args = args;
         this.async = async;
       }
@@ -734,10 +738,10 @@ var require_codegen = __commonJS({
         return this._extScope.name(prefix);
       }
       scopeValue(prefixOrName, value) {
-        const name = this._extScope.value(prefixOrName, value);
-        const vs = this._values[name.prefix] || (this._values[name.prefix] = /* @__PURE__ */ new Set());
-        vs.add(name);
-        return name;
+        const name2 = this._extScope.value(prefixOrName, value);
+        const vs = this._values[name2.prefix] || (this._values[name2.prefix] = /* @__PURE__ */ new Set());
+        vs.add(name2);
+        return name2;
       }
       getScopeValue(prefix, keyOrRef) {
         return this._extScope.getValue(prefix, keyOrRef);
@@ -749,11 +753,11 @@ var require_codegen = __commonJS({
         return this._extScope.scopeCode(this._values);
       }
       _def(varKind, nameOrPrefix, rhs, constant) {
-        const name = this._scope.toName(nameOrPrefix);
+        const name2 = this._scope.toName(nameOrPrefix);
         if (rhs !== void 0 && constant)
-          this._constants[name.str] = rhs;
-        this._leafNode(new Def(varKind, name, rhs));
-        return name;
+          this._constants[name2.str] = rhs;
+        this._leafNode(new Def(varKind, name2, rhs));
+        return name2;
       }
       const(nameOrPrefix, rhs, _constant) {
         return this._def(scope_1.varKinds.const, nameOrPrefix, rhs, _constant);
@@ -821,26 +825,26 @@ var require_codegen = __commonJS({
         return this._for(new ForLoop(iteration), forBody);
       }
       forRange(nameOrPrefix, from, to, forBody, varKind = this.opts.es5 ? scope_1.varKinds.var : scope_1.varKinds.let) {
-        const name = this._scope.toName(nameOrPrefix);
-        return this._for(new ForRange(varKind, name, from, to), () => forBody(name));
+        const name2 = this._scope.toName(nameOrPrefix);
+        return this._for(new ForRange(varKind, name2, from, to), () => forBody(name2));
       }
       forOf(nameOrPrefix, iterable, forBody, varKind = scope_1.varKinds.const) {
-        const name = this._scope.toName(nameOrPrefix);
+        const name2 = this._scope.toName(nameOrPrefix);
         if (this.opts.es5) {
           const arr = iterable instanceof code_1.Name ? iterable : this.var("_arr", iterable);
           return this.forRange("_i", 0, (0, code_1._)`${arr}.length`, (i) => {
-            this.var(name, (0, code_1._)`${arr}[${i}]`);
-            forBody(name);
+            this.var(name2, (0, code_1._)`${arr}[${i}]`);
+            forBody(name2);
           });
         }
-        return this._for(new ForIter("of", varKind, name, iterable), () => forBody(name));
+        return this._for(new ForIter("of", varKind, name2, iterable), () => forBody(name2));
       }
       forIn(nameOrPrefix, obj, forBody, varKind = this.opts.es5 ? scope_1.varKinds.var : scope_1.varKinds.const) {
         if (this.opts.ownProperties) {
           return this.forOf(nameOrPrefix, (0, code_1._)`Object.keys(${obj})`, forBody);
         }
-        const name = this._scope.toName(nameOrPrefix);
-        return this._for(new ForIter("in", varKind, name, obj), () => forBody(name));
+        const name2 = this._scope.toName(nameOrPrefix);
+        return this._for(new ForIter("in", varKind, name2, obj), () => forBody(name2));
       }
       endFor() {
         return this._endBlockNode(For);
@@ -896,8 +900,8 @@ var require_codegen = __commonJS({
         this._nodes.length = len;
         return this;
       }
-      func(name, args = code_1.nil, async, funcBody) {
-        this._blockNode(new Func(name, args, async));
+      func(name2, args = code_1.nil, async, funcBody) {
+        this._blockNode(new Func(name2, args, async));
         if (funcBody)
           this.code(funcBody).endFunc();
         return this;
@@ -1348,13 +1352,13 @@ var require_boolSchema = __commonJS({
       }
     }
     exports.topBoolOrEmptySchema = topBoolOrEmptySchema;
-    function boolOrEmptySchema(it, valid) {
+    function boolOrEmptySchema(it, valid2) {
       const { gen, schema } = it;
       if (schema === false) {
-        gen.var(valid, false);
+        gen.var(valid2, false);
         falseSchemaError(it);
       } else {
-        gen.var(valid, true);
+        gen.var(valid2, true);
       }
     }
     exports.boolOrEmptySchema = boolOrEmptySchema;
@@ -1734,15 +1738,15 @@ var require_code2 = __commonJS({
     exports.usePattern = usePattern;
     function validateArray(cxt) {
       const { gen, data, keyword, it } = cxt;
-      const valid = gen.name("valid");
+      const valid2 = gen.name("valid");
       if (it.allErrors) {
         const validArr = gen.let("valid", true);
         validateItems(() => gen.assign(validArr, false));
         return validArr;
       }
-      gen.var(valid, true);
+      gen.var(valid2, true);
       validateItems(() => gen.break());
-      return valid;
+      return valid2;
       function validateItems(notValid) {
         const len = gen.const("len", (0, codegen_1._)`${data}.length`);
         gen.forRange("i", 0, len, (i) => {
@@ -1750,8 +1754,8 @@ var require_code2 = __commonJS({
             keyword,
             dataProp: i,
             dataPropType: util_1.Type.Num
-          }, valid);
-          gen.if((0, codegen_1.not)(valid), notValid);
+          }, valid2);
+          gen.if((0, codegen_1.not)(valid2), notValid);
         });
       }
     }
@@ -1763,7 +1767,7 @@ var require_code2 = __commonJS({
       const alwaysValid = schema.some((sch) => (0, util_1.alwaysValidSchema)(it, sch));
       if (alwaysValid && !it.opts.unevaluated)
         return;
-      const valid = gen.let("valid", false);
+      const valid2 = gen.let("valid", false);
       const schValid = gen.name("_valid");
       gen.block(() => schema.forEach((_sch, i) => {
         const schCxt = cxt.subschema({
@@ -1771,12 +1775,12 @@ var require_code2 = __commonJS({
           schemaProp: i,
           compositeRule: true
         }, schValid);
-        gen.assign(valid, (0, codegen_1._)`${valid} || ${schValid}`);
+        gen.assign(valid2, (0, codegen_1._)`${valid2} || ${schValid}`);
         const merged = cxt.mergeValidEvaluated(schCxt, schValid);
         if (!merged)
-          gen.if((0, codegen_1.not)(valid));
+          gen.if((0, codegen_1.not)(valid2));
       }));
-      cxt.result(valid, () => cxt.reset(), () => cxt.error(true));
+      cxt.result(valid2, () => cxt.reset(), () => cxt.error(true));
     }
     exports.validateUnion = validateUnion;
   }
@@ -1798,15 +1802,15 @@ var require_keyword = __commonJS({
       const schemaRef = useKeyword(gen, keyword, macroSchema);
       if (it.opts.validateSchema !== false)
         it.self.validateSchema(macroSchema, true);
-      const valid = gen.name("valid");
+      const valid2 = gen.name("valid");
       cxt.subschema({
         schema: macroSchema,
         schemaPath: codegen_1.nil,
         errSchemaPath: `${it.errSchemaPath}/${keyword}`,
         topSchemaRef: schemaRef,
         compositeRule: true
-      }, valid);
-      cxt.pass(valid, () => cxt.error(true));
+      }, valid2);
+      cxt.pass(valid2, () => cxt.error(true));
     }
     exports.macroKeywordCode = macroKeywordCode;
     function funcKeywordCode(cxt, def) {
@@ -1815,9 +1819,9 @@ var require_keyword = __commonJS({
       checkAsyncKeyword(it, def);
       const validate2 = !$data && def.compile ? def.compile.call(it.self, schema, parentSchema, it) : def.validate;
       const validateRef = useKeyword(gen, keyword, validate2);
-      const valid = gen.let("valid");
-      cxt.block$data(valid, validateKeyword);
-      cxt.ok((_a = def.valid) !== null && _a !== void 0 ? _a : valid);
+      const valid2 = gen.let("valid");
+      cxt.block$data(valid2, validateKeyword);
+      cxt.ok((_a = def.valid) !== null && _a !== void 0 ? _a : valid2);
       function validateKeyword() {
         if (def.errors === false) {
           assignValid();
@@ -1833,7 +1837,7 @@ var require_keyword = __commonJS({
       }
       function validateAsync() {
         const ruleErrs = gen.let("ruleErrs", null);
-        gen.try(() => assignValid((0, codegen_1._)`await `), (e) => gen.assign(valid, false).if((0, codegen_1._)`${e} instanceof ${it.ValidationError}`, () => gen.assign(ruleErrs, (0, codegen_1._)`${e}.errors`), () => gen.throw(e)));
+        gen.try(() => assignValid((0, codegen_1._)`await `), (e) => gen.assign(valid2, false).if((0, codegen_1._)`${e} instanceof ${it.ValidationError}`, () => gen.assign(ruleErrs, (0, codegen_1._)`${e}.errors`), () => gen.throw(e)));
         return ruleErrs;
       }
       function validateSync() {
@@ -1845,11 +1849,11 @@ var require_keyword = __commonJS({
       function assignValid(_await = def.async ? (0, codegen_1._)`await ` : codegen_1.nil) {
         const passCxt = it.opts.passContext ? names_1.default.this : names_1.default.self;
         const passSchema = !("compile" in def && !$data || def.schema === false);
-        gen.assign(valid, (0, codegen_1._)`${_await}${(0, code_1.callValidateCode)(cxt, validateRef, passCxt, passSchema)}`, def.modifying);
+        gen.assign(valid2, (0, codegen_1._)`${_await}${(0, code_1.callValidateCode)(cxt, validateRef, passCxt, passSchema)}`, def.modifying);
       }
       function reportErrs(errors) {
         var _a2;
-        gen.if((0, codegen_1.not)((_a2 = def.valid) !== null && _a2 !== void 0 ? _a2 : valid), errors);
+        gen.if((0, codegen_1.not)((_a2 = def.valid) !== null && _a2 !== void 0 ? _a2 : valid2), errors);
       }
     }
     exports.funcKeywordCode = funcKeywordCode;
@@ -1886,8 +1890,8 @@ var require_keyword = __commonJS({
         throw new Error(`parent schema must have dependencies of ${keyword}: ${deps.join(",")}`);
       }
       if (def.validateSchema) {
-        const valid = def.validateSchema(schema[keyword]);
-        if (!valid) {
+        const valid2 = def.validateSchema(schema[keyword]);
+        if (!valid2) {
           const msg = `keyword "${keyword}" value is invalid at path "${errSchemaPath}": ` + self.errorsText(def.validateSchema.errors);
           if (opts.validateSchema === "log")
             self.logger.error(msg);
@@ -2357,15 +2361,15 @@ var require_validate = __commonJS({
       const schId = typeof schema == "object" && schema[opts.schemaId];
       return schId && (opts.code.source || opts.code.process) ? (0, codegen_1._)`/*# sourceURL=${schId} */` : codegen_1.nil;
     }
-    function subschemaCode(it, valid) {
+    function subschemaCode(it, valid2) {
       if (isSchemaObj(it)) {
         checkKeywords(it);
         if (schemaCxtHasRules(it)) {
-          subSchemaObjCode(it, valid);
+          subSchemaObjCode(it, valid2);
           return;
         }
       }
-      (0, boolSchema_1.boolOrEmptySchema)(it, valid);
+      (0, boolSchema_1.boolOrEmptySchema)(it, valid2);
     }
     function schemaCxtHasRules({ schema, self }) {
       if (typeof schema == "boolean")
@@ -2378,7 +2382,7 @@ var require_validate = __commonJS({
     function isSchemaObj(it) {
       return typeof it.schema != "boolean";
     }
-    function subSchemaObjCode(it, valid) {
+    function subSchemaObjCode(it, valid2) {
       const { schema, gen, opts } = it;
       if (opts.$comment && schema.$comment)
         commentKeyword(it);
@@ -2386,7 +2390,7 @@ var require_validate = __commonJS({
       checkAsyncSchema(it);
       const errsCount = gen.const("_errs", names_1.default.errors);
       typeAndKeywords(it, errsCount);
-      gen.var(valid, (0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
+      gen.var(valid2, (0, codegen_1._)`${errsCount} === ${names_1.default.errors}`);
     }
     function checkKeywords(it) {
       (0, util_1.checkUnknownRules)(it);
@@ -2643,24 +2647,24 @@ var require_validate = __commonJS({
         else
           this.params = obj;
       }
-      block$data(valid, codeBlock, $dataValid = codegen_1.nil) {
+      block$data(valid2, codeBlock, $dataValid = codegen_1.nil) {
         this.gen.block(() => {
-          this.check$data(valid, $dataValid);
+          this.check$data(valid2, $dataValid);
           codeBlock();
         });
       }
-      check$data(valid = codegen_1.nil, $dataValid = codegen_1.nil) {
+      check$data(valid2 = codegen_1.nil, $dataValid = codegen_1.nil) {
         if (!this.$data)
           return;
         const { gen, schemaCode, schemaType, def } = this;
         gen.if((0, codegen_1.or)((0, codegen_1._)`${schemaCode} === undefined`, $dataValid));
-        if (valid !== codegen_1.nil)
-          gen.assign(valid, true);
+        if (valid2 !== codegen_1.nil)
+          gen.assign(valid2, true);
         if (schemaType.length || def.validateSchema) {
           gen.elseIf(this.invalid$data());
           this.$dataError();
-          if (valid !== codegen_1.nil)
-            gen.assign(valid, false);
+          if (valid2 !== codegen_1.nil)
+            gen.assign(valid2, false);
         }
         gen.else();
       }
@@ -2684,12 +2688,12 @@ var require_validate = __commonJS({
           return codegen_1.nil;
         }
       }
-      subschema(appl, valid) {
+      subschema(appl, valid2) {
         const subschema = (0, subschema_1.getSubschema)(this.it, appl);
         (0, subschema_1.extendSubschemaData)(subschema, this.it, appl);
         (0, subschema_1.extendSubschemaMode)(subschema, appl);
         const nextContext = { ...this.it, ...subschema, items: void 0, props: void 0 };
-        subschemaCode(nextContext, valid);
+        subschemaCode(nextContext, valid2);
         return nextContext;
       }
       mergeEvaluated(schemaCxt, toName) {
@@ -2703,10 +2707,10 @@ var require_validate = __commonJS({
           it.items = util_1.mergeEvaluated.items(gen, schemaCxt.items, it.items, toName);
         }
       }
-      mergeValidEvaluated(schemaCxt, valid) {
+      mergeValidEvaluated(schemaCxt, valid2) {
         const { it, gen } = this;
         if (it.opts.unevaluated && (it.props !== true || it.items !== true)) {
-          gen.if(valid, () => this.mergeEvaluated(schemaCxt, codegen_1.Name));
+          gen.if(valid2, () => this.mergeEvaluated(schemaCxt, codegen_1.Name));
           return true;
         }
       }
@@ -3052,7 +3056,7 @@ var require_uri_all = __commonJS({
       typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : factory(global.URI = global.URI || {});
     })(exports, function(exports2) {
       "use strict";
-      function merge() {
+      function merge2() {
         for (var _len = arguments.length, sets = Array(_len), _key = 0; _key < _len; _key++) {
           sets[_key] = arguments[_key];
         }
@@ -3090,18 +3094,18 @@ var require_uri_all = __commonJS({
         return obj;
       }
       function buildExps(isIRI2) {
-        var ALPHA$$ = "[A-Za-z]", CR$ = "[\\x0D]", DIGIT$$ = "[0-9]", DQUOTE$$ = "[\\x22]", HEXDIG$$2 = merge(DIGIT$$, "[A-Fa-f]"), LF$$ = "[\\x0A]", SP$$ = "[\\x20]", PCT_ENCODED$2 = subexp(subexp("%[EFef]" + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2) + "|" + subexp("%[89A-Fa-f]" + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2) + "|" + subexp("%" + HEXDIG$$2 + HEXDIG$$2)), GEN_DELIMS$$ = "[\\:\\/\\?\\#\\[\\]\\@]", SUB_DELIMS$$ = "[\\!\\$\\&\\'\\(\\)\\*\\+\\,\\;\\=]", RESERVED$$ = merge(GEN_DELIMS$$, SUB_DELIMS$$), UCSCHAR$$ = isIRI2 ? "[\\xA0-\\u200D\\u2010-\\u2029\\u202F-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFEF]" : "[]", IPRIVATE$$ = isIRI2 ? "[\\uE000-\\uF8FF]" : "[]", UNRESERVED$$2 = merge(ALPHA$$, DIGIT$$, "[\\-\\.\\_\\~]", UCSCHAR$$), SCHEME$ = subexp(ALPHA$$ + merge(ALPHA$$, DIGIT$$, "[\\+\\-\\.]") + "*"), USERINFO$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge(UNRESERVED$$2, SUB_DELIMS$$, "[\\:]")) + "*"), DEC_OCTET$ = subexp(subexp("25[0-5]") + "|" + subexp("2[0-4]" + DIGIT$$) + "|" + subexp("1" + DIGIT$$ + DIGIT$$) + "|" + subexp("[1-9]" + DIGIT$$) + "|" + DIGIT$$), DEC_OCTET_RELAXED$ = subexp(subexp("25[0-5]") + "|" + subexp("2[0-4]" + DIGIT$$) + "|" + subexp("1" + DIGIT$$ + DIGIT$$) + "|" + subexp("0?[1-9]" + DIGIT$$) + "|0?0?" + DIGIT$$), IPV4ADDRESS$ = subexp(DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$), H16$ = subexp(HEXDIG$$2 + "{1,4}"), LS32$ = subexp(subexp(H16$ + "\\:" + H16$) + "|" + IPV4ADDRESS$), IPV6ADDRESS1$ = subexp(subexp(H16$ + "\\:") + "{6}" + LS32$), IPV6ADDRESS2$ = subexp("\\:\\:" + subexp(H16$ + "\\:") + "{5}" + LS32$), IPV6ADDRESS3$ = subexp(subexp(H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{4}" + LS32$), IPV6ADDRESS4$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,1}" + H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{3}" + LS32$), IPV6ADDRESS5$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,2}" + H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{2}" + LS32$), IPV6ADDRESS6$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,3}" + H16$) + "?\\:\\:" + H16$ + "\\:" + LS32$), IPV6ADDRESS7$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,4}" + H16$) + "?\\:\\:" + LS32$), IPV6ADDRESS8$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,5}" + H16$) + "?\\:\\:" + H16$), IPV6ADDRESS9$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,6}" + H16$) + "?\\:\\:"), IPV6ADDRESS$ = subexp([IPV6ADDRESS1$, IPV6ADDRESS2$, IPV6ADDRESS3$, IPV6ADDRESS4$, IPV6ADDRESS5$, IPV6ADDRESS6$, IPV6ADDRESS7$, IPV6ADDRESS8$, IPV6ADDRESS9$].join("|")), ZONEID$ = subexp(subexp(UNRESERVED$$2 + "|" + PCT_ENCODED$2) + "+"), IPV6ADDRZ$ = subexp(IPV6ADDRESS$ + "\\%25" + ZONEID$), IPV6ADDRZ_RELAXED$ = subexp(IPV6ADDRESS$ + subexp("\\%25|\\%(?!" + HEXDIG$$2 + "{2})") + ZONEID$), IPVFUTURE$ = subexp("[vV]" + HEXDIG$$2 + "+\\." + merge(UNRESERVED$$2, SUB_DELIMS$$, "[\\:]") + "+"), IP_LITERAL$ = subexp("\\[" + subexp(IPV6ADDRZ_RELAXED$ + "|" + IPV6ADDRESS$ + "|" + IPVFUTURE$) + "\\]"), REG_NAME$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge(UNRESERVED$$2, SUB_DELIMS$$)) + "*"), HOST$ = subexp(IP_LITERAL$ + "|" + IPV4ADDRESS$ + "(?!" + REG_NAME$ + ")|" + REG_NAME$), PORT$ = subexp(DIGIT$$ + "*"), AUTHORITY$ = subexp(subexp(USERINFO$ + "@") + "?" + HOST$ + subexp("\\:" + PORT$) + "?"), PCHAR$ = subexp(PCT_ENCODED$2 + "|" + merge(UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@]")), SEGMENT$ = subexp(PCHAR$ + "*"), SEGMENT_NZ$ = subexp(PCHAR$ + "+"), SEGMENT_NZ_NC$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge(UNRESERVED$$2, SUB_DELIMS$$, "[\\@]")) + "+"), PATH_ABEMPTY$ = subexp(subexp("\\/" + SEGMENT$) + "*"), PATH_ABSOLUTE$ = subexp("\\/" + subexp(SEGMENT_NZ$ + PATH_ABEMPTY$) + "?"), PATH_NOSCHEME$ = subexp(SEGMENT_NZ_NC$ + PATH_ABEMPTY$), PATH_ROOTLESS$ = subexp(SEGMENT_NZ$ + PATH_ABEMPTY$), PATH_EMPTY$ = "(?!" + PCHAR$ + ")", PATH$ = subexp(PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$), QUERY$ = subexp(subexp(PCHAR$ + "|" + merge("[\\/\\?]", IPRIVATE$$)) + "*"), FRAGMENT$ = subexp(subexp(PCHAR$ + "|[\\/\\?]") + "*"), HIER_PART$ = subexp(subexp("\\/\\/" + AUTHORITY$ + PATH_ABEMPTY$) + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$), URI$ = subexp(SCHEME$ + "\\:" + HIER_PART$ + subexp("\\?" + QUERY$) + "?" + subexp("\\#" + FRAGMENT$) + "?"), RELATIVE_PART$ = subexp(subexp("\\/\\/" + AUTHORITY$ + PATH_ABEMPTY$) + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_EMPTY$), RELATIVE$ = subexp(RELATIVE_PART$ + subexp("\\?" + QUERY$) + "?" + subexp("\\#" + FRAGMENT$) + "?"), URI_REFERENCE$ = subexp(URI$ + "|" + RELATIVE$), ABSOLUTE_URI$ = subexp(SCHEME$ + "\\:" + HIER_PART$ + subexp("\\?" + QUERY$) + "?"), GENERIC_REF$ = "^(" + SCHEME$ + ")\\:" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", RELATIVE_REF$ = "^(){0}" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", ABSOLUTE_REF$ = "^(" + SCHEME$ + ")\\:" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?$", SAMEDOC_REF$ = "^" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", AUTHORITY_REF$ = "^" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?$";
+        var ALPHA$$ = "[A-Za-z]", CR$ = "[\\x0D]", DIGIT$$ = "[0-9]", DQUOTE$$ = "[\\x22]", HEXDIG$$2 = merge2(DIGIT$$, "[A-Fa-f]"), LF$$ = "[\\x0A]", SP$$ = "[\\x20]", PCT_ENCODED$2 = subexp(subexp("%[EFef]" + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2) + "|" + subexp("%[89A-Fa-f]" + HEXDIG$$2 + "%" + HEXDIG$$2 + HEXDIG$$2) + "|" + subexp("%" + HEXDIG$$2 + HEXDIG$$2)), GEN_DELIMS$$ = "[\\:\\/\\?\\#\\[\\]\\@]", SUB_DELIMS$$ = "[\\!\\$\\&\\'\\(\\)\\*\\+\\,\\;\\=]", RESERVED$$ = merge2(GEN_DELIMS$$, SUB_DELIMS$$), UCSCHAR$$ = isIRI2 ? "[\\xA0-\\u200D\\u2010-\\u2029\\u202F-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFEF]" : "[]", IPRIVATE$$ = isIRI2 ? "[\\uE000-\\uF8FF]" : "[]", UNRESERVED$$2 = merge2(ALPHA$$, DIGIT$$, "[\\-\\.\\_\\~]", UCSCHAR$$), SCHEME$ = subexp(ALPHA$$ + merge2(ALPHA$$, DIGIT$$, "[\\+\\-\\.]") + "*"), USERINFO$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge2(UNRESERVED$$2, SUB_DELIMS$$, "[\\:]")) + "*"), DEC_OCTET$ = subexp(subexp("25[0-5]") + "|" + subexp("2[0-4]" + DIGIT$$) + "|" + subexp("1" + DIGIT$$ + DIGIT$$) + "|" + subexp("[1-9]" + DIGIT$$) + "|" + DIGIT$$), DEC_OCTET_RELAXED$ = subexp(subexp("25[0-5]") + "|" + subexp("2[0-4]" + DIGIT$$) + "|" + subexp("1" + DIGIT$$ + DIGIT$$) + "|" + subexp("0?[1-9]" + DIGIT$$) + "|0?0?" + DIGIT$$), IPV4ADDRESS$ = subexp(DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$ + "\\." + DEC_OCTET_RELAXED$), H16$ = subexp(HEXDIG$$2 + "{1,4}"), LS32$ = subexp(subexp(H16$ + "\\:" + H16$) + "|" + IPV4ADDRESS$), IPV6ADDRESS1$ = subexp(subexp(H16$ + "\\:") + "{6}" + LS32$), IPV6ADDRESS2$ = subexp("\\:\\:" + subexp(H16$ + "\\:") + "{5}" + LS32$), IPV6ADDRESS3$ = subexp(subexp(H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{4}" + LS32$), IPV6ADDRESS4$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,1}" + H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{3}" + LS32$), IPV6ADDRESS5$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,2}" + H16$) + "?\\:\\:" + subexp(H16$ + "\\:") + "{2}" + LS32$), IPV6ADDRESS6$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,3}" + H16$) + "?\\:\\:" + H16$ + "\\:" + LS32$), IPV6ADDRESS7$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,4}" + H16$) + "?\\:\\:" + LS32$), IPV6ADDRESS8$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,5}" + H16$) + "?\\:\\:" + H16$), IPV6ADDRESS9$ = subexp(subexp(subexp(H16$ + "\\:") + "{0,6}" + H16$) + "?\\:\\:"), IPV6ADDRESS$ = subexp([IPV6ADDRESS1$, IPV6ADDRESS2$, IPV6ADDRESS3$, IPV6ADDRESS4$, IPV6ADDRESS5$, IPV6ADDRESS6$, IPV6ADDRESS7$, IPV6ADDRESS8$, IPV6ADDRESS9$].join("|")), ZONEID$ = subexp(subexp(UNRESERVED$$2 + "|" + PCT_ENCODED$2) + "+"), IPV6ADDRZ$ = subexp(IPV6ADDRESS$ + "\\%25" + ZONEID$), IPV6ADDRZ_RELAXED$ = subexp(IPV6ADDRESS$ + subexp("\\%25|\\%(?!" + HEXDIG$$2 + "{2})") + ZONEID$), IPVFUTURE$ = subexp("[vV]" + HEXDIG$$2 + "+\\." + merge2(UNRESERVED$$2, SUB_DELIMS$$, "[\\:]") + "+"), IP_LITERAL$ = subexp("\\[" + subexp(IPV6ADDRZ_RELAXED$ + "|" + IPV6ADDRESS$ + "|" + IPVFUTURE$) + "\\]"), REG_NAME$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge2(UNRESERVED$$2, SUB_DELIMS$$)) + "*"), HOST$ = subexp(IP_LITERAL$ + "|" + IPV4ADDRESS$ + "(?!" + REG_NAME$ + ")|" + REG_NAME$), PORT$ = subexp(DIGIT$$ + "*"), AUTHORITY$ = subexp(subexp(USERINFO$ + "@") + "?" + HOST$ + subexp("\\:" + PORT$) + "?"), PCHAR$ = subexp(PCT_ENCODED$2 + "|" + merge2(UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@]")), SEGMENT$ = subexp(PCHAR$ + "*"), SEGMENT_NZ$ = subexp(PCHAR$ + "+"), SEGMENT_NZ_NC$ = subexp(subexp(PCT_ENCODED$2 + "|" + merge2(UNRESERVED$$2, SUB_DELIMS$$, "[\\@]")) + "+"), PATH_ABEMPTY$ = subexp(subexp("\\/" + SEGMENT$) + "*"), PATH_ABSOLUTE$ = subexp("\\/" + subexp(SEGMENT_NZ$ + PATH_ABEMPTY$) + "?"), PATH_NOSCHEME$ = subexp(SEGMENT_NZ_NC$ + PATH_ABEMPTY$), PATH_ROOTLESS$ = subexp(SEGMENT_NZ$ + PATH_ABEMPTY$), PATH_EMPTY$ = "(?!" + PCHAR$ + ")", PATH$ = subexp(PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$), QUERY$ = subexp(subexp(PCHAR$ + "|" + merge2("[\\/\\?]", IPRIVATE$$)) + "*"), FRAGMENT$ = subexp(subexp(PCHAR$ + "|[\\/\\?]") + "*"), HIER_PART$ = subexp(subexp("\\/\\/" + AUTHORITY$ + PATH_ABEMPTY$) + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$), URI$ = subexp(SCHEME$ + "\\:" + HIER_PART$ + subexp("\\?" + QUERY$) + "?" + subexp("\\#" + FRAGMENT$) + "?"), RELATIVE_PART$ = subexp(subexp("\\/\\/" + AUTHORITY$ + PATH_ABEMPTY$) + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_EMPTY$), RELATIVE$ = subexp(RELATIVE_PART$ + subexp("\\?" + QUERY$) + "?" + subexp("\\#" + FRAGMENT$) + "?"), URI_REFERENCE$ = subexp(URI$ + "|" + RELATIVE$), ABSOLUTE_URI$ = subexp(SCHEME$ + "\\:" + HIER_PART$ + subexp("\\?" + QUERY$) + "?"), GENERIC_REF$ = "^(" + SCHEME$ + ")\\:" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", RELATIVE_REF$ = "^(){0}" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_NOSCHEME$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", ABSOLUTE_REF$ = "^(" + SCHEME$ + ")\\:" + subexp(subexp("\\/\\/(" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?)") + "?(" + PATH_ABEMPTY$ + "|" + PATH_ABSOLUTE$ + "|" + PATH_ROOTLESS$ + "|" + PATH_EMPTY$ + ")") + subexp("\\?(" + QUERY$ + ")") + "?$", SAMEDOC_REF$ = "^" + subexp("\\#(" + FRAGMENT$ + ")") + "?$", AUTHORITY_REF$ = "^" + subexp("(" + USERINFO$ + ")@") + "?(" + HOST$ + ")" + subexp("\\:(" + PORT$ + ")") + "?$";
         return {
-          NOT_SCHEME: new RegExp(merge("[^]", ALPHA$$, DIGIT$$, "[\\+\\-\\.]"), "g"),
-          NOT_USERINFO: new RegExp(merge("[^\\%\\:]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
-          NOT_HOST: new RegExp(merge("[^\\%\\[\\]\\:]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
-          NOT_PATH: new RegExp(merge("[^\\%\\/\\:\\@]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
-          NOT_PATH_NOSCHEME: new RegExp(merge("[^\\%\\/\\@]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
-          NOT_QUERY: new RegExp(merge("[^\\%]", UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@\\/\\?]", IPRIVATE$$), "g"),
-          NOT_FRAGMENT: new RegExp(merge("[^\\%]", UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@\\/\\?]"), "g"),
-          ESCAPE: new RegExp(merge("[^]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
+          NOT_SCHEME: new RegExp(merge2("[^]", ALPHA$$, DIGIT$$, "[\\+\\-\\.]"), "g"),
+          NOT_USERINFO: new RegExp(merge2("[^\\%\\:]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
+          NOT_HOST: new RegExp(merge2("[^\\%\\[\\]\\:]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
+          NOT_PATH: new RegExp(merge2("[^\\%\\/\\:\\@]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
+          NOT_PATH_NOSCHEME: new RegExp(merge2("[^\\%\\/\\@]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
+          NOT_QUERY: new RegExp(merge2("[^\\%]", UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@\\/\\?]", IPRIVATE$$), "g"),
+          NOT_FRAGMENT: new RegExp(merge2("[^\\%]", UNRESERVED$$2, SUB_DELIMS$$, "[\\:\\@\\/\\?]"), "g"),
+          ESCAPE: new RegExp(merge2("[^]", UNRESERVED$$2, SUB_DELIMS$$), "g"),
           UNRESERVED: new RegExp(UNRESERVED$$2, "g"),
-          OTHER_CHARS: new RegExp(merge("[^\\%]", UNRESERVED$$2, RESERVED$$), "g"),
+          OTHER_CHARS: new RegExp(merge2("[^\\%]", UNRESERVED$$2, RESERVED$$), "g"),
           PCT_ENCODED: new RegExp(PCT_ENCODED$2, "g"),
           IPV4ADDRESS: new RegExp("^(" + IPV4ADDRESS$ + ")$"),
           IPV6ADDRESS: new RegExp("^\\[?(" + IPV6ADDRESS$ + ")" + subexp(subexp("\\%25|\\%(?!" + HEXDIG$$2 + "{2})") + "(" + ZONEID$ + ")") + "?\\]?$")
@@ -3877,12 +3881,12 @@ var require_uri_all = __commonJS({
       var PCT_ENCODED$ = subexp(subexp("%[EFef]" + HEXDIG$$ + "%" + HEXDIG$$ + HEXDIG$$ + "%" + HEXDIG$$ + HEXDIG$$) + "|" + subexp("%[89A-Fa-f]" + HEXDIG$$ + "%" + HEXDIG$$ + HEXDIG$$) + "|" + subexp("%" + HEXDIG$$ + HEXDIG$$));
       var ATEXT$$ = "[A-Za-z0-9\\!\\$\\%\\'\\*\\+\\-\\^\\_\\`\\{\\|\\}\\~]";
       var QTEXT$$ = "[\\!\\$\\%\\'\\(\\)\\*\\+\\,\\-\\.0-9\\<\\>A-Z\\x5E-\\x7E]";
-      var VCHAR$$ = merge(QTEXT$$, '[\\"\\\\]');
+      var VCHAR$$ = merge2(QTEXT$$, '[\\"\\\\]');
       var SOME_DELIMS$$ = "[\\!\\$\\'\\(\\)\\*\\+\\,\\;\\:\\@]";
       var UNRESERVED = new RegExp(UNRESERVED$$, "g");
       var PCT_ENCODED = new RegExp(PCT_ENCODED$, "g");
-      var NOT_LOCAL_PART = new RegExp(merge("[^]", ATEXT$$, "[\\.]", '[\\"]', VCHAR$$), "g");
-      var NOT_HFNAME = new RegExp(merge("[^]", UNRESERVED$$, SOME_DELIMS$$), "g");
+      var NOT_LOCAL_PART = new RegExp(merge2("[^]", ATEXT$$, "[\\.]", '[\\"]', VCHAR$$), "g");
+      var NOT_HFNAME = new RegExp(merge2("[^]", UNRESERVED$$, SOME_DELIMS$$), "g");
       var NOT_HFVALUE = NOT_HFNAME;
       function decodeUnreserved(str) {
         var decStr = pctDecChars(str);
@@ -3963,9 +3967,9 @@ var require_uri_all = __commonJS({
           if (mailtoComponents.body)
             headers["body"] = mailtoComponents.body;
           var fields = [];
-          for (var name in headers) {
-            if (headers[name] !== O[name]) {
-              fields.push(name.replace(PCT_ENCODED, decodeUnreserved).replace(PCT_ENCODED, toUpperCase).replace(NOT_HFNAME, pctEncChar) + "=" + headers[name].replace(PCT_ENCODED, decodeUnreserved).replace(PCT_ENCODED, toUpperCase).replace(NOT_HFVALUE, pctEncChar));
+          for (var name2 in headers) {
+            if (headers[name2] !== O[name2]) {
+              fields.push(name2.replace(PCT_ENCODED, decodeUnreserved).replace(PCT_ENCODED, toUpperCase).replace(NOT_HFNAME, pctEncChar) + "=" + headers[name2].replace(PCT_ENCODED, decodeUnreserved).replace(PCT_ENCODED, toUpperCase).replace(NOT_HFVALUE, pctEncChar));
             }
           }
           if (fields.length) {
@@ -4228,10 +4232,10 @@ var require_core = __commonJS({
         } else {
           v = this.compile(schemaKeyRef);
         }
-        const valid = v(data);
+        const valid2 = v(data);
         if (!("$async" in v))
           this.errors = v.errors;
-        return valid;
+        return valid2;
       }
       compile(schema, _meta) {
         const sch = this._addSchema(schema, _meta);
@@ -4324,15 +4328,15 @@ var require_core = __commonJS({
           this.errors = null;
           return true;
         }
-        const valid = this.validate($schema, schema);
-        if (!valid && throwOrLogError) {
+        const valid2 = this.validate($schema, schema);
+        if (!valid2 && throwOrLogError) {
           const message = "schema is invalid: " + this.errorsText();
           if (this.opts.validateSchema === "log")
             this.logger.error(message);
           else
             throw new Error(message);
         }
-        return valid;
+        return valid2;
       }
       getSchema(keyRef) {
         let sch;
@@ -4434,10 +4438,10 @@ var require_core = __commonJS({
         }
         return this;
       }
-      addFormat(name, format) {
+      addFormat(name2, format) {
         if (typeof format == "string")
           format = new RegExp(format);
-        this.formats[name] = format;
+        this.formats[name2] = format;
         return this;
       }
       errorsText(errors = this.errors, { separator = ", ", dataVar = "data" } = {}) {
@@ -4465,10 +4469,10 @@ var require_core = __commonJS({
         }
         return metaSchema;
       }
-      _removeAllSchemas(schemas, regex) {
+      _removeAllSchemas(schemas, regex2) {
         for (const keyRef in schemas) {
           const sch = schemas[keyRef];
-          if (!regex || regex.test(keyRef)) {
+          if (!regex2 || regex2.test(keyRef)) {
             if (typeof sch == "string") {
               delete schemas[keyRef];
             } else if (sch && !sch.meta) {
@@ -4554,10 +4558,10 @@ var require_core = __commonJS({
           this.addSchema(optsSchemas[key], key);
     }
     function addInitialFormats() {
-      for (const name in this.opts.formats) {
-        const format = this.opts.formats[name];
+      for (const name2 in this.opts.formats) {
+        const format = this.opts.formats[name2];
         if (format)
-          this.addFormat(name, format);
+          this.addFormat(name2, format);
       }
     }
     function addInitialKeywords(defs) {
@@ -4716,16 +4720,16 @@ var require_ref = __commonJS({
         }
         function inlineRefSchema(sch) {
           const schName = gen.scopeValue("schema", opts.code.source === true ? { ref: sch, code: (0, codegen_1.stringify)(sch) } : { ref: sch });
-          const valid = gen.name("valid");
+          const valid2 = gen.name("valid");
           const schCxt = cxt.subschema({
             schema: sch,
             dataTypes: [],
             schemaPath: codegen_1.nil,
             topSchemaRef: schName,
             errSchemaPath: $ref
-          }, valid);
+          }, valid2);
           cxt.mergeEvaluated(schCxt);
-          cxt.ok(valid);
+          cxt.ok(valid2);
         }
       }
     };
@@ -4745,19 +4749,19 @@ var require_ref = __commonJS({
       function callAsyncRef() {
         if (!env.$async)
           throw new Error("async schema referenced by sync schema");
-        const valid = gen.let("valid");
+        const valid2 = gen.let("valid");
         gen.try(() => {
           gen.code((0, codegen_1._)`await ${(0, code_1.callValidateCode)(cxt, v, passCxt)}`);
           addEvaluatedFrom(v);
           if (!allErrors)
-            gen.assign(valid, true);
+            gen.assign(valid2, true);
         }, (e) => {
           gen.if((0, codegen_1._)`!(${e} instanceof ${it.ValidationError})`, () => gen.throw(e));
           addErrorsFrom(e);
           if (!allErrors)
-            gen.assign(valid, false);
+            gen.assign(valid2, false);
         });
-        cxt.ok(valid);
+        cxt.ok(valid2);
       }
       function callSyncRef() {
         cxt.result((0, code_1.callValidateCode)(cxt, v, passCxt), () => addEvaluatedFrom(v), () => addErrorsFrom(v));
@@ -5046,9 +5050,9 @@ var require_required = __commonJS({
         function exitOnErrorMode() {
           const missing = gen.let("missing");
           if (useLoop || $data) {
-            const valid = gen.let("valid", true);
-            cxt.block$data(valid, () => loopUntilMissing(missing, valid));
-            cxt.ok(valid);
+            const valid2 = gen.let("valid", true);
+            cxt.block$data(valid2, () => loopUntilMissing(missing, valid2));
+            cxt.ok(valid2);
           } else {
             gen.if((0, code_1.checkMissingProp)(cxt, schema, missing));
             (0, code_1.reportMissingProp)(cxt, missing);
@@ -5061,11 +5065,11 @@ var require_required = __commonJS({
             gen.if((0, code_1.noPropertyInData)(gen, data, prop, opts.ownProperties), () => cxt.error());
           });
         }
-        function loopUntilMissing(missing, valid) {
+        function loopUntilMissing(missing, valid2) {
           cxt.setParams({ missingProperty: missing });
           gen.forOf(missing, schemaCode, () => {
-            gen.assign(valid, (0, code_1.propertyInData)(gen, data, missing, opts.ownProperties));
-            gen.if((0, codegen_1.not)(valid), () => {
+            gen.assign(valid2, (0, code_1.propertyInData)(gen, data, missing, opts.ownProperties));
+            gen.if((0, codegen_1.not)(valid2), () => {
               cxt.error();
               gen.break();
             });
@@ -5140,15 +5144,15 @@ var require_uniqueItems = __commonJS({
         const { gen, data, $data, schema, parentSchema, schemaCode, it } = cxt;
         if (!$data && !schema)
           return;
-        const valid = gen.let("valid");
+        const valid2 = gen.let("valid");
         const itemTypes = parentSchema.items ? (0, dataType_1.getSchemaTypes)(parentSchema.items) : [];
-        cxt.block$data(valid, validateUniqueItems, (0, codegen_1._)`${schemaCode} === false`);
-        cxt.ok(valid);
+        cxt.block$data(valid2, validateUniqueItems, (0, codegen_1._)`${schemaCode} === false`);
+        cxt.ok(valid2);
         function validateUniqueItems() {
           const i = gen.let("i", (0, codegen_1._)`${data}.length`);
           const j = gen.let("j");
           cxt.setParams({ i, j });
-          gen.assign(valid, true);
+          gen.assign(valid2, true);
           gen.if((0, codegen_1._)`${i} > 1`, () => (canOptimize() ? loopN : loopN2)(i, j));
         }
         function canOptimize() {
@@ -5166,7 +5170,7 @@ var require_uniqueItems = __commonJS({
             gen.if((0, codegen_1._)`typeof ${indices}[${item}] == "number"`, () => {
               gen.assign(j, (0, codegen_1._)`${indices}[${item}]`);
               cxt.error();
-              gen.assign(valid, false).break();
+              gen.assign(valid2, false).break();
             }).code((0, codegen_1._)`${indices}[${item}] = ${i}`);
           });
         }
@@ -5175,7 +5179,7 @@ var require_uniqueItems = __commonJS({
           const outer = gen.name("outer");
           gen.label(outer).for((0, codegen_1._)`;${i}--;`, () => gen.for((0, codegen_1._)`${j} = ${i}; ${j}--;`, () => gen.if((0, codegen_1._)`${eql}(${data}[${i}], ${data}[${j}])`, () => {
             cxt.error();
-            gen.assign(valid, false).break(outer);
+            gen.assign(valid2, false).break(outer);
           })));
         }
       }
@@ -5237,20 +5241,20 @@ var require_enum = __commonJS({
         const useLoop = schema.length >= it.opts.loopEnum;
         let eql;
         const getEql = () => eql !== null && eql !== void 0 ? eql : eql = (0, util_1.useFunc)(gen, equal_1.default);
-        let valid;
+        let valid2;
         if (useLoop || $data) {
-          valid = gen.let("valid");
-          cxt.block$data(valid, loopEnum);
+          valid2 = gen.let("valid");
+          cxt.block$data(valid2, loopEnum);
         } else {
           if (!Array.isArray(schema))
             throw new Error("ajv implementation error");
           const vSchema = gen.const("vSchema", schemaCode);
-          valid = (0, codegen_1.or)(...schema.map((_x, i) => equalCode(vSchema, i)));
+          valid2 = (0, codegen_1.or)(...schema.map((_x, i) => equalCode(vSchema, i)));
         }
-        cxt.pass(valid);
+        cxt.pass(valid2);
         function loopEnum() {
-          gen.assign(valid, false);
-          gen.forOf("v", schemaCode, (v) => gen.if((0, codegen_1._)`${getEql()}(${data}, ${v})`, () => gen.assign(valid, true).break()));
+          gen.assign(valid2, false);
+          gen.forOf("v", schemaCode, (v) => gen.if((0, codegen_1._)`${getEql()}(${data}, ${v})`, () => gen.assign(valid2, true).break()));
         }
         function equalCode(vSchema, i) {
           const sch = schema[i];
@@ -5331,15 +5335,15 @@ var require_additionalItems = __commonJS({
         cxt.setParams({ len: items.length });
         cxt.pass((0, codegen_1._)`${len} <= ${items.length}`);
       } else if (typeof schema == "object" && !(0, util_1.alwaysValidSchema)(it, schema)) {
-        const valid = gen.var("valid", (0, codegen_1._)`${len} <= ${items.length}`);
-        gen.if((0, codegen_1.not)(valid), () => validateItems(valid));
-        cxt.ok(valid);
+        const valid2 = gen.var("valid", (0, codegen_1._)`${len} <= ${items.length}`);
+        gen.if((0, codegen_1.not)(valid2), () => validateItems(valid2));
+        cxt.ok(valid2);
       }
-      function validateItems(valid) {
+      function validateItems(valid2) {
         gen.forRange("i", items.length, len, (i) => {
-          cxt.subschema({ keyword, dataProp: i, dataPropType: util_1.Type.Num }, valid);
+          cxt.subschema({ keyword, dataProp: i, dataPropType: util_1.Type.Num }, valid2);
           if (!it.allErrors)
-            gen.if((0, codegen_1.not)(valid), () => gen.break());
+            gen.if((0, codegen_1.not)(valid2), () => gen.break());
         });
       }
     }
@@ -5378,7 +5382,7 @@ var require_items = __commonJS({
       if (it.opts.unevaluated && schArr.length && it.items !== true) {
         it.items = util_1.mergeEvaluated.items(gen, schArr.length, it.items);
       }
-      const valid = gen.name("valid");
+      const valid2 = gen.name("valid");
       const len = gen.const("len", (0, codegen_1._)`${data}.length`);
       schArr.forEach((sch, i) => {
         if ((0, util_1.alwaysValidSchema)(it, sch))
@@ -5387,8 +5391,8 @@ var require_items = __commonJS({
           keyword,
           schemaProp: i,
           dataProp: i
-        }, valid));
-        cxt.ok(valid);
+        }, valid2));
+        cxt.ok(valid2);
       });
       function checkStrictTuple(sch) {
         const { opts, errSchemaPath } = it;
@@ -5505,18 +5509,18 @@ var require_contains = __commonJS({
           return;
         }
         it.items = true;
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         if (max === void 0 && min === 1) {
-          validateItems(valid, () => gen.if(valid, () => gen.break()));
+          validateItems(valid2, () => gen.if(valid2, () => gen.break()));
         } else if (min === 0) {
-          gen.let(valid, true);
+          gen.let(valid2, true);
           if (max !== void 0)
             gen.if((0, codegen_1._)`${data}.length > 0`, validateItemsWithCount);
         } else {
-          gen.let(valid, false);
+          gen.let(valid2, false);
           validateItemsWithCount();
         }
-        cxt.result(valid, () => cxt.reset());
+        cxt.result(valid2, () => cxt.reset());
         function validateItemsWithCount() {
           const schValid = gen.name("_valid");
           const count = gen.let("count", 0);
@@ -5536,13 +5540,13 @@ var require_contains = __commonJS({
         function checkLimits(count) {
           gen.code((0, codegen_1._)`${count}++`);
           if (max === void 0) {
-            gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true).break());
+            gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid2, true).break());
           } else {
-            gen.if((0, codegen_1._)`${count} > ${max}`, () => gen.assign(valid, false).break());
+            gen.if((0, codegen_1._)`${count} > ${max}`, () => gen.assign(valid2, false).break());
             if (min === 1)
-              gen.assign(valid, true);
+              gen.assign(valid2, true);
             else
-              gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid, true));
+              gen.if((0, codegen_1._)`${count} >= ${min}`, () => gen.assign(valid2, true));
           }
         }
       }
@@ -5623,19 +5627,19 @@ var require_dependencies = __commonJS({
     exports.validatePropertyDeps = validatePropertyDeps;
     function validateSchemaDeps(cxt, schemaDeps = cxt.schema) {
       const { gen, data, keyword, it } = cxt;
-      const valid = gen.name("valid");
+      const valid2 = gen.name("valid");
       for (const prop in schemaDeps) {
         if ((0, util_1.alwaysValidSchema)(it, schemaDeps[prop]))
           continue;
         gen.if(
           (0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties),
           () => {
-            const schCxt = cxt.subschema({ keyword, schemaProp: prop }, valid);
-            cxt.mergeValidEvaluated(schCxt, valid);
+            const schCxt = cxt.subschema({ keyword, schemaProp: prop }, valid2);
+            cxt.mergeValidEvaluated(schCxt, valid2);
           },
-          () => gen.var(valid, true)
+          () => gen.var(valid2, true)
         );
-        cxt.ok(valid);
+        cxt.ok(valid2);
       }
     }
     exports.validateSchemaDeps = validateSchemaDeps;
@@ -5663,7 +5667,7 @@ var require_propertyNames = __commonJS({
         const { gen, schema, data, it } = cxt;
         if ((0, util_1.alwaysValidSchema)(it, schema))
           return;
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         gen.forIn("key", data, (key) => {
           cxt.setParams({ propertyName: key });
           cxt.subschema({
@@ -5672,14 +5676,14 @@ var require_propertyNames = __commonJS({
             dataTypes: ["string"],
             propertyName: key,
             compositeRule: true
-          }, valid);
-          gen.if((0, codegen_1.not)(valid), () => {
+          }, valid2);
+          gen.if((0, codegen_1.not)(valid2), () => {
             cxt.error(true);
             if (!it.allErrors)
               gen.break();
           });
         });
-        cxt.ok(valid);
+        cxt.ok(valid2);
       }
     };
     exports.default = def;
@@ -5757,21 +5761,21 @@ var require_additionalProperties = __commonJS({
             return;
           }
           if (typeof schema == "object" && !(0, util_1.alwaysValidSchema)(it, schema)) {
-            const valid = gen.name("valid");
+            const valid2 = gen.name("valid");
             if (opts.removeAdditional === "failing") {
-              applyAdditionalSchema(key, valid, false);
-              gen.if((0, codegen_1.not)(valid), () => {
+              applyAdditionalSchema(key, valid2, false);
+              gen.if((0, codegen_1.not)(valid2), () => {
                 cxt.reset();
                 deleteAdditional(key);
               });
             } else {
-              applyAdditionalSchema(key, valid);
+              applyAdditionalSchema(key, valid2);
               if (!allErrors)
-                gen.if((0, codegen_1.not)(valid), () => gen.break());
+                gen.if((0, codegen_1.not)(valid2), () => gen.break());
             }
           }
         }
-        function applyAdditionalSchema(key, valid, errors) {
+        function applyAdditionalSchema(key, valid2, errors) {
           const subschema = {
             keyword: "additionalProperties",
             dataProp: key,
@@ -5784,7 +5788,7 @@ var require_additionalProperties = __commonJS({
               allErrors: false
             });
           }
-          cxt.subschema(subschema, valid);
+          cxt.subschema(subschema, valid2);
         }
       }
     };
@@ -5820,7 +5824,7 @@ var require_properties = __commonJS({
         const properties = allProps.filter((p) => !(0, util_1.alwaysValidSchema)(it, schema[p]));
         if (properties.length === 0)
           return;
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         for (const prop of properties) {
           if (hasDefault(prop)) {
             applyPropertySchema(prop);
@@ -5828,11 +5832,11 @@ var require_properties = __commonJS({
             gen.if((0, code_1.propertyInData)(gen, data, prop, it.opts.ownProperties));
             applyPropertySchema(prop);
             if (!it.allErrors)
-              gen.else().var(valid, true);
+              gen.else().var(valid2, true);
             gen.endIf();
           }
           cxt.it.definedProperties.add(prop);
-          cxt.ok(valid);
+          cxt.ok(valid2);
         }
         function hasDefault(prop) {
           return it.opts.useDefaults && !it.compositeRule && schema[prop].default !== void 0;
@@ -5842,7 +5846,7 @@ var require_properties = __commonJS({
             keyword: "properties",
             schemaProp: prop,
             dataProp: prop
-          }, valid);
+          }, valid2);
         }
       }
     };
@@ -5872,7 +5876,7 @@ var require_patternProperties = __commonJS({
           return;
         }
         const checkProperties = opts.strictSchema && !opts.allowMatchingProperties && parentSchema.properties;
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         if (it.props !== true && !(it.props instanceof codegen_1.Name)) {
           it.props = (0, util_2.evaluatedPropsToName)(gen, it.props);
         }
@@ -5885,9 +5889,9 @@ var require_patternProperties = __commonJS({
             if (it.allErrors) {
               validateProperties(pat);
             } else {
-              gen.var(valid, true);
+              gen.var(valid2, true);
               validateProperties(pat);
-              gen.if(valid);
+              gen.if(valid2);
             }
           }
         }
@@ -5908,12 +5912,12 @@ var require_patternProperties = __commonJS({
                   schemaProp: pat,
                   dataProp: key,
                   dataPropType: util_2.Type.Str
-                }, valid);
+                }, valid2);
               }
               if (it.opts.unevaluated && props !== true) {
                 gen.assign((0, codegen_1._)`${props}[${key}]`, true);
               } else if (!alwaysValid && !it.allErrors) {
-                gen.if((0, codegen_1.not)(valid), () => gen.break());
+                gen.if((0, codegen_1.not)(valid2), () => gen.break());
               }
             });
           });
@@ -5940,14 +5944,14 @@ var require_not = __commonJS({
           cxt.fail();
           return;
         }
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         cxt.subschema({
           keyword: "not",
           compositeRule: true,
           createErrors: false,
           allErrors: false
-        }, valid);
-        cxt.failResult(valid, () => cxt.reset(), () => cxt.error());
+        }, valid2);
+        cxt.failResult(valid2, () => cxt.reset(), () => cxt.error());
       },
       error: { message: "must NOT be valid" }
     };
@@ -5995,12 +5999,12 @@ var require_oneOf = __commonJS({
         if (it.opts.discriminator && parentSchema.discriminator)
           return;
         const schArr = schema;
-        const valid = gen.let("valid", false);
+        const valid2 = gen.let("valid", false);
         const passing = gen.let("passing", null);
         const schValid = gen.name("_valid");
         cxt.setParams({ passing });
         gen.block(validateOneOf);
-        cxt.result(valid, () => cxt.reset(), () => cxt.error(true));
+        cxt.result(valid2, () => cxt.reset(), () => cxt.error(true));
         function validateOneOf() {
           schArr.forEach((sch, i) => {
             let schCxt;
@@ -6014,10 +6018,10 @@ var require_oneOf = __commonJS({
               }, schValid);
             }
             if (i > 0) {
-              gen.if((0, codegen_1._)`${schValid} && ${valid}`).assign(valid, false).assign(passing, (0, codegen_1._)`[${passing}, ${i}]`).else();
+              gen.if((0, codegen_1._)`${schValid} && ${valid2}`).assign(valid2, false).assign(passing, (0, codegen_1._)`[${passing}, ${i}]`).else();
             }
             gen.if(schValid, () => {
-              gen.assign(valid, true);
+              gen.assign(valid2, true);
               gen.assign(passing, i);
               if (schCxt)
                 cxt.mergeEvaluated(schCxt, codegen_1.Name);
@@ -6043,12 +6047,12 @@ var require_allOf = __commonJS({
         const { gen, schema, it } = cxt;
         if (!Array.isArray(schema))
           throw new Error("ajv implementation error");
-        const valid = gen.name("valid");
+        const valid2 = gen.name("valid");
         schema.forEach((sch, i) => {
           if ((0, util_1.alwaysValidSchema)(it, sch))
             return;
-          const schCxt = cxt.subschema({ keyword: "allOf", schemaProp: i }, valid);
-          cxt.ok(valid);
+          const schCxt = cxt.subschema({ keyword: "allOf", schemaProp: i }, valid2);
+          cxt.ok(valid2);
           cxt.mergeEvaluated(schCxt);
         });
       }
@@ -6082,7 +6086,7 @@ var require_if = __commonJS({
         const hasElse = hasSchema(it, "else");
         if (!hasThen && !hasElse)
           return;
-        const valid = gen.let("valid", true);
+        const valid2 = gen.let("valid", true);
         const schValid = gen.name("_valid");
         validateIf();
         cxt.reset();
@@ -6095,7 +6099,7 @@ var require_if = __commonJS({
         } else {
           gen.if((0, codegen_1.not)(schValid), validateClause("else"));
         }
-        cxt.pass(valid, () => cxt.error(true));
+        cxt.pass(valid2, () => cxt.error(true));
         function validateIf() {
           const schCxt = cxt.subschema({
             keyword: "if",
@@ -6108,8 +6112,8 @@ var require_if = __commonJS({
         function validateClause(keyword, ifClause) {
           return () => {
             const schCxt = cxt.subschema({ keyword }, schValid);
-            gen.assign(valid, schValid);
-            cxt.mergeValidEvaluated(schCxt, valid);
+            gen.assign(valid2, schValid);
+            cxt.mergeValidEvaluated(schCxt, valid2);
             if (ifClause)
               gen.assign(ifClause, (0, codegen_1._)`${keyword}`);
             else
@@ -6381,16 +6385,16 @@ var require_discriminator = __commonJS({
           throw new Error("discriminator: mapping is not supported");
         if (!oneOf)
           throw new Error("discriminator: requires oneOf keyword");
-        const valid = gen.let("valid", false);
+        const valid2 = gen.let("valid", false);
         const tag = gen.const("tag", (0, codegen_1._)`${data}${(0, codegen_1.getProperty)(tagName)}`);
         gen.if((0, codegen_1._)`typeof ${tag} == "string"`, () => validateMapping(), () => cxt.error(false, { discrError: types_1.DiscrError.Tag, tag, tagName }));
-        cxt.ok(valid);
+        cxt.ok(valid2);
         function validateMapping() {
           const mapping = getMapping();
           gen.if(false);
           for (const tagValue in mapping) {
             gen.elseIf((0, codegen_1._)`${tag} === ${tagValue}`);
-            gen.assign(valid, applyTagSchema(mapping[tagValue]));
+            gen.assign(valid2, applyTagSchema(mapping[tagValue]));
           }
           gen.else();
           cxt.error(false, { discrError: types_1.DiscrError.Mapping, tag, tagName });
@@ -6690,7 +6694,7 @@ var require_formats = __commonJS({
       hostname: /^(?=.{1,253}\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\.?$/i,
       ipv4: /^(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)$/,
       ipv6: /^((([0-9a-f]{1,4}:){7}([0-9a-f]{1,4}|:))|(([0-9a-f]{1,4}:){6}(:[0-9a-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){5}(((:[0-9a-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9a-f]{1,4}:){4}(((:[0-9a-f]{1,4}){1,3})|((:[0-9a-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){3}(((:[0-9a-f]{1,4}){1,4})|((:[0-9a-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){2}(((:[0-9a-f]{1,4}){1,5})|((:[0-9a-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9a-f]{1,4}:){1}(((:[0-9a-f]{1,4}){1,6})|((:[0-9a-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9a-f]{1,4}){1,7})|((:[0-9a-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))$/i,
-      regex,
+      regex: regex2,
       uuid: /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i,
       "json-pointer": /^(?:\/(?:[^~/]|~0|~1)*)*$/,
       "json-pointer-uri-fragment": /^#(?:\/(?:[a-z0-9_\-.!$&'()*+,;:=@]|%[0-9a-f]{2}|~0|~1)*)*$/i,
@@ -6799,7 +6803,7 @@ var require_formats = __commonJS({
       return true;
     }
     var Z_ANCHOR = /[^\\]\\Z/;
-    function regex(str) {
+    function regex2(str) {
       if (Z_ANCHOR.test(str))
         return false;
       try {
@@ -6906,11 +6910,11 @@ var require_dist = __commonJS({
         limit_1.default(ajv2);
       return ajv2;
     };
-    formatsPlugin.get = (name, mode = "full") => {
+    formatsPlugin.get = (name2, mode = "full") => {
       const formats = mode === "fast" ? formats_1.fastFormats : formats_1.fullFormats;
-      const f = formats[name];
+      const f = formats[name2];
       if (!f)
-        throw new Error(`Unknown format "${name}"`);
+        throw new Error(`Unknown format "${name2}"`);
       return f;
     };
     function addFormats2(ajv2, list, fs, exportName) {
@@ -6930,12 +6934,12 @@ var require_dist = __commonJS({
 var version = "0.0.0";
 var latest_default = version;
 
-// versions/0.0.0/plugin.schema.json
-var plugin_schema_default = {
+// versions/0.0.0/component.schema.json
+var component_schema_default = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/plugin.schema.json",
-  title: "Plugin",
-  description: "A plugin for the Web Application Specification Language",
+  $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/component.schema.json",
+  title: "Component",
+  description: "A component for the Web Application Specification Language",
   type: "object",
   properties: {
     name: {
@@ -6955,29 +6959,45 @@ var plugin_schema_default = {
       type: "string",
       format: "uri-reference"
     },
+    type: {
+      type: "string",
+      pattern: "^(module|commonjs)$"
+    },
     repository: {
       type: "string",
       format: "uri"
     },
     graph: {
-      description: "The logic of the application to assemble.",
-      type: "object",
-      properties: {
-        nodes: {
-          $ref: "nodes.schema.json"
-        },
-        edges: {
-          $ref: "edges.schema.json"
-        }
-      },
-      required: ["nodes", "edges"]
+      $ref: "graph.schema.json"
     }
   },
   required: ["graph"]
 };
 
+// versions/0.0.0/graph.schema.json
+var graph_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/graph.schema.json",
+  title: "Graph",
+  description: "The logic of the application to assemble.",
+  type: "object",
+  properties: {
+    nodes: {
+      $ref: "nodes.schema.json"
+    },
+    edges: {
+      $ref: "edges.schema.json"
+    },
+    ports: {
+      $ref: "ports.schema.json"
+    }
+  },
+  required: ["nodes"]
+};
+
 // versions/0.0.0/edges.schema.json
 var edges_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/edges.schema.json",
   title: "Edges",
   description: "The way that nodes are connected",
@@ -7005,11 +7025,11 @@ var edges_schema_default = {
 
 // versions/0.0.0/nodes.schema.json
 var nodes_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/nodes.schema.json",
   title: "Nodes",
   description: "The composable units of the graph",
   type: "object",
-  $comment: "Property names loosely represent a connection to a src file and may include a '_' and a number (e.g. 'plugin_1' to note what instance of this source it is.",
   patternProperties: {
     "^(.+)$": {
       type: "object",
@@ -7022,26 +7042,14 @@ var nodes_schema_default = {
             },
             {
               type: "object",
-              $ref: "#"
+              $ref: "component.schema.json"
             },
             {
               type: "object",
-              properties: {
-                language: {
-                  type: "string"
-                },
-                text: {
-                  type: "string"
-                }
-              },
-              additionalProperties: false
-            },
-            {
-              type: "object",
+              $comment: "The raw JSON",
               properties: {
                 default: {
-                  description: "The stateless function that this node uses to handle upstream information in the graph",
-                  type: "string"
+                  description: "The stringified stateless function that this node uses to handle upstream information in the graph"
                 },
                 tagName: {
                   type: "string"
@@ -7068,25 +7076,34 @@ var nodes_schema_default = {
                   description: "A set of HTML Element events for the node to listen to",
                   patternProperties: {
                     "^on(.+)$": {
-                      description: "A stringified function to handle an event",
-                      type: "string"
+                      description: "A stringified function to handle an event"
                     }
                   }
                 },
                 onrender: {
-                  description: "A stringified function that responds to when this node's information is rendered as an HTML element",
-                  type: "string"
+                  description: "A stringified function that responds to when this node's information is rendered as an HTML element"
                 }
               },
               required: ["default"]
+            },
+            {
+              type: "object",
+              properties: {
+                language: {
+                  type: "string"
+                },
+                text: {
+                  type: "string"
+                }
+              },
+              additionalProperties: false
             }
           ]
         },
         offload: {
           anyOf: [
             {
-              type: "string",
-              pattern: "^(worker|(\b(https?|ftp|file)://[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|]))$"
+              type: "string"
             },
             {
               type: "boolean"
@@ -7105,47 +7122,107 @@ var nodes_schema_default = {
             }
           },
           additionalProperties: false
+        },
+        components: {
+          type: "object",
+          patternProperties: {
+            "^.*$": {
+              type: "object",
+              patternProperties: {
+                "^.*$": {}
+              },
+              additionalProperties: false
+            }
+          },
+          additionalProperties: false
+        },
+        arguments: {
+          type: "object",
+          $comment: "Generated by wasl.load"
         }
       },
-      additionalProperties: false,
       required: ["src"]
     }
   },
   additionalProperties: false
 };
 
-// src/utils/registry.js
-var registry_default = {
+// versions/0.0.0/ports.schema.json
+var ports_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/ports.schema.json",
+  title: "Ports",
+  description: "Parts of your application that you wish to expose as an API.",
+  type: "object",
+  properties: {
+    input: {
+      description: "Inputs to your application.",
+      $ref: "port.schema.json"
+    },
+    output: {
+      description: "Outputs of your application.",
+      $ref: "port.schema.json"
+    }
+  },
+  additionalProperties: false
+};
+
+// versions/0.0.0/port.schema.json
+var port_schema_default = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $id: "https://raw.github.com/brainsatplay/wasl/versions/0.0.0/port.schema.json",
+  title: "Port",
+  description: "Exposed components of your application.",
+  anyOf: [
+    {
+      type: "string"
+    },
+    {
+      type: "object",
+      patternProperties: {
+        "^(.+)$": {}
+      }
+    }
+  ]
+};
+
+// src/utils/schema.registry.js
+var schema_registry_default = {
   ["0.0.0"]: {
+    "graph.schema.json": graph_schema_default,
     "nodes.schema.json": nodes_schema_default,
     "edges.schema.json": edges_schema_default,
-    "plugin.schema.json": plugin_schema_default
+    "component.schema.json": component_schema_default,
+    "ports.schema.json": ports_schema_default,
+    "port.schema.json": port_schema_default
   }
 };
 
 // src/utils/get.js
 var schemaCache = {};
-var getSchema = async (v = latest_default, name = "plugin.schema.json") => {
-  if (!schemaCache[v])
+var getSchema = async (v = latest_default) => {
+  if (!schemaCache[v]) {
     schemaCache[v] = {};
-  if (!schemaCache[v][name]) {
-    const og = registry_default[v][name];
+    const og = schema_registry_default[v];
     if (!og) {
       console.error("Schema not properly linked in the wasl library", v, name);
     }
-    const keysWithDollarSign = Object.keys(og).filter((k) => k.includes("$"));
-    keysWithDollarSign.forEach((k) => delete og[k]);
-    schemaCache[v][name] = og;
+    for (let schema in og) {
+      const keysWithDollarSign = Object.keys(og[schema]).filter((k) => k.includes("$"));
+      keysWithDollarSign.forEach((k) => delete og[schema][k]);
+    }
+    schemaCache[v] = og;
   }
-  return schemaCache[v][name];
+  return schemaCache[v];
 };
-var getSchemas = async (v = latest_default, name = "plugin.schema.json") => {
-  const o = { main: null, other: [] };
-  o.main = await getSchema(v, name);
-  const other1 = "nodes.schema.json";
-  o.other.push({ ref: await getSchema(v, other1), name: other1 });
-  const other2 = "edges.schema.json";
-  o.other.push({ ref: await getSchema(v, other2), name: other2 });
+var getSchemas = async (v = latest_default, name2 = "component.schema.json") => {
+  const o = { main: null, all: [] };
+  const schemas = await getSchema(v);
+  const keys = Object.keys(schemas);
+  o.main = schemas[name2];
+  keys.forEach((k) => {
+    o.all.push({ ref: schemas[k], name: k });
+  });
   return o;
 };
 
@@ -7159,8 +7236,27 @@ var suffix = (fileName = "") => {
   const suffix2 = fullSuffix(fileName);
   return suffix2.join(".");
 };
-var get = (path, rel = "") => {
-  rel = rel.split("/").filter((v) => v != "..").join("/");
+var regex = new RegExp("https?:", "g");
+var get = (path, rel = "", keepRelativeImports = false) => {
+  const windowLocation = globalThis?.location?.origin;
+  let pathMatch = false;
+  let relMatch = false;
+  if (windowLocation) {
+    relMatch = rel.includes(windowLocation);
+    if (relMatch) {
+      rel = rel.replace(windowLocation, "");
+      if (rel[0] === "/")
+        rel = rel.slice(1);
+    }
+    pathMatch = path.includes(windowLocation);
+    if (pathMatch) {
+      path = path.replace(windowLocation, "");
+      if (path[0] === "/")
+        path = path.slice(1);
+    }
+  }
+  if (!keepRelativeImports)
+    rel = rel.split("/").filter((v) => v != "..").join("/");
   if (rel[rel.length - 1] === "/")
     rel = rel.slice(0, -1);
   let dirTokens = rel.split("/");
@@ -7168,11 +7264,17 @@ var get = (path, rel = "") => {
     dirTokens = [];
   const potentialFile = dirTokens.pop();
   if (potentialFile) {
-    const splitPath = potentialFile.split(".");
-    if (splitPath.length == 1 || splitPath.length > 1 && splitPath.includes(""))
+    const splitPath2 = potentialFile.split(".");
+    if (splitPath2.length == 1 || splitPath2.length > 1 && splitPath2.includes(""))
       dirTokens.push(potentialFile);
   }
-  const pathTokens = path.split("/").filter((str) => !!str);
+  const splitPath = path.split("/");
+  const pathTokens = splitPath.filter((str, i) => {
+    if (splitPath[i - 1] && regex.test(splitPath[i - 1]))
+      return true;
+    else
+      return !!str;
+  });
   const extensionTokens = pathTokens.filter((str, i) => {
     if (str === "..") {
       dirTokens.pop();
@@ -7182,24 +7284,26 @@ var get = (path, rel = "") => {
     else
       return true;
   });
-  const newPath = [...dirTokens, ...extensionTokens].join("/");
+  const newPath = (relMatch || !rel && pathMatch ? `${windowLocation}/` : ``) + [...dirTokens, ...extensionTokens].join("/");
   return newPath;
 };
 
 // src/get.ts
 var cache = {};
-var get2 = async (relPath, relativeTo) => {
+var get2 = async (relPath, relativeTo = "") => {
   let type = suffix(relPath);
   const isJSON = !type || type.includes("json");
   const fullPath = get(relPath, relativeTo);
   if (!cache[fullPath]) {
-    cache[fullPath] = isJSON ? import(fullPath, { assert: { type: "json" } }) : import(fullPath);
-    const importPromise = isJSON ? import(fullPath, { assert: { type: "json" } }) : import(fullPath);
-    const res = await importPromise.catch((e) => {
-      console.error(`Error loading ${relPath}`, fullPath, e);
+    cache[fullPath] = (isJSON ? import(fullPath, { assert: { type: "json" } }) : import(fullPath)).catch((e) => {
+      if (e.message.includes("Failed to fetch")) {
+        throw new Error("404");
+      } else
+        console.error(`Error loading ${relPath}`, e, e.name);
     });
+    const res = await cache[fullPath];
     if (isJSON)
-      cache[fullPath] = res.default;
+      cache[fullPath] = res?.default ?? {};
     else
       cache[fullPath] = res;
   }
@@ -7207,136 +7311,433 @@ var get2 = async (relPath, relativeTo) => {
 };
 var get_default = get2;
 
-// src/validate.ts
-var activeVersion = null;
-var ajv = new import_ajv.default({ allErrors: true });
-(0, import_ajv_formats.default)(ajv);
-var validate = async (urlOrObject, options = {}) => {
-  let { version: version2, relativeTo } = options;
-  if (!version2)
-    version2 = latest_default;
-  let data = urlOrObject;
-  if (typeof data === "string")
-    data = await get_default(urlOrObject, relativeTo);
-  activeVersion = version2;
-  let schemas = await getSchemas(version2);
-  const schemaCopy = JSON.parse(JSON.stringify(schemas.main));
-  schemas.other.forEach((s) => {
-    const schema = ajv.getSchema(s.name);
-    if (!schema)
-      ajv.addSchema(s.ref, s.name);
-  });
-  const validate2 = await ajv.compile(schemaCopy);
-  const valid = validate2(data);
-  return valid || validate2.errors;
+// src/utils/check.ts
+var valid = (input, options, location) => {
+  const errors = [];
+  const isUndefined = options?.relativeTo === void 0;
+  const isString = typeof input === "string";
+  const isObject = typeof input === "object";
+  let error;
+  if (isString) {
+    if (!(!isUndefined && "relativeTo" in options)) {
+      if (import.meta.url) {
+        error = { message: "Not a valid relativeTo key (required) in options", file: input };
+        console.warn(`[wasl-${location}] Import Mode Error: Please pass a valid string to options.relativeTo (ideally import.meta.url).`);
+      } else {
+        error = { message: "import.meta.url is not supported", file: input };
+        console.warn(`[wasl-${location}] Import Mode Error: import.meta.url is not available. Does your bundler support it?`);
+      }
+    }
+  } else if (!isObject) {
+    error = { message: "Not a valid object passed in the first argument", file: null };
+    console.warn(`[wasl-${location}] Reference Mode Error: Please pass a valid object in the first argument and pass file object references via the options.filesystem field.`);
+  }
+  if (error) {
+    error.function = location;
+    errors.push(error);
+  }
+  return errors;
 };
-var validate_default = validate;
 
 // src/utils/languages.ts
+var languages_exports = {};
+__export(languages_exports, {
+  js: () => js,
+  json: () => json
+});
 var js = ["js", "mjs", "cjs", "javascript"];
+var json = ["json"];
+
+// src/utils/parse.ts
+var ARGUMENT_NAMES = /([^,]*)/g;
+function getFnParamInfo(fn) {
+  var fstr = fn.toString();
+  const openPar = fstr.indexOf("(");
+  const closePar = fstr.indexOf(")");
+  const getFirstBracket = (str, offset = 0) => {
+    const fb = offset + str.indexOf("{");
+    if (fb < closePar && fb > openPar) {
+      return getFirstBracket(str.slice(fb), offset + fb);
+    } else
+      return fb;
+  };
+  const firstBracket = getFirstBracket(fstr);
+  let innerMatch;
+  if (firstBracket === -1 || closePar < firstBracket)
+    innerMatch = fstr.slice(fstr.indexOf("(") + 1, fstr.indexOf(")"));
+  else
+    innerMatch = fstr.match(/([a-zA-Z]\w*|\([a-zA-Z]\w*(,\s*[a-zA-Z]\w*)*\)) =>/)?.[1];
+  if (!innerMatch)
+    return void 0;
+  const matches = innerMatch.match(ARGUMENT_NAMES).filter((e) => !!e);
+  const info = /* @__PURE__ */ new Map();
+  matches.forEach((v) => {
+    let [name2, value] = v.split("=");
+    name2 = name2.trim();
+    name2 = name2.replace(/\d+$/, "");
+    const spread = name2.includes("...");
+    name2 = name2.replace("...", "");
+    try {
+      if (name2)
+        info.set(name2, {
+          state: (0, eval)(`(${value})`),
+          spread
+        });
+    } catch (e) {
+      info.set(name2, {});
+      console.warn(`Argument ${name2} could be parsed for`, fn.toString());
+    }
+  });
+  return info;
+}
+var parse_default = getFnParamInfo;
 
 // src/load.ts
+var isSrc = (str) => {
+  return typeof str === "string" && Object.values(languages_exports).find((arr) => arr.includes(str.split(".").slice(-1)[0]));
+};
+var merge = (main, override, deleteSrc = false) => {
+  if (deleteSrc) {
+    const ogSrc = override.src ?? override;
+    delete override.src;
+    if ("default" in ogSrc)
+      return ogSrc.default;
+  }
+  return Object.assign(Object.assign({}, main), override);
+};
 var checkFiles = (key, filesystem) => {
   const isJSON = suffix(key).slice(-4) === "json" ? true : false;
   const output = isJSON && filesystem[key] ? JSON.parse(JSON.stringify(filesystem[key])) : filesystem[key];
   return output;
 };
 var remove = (original, search = original, key = original, o) => {
-  console.error(`Source was not ${original ? `resolved for ${original}` : `specified for ${key}`}. ${search ? `If available, refer to this object directly as options.nested["${search}"]. ` : ""}${o ? `Automatically removing ${key} from the WASL file.` : ""}`);
+  console.error(`Source was not ${original ? `resolved for ${original}` : `specified for ${key}`}. ${search ? `If available, refer to this object directly as options.filesystem["${search}"]. ` : ""}${o ? `Automatically removing ${key} from the WASL file.` : ""}`);
   if (o)
     delete o[key];
 };
-var load = async (urlOrObject, options = {}) => {
-  let { relativeTo, filesystem } = options;
-  const relativePathMode = typeof urlOrObject === "string" && relativeTo;
-  let pkg, o = Object.assign({}, urlOrObject);
-  const basePkgPath = "package.json";
-  if (relativePathMode) {
-    pkg = await get_default(get(basePkgPath, urlOrObject), relativeTo);
-    o = Object.assign(pkg, await get_default(urlOrObject, relativeTo));
-  } else if (filesystem) {
-    const pkgPath = get(basePkgPath, relativeTo);
-    pkg = checkFiles(pkgPath, filesystem);
-    if (pkg)
-      o = Object.assign(pkg, o);
-    else
-      remove(basePkgPath, pkgPath);
-  } else {
-    if (relativeTo) {
-      pkg = await get_default(basePkgPath, relativeTo);
-      if (pkg)
-        o = Object.assign(pkg, o);
-    }
-  }
-  const nodes = o.graph.nodes;
-  for (let name in nodes) {
-    const node = nodes[name];
-    const ogSrc = node.src ?? "";
-    if (typeof ogSrc === "string") {
-      node.src = null;
-      let passToNested = null;
-      let fullPath = relativePathMode ? get(ogSrc, urlOrObject) : get(ogSrc, options.relativeTo);
-      if (relativePathMode) {
-        node.src = await get_default(fullPath, relativeTo);
-        passToNested = fullPath;
-      }
-      if (!node.src) {
-        if (filesystem) {
-          const res = checkFiles(fullPath, filesystem);
-          if (res)
-            node.src = passToNested = res;
-          else
-            remove(ogSrc, fullPath, name, o.graph.nodes);
-        } else
-          console.warn("No nested files to get JavaScript objects from...", ogSrc);
-      }
-      if (node.src && typeof (node.src.default ?? node.src) !== "function")
-        node.src = await load(passToNested, {
-          relativeTo: relativePathMode ? relativeTo : ogSrc,
-          filesystem
-        });
-    } else {
-      if (node.src) {
-        const language = node.src.language;
-        if (!language || js.includes(language)) {
-          if (node.src.text) {
-            const moduleDataURI = (text, mimeType = "text/javascript") => `data:${mimeType};base64,` + btoa(text);
-            const esmImport = async (text) => {
-              try {
-                let imported = await import(moduleDataURI(text));
-                if (imported.default && Object.keys(imported).length === 1)
-                  imported = imported.default;
-                return imported;
-              } catch (e) {
-                console.error(e);
+var basePkgPath = "./package.json";
+var onError = (e, { errors, warnings }) => {
+  const item = {
+    message: e.message,
+    file: e.file ?? basePkgPath,
+    node: e.node
+  };
+  const arr = e.type === "warning" ? warnings : errors;
+  arr.push(item);
+};
+var getSrc = async (target, info, options, { nodes = void 0, edges = void 0 } = {}) => {
+  const {
+    relativeToResolved,
+    mainPath,
+    url
+  } = info;
+  const isImportMode = !!url;
+  for (let name2 in target) {
+    const node = target[name2];
+    const isObj = node && typeof node === "object";
+    if (isObj) {
+      let ogSrc = node.src ?? "";
+      if (isSrc(ogSrc) || nodes && edges && !ogSrc) {
+        node.src = null;
+        let passToNested = null;
+        let fullPath = relativeToResolved ? get(ogSrc, mainPath) : get(ogSrc, relativeToResolved);
+        if (isImportMode) {
+          node.src = await get_default(fullPath);
+          passToNested = get(ogSrc, url, true);
+        }
+        if (!node.src) {
+          if (options.filesystem) {
+            const res = checkFiles(fullPath, options.filesystem);
+            if (res) {
+              if (res.default || fullPath.includes(".json"))
+                node.src = passToNested = res;
+              else {
+                onError({
+                  type: "warning",
+                  message: `Node (${name2}) at ${fullPath} does not have a default export.`,
+                  file: ogSrc
+                }, options);
+                node.src = passToNested = { default: res };
               }
-            };
-            const esm = await esmImport(node.src.text);
-            if (esm) {
-              delete node.src.text;
-              node.src = Object.assign(node.src, esm);
             } else
-              console.warn("could not import this text as ESM");
+              remove(ogSrc, fullPath, name2, target);
           } else {
-            const expectedFunctions = ["default", "oncreate", "onrender"];
-            for (let key in node.src) {
-              try {
-                if (expectedFunctions.includes(key) && typeof node.src[key] === "string")
-                  node.src[key] = (0, eval)(`(${node.src[key]})`);
-              } catch (e) {
-                console.warn(`Field ${key} could not be parsed for`, node.src[key]);
-              }
-            }
+            onError({
+              message: "No options.filesystem field to get JavaScript objects",
+              file: ogSrc
+            }, options);
           }
-        } else {
-          console.warn(`Text is in ${language}, not JavaScript. This is not currently parsable automatically.`);
+        }
+        if (node.src && node.src.graph)
+          node.src = await load(passToNested, {
+            relativeTo: relativeToResolved || options.relativeTo,
+            filesystem: options.filesystem,
+            errors: options.errors,
+            warnings: options.warnings,
+            _internal: ogSrc,
+            _deleteSrc: options._deleteSrc
+          });
+      } else {
+        for (let key in node) {
+          if (key === "src") {
+            const language = node.src.language;
+            if (!language || js.includes(language)) {
+              if (node.src.text) {
+                const moduleDataURI = (text, mimeType = "text/javascript") => `data:${mimeType};base64,` + btoa(text);
+                const esmImport = async (text) => {
+                  try {
+                    let imported = await import(moduleDataURI(text));
+                    if (imported.default && Object.keys(imported).length === 1)
+                      imported = imported.default;
+                    return imported;
+                  } catch (e) {
+                    onError({
+                      message: e.message,
+                      file: name2
+                    }, options);
+                  }
+                };
+                const esm = await esmImport(node.src.text);
+                if (esm) {
+                  delete node.src.text;
+                  node.src = Object.assign(node.src, esm);
+                } else {
+                  onError({
+                    message: "Could not import this text as ESM",
+                    file: node.src
+                  }, options);
+                }
+              } else {
+                const expectedFunctions = ["default", "oncreate", "onrender"];
+                for (let key2 in node.src) {
+                  try {
+                    if (expectedFunctions.includes(key2) && typeof node.src[key2] === "string")
+                      node.src[key2] = (0, eval)(`(${node.src[key2]})`);
+                  } catch (e) {
+                    onError({
+                      message: `Field ${key2} could not be parsed`,
+                      file: node.src[key2]
+                    }, options);
+                  }
+                }
+              }
+            } else {
+              console.warn(`Text is in ${language}, not JavaScript. This is not currently parsable automatically.`);
+              onError({
+                message: `Source is in ${language}. Currently only JavaScript is supported.`,
+                file: ogSrc
+              }, options);
+            }
+          } else if (typeof node[key] === "object") {
+            const optsCopy = Object.assign({}, options);
+            optsCopy._deleteSrc = true;
+            await getSrc(node[key], info, optsCopy, { nodes: node[key] });
+          }
         }
       }
     }
   }
-  return o;
+  for (let name2 in nodes) {
+    const node = nodes[name2];
+    if (node?.src && typeof node?.src === "object") {
+      if (edges && node.src.default) {
+        const fnString = node.src.default.toString();
+        const keyword = "function";
+        if (fnString.slice(0, keyword.length) === keyword) {
+          onError({
+            type: "warning",
+            message: `Default export may be stateful.`,
+            node: name2
+          }, options);
+        }
+      }
+      if (node.src.graph) {
+        for (let nestedName in node.components) {
+          const nestedNode = node.src.graph.nodes[nestedName];
+          if (nestedNode) {
+            if (node.components) {
+              for (let key in node.components[nestedName]) {
+                const newInfo = node.components[nestedName][key];
+                if (typeof newInfo === "object") {
+                  const optsCopy = Object.assign({}, options);
+                  optsCopy._deleteSrc = true;
+                  const ogSrc = newInfo.src;
+                  const newInfoForNode = await getSrc({ [key]: newInfo }, info, optsCopy, {
+                    nodes: newInfo
+                  });
+                  const newVal = newInfoForNode[key];
+                  if (newVal) {
+                    const resVal = newVal.src ?? newVal;
+                    const bothObj = typeof nestedNode[key] === "object" && resVal && typeof resVal === "object";
+                    nestedNode[key] = bothObj ? Object.assign(nestedNode[key] ?? {}, resVal) : resVal;
+                  } else {
+                    onError({
+                      message: `Could not resolve ${ogSrc}`
+                    }, options);
+                  }
+                  node.src.graph.nodes[nestedName][key] = merge(nestedNode.src[key], nestedNode[key], true);
+                } else
+                  console.error("[wasl-load] Component info is not an object...");
+              }
+            }
+          } else {
+            onError({
+              message: `Component target '${nestedName}' does not exist`,
+              node: name2
+            }, options);
+          }
+        }
+      } else {
+        if (edges && !("default" in node.src)) {
+          onError({
+            message: "No default export.",
+            node: name2
+          }, options);
+        } else {
+          const args = parse_default(node.src.default) ?? /* @__PURE__ */ new Map();
+          if (args.size === 0)
+            args.set("default", {});
+          if (node.arguments) {
+            for (let key in node.arguments) {
+              const o = args.get(key);
+              o.state = node.arguments[key];
+            }
+          }
+          node.arguments = args;
+        }
+      }
+      nodes[name2] = merge(node.src, node, options._deleteSrc);
+    }
+  }
+  for (let output in edges) {
+    const getTarget = (o, str) => o.graph?.nodes?.[str] ?? o[str] ?? o.arguments.get(str);
+    let outTarget = nodes;
+    output.split(".").forEach((str) => outTarget = getTarget(outTarget, str));
+    if (!outTarget) {
+      onError({
+        message: `Node '${output}' (output) does not exist to create an edge.`,
+        file: url
+      }, options);
+    }
+    for (let input in edges[output]) {
+      let inTarget = nodes;
+      input.split(".").forEach((str) => inTarget = getTarget(inTarget, str));
+      if (!inTarget) {
+        onError({
+          message: `Node '${input}' (input) does not exist to create an edge.`,
+          file: url
+        }, options);
+      }
+    }
+  }
+  return target;
+};
+var load = async (urlOrObject, options = {}, urlArg = "") => {
+  const clonedOptions = Object.assign({ errors: [], warnings: [] }, options);
+  let {
+    relativeTo,
+    errors,
+    warnings
+  } = clonedOptions;
+  const isString = typeof urlOrObject === "string";
+  errors.push(...valid(urlOrObject, options, "load"));
+  let object, url = urlArg, relativeToResolved = "";
+  if (url || isString && relativeTo) {
+    if (!url)
+      url = urlOrObject;
+    delete clonedOptions.filesystem;
+    relativeToResolved = relativeTo;
+  } else {
+    object = Object.assign({}, urlOrObject);
+    delete clonedOptions.relativeTo;
+    if (typeof clonedOptions._internal === "string")
+      relativeToResolved = get(clonedOptions._internal, clonedOptions.relativeTo);
+  }
+  let pkg;
+  const mainPath = await get(url, relativeToResolved);
+  if (url) {
+    const main = await get_default(mainPath);
+    const pkgUrl = get(basePkgPath, mainPath, true);
+    pkg = await get_default(pkgUrl).catch((e) => onError(e, { errors, warnings }));
+    if (pkg)
+      object = Object.assign(pkg, main);
+  } else {
+    if (clonedOptions.filesystem) {
+      const pkgPath = get(basePkgPath, relativeToResolved);
+      pkg = checkFiles(pkgPath, clonedOptions.filesystem);
+      if (pkg)
+        object = Object.assign(pkg, isString ? {} : object);
+      else
+        remove(basePkgPath, pkgPath);
+    } else {
+      const pkgPath = get(basePkgPath, mainPath);
+      if (relativeToResolved) {
+        pkg = await get_default(pkgPath).catch((e) => onError(e, { errors, warnings }));
+        if (pkg)
+          object = Object.assign(pkg, isString ? {} : object);
+      }
+    }
+  }
+  if (errors.length === 0) {
+    const nodes = object.graph.nodes;
+    await getSrc(nodes, {
+      mainPath,
+      relativeToResolved,
+      url,
+      object
+    }, clonedOptions, object.graph);
+    return object;
+  }
 };
 var load_default = load;
+
+// src/validate.ts
+var activeVersion = null;
+var ajv = new import_ajv.default({
+  allErrors: true
+});
+(0, import_ajv_formats.default)(ajv);
+var validate = async (urlOrObject, options = {}) => {
+  const clone = Object.assign({ errors: [], warnings: [] }, options);
+  let { version: version2, relativeTo, errors } = clone;
+  if (!version2)
+    version2 = latest_default;
+  let schemaValid;
+  let data = urlOrObject;
+  const inputErrors = valid(urlOrObject, options, "validate");
+  const inputIsValid = inputErrors.length === 0;
+  errors.push(...inputErrors);
+  if (typeof urlOrObject === "string") {
+    data = await get_default(urlOrObject, relativeTo).catch((e) => {
+      errors.push({
+        message: e.message,
+        file: urlOrObject
+      });
+    });
+  }
+  if (errors.length === 0) {
+    activeVersion = version2;
+    let schemas = await getSchemas(version2);
+    const schemaCopy = JSON.parse(JSON.stringify(schemas.main));
+    schemas.all.forEach((s) => {
+      const schema = ajv.getSchema(s.name);
+      if (!schema)
+        ajv.addSchema(s.ref, s.name);
+    });
+    const ajvValidate = await ajv.compile(schemaCopy);
+    schemaValid = ajvValidate(data);
+    if (ajvValidate.errors)
+      errors.push(...ajvValidate.errors);
+    if (inputIsValid && !clone._internal) {
+      clone._internal = true;
+      const loaded = await load_default(data, clone, typeof urlOrObject === "string" ? urlOrObject : void 0);
+      if (loaded)
+        schemaValid = await validate(loaded, clone);
+    }
+  }
+  return schemaValid && inputIsValid;
+};
+var validate_default = validate;
 export {
   load_default as load,
   validate_default as validate

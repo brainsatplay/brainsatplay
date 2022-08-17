@@ -12,9 +12,6 @@ import * as bandpower from  '../../../../brainsatplay-starter-kit/plugins/focus/
 import * as fft from  '../../../../brainsatplay-starter-kit/plugins/focus/fft/index.js'
 import * as ratio from  '../../../../brainsatplay-starter-kit/plugins/focus/ratio/index.js'
 
-console.log('sine', sine)
-console.log('seconds', seconds)
-
 const options = {
     filesystem: {
         'package.json': mainPkg,

@@ -209,7 +209,6 @@ export const state = {
 export class GraphNode {
 
     nodes:Map<any,any> = new Map()
-    arguments = new Map()
     _initial:{[key:string]:any} = {}; //keep track of custom _initial properties added that aren't default on the current class object
 
     tag:string;
@@ -348,18 +347,6 @@ export class GraphNode {
             //     else this[prop] = properties[prop];
             // }
 
-            // Override Argument Default Values
-            if ('arguments' in properties) {
-
-                if (properties.arguments){
-                    for (let key in properties.arguments){
-                        this.arguments.set(key, properties.arguments[key])
-                    }
-                }
-
-                properties.arguments = this.arguments;
-            }
-
             let keys = Object.getOwnPropertyNames(this); 
             for(const key in properties) {
                 if(!keys.includes(key)) this._initial[key] = properties[key]; //get custom _initial values 
@@ -470,11 +457,6 @@ export class GraphNode {
                     if(paramTwo.includes(a)) pass = true;
                 })
 
-            if (this.arguments){
-                params.forEach((o, k) => {
-                    if (!this.arguments.has(k)) this.arguments.set(k, o.state)
-                })
-            }
         }// else console.log(operator.toString())
         if (!pass){
             let fn = operator;

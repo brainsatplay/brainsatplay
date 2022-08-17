@@ -179,15 +179,11 @@ export default class App {
 
                 // transform for graphscript
                 info.tag = tag;
-                console.log(tag, info)
-                const flatInfo = Object.assign(Object.assign({}, info.src), info)
-                flatInfo.operator = flatInfo.default
-                delete flatInfo.src
-                const instance = extensions.arguments.transform(flatInfo, this)
-                delete flatInfo.default
-                
+                const clone = Object.assign({}, info)
+                clone.operator = clone.default
+                const instance = extensions.arguments.transform(clone, this)
+                delete clone.default
                 tree[tag] = instance
-
             }
     }))
 
