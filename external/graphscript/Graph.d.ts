@@ -62,7 +62,6 @@ export declare const state: {
  */
 export declare class GraphNode {
     nodes: Map<any, any>;
-    arguments: Map<any, any>;
     _initial: {
         [key: string]: any;
     };
