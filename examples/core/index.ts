@@ -28,7 +28,11 @@ else {
     app = new brainsatplay.App(appInfo, options)    
 }
 
-app.start().then(() => console.log(app)).catch(e => {
-    console.log('Errors', app.options.errors)
-    console.log('Warnings', app.options.warnings)
-})
+app.start().then((ok) => {
+    console.log('App', app)
+
+    if (!ok) {
+        console.log('Errors', app.options.errors)
+        console.log('Warnings', app.options.warnings)
+    }
+}).catch(e => console.error('Invalid App', e))

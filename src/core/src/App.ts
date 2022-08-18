@@ -71,23 +71,30 @@ export default class App {
     set = async (input?: WASLLoadInput, options: WASLOptions=this.options) => {
 
         this.name = 'graph'
-        this.options = options
+        this.options = Object.assign({}, options)
         if (!this.options.errors) this.options.errors = []
         if (!this.options.warnings) this.options.warnings = []
+        if (!this.options.files) this.options.files = {}
 
         if (!input && this.wasl) input = await this.wasl // could be a promise initalized in the constructor...
 
         if (input){
-            const valid = await wasl.validate(input, options)
+            const valid = await wasl.validate(input, this.options)
             if (valid){
-            const loaded = await wasl.load(input, options)
+            const loaded = await wasl.load(input, this.options)
             if (loaded.name) this.name = loaded.name
 
             this.plugins = this.setInfo(loaded)
             this.ok = false
             this.tree = null
-            } else console.error('Invalid WASL file.')
-        } else console.warn('no info specified.')
+            } else {
+                console.error('Invalid WASL file.')
+                return
+            }
+        } else {
+            console.warn('no info specified.')
+            return
+        }
 
         return this.wasl
     }
