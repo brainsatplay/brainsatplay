@@ -31,6 +31,7 @@
         "tinybuild": "^0.3.141"
     },
     "dependencies": {
-        "freerange": "^0.0.27"
+        "freerange": "^0.0.27",
+        "wasl": "0.0.4"
     }
 }

@@ -4,7 +4,7 @@ import { DOMService } from '../../../external/graphscript/services/dom/DOM.servi
 import { Router } from '../../../external/graphscript/routers/Router'
 
 // WASL
-import * as wasl from '../../../external/wasl/index.esm'
+import * as wasl from 'wasl/dist/index.esm'
 
 // Internal Imports
 import { AnyObj, AppAPI, AppOptions, WASL, WASLLoadInput, WASLOptions } from './types'
@@ -72,16 +72,21 @@ export default class App {
 
         this.name = 'graph'
         this.options = options
+        if (!this.options.errors) this.options.errors = []
+        if (!this.options.warnings) this.options.warnings = []
 
         if (!input && this.wasl) input = await this.wasl // could be a promise initalized in the constructor...
 
         if (input){
+            const valid = await wasl.validate(input, options)
+            if (valid){
             const loaded = await wasl.load(input, options)
             if (loaded.name) this.name = loaded.name
 
             this.plugins = this.setInfo(loaded)
             this.ok = false
             this.tree = null
+            } else console.error('Invalid WASL file.')
         } else console.warn('no info specified.')
 
         return this.wasl

@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { Graph, GraphNode } from "../Graph";
 import { Routes, Service, ServiceMessage, ServiceOptions } from '../services/Service';
 export declare type Protocol = 'http' | 'wss' | 'sse' | 'webrtc' | 'osc' | 'worker' | 'ble' | 'serial' | 'unsafe' | 'struct' | 'fs' | 'lsl' | 'hdf5' | 'unity' | 'e2ee';
