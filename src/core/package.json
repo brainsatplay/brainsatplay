@@ -1,6 +1,6 @@
 {
     "name": "brainsatplay",
-    "version": "0.0.40",
+    "version": "0.0.41",
     "main": "dist/index.js",
     "types": "dist/src/index.d.ts",
     "files": [
@@ -32,6 +32,6 @@
     },
     "dependencies": {
         "freerange": "^0.0.27",
-        "wasl": "0.0.4"
+        "wasl": "0.0.5"
     }
 }
