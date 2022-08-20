@@ -32,6 +32,6 @@
     },
     "dependencies": {
         "freerange": "^0.0.27",
-        "wasl": "0.0.8"
+        "wasl": "0.0.9"
     }
 }

@@ -13,7 +13,7 @@ let app: brainsatplay.App | brainsatplay.editable.App
 
 if (method === 'remote') {
     // const local = 'app'
-    const remote = 'https://raw.githubusercontent.com/garrettmflynn/phaser/main/index.wasl.json'
+    const remote = 'http://127.0.0.1:5501/index.wasl.json'
     // const remote = 'https://raw.githubusercontent.com/brainsatplay/brainsatplay-starter-kit/main/index.wasl.json'
     // app = new brainsatplay.editable.App(remote)
     app = new brainsatplay.App(remote)//, options)    
