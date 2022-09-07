@@ -3,6 +3,8 @@
 
 `brainsatplay` is a framework for quickly assembling interactive, high-performance web applications.
 
+Specifically, `brainsatplay` extends the Web Application Specification Language (WASL) with editability.
+
 ## Benefits
 🔮 **Low Code:** Our browser-based [editor] makes it easy to wire together your application logic using the [visualscript] library.
 

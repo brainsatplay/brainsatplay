@@ -1,329 +1,186 @@
-// Graphscript
-import { Graph, GraphNode } from '../../../external/graphscript/Graph'
-import { DOMService } from '../../../external/graphscript/services/dom/DOM.service'
-import { Router } from '../../../external/graphscript/routers/Router'
+// An integrated freerange + brainsatplay App class
 
-// WASL
-import * as wasl from 'wasl/dist/index.esm'
-
-// Internal Imports
-import { AnyObj, AppAPI, AppOptions, WASL, WASLLoadInput, WASLOptions } from './types'
+// import WASL from 'wasl/dist/index.esm'
+import WASL from '../external/wasl/index.esm'
+import * as freerange from '../external/freerange/index.esm'
+// import * as freerange from 'freerange/dist/index.esm'
+import { AppOptions } from './types';
+import Plugins from "./Plugins";
 import * as utils from './utils'
-import extensions from './extensions'
 
-const scriptLocation = new Error().stack.match(/([^ \n])*([a-z]*:\/\/\/?)*?[a-z0-9\/\\]*\.js/ig)[0]
+let defaultOptions = {
+    ignore: ['.DS_Store', '.git'],
+    debug: false,
+    autosync: [
+        '*.wasl.json'
+    ],
+}
 
-// Must be manually provided with app information
 export default class App {
 
-    // App Location
-    name: string
-    wasl: any; // Original information about the graph
-    remote: boolean = false
+    #input: any;
 
-    options: WASLOptions = {}
+    wasl: WASL; // active wasl instance
+    plugins: Plugins
+    filesystem?: string | freerange.System;
+    onstart: any
+    onstop: any
+    ignore: string[] = ['.DS_Store', '.git']
+    debug: boolean = false
+    options: AppOptions = defaultOptions
+    editable: boolean = null
+    #sameRoot = 4
 
-
-    ok = false
-
-    // App Object References
-    parentNode?: HTMLElement = document.body
-    plugins: { [x: string]: any }
-    tree: any; // graph properties
-    router: Router;
-    graph: Graph | null
-    nested: { [x: string]: App } = {}
-    isNested: boolean = false
-
-    debug: boolean
-
-    animated: { [key: string]: Graph }
-    compile: () => void
-
-    constructor(input?: WASLLoadInput, options: WASLOptions = {}) {
-
-        this.debug = options.debug
-
-        // Set Router
-        if (options.router) {
-            this.router = options.router
-            this.isNested = true
-        } else this.router = new Router()
-
-        this.wasl =this.set(input, options)
-        this.graph = null
-        this.animated = {}
+    constructor(input, options = {}) {
+        this.#input = input
+        this.setOptions(options)
     }
 
-    checkJSONConversion = (info) => {
-        if (typeof info === 'string') return JSON.parse(info)
-        else return info
+    setOptions = (options) => {
+        this.options = Object.assign(this.options, options)
+        if (this.options.sameRoot) this.#sameRoot = this.options.sameRoot
+        return this.options
     }
 
-    getURL = (str) => {
-        try {
-            return new URL(str).href
-        } catch {
-            return false
-        }
-    }
+    compile = async () => {
+        const packageContents = await (await this.filesystem.open('package.json')).body
+        let mainPath = packageContents?.main ?? 'index.wasl.json'
 
-    set = async (input?: WASLLoadInput, options: WASLOptions=this.options) => {
+            // Get main file
+            const file = await this.filesystem.open(mainPath)
 
-        this.name = 'graph'
-        this.options = Object.assign({}, options)
-        if (!this.options.errors) this.options.errors = []
-        if (!this.options.warnings) this.options.warnings = []
-        if (!this.options.files) this.options.files = {}
+            // Get WASL files in reference mode
+            let filesystem = {}
 
-        if (!input && this.wasl) input = await this.wasl // could be a promise initalized in the constructor...
 
-        if (input){
-            const valid = await wasl.validate(input, this.options)
-            if (valid){
-            const loaded = await wasl.load(input, this.options)
-            if (loaded.name) this.name = loaded.name
+            // Get attached plugins
+            // this.plugins = new Plugins(this.filesystem)
+            // await this.plugins.init()
 
-            this.plugins = this.setInfo(loaded)
-            this.ok = false
-            this.tree = null
-            } else {
-                console.error('Invalid WASL file.')
-                return
-            }
-        } else {
-            console.warn('no info specified.')
-            return
-        }
+            if (file) {
+                const body = await file.body
+                const toFilterOut = file.path.split('/')
 
-        return this.wasl
-    }
+                await Promise.all(Array.from(this.filesystem.files.list.entries()).map(async (arr) => {
+                    let path = arr[0]
+                    const file = arr[1]
 
-    checkJSONConversionAll = (info) => {
-        for (let key in info) {
-
-            if (utils.isMetadata(info)) {
-                info.graph = this.checkJSONConversion(info.graph);
-            } else if (
-              info[key] && // exists
-              typeof info[key] === "object" && // is an object
-              info[key]?.constructor?.name === 'Object' // is a bare object
-              ){
-              this.checkJSONConversionAll(info[key]);
-            }
-          }
-    }
-
-    setInfo = (wasl: WASL) => {
-        this.wasl = wasl
-        this.checkJSONConversionAll(this.wasl)
-
-        // Set Plugins
-        const pluginsObject = {}
-        for (let key in wasl) {
-            if (!utils.isMetadata(wasl)) pluginsObject[key] = wasl[key]
-        }
-        this.plugins = pluginsObject
-        return this.plugins
-    }
-
-    setTree = async (graph = this.wasl.graph) => {
-        const tree: AnyObj<any> = {}
-
-        this.wasl.graph = graph
-        const nodes = Object.entries(graph.nodes ?? {})
-        await Promise.all(nodes.map(async (arr) => {
-            const tag = arr[0]
-            const info = arr[1] as any
-
-            const src = info.src
-
-            // Copy Source Object for this Class Instance
-            const clsSrc = Object.assign({}, src) ?? {} as any;
-            for (let key in clsSrc) {
-              if (typeof clsSrc[key] === 'object') clsSrc[key] = Object.assign({}, clsSrc[key])
-            }
-
-            // Nest Inside Tree Notation
-            if (utils.isMetadata(clsSrc)) {
-
-                const app = this.nested[tag] = new App(clsSrc, {
-                    name: tag, 
-                    router: this.router,
-                    debug: this.debug
-                })
+                    // Remove Common Paths
+                    const splitPath = path.split('/')
+                    let i = 0
+                    let ogLength = splitPath.length
+                    let keepGoing = true
+                    do {
+                        keepGoing = splitPath[0] === toFilterOut[i]
+                        if (keepGoing) splitPath.shift() // remove first element
+                        if (i === ogLength - 2) keepGoing = false // stop before removing file name
+                        i++
+                    } while (keepGoing)
+                    if (i > this.#sameRoot) path = splitPath.join('/') // arbitrary cutoff for what counts as the same reference
+                    filesystem[path] = await file.body // loading in
+                }))
                 
-                app.setParent(this.parentNode)
-                await app.start()
-                this.router.load(app.graph, false, true, undefined, undefined, undefined); // load nested graph into main router
-
-                // Run nested graph
-                if (app.wasl.graph.ports) {
-
-                    let input = app.wasl.graph.ports.input
-                    let output = app.wasl.graph.ports.output
-                    if (typeof input === 'string') input = { [input]: input }
-                    if (typeof output === 'string') output = { [output]: output }
-
-
-                    // Support for targeting nested graph with multiple inputs and outputs
-                    app.graph.operator = async (...args) => {
-
-                        for (let key in (output as AnyObj<string>)) {
-                            return new Promise(async resolve => {
-                                const sub = app.graph.subscribe(output[key], (res) => {
-                                    resolve(res)
-                                })
-
-                                await Promise.all(Object.values(input).map(async (n:any) => {
-                                    await app.graph.run(n, ...args)
-                                }))
-
-                                app.graph.unsubscribe(output[key], sub)
-                            })
-                        }
-                    }
-                }
-
-                tree[tag] = app.graph // new Service(app.graph.tree, tag) // tree as graph node
-
-            } else {
-
-                // transform for graphscript
-                info.tag = tag;
-                const clone = Object.assign({}, info)
-                clone.operator = clone.default
-                const instance = extensions.arguments.transform(clone, this)
-                delete clone.default
-                tree[tag] = instance
-            }
-    }))
-
-        if (graph.edges) {
-            for (let outputInfo in graph.edges) {
-                const edges = graph.edges[outputInfo]
-                for (let inputInfo in edges){
-                    // const edgeDetails = edges[inputInfo]
-
-                    let outputPortPath = outputInfo.split(".");
-                    let inputPortPath = inputInfo.split(".");
-
-                    // NOTE: Input may be from any graph in the main graph
-                    const input = inputPortPath.slice(-1)[0] // target by name | TODO: Target by path and support updating arguments...
-
-                    // NOTE: Output ports may only be in this graph (if nested)
-                    let ref = tree
-                    outputPortPath.forEach((str) => {
-                        const newRef = ref[str] || ((ref.nodes?.get) ? ref.nodes.get(str) : undefined)
-                        if (newRef)
-                            ref = newRef;
-                    });
-
-                    if (!("children" in ref)) ref.children = {};
-
-                    // Add Child to Node
-                    if (ref.addChildren instanceof Function) ref.addChildren({ [input]: true })
-                    else ref.children[input] = true
-                };
-            }
-        }
-
-        this.tree = tree
-        this.ok = true
-
-        return this.tree
-
+                this.wasl = await this.create(body, Object.assign(this.options, {filesystem, _modeOverride: 'reference', _overrideRemote: true}))
+                return this.wasl
+            } else if (packageContents?.main) console.error('The "main" field in the supplied package.json is not pointing to an appropriate entrypoint.')
+            else console.error('No index.wasl.json file found at the expected root location.')
     }
 
     join = utils.join
-    getBase = utils.getBase
 
-    json = async (src) => {
-        return this.checkJSONConversion(await utils.importFromOrigin(src, scriptLocation, !this.remote, 'json'))
-    }
+    createFilesystem = async (input?, options=this.options) => {
 
-    init = async (input?: WASLLoadInput, options: WASLOptions=this.options) => {
+        // Create a new filesystem
+        let clonedOptions = Object.assign({}, options)
+        let system = new freerange.System(input, clonedOptions)
 
-        await this.set(input, options)
+        const done = await system.init().then(() => system).catch((e) => {
+            console.warn('system init failed', e)
+            return undefined
+        })
 
-        if (!this.compile){
-            if (!this.wasl) return false
-            else if (!utils.isMetadata(this.wasl)) return false
-        }
+        // Load WASL Files Locally
+        if (this.wasl){
 
-        // Manual Initialization
-        if (this.compile instanceof Function) {
-            if (!this.wasl) this.wasl = {graph: {}} as any
-            await this.compile() // manually set properties
-            return
-        }
+            // create actual files
+            let createPkg = true
+            for (let path in this.wasl.files)  {
+                await system.addExternal(path, this.wasl.files[path].text) // note: does not recognize xxx:// formats when loading into a native filesystem
+                if (path === 'package.json') createPkg = false
+            }
 
-        // Automatic Initialization
-        else {
-
-            // Get Tree
-            this.tree = await this.setTree()
-        }
-
-    }
-
-    setParent = (parentNode) => {
-        if (parentNode instanceof HTMLElement) {
-            this.parentNode = parentNode
-        } else console.warn('Input is not a valid HTML element', parentNode)
-    }
-
-
-    start = async (input?: WASLLoadInput, options?: WASLOptions) => {
-        this.stop() // stop existing graph
-
-        await this.init(input, options)
-
-        if (this.ok) {
-
-            this.graph = new DOMService({
-                name: this.name,
-                routes: this.tree,
-            }, this.parentNode)
-
-
-            // Load Graph into Router + Run (if not nested)
-            if (!this.isNested) {
-
-                this.router.load(this.graph, false, true, undefined, undefined, undefined);
-
-                // Run all nodes
-                this.graph.nodes.forEach(node => {
-                    if (node instanceof GraphNode) {
-                            if (node.loop) {
-                                node.loop = parseFloat(node.loop) // TODO: fix importing...
-                                node.run() // Run looping functions
-                            }
-                    } else console.warn(`${node.tag ?? node.name} not recognized`)
-                })
-
-
-                // Run onstart event
-                if (this.onstart instanceof Function) this.onstart()
+            // place reference file at the root (for later loading)
+            if (createPkg) {
+                console.warn('Creating package.json file at the root to reference later!')
+                await system.addExternal('package.json', `{"main": "${this.#input}"}`)
             }
         }
 
-        return this.ok
+        return done
     }
 
-    stop = () => {
-        if (this.onstop instanceof Function) this.onstop()
-        for (let k in this.nested) this.nested[k].stop()
-        if (this.graph) this.graph.nodes.forEach((n) => {
-            this.graph.removeTree(n) // remove from tree
-            n.stopNode() // stop animating
-            n.unsubscribe() // unsubscribe all listeners
-        }) // destroy existing graph
-        this.graph = null
-        this.nested = {}
+    create = async (input, options) => {
+        let wasl = new WASL(input, options)
+        await wasl.init()
+        await wasl.start()
+        return wasl
     }
 
-    // -------------- Events --------------
-    onstart = () => { }
-    onstop = () => { }
+    start = async (input=this.#input, options=this.options, save=true) => {
+        options = this.setOptions(options) // update options
+        if (save && this.filesystem instanceof freerange.System) this.save(false) // make sure to save old version
+        await this.stop() 
+
+        // Correct input (if remote)
+        let isUrl = false
+        try {
+            new URL(input ?? '').href
+            input = this.join(input)
+            isUrl = true
+        } catch {
+            
+        }
+
+        const isObject = typeof input === 'object'
+
+        console.log('Object', isObject)
+        console.log('URL', isUrl)
+
+
+        let system;
+        // Base WASL Application
+        if (isObject || isUrl) this.wasl = await this.create(input, options)
+        
+        // Choose a Directory
+        else system = await this.createFilesystem(input)
+        
+
+        // Notify if Editable
+        if (system){ // compile From filesystem
+            this.filesystem = system
+            this.editable = true
+            await this.compile()
+        } else if (this.wasl && Object.keys(this.wasl.files).length === 0) {
+            console.warn('No files have been loaded. Cannot edit files loaded in Reference Mode.')
+            this.editable = false
+        } else this.editable = true
+
+        return this.wasl
+    }   
+
+    stop = async () => {
+        if (this.wasl) await this.wasl.stop()
+    }
+    
+    
+    save = async (restart=true) => {
+        await this.stop()
+
+        if (this.editable) {
+            if (!this.filesystem) this.filesystem = await this.createFilesystem() // allow the user to specify
+            if (this.filesystem) await this.filesystem.save()
+        }
+
+        if (restart && this.wasl) await this.wasl.start()
+    }
 }

@@ -18,7 +18,7 @@ const config = {
         debug: false,
         protocol: "http",  //'http' or 'https'. HTTPS required for Nodejs <---> Python sockets. If using http, set production to False in python/server.py as well
         host: "localhost", //'localhost' or '127.0.0.1' etc.
-        port: 8080, //e.g. port 80, 443, 8000
+        port: 8081, //e.g. port 80, 443, 8000
         startpage: "index.html", //home page
         socket_protocol: "ws", //frontend socket protocol, wss for served, ws for localhost
         hotreload: 5000,  //hotreload websocket server port

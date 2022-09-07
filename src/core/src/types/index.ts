@@ -1,4 +1,3 @@
-import { Router } from "external/graphscript/routers/Router"
 
 export type WASLOptions = any
 
@@ -35,14 +34,11 @@ export type AppAPI = {
 export type AssertType = 'json' | 'text'
 
 
-export type EditableAppOptions =  {
-    ignore?: string[], // files to ignore
-    save?: string[] // files to always save
-    autosync?: string[]
-} & AppOptions
-
 export type AppOptions =  {
     name?: string, 
-    router?: Router,
-    debug?: boolean
+    debug?: boolean,
+    ignore?: string[], // files to ignore
+    save?: string[] // files to always save
+    autosync?: string[],
+    sameRoot?: number, // depth of match required to consider two remote roots the same (defaul to 4 for GitHub)
 }

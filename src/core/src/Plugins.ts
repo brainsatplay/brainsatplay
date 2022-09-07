@@ -1,5 +1,5 @@
 import * as freerange from 'freerange/dist/index.esm'
-import * as utils from '../utils'
+import * as utils from './utils'
 
 export default class Plugins {
 

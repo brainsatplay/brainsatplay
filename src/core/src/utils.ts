@@ -1,23 +1,26 @@
 import { AssertType } from "./types"
 
+const urlSep = '://'
 export const join = (...paths: string[]) => {
+    const prefix = (paths[0].includes(urlSep)) ? paths[0].split(urlSep).splice(0,1) : undefined
+    if (prefix) paths[0] = paths[0].replace(`${prefix}${urlSep}`, '')
 
     const split = paths.map(path => {
         return path.split('/')
     }).flat()
 
-    return split.reduce((a,b) => {
+    const main = split.reduce((a,b) => {
         if (!a) a = b
         else if (!b) return a
         else if (a.split('/')[0] !== b)  a = a + '/' + b
+        else console.log('skip', a, b)
 
         return a 
     }, '')
 
-}
+    if (prefix) return prefix + '://' + main
+    else return main
 
-export const isMetadata = (info) => {
-    return 'graph' in info && 'nodes' in info.graph
 }
 
 export const isWASL = (path) => {
