@@ -23,6 +23,10 @@ export const join = (...paths: string[]) => {
 
 }
 
+export const noProtocol = (path) => {
+    return path.split('://').slice(-1)[0]
+}
+
 export const isWASL = (path) => {
     return path.slice(-5) === '.wasl'
 }

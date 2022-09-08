@@ -5,7 +5,9 @@ import * as brainsatplay from '../../src/core/src/index'
 import {appInfo, options} from './demos/phaser'
 // import {appInfo, options} from './demos/starter'
 
-const method = 'local'
+const method = 'remote'
+const edit = true
+
 let optionsToPass = options as any
 let infoToPass: any;
 
@@ -16,8 +18,6 @@ let app: brainsatplay.App | brainsatplay.editable.App
 if (method === 'remote') {
     // infoToPass = 'app' // local
     // infoToPass = 'http://127.0.0.1:5501/index.wasl.json' // pseudolocal
-    // infoToPass = 'https://raw.githubusercontent.com/garrettmflynn/phaser/nightly/index.wasl.json'
-    // infoToPass = 'https://raw.githubusercontent.com/brainsatplay/brainsatplay-starter-kit/nightly/index.wasl.json'
     infoToPass = 'https://raw.githubusercontent.com/brainsatplay/wasl/main/tests/0/0.0/0.0.0/external/index.wasl.json'
 }
 
@@ -26,27 +26,42 @@ else infoToPass = appInfo
 
 // Set Options
 optionsToPass.parentNode = document.getElementById('app')
+optionsToPass.edit = edit
 
-// Create App
-app = new brainsatplay.App(
-    infoToPass, // blank to select from filesystem. object to load. string to guess
-    optionsToPass
-)
+let createApp = async (infoToPass?) => {
+    
+    // Create App
+    app = new brainsatplay.App(
+        infoToPass, // blank to select from filesystem. object to load. string for local
+        optionsToPass
+    )
 
-// Start App
+}
+
 const start = document.getElementById('start')
 const save = document.getElementById('save')
 const load = document.getElementById('load')
+let correction = () => {}
 
 if (start) {
-    start.addEventListener('click', () => {
-        app.start(undefined, optionsToPass).then((wasl) => {
 
-            console.log('App', app)
-            console.log('Errors', wasl.errors)
-            console.log('Warnings', wasl.warnings)
+    createApp(infoToPass) // correct load event
+    
+    start.addEventListener('click', async () => {
+
+        await app.start(undefined, optionsToPass).then((wasl) => {
+
+            if (wasl){
+                console.log('App', app)
+                console.log('Errors', wasl.errors)
+                console.log('Warnings', wasl.warnings)
+            }
 
         }).catch(e => console.error('Invalid App', e))
+
+        correction()
+        correction = () => {}
+
     })
 
 }
@@ -54,10 +69,8 @@ if (start) {
 if (load) {
     load.addEventListener('click', () => {
 
-        app = new brainsatplay.App(
-            undefined, // blank to select from filesystem. object to load. string to guess
-            optionsToPass
-        )
+        createApp()
+        correction = () => createApp(infoToPass) // correct load event
 
         if (start) start.click()
     })

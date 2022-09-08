@@ -41,4 +41,5 @@ export type AppOptions =  {
     save?: string[] // files to always save
     autosync?: string[],
     sameRoot?: number, // depth of match required to consider two remote roots the same (defaul to 4 for GitHub)
+    edit?: boolean,
 }

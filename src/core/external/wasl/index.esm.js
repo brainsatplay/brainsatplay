@@ -1145,25 +1145,20 @@ var suffix = (fileName = "") => {
 };
 
 // ../../node_modules/remote-esm/utils/path.js
-var regex = new RegExp("https?:", "g");
+var urlSep = "://";
 var get = (path, rel = "", keepRelativeImports = false) => {
-  const windowLocation = globalThis?.location?.origin;
-  let pathMatch = false;
-  let relMatch = false;
-  if (windowLocation) {
-    relMatch = rel.includes(windowLocation);
-    if (relMatch) {
-      rel = rel.replace(windowLocation, "");
-      if (rel[0] === "/")
-        rel = rel.slice(1);
-    }
-    pathMatch = path.includes(windowLocation);
-    if (pathMatch) {
-      path = path.replace(windowLocation, "");
-      if (path[0] === "/")
-        path = path.slice(1);
-    }
-  }
+  let prefix = "";
+  const getPrefix = (str) => {
+    prefix = str.includes(urlSep) ? str.split(urlSep).splice(0, 1) : void 0;
+    if (prefix)
+      return str.replace(`${prefix}${urlSep}`, "");
+    else
+      return str;
+  };
+  if (path.includes(urlSep))
+    path = getPrefix(path);
+  if (rel.includes(urlSep))
+    rel = getPrefix(rel);
   if (!keepRelativeImports)
     rel = rel.split("/").filter((v) => v != "..").join("/");
   if (rel[rel.length - 1] === "/")
@@ -1178,12 +1173,7 @@ var get = (path, rel = "", keepRelativeImports = false) => {
       dirTokens.push(potentialFile);
   }
   const splitPath = path.split("/");
-  const pathTokens = splitPath.filter((str, i) => {
-    if (splitPath[i - 1] && regex.test(splitPath[i - 1]))
-      return true;
-    else
-      return !!str;
-  });
+  const pathTokens = splitPath.filter((str, i) => !!str);
   const extensionTokens = pathTokens.filter((str, i) => {
     if (str === "..") {
       dirTokens.pop();
@@ -1193,8 +1183,11 @@ var get = (path, rel = "", keepRelativeImports = false) => {
     else
       return true;
   });
-  const newPath = (relMatch || !rel && pathMatch ? `${windowLocation}/` : ``) + [...dirTokens, ...extensionTokens].join("/");
-  return newPath;
+  const newPath = [...dirTokens, ...extensionTokens].join("/");
+  if (prefix)
+    return prefix + "://" + newPath;
+  else
+    return newPath;
 };
 
 // ../../node_modules/remote-esm/utils/request.js
@@ -1321,9 +1314,9 @@ var safeImport = async (uri, opts = {}) => {
   const isJSON = extension === "json";
   let module = !forceImportFromText ? await (isJSON ? import(uri, { assert: { type: "json" } }) : import(uri)).catch(() => {
   }) : void 0;
-  let text;
+  let text, originalText;
   if (!module) {
-    text = await getText(uri);
+    text = originalText = await getText(uri);
     try {
       module = await importFromText(text, uri, uriCollection);
     } catch (e) {
@@ -1381,8 +1374,10 @@ ${text}`;
       module = await importFromText(text, uri, uriCollection);
     }
   }
+  let txt = outputText ? text ?? await getText(uri) : void 0;
   onImport(uri, {
-    text: outputText ? text ?? await getText(uri) : void 0,
+    text: txt,
+    file: outputText ? originalText ?? txt : void 0,
     module
   });
   return module;
@@ -1494,25 +1489,20 @@ var remove = (original, search, key = original, o) => {
 };
 
 // node_modules/remote-esm/utils/path.js
-var regex2 = new RegExp("https?:", "g");
+var urlSep2 = "://";
 var get3 = (path, rel = "", keepRelativeImports = false) => {
-  const windowLocation = globalThis?.location?.origin;
-  let pathMatch = false;
-  let relMatch = false;
-  if (windowLocation) {
-    relMatch = rel.includes(windowLocation);
-    if (relMatch) {
-      rel = rel.replace(windowLocation, "");
-      if (rel[0] === "/")
-        rel = rel.slice(1);
-    }
-    pathMatch = path.includes(windowLocation);
-    if (pathMatch) {
-      path = path.replace(windowLocation, "");
-      if (path[0] === "/")
-        path = path.slice(1);
-    }
-  }
+  let prefix = "";
+  const getPrefix = (str) => {
+    prefix = str.includes(urlSep2) ? str.split(urlSep2).splice(0, 1) : void 0;
+    if (prefix)
+      return str.replace(`${prefix}${urlSep2}`, "");
+    else
+      return str;
+  };
+  if (path.includes(urlSep2))
+    path = getPrefix(path);
+  if (rel.includes(urlSep2))
+    rel = getPrefix(rel);
   if (!keepRelativeImports)
     rel = rel.split("/").filter((v) => v != "..").join("/");
   if (rel[rel.length - 1] === "/")
@@ -1527,12 +1517,7 @@ var get3 = (path, rel = "", keepRelativeImports = false) => {
       dirTokens.push(potentialFile);
   }
   const splitPath = path.split("/");
-  const pathTokens = splitPath.filter((str, i) => {
-    if (splitPath[i - 1] && regex2.test(splitPath[i - 1]))
-      return true;
-    else
-      return !!str;
-  });
+  const pathTokens = splitPath.filter((str, i) => !!str);
   const extensionTokens = pathTokens.filter((str, i) => {
     if (str === "..") {
       dirTokens.pop();
@@ -1542,8 +1527,11 @@ var get3 = (path, rel = "", keepRelativeImports = false) => {
     else
       return true;
   });
-  const newPath = (relMatch || !rel && pathMatch ? `${windowLocation}/` : ``) + [...dirTokens, ...extensionTokens].join("/");
-  return newPath;
+  const newPath = [...dirTokens, ...extensionTokens].join("/");
+  if (prefix)
+    return prefix + "://" + newPath;
+  else
+    return newPath;
 };
 
 // node_modules/remote-esm/index.js

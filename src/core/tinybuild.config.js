@@ -13,6 +13,7 @@ const config = {
         minify: false,
         sourcemap: false,
         globalThis: 'brainsatplay',
+        external: ['node-fetch', 'cross-blob']
      },
     server: false
 }
