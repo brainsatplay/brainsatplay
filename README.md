@@ -1,11 +1,11 @@
 # The Brains@Play Framework: Functional Building Blocks for the Web
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-[**The Brains@Play Framework**](./README.md) allows anyone to compose interactive, high-performance web applications and contribute to **an ecosystem of copyleft software infrastructure for open-source application development** on the Web. 
+**The Brains@Play Framework** allows anyone to compose interactive, high-performance web applications and contribute to **an ecosystem of copyleft software infrastructure for open-source application development** on the Web. 
 
 Extensive documentation for the Brains@Play Framework can be found at https://docs.brainsatplay.com.
 
-## Overview
+## The Benefits
 🔮 **Low Code:** Our browser-based [studio] makes it easy to wire together your application logic using the [visualscript] library.
 
 🧩 **Familiar:** We don't lock users into unnecessary abstractions. Just format code files as ES Modules!
@@ -18,7 +18,7 @@ Extensive documentation for the Brains@Play Framework can be found at https://do
 
 > If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
 
-## Quickstart Guide
+## Getting Started
 Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application with the Brains@Play Framework!
 
 
@@ -58,13 +58,15 @@ If you have questions about developing with [brainsatplay], feel free to start a
 ## Contributing Guidelines
 If you've created a plugin for [brainsatplay], make sure to link to the source `package.json` file with a pull request to [components].
 
+We welcome anyone who would like to jump into the source code of our many [supporting libraries](#framework-libraries). At this time, however, **documentation changes may be a more appropriate entrypoint** for contribution to the Brains@Play Framework. Make sure to check out our [docs] repository and contribute there!
+
 ## Roadmap
 ♿ **Inclusive:** Extend [visualscript] to become a fully accessible visual programming system. Use the [accessify] library to guarantee accessibility support for resulting applications through multimodal I/O support.
 
 📡 **Backend Support:** Edit workspaces running in Node.js, local or the cloud.
 
 ## Acknowledgments
-[brainsatplay] is maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Joshua Brewster](https://github.com/joshbrew), who use contract work and community contributions through [Open Collective](https://opencollective.com/brainsatplay) to support themselves.
+This project is maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Joshua Brewster](https://github.com/joshbrew), who use contract work and community contributions through [Open Collective](https://opencollective.com/brainsatplay) to support themselves.
 
 ### Backers
 [Support us with a monthly donation](https://opencollective.com/brainsatplay#backer) and help us continue our activities!
@@ -180,8 +182,11 @@ The `legacy` branch contains a record of the original brainsatplay library (<= v
 <!-- Additional Repos -->
 [components]: https://github.com/brainsatplay/components
 [accessify]: https://github.com/brainsatplay/accessify
+[docs]: https://github.com/brainsatplay/docs
 
 <!-- Hardware -->
 [hegduino]: https://github.com/moothyknight/HEG_ESP32_Delobotomizer
 
 [nRF52]: https://github.com/brainsatplay/nRF52-Biosensing-Boards
+
+

@@ -1,4 +1,4 @@
-# brainsatplay: Functional Building Blocks for the Web
+# brainsatplay
 [![Npm package version](https://badgen.net/npm/v/brainsatplay)](https://npmjs.com/package/brainsatplay)
 [![Npm package monthly downloads](https://badgen.net/npm/dm/brainsatplay)](https://npmjs.ccom/package/brainsatplay)
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
