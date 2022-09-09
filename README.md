@@ -1,30 +1,41 @@
-# brainsatplay
-Functional Building Blocks for the Web
+# The Brains@Play Framework: Functional Building Blocks for the Web
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
-[brainsatplay] is a rapid application design (RAD) framework for composing interactive, high-performance web applications, intended to cultivate **an ecosystem of copyleft software infrastructure for open-source application development** on the Open Web. 
+[**The Brains@Play Framework**](./README.md) allows anyone to compose interactive, high-performance web applications and contribute to **an ecosystem of copyleft software infrastructure for open-source application development** on the Web. 
+
+Extensive documentation for the Brains@Play Framework can be found at https://docs.brainsatplay.com.
+
+## Overview
+🔮 **Low Code:** Our browser-based [studio] makes it easy to wire together your application logic using the [visualscript] library.
+
+🧩 **Familiar:** We don't lock users into unnecessary abstractions. Just format code files as ES Modules!
+
+⚡ **Performant:** High-performance event-based logic using the [graphscript] library.
+
+🌐 **Social:** Derivative components can be published as NPM packages and registered on the [components] library to be shared with the world.
+
+📜 **Radically Open:** This library is licensed under the AGPL license. All derivatives are also free and open-source software!
 
 > If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
 
 ## Quickstart Guide
-Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application!
+Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application with the Brains@Play Framework!
 
-> Full documentation for this framework is published at https://docs.brainsatplay.com.
 
 ## Framework Libraries
-Below are the core repositories of the [brainsatplay] framework. Check out the [components](https://github.com/components) repository to see everything created by our community!
+Below are the core repositories of the Brains@Play Framework. Check out the [components] repository to see everything created by our community!
 
 | Library               | Status                                                       | Description                                             |
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
-| **[brainsatplay]**         | [![brainsatplay-status]][brainsatplay] | An application synchronization library for [graphscript] and [visualscript].
+| **[wasl]**         | [![wasl-status]][wasl] | The Web Application Specification Language, used by the [brainsatplay] library       |
+| **[brainsatplay]**         | [![brainsatplay-status]][brainsatplay] | Enables editing of [wasl] applications at runtime.
 | [graphscript]         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
 | [visualscript]         | [![visualscript-status]][visualscript]  | A low-code programming system for [wasl] applications       |
-| [wasl]         | [![wasl-status]][wasl] | The web application specification language used by the [graphscript] library       |
-| [editor]         | [![editor-status]][editor] | A low-code editor for brainsatplay applications.       |
+| [studio]         | [![studio-status]][studio] | A low-code editor for [wasl] applications.       |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Uniformly acquire real-time data with available browser APIs.                       |
 | [tinybuild]     | [![tinybuild-status]][tinybuild]                   | Custom build tool for web applications.              
 
-### Contents (src)
+### Repo Contents (src)
 #### core
 An application synchronization library for [graphscript] and [visualscript].
 
@@ -43,6 +54,14 @@ An example Progressive Web App (PWA) using the [brainsatplay] framework.        
 
 ## Support
 If you have questions about developing with [brainsatplay], feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
+
+## Contributing Guidelines
+If you've created a plugin for [brainsatplay], make sure to link to the source `package.json` file with a pull request to [components].
+
+## Roadmap
+♿ **Inclusive:** Extend [visualscript] to become a fully accessible visual programming system. Use the [accessify] library to guarantee accessibility support for resulting applications through multimodal I/O support.
+
+📡 **Backend Support:** Edit workspaces running in Node.js, local or the cloud.
 
 ## Acknowledgments
 [brainsatplay] is maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Joshua Brewster](https://github.com/joshbrew), who use contract work and community contributions through [Open Collective](https://opencollective.com/brainsatplay) to support themselves.
@@ -118,13 +137,11 @@ If you have questions about developing with [brainsatplay], feel free to start a
 
 ## Appendix
 ### Branches
-The `main` branch of this repository contains the latest release of the [brainsatplay] framework.
+The `main` branch of this repository contains the latest releases of core libraries in The Brains@Play Framework.
 
 The `nightly` branch hosts regular changes between official releases.
 
-The `docs` branch is used to trigger Netlify to update our documentation site at https://docs.brainsatplay.com.
-
-The `legacy` branch contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform) and presented in **Developing Brain-Computer Interfaces with Everyone (submitted)**. 
+The `legacy` branch contains a record of the original brainsatplay library (<= v0.0.36), which is used in the [Brains@Play Platform](https://github.com/brainsatplay/platform).
 
 ### Additional Repositories
 #### Hardware
@@ -144,8 +161,8 @@ The `legacy` branch contains a record of the original brainsatplay library (<= v
 [graphscript-status]: https://img.shields.io/npm/v/graphscript
 
 <!-- Integrated Editor-->
-[editor]: https://github.com/brainsatplay/editor
-[editor-status]: https://img.shields.io/npm/v/brainsatplay-editor
+[studio]: https://github.com/brainsatplay/studio
+[studio-status]: https://img.shields.io/npm/v/brainsatplay-studio
 
 <!-- Low Code Programming System-->
 [visualscript]: https://github.com/brainsatplay/visualscript
@@ -159,6 +176,10 @@ The `legacy` branch contains a record of the original brainsatplay library (<= v
 <!-- Build Tool-->
 [tinybuild]: https://github.com/brainsatplay/tinybuild
 [tinybuild-status]: https://img.shields.io/npm/v/tinybuild
+
+<!-- Additional Repos -->
+[components]: https://github.com/brainsatplay/components
+[accessify]: https://github.com/brainsatplay/accessify
 
 <!-- Hardware -->
 [hegduino]: https://github.com/moothyknight/HEG_ESP32_Delobotomizer

@@ -102,10 +102,11 @@ export default class App {
         // Load WASL Files Locally
         if (this.wasl){
 
+            let pkg = system.open('package.json', false); // don't create
+
             // create actual files
-            let createPkg = true
+            let createPkg = !pkg || input === null // input was null
             for (let path in this.wasl.files)  {
-                console.log('Checking', this.wasl.files[path])
                 await system.addExternal(path, this.wasl.files[path].text) // note: does not recognize xxx:// formats when loading into a native filesystem
                 if (path === 'package.json') createPkg = false
             }
@@ -128,11 +129,8 @@ export default class App {
     }
 
     start = async (input=this.#input, options=this.options, fromSave) => {
-        console.log('OG Input', input)
         this.#input = input // always update
         options = this.setOptions(options) // update options
-        if (this.filesystem instanceof freerange.System) this.save(false) // make sure to save old version
-        
         await this.stop() // make sure to stop old version
 
         if (!fromSave){
