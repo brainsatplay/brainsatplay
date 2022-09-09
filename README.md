@@ -46,9 +46,6 @@ A Chrome Extension for developing [brainsatplay] applications.
 #### cli
 Program a new project through the terminal.
 
-#### docs
-A documentation generator for the Brains@Play framework.
-
 #### pwa
 An example Progressive Web App (PWA) using the [brainsatplay] framework.         |
 
