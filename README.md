@@ -150,6 +150,7 @@ The `legacy` branch contains a record of the original brainsatplay library (<= v
 | [nRF52]         | In Development | Working prototypes for using nRF52 microcontrollers (ARM + BLE5) with low cost sensors.       |
 
 [brainsatplay]: ./src/core/README.md
+[brainsatplay-status]: https://img.shields.io/npm/v/brainsatplay
 
 <!-- Specification Language -->
 [wasl]: https://github.com/brainsatplay/wasl
