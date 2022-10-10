@@ -18,9 +18,57 @@ Extensive documentation for the Brains@Play Framework can be found at https://do
 
 > If we don't have something you'd like to see within this framework, feel free to propose your idea in the [Issues](https://github.com/brainsatplay/brainsatplay/issues) tab!
 
+## The CLI
+`brainsatplay` is the official command line inteface (CLI) of the Brains@Play Framework and will help you manage your projects.
+
+### Features
+- [ ] Initialize named project templates
+    - [ ] PWA
+- [ ] Clone a project from a URL
+- [ ] Monitor changes to code files for **multiple simultaneous views**
+    - [ ] Update HTML from JSON. Vice versa. Focus on writing JS.
+    - [ ] Write an entire UI in HTML. Add the dynamic features with JSON + ESM.
+- [ ] Bundle app into a single "recipe" by converting WASL into ESM with references bundled (using an esbuild plugin)
+
+### Design Notes
+Users can specify:
+1. Project Type
+    - Certain projects can add (1) a template documentation website, a (2) configurable backend where services can be specified from the cli, and (3) how the project will be built (e.g. for desktop / mobile as a PWA or Electron app)
+    - This will **download the appropriate template repository off of Github**
+2. Project Name
+
+### Inspiration
+**PWA:** https://web.dev/window-controls-overlay/
+
+### Roadmap
+1. Clone project repos from Github
+2. Create a server admin cli to update a server on the fly
+3. Construct a functional PWA
+4. Spawn a visualization that creates code in real-time.
+ - Write functional elements
+ - Compose functional elements
+5. Publish repo to GitHub
+6. Deploy application
+
+### Getting Started
+#### Installation
+``` bash
+npm i -g
+```
+
+#### Usage
+##### List All Commands
+``` bash
+brainatplay
+```
+
+##### Create Project (WIP)
+``` bash
+brainatplay create --name my-library --type library
+
+
 ## Getting Started
 Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application with the Brains@Play Framework!
-
 
 ## Framework Libraries
 Below are the core repositories of the Brains@Play Framework. Check out the [components] repository to see everything created by our community!
