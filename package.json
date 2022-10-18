@@ -1,10 +1,13 @@
 {
-  "name": "brainsatplay-monorepo",
+  "name": "brainsatplay-cli",
+  "version": "0.0.0",
+  "description": "Brains@Play's Command Line Interface",
+  "main": "src/index.js",  
   "type": "module",
-  "private": true,
-  "workspaces": [
-    "src/**"
-  ],
+  
+  "bin": {
+    "brainsatplay": "./src/index.js"
+  },
   "engines": {
     "node": ">=16"
   },
@@ -29,13 +32,26 @@
     "type": "git",
     "url": "git+https://github.com/brainsatplay/brainsatplay.git"
   },
-  "keywords": [],
   "author": "Garrett Flynn <garrettmflynn@gmail.com>",
   "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/brainsatplay/brainsatplay/issues"
   },
   "homepage": "https://github.com/brainsatplay/brainsatplay#readme",
+  "keywords": [
+    "cli"
+  ],
+
+  "dependencies": {
+    "chalk": "^5.0.0",
+    "commander": "^8.3.0",
+    "conf": "^10.1.1",
+    "cross-spawn": "^7.0.3",
+    "inquirer": "^8.2.0",
+    "simple-git": "^2.48.0",
+    "node-html-parser": "^6.1.1"
+  },
+
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
@@ -60,9 +76,5 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.7.0",
     "tslib": "^2.3.1"
-  },
-  "dependencies": {
-    "node-fetch": "^3.2.10",
-    "node-html-parser": "^6.1.1"
   }
 }

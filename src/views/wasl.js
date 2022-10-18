@@ -5,7 +5,7 @@ import HTMLParser from 'node-html-parser'
 
 const regex = /<([^\s]*)[\s]+([^>]+)?>([^<]*)<\/([^\s]*)>/gm
 // ------------------------------ HTML Helper Functions ------------------------------
-export function html(text) {
+export function html(text, outputType='object') {
 
     HTMLParser.parse(text)
 
@@ -48,6 +48,9 @@ export function html(text) {
         return parent
     }
 
-    return handleChildNodes(parsed) // First element is always just a container...
+   const object = handleChildNodes(parsed) // First element is always just a container...
+
+   if (outputType === 'text') return JSON.stringify(object, null, 2)
+   else return object
 }
 

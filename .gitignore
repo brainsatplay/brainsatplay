@@ -1,31 +1,3 @@
 .vscode
 .DS_Store
 node_modules
-*.key
-*.lock
-*.log
-**/.temp
-assets
-**/build
-
-lib
-lib-esm
-_bundles
-
-docs/docs/reference
-
-# Library Builds
-**/dist
-**/package-lock.json
-/src/core/graph
-
-# Tests
-/coverage
-
-# Demos 
-pyodide.html
-
-# CLI
-**/test/**
-
-src/build/tinybuild/python/__pycache__/socketserver.cpython-310.pyc

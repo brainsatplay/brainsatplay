@@ -11,6 +11,7 @@ import start from './commands/start/index.js';
 import build from './commands/build/index.js';
 import publish from './commands/publish/index.js';
 import info from './commands/info/index.js';
+import watch from './commands/watch/index.js';
 
 const cli = new Command();
 cli.version('0.0.1');
@@ -53,6 +54,11 @@ cli
 .command('start [method]')
 .description('run your project')
 .action(start)
+
+cli
+.command('watch [files...]')
+.description('watch a set of files')
+.action(watch)
 
 // Publish Project
 cli

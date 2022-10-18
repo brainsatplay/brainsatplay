@@ -5,9 +5,27 @@ import chalk from 'chalk'
 import { fileURLToPath } from 'url';
 
 export const __dirname = path.join(dirname(fileURLToPath(import.meta.url)), '../..'); // CLI Base Directory
-export let agplText = fs.readFileSync(path.join(__dirname, 'LICENSE.txt'))
+export let agplText = fs.readFileSync(path.join(__dirname, 'LICENSE'))
 
 export const readFile = (dir) => fs.readFileSync(path.join(__dirname, dir))
+
+
+export function getFileText(filePath) {
+    return (fs.existsSync(filePath)) ? fs.readFileSync(filePath).toString() : ''
+}
+
+const check = (filePath) => {
+    var dirname = path.dirname(filePath);
+    if (fs.existsSync(dirname)) return true;
+    check(dirname);
+    fs.mkdirSync(dirname);
+}
+
+export const write = (filePath, contents) => {
+    check(filePath)
+    fs.writeFileSync(filePath, contents);
+}
+
 
 export async function createDirectory(name, options, parent='', move=false){
 

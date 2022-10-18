@@ -65,8 +65,10 @@ export function wasl(json) {
         for (let name in object.components) {
             const component = object.components[name];
             const tag = component.tagName
+            console.log(tag)
 
             const content = (component.components) ? drill(component) : ''
+            console.log(content)
 
             if (tag) {
 
