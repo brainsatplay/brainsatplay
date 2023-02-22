@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Brains@Play Core Demo</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: none;
+            position: relative;
+        }
+
+        #buttons {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+            background: black;
+            padding: 10px;
+            opacity: 0.25;
+            transition: opacity 0.5s;
+        }
+
+        #buttons:hover {
+            opacity: 1;
+        }
+
+        #app {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id="buttons">
+        <button id="start">Start</button>
+        <button id="load">Load</button>
+        <button id="save">Save</button>
+    </div>
+
+    <div id="app"></div>
+</body>
+<script src="dist/index.js" type="module"></script>
+
+</html>

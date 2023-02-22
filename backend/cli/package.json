@@ -1,11 +1,13 @@
 {
-<<<<<<< Updated upstream
-  "name": "brainsatplay-monorepo",
+  "name": "brainsatplay-cli",
+  "version": "0.0.0",
+  "description": "The Universal Web Development CLI",
+  "main": "src/index.js",  
   "type": "module",
-  "private": true,
-  "workspaces": [
-    "src/**"
-  ],
+  
+  "bin": {
+    "brainsatplay": "./src/index.js"
+  },
   "engines": {
     "node": ">=16"
   },
@@ -20,19 +22,36 @@
     "killall-node:windows": "taskkill /F /IM node.exe",
     "cli": "npm i -g ./src/cli",
     "tinybuild": "npm i -g ./src/build",
-    "ui": "cd src/visualscript && yarn start"
+    "ui": "cd src/visualscript && yarn start",
+
+
+    "watch": "node src/watch.js"
+
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/brainsatplay/brainsatplay.git"
   },
-  "keywords": [],
   "author": "Garrett Flynn <garrettmflynn@gmail.com>",
   "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/brainsatplay/brainsatplay/issues"
   },
   "homepage": "https://github.com/brainsatplay/brainsatplay#readme",
+  "keywords": [
+    "cli"
+  ],
+
+  "dependencies": {
+    "chalk": "^5.0.0",
+    "commander": "^8.3.0",
+    "conf": "^10.1.1",
+    "cross-spawn": "^7.0.3",
+    "inquirer": "^8.2.0",
+    "simple-git": "^2.48.0",
+    "node-html-parser": "^6.1.1"
+  },
+
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@babel/plugin-transform-runtime": "^7.17.0",
@@ -57,41 +76,5 @@
     "ts-loader": "^9.2.6",
     "ts-node": "^10.7.0",
     "tslib": "^2.3.1"
-  },
-  "dependencies": {
-    "node-fetch": "^3.2.10"
   }
 }
-=======
-    "main": "brainsatplay",
-    "private": true,
-    "scripts": {
-        "dev": "vite",
-        "build": "tsc && vite build",
-        "preview": "vite preview",
-        "tauri": "tauri",
-        
-        "build:desktop": "CI=true npm run tauri build",
-        "dev:desktop": "tauri dev",
-
-        "init:android": "npx cap add android && npm run copy",
-        "copy": "npx cap copy",
-        "init:ios": "npx cap add ios && npm run copy",
-        "android": "npx cap open android",
-        "ios": "npx cap open ios"
-    },
-    "dependencies": {
-        "graphscript": "0.2.68"
-    },
-    "devDependencies": {
-        "@capacitor/android": "~4.6.3",
-        "@capacitor/cli": "~4.6.3",
-        "@capacitor-community/bluetooth-le": "~2.1.0",
-        "@capacitor/core": "~4.6.3",
-        "@capacitor/ios": "~4.6.3",
-        "@tauri-apps/cli": "^1.2.2",
-        "vite": "^4.0.0",
-        "typescript": "^4.8.2"
-    }
-}
->>>>>>> Stashed changes

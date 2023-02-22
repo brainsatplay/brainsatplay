@@ -15,7 +15,7 @@ import info from './commands/info/index.js';
 const cli = new Command();
 cli.version('0.0.1');
 
-cli.description("Brains@Play Command Line Interface");
+cli.description("The Universal Web Development CLI");
 cli.name("brainsatplay");
 cli.usage("<command>");
 cli.addHelpCommand(true);
