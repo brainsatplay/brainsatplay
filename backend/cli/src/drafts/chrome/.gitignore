@@ -1,7 +1,0 @@
-/node_modules
-/*.log
-/dist
-/dist-zip
-.yarnclean
-
-/OLD

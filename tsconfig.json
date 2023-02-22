@@ -14,5 +14,6 @@
     "noUnusedParameters": true,
     "noImplicitReturns": true
   },
-  "include": ["frontend"]
+  "include": ["frontend"],
+  "exclude": ["node_modules", "backend/cli"]
 }

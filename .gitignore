@@ -1,31 +1,35 @@
-.vscode
-.DS_Store
-node_modules
-*.key
-*.lock
-*.log
-**/.temp
-assets
-**/build
-
-lib
-lib-esm
-_bundles
-
-docs/docs/reference
-
-# Library Builds
-**/dist
-**/package-lock.json
-/src/core/graph
-
 # Tests
 /coverage
+**/tests/*.test.*
 
-# Demos 
-pyodide.html
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# CLI
-**/test/**
+node_modules
+dist
+dist-ssr
+*.local
 
-src/build/tinybuild/python/__pycache__/socketserver.cpython-310.pyc
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# builds
+android
+ios
+
+# Old files
+old
