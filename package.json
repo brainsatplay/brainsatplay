@@ -1,15 +1,19 @@
 {
-    "main": "brainsatplay",
+    "name": "brainsatplay",
     "private": true,
+    "type": "module",
+    "bin": "dist/backend.js",
     "scripts": {
-        "start": "vite",
-        "build": "tsc && vite build",
-        "preview": "vite preview",
+        "start": "npm run dev",
+        "app:dev": "vite --config vite.config.ts",
+        "app:build": "tsc && vite build",
+        "server:dev": "node scripts/watch-server.js",
+        "server:build": "node scripts/build-server.js",
+        "dev": "run-p server:dev app:dev",
+        "build": "tsc && run-s server:build app:build",
         "tauri": "tauri",
-        
         "build:desktop": "CI=true npm run tauri build",
         "dev:desktop": "tauri dev",
-
         "init:android": "npx cap add android && npm run copy",
         "copy": "npx cap copy",
         "init:ios": "npx cap add ios && npm run copy",
@@ -20,13 +24,19 @@
         "graphscript": "0.2.68"
     },
     "devDependencies": {
+        "@capacitor-community/bluetooth-le": "~2.1.0",
         "@capacitor/android": "~4.6.3",
         "@capacitor/cli": "~4.6.3",
-        "@capacitor-community/bluetooth-le": "~2.1.0",
         "@capacitor/core": "~4.6.3",
         "@capacitor/ios": "~4.6.3",
         "@tauri-apps/cli": "^1.2.2",
-        "vite": "^4.0.0",
-        "typescript": "^4.8.2"
+        "chokidar": "3.5.3",
+        "esbuild": "0.15.9",
+        "execa": "5.1.1",
+        "npm-run-all": "^4.1.5",
+        "ora": "6.1.2",
+        "pkg": "5.8.0",
+        "typescript": "^4.8.2",
+        "vite": "^4.0.0"
     }
 }

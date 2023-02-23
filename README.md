@@ -4,12 +4,14 @@
 - `frontend` - The frontend code for the app
 - `backend` - The backend code for the app
     - `cli` - The brainsatplay CLI (WIP)
-- `config` - The [Tauri] source files
+- `src-tauri` - The [Tauri] source files
 - `capacitor.config.js` - The [Capacitor] configuration file
 
 ## Building
 ### Desktop (Windows / Mac / Linux)
 Ensure that the [Tauri] CLI is installed by running `npm i`.
+
+You must also ensure that both [Microsoft Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/), [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section) (if below Windows 10 / 11), and [Rust](https://www.rust-lang.org/tools/install).
 
 After this, you can run `npm run tauri dev` to run the app in development mode. This will open a window with the app running in it. 
 
