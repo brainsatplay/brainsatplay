@@ -5,11 +5,28 @@
 
 import execa from 'execa';
 import chokidar from 'chokidar'
+import { execSync, exec } from 'child_process';
 
+let subprocess;
 
-async function build() {
+async function buildAndRun() {
+
   try {
-    await execa('node', ['scripts/build-server.js'], { all: true }).stderr.pipe(process.stdout);
+    if (subprocess) subprocess.kill('SIGTERM');
+    subprocess = execSync('node scripts/build-server.js');
+
+    // await execa('node', ['scripts/build-server.js'], { all: true }).stderr.pipe(process.stdout);
+    subprocess = exec('node backend/dist/index.cjs');
+    subprocess.stdout.setEncoding('utf8');
+    subprocess.stdout.on('data', function(data) {
+        console.log('[sidecar] ' + data);
+    });
+
+    subprocess.stderr.setEncoding('utf8');
+    subprocess.stderr.on('data', function(data) {
+        console.log('[sidecar-error] ' + data);
+    });
+    // await subprocess.stderr.pipe(process.stdout);
   } catch (e) {
     console.error(e);
   }
@@ -22,9 +39,9 @@ async function watch() {
     persistent: true
   });
   
-  watcher.on('change', build);
+  watcher.on('change', buildAndRun);
 
-  build();
+  buildAndRun();
 }
 
 watch().catch((e) => {

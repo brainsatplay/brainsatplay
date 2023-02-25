@@ -2,7 +2,11 @@
     "name": "brainsatplay",
     "private": true,
     "type": "module",
-    "bin": "dist/backend.js",
+    "bin": "backend/dist/index.cjs",
+    "workspaces": [
+        "frontend",
+        "backend"
+    ],
     "scripts": {
         "start": "npm run dev",
         "app:dev": "vite --config vite.config.ts",
@@ -19,9 +23,6 @@
         "init:ios": "npx cap add ios && npm run copy",
         "android": "npx cap open android",
         "ios": "npx cap open ios"
-    },
-    "dependencies": {
-        "graphscript": "0.2.68"
     },
     "devDependencies": {
         "@capacitor-community/bluetooth-le": "~2.1.0",

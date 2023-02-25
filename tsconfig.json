@@ -15,5 +15,5 @@
     "noImplicitReturns": true
   },
   "include": ["frontend"],
-  "exclude": ["node_modules", "backend/cli"]
+  "exclude": ["node_modules", "backend/cli", "src-tauri"]
 }

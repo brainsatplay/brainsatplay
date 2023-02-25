@@ -33,7 +33,13 @@ async function moveBinaries() {
  */
 async function createBundle() {
   return execa('node_modules/.bin/esbuild', [
-    './backend', '--bundle', '--outfile=dist/backend.js', '--platform=node'
+    './backend',
+     '--bundle', 
+     '--outfile=backend/dist/index.cjs', 
+     '--external: *.node', // Can't load .node files
+     '--platform=node', 
+    //  '--format=esm',
+    //  '--loader:.node=binary'
   ]);
 }
 
@@ -47,6 +53,7 @@ async function createServerPackage() {
 async function main() {
   try {
     await createBundle();
+    console.log('DONE...')
     await createServerPackage();
     await moveBinaries();
   } catch (e) {

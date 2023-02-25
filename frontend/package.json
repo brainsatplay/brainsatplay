@@ -1,0 +1,8 @@
+{
+  "name": "brainsatplay-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "graphscript": "0.2.68"
+  }
+}

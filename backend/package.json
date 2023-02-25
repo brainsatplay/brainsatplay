@@ -1,0 +1,14 @@
+{
+    "name": "brainsatplay-backend",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node server/index.js"
+    },
+    "dependencies": {
+        "ws": "^8.12.0"
+    },
+    "devDependencies": {
+        "@types/ws": "^8.5.4"
+    }
+}

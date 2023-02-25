@@ -14,8 +14,7 @@
     "allowlist": {
       "all": false,
       "shell": {
-        "all": false,
-        "open": true,
+        "sidecar": true,
         "scope": [
           {
             "name": "binaries/app",
