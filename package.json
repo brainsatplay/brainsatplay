@@ -16,8 +16,7 @@
         "dev": "run-p server:dev app:dev",
         "build": "tsc && run-s server:build app:build",
 
-        "tauri": "tauri",
-        "build:desktop": "CI=true npm run tauri build",
+        "build:desktop": "CI=true tauri build",
         "dev:desktop": "tauri dev",
 
         "init:android": "npx cap add android && npm run copy",
