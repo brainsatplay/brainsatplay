@@ -16,6 +16,7 @@
         "dev": "run-p server:dev app:dev",
         "build": "tsc && run-s server:build app:build",
 
+        "tauri": "tauri",
         "build:desktop": "CI=true npm run tauri build",
         "dev:desktop": "tauri dev",
 
