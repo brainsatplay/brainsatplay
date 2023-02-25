@@ -115,19 +115,19 @@ let graph = new Graph({
 const localIp = 'localhost'
 
 const add = document.querySelector('#add') as HTMLButtonElement
-const input = document.querySelector('#newIp') as HTMLInputElement
+const input = document.querySelector('#newEndpoint') as HTMLInputElement
 const select = document.querySelector('select') as HTMLSelectElement
 const connect = document.querySelector('#connect') as HTMLButtonElement
 const commands = document.querySelector('#commands') as HTMLDivElement
-const mirror = document.querySelector('#mirror') as HTMLInputElement
-const mirrorOption = document.querySelector('#mirrorOption') as HTMLDivElement
+// const mirror = document.querySelector('#mirror') as HTMLInputElement
+// const mirrorOption = document.querySelector('#mirrorOption') as HTMLDivElement
 
-const getIps = () => {
-    const item = localStorage.getItem('braintroller-ips')
+const getEndpoints = () => {
+    const item = localStorage.getItem('braintroller-endpoints')
     return new Set(item ? JSON.parse(item) : [localIp])
 }
 
-const ips = getIps() as Set<string>
+const endpoints = getEndpoints() as Set<string>
 
 let selectedComputer: string = localIp
 
@@ -139,13 +139,13 @@ const addOption = (ip: string) => {
     return option
 }
 
-ips.forEach(addOption)
+endpoints.forEach(addOption)
 
 // Track selected computer
 select.onchange = () => {
     selectedComputer = select.value
-    if (selectedComputer === localIp) mirrorOption.style.display = 'none'
-    else mirrorOption.style.display = 'block'
+    // if (selectedComputer === localIp) mirrorOption.style.display = 'none'
+    // else mirrorOption.style.display = 'block'
 }
 
 (select as any).onchange()
@@ -157,9 +157,9 @@ add.onclick = () =>{
     const option = addOption(input.value)
     option.selected = true
     selectedComputer = input.value
-    ips.add(input.value)
-    const array = Array.from(ips)
-    localStorage.setItem('braintroller-ips', JSON.stringify(array))
+    endpoints.add(input.value)
+    const array = Array.from(endpoints)
+    localStorage.setItem('braintroller-endpoints', JSON.stringify(array))
 }
 
 const client = new braintroller.Client()
@@ -191,10 +191,10 @@ connect.onclick = () => {
 
 
 
-window.onkeypress = (ev) => {
-    if (
-        mirror.checked // Mirror is enabled
-        && client.status === 'connected' // Connection is established
-        && client.host !== localIp // Not running locally (infinite loop)
-    ) client.send('key', ev.key)
-}
+// window.onkeypress = (ev) => {
+//     if (
+//         mirror.checked // Mirror is enabled
+//         && client.status === 'connected' // Connection is established
+//         && client.host !== localIp // Not running locally (infinite loop)
+//     ) client.send('key', ev.key)
+// }

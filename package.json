@@ -15,12 +15,13 @@
         "server:build": "node scripts/build-server.js",
         "dev": "run-p server:dev app:dev",
         "build": "tsc && run-s server:build app:build",
-        "tauri": "tauri",
+
         "build:desktop": "CI=true npm run tauri build",
         "dev:desktop": "tauri dev",
+
         "init:android": "npx cap add android && npm run copy",
-        "copy": "npx cap copy",
         "init:ios": "npx cap add ios && npm run copy",
+        "copy": "npx cap copy",
         "android": "npx cap open android",
         "ios": "npx cap open ios"
     },

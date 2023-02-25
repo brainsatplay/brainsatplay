@@ -53,7 +53,6 @@ async function createServerPackage() {
 async function main() {
   try {
     await createBundle();
-    console.log('DONE...')
     await createServerPackage();
     await moveBinaries();
   } catch (e) {

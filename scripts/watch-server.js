@@ -3,7 +3,6 @@
  * When `tauri build` is ran, it looks for the binary name appended with the platform specific postfix.
  */
 
-import execa from 'execa';
 import chokidar from 'chokidar'
 import { execSync, exec } from 'child_process';
 
@@ -26,7 +25,6 @@ async function buildAndRun() {
     subprocess.stderr.on('data', function(data) {
         console.log('[sidecar-error] ' + data);
     });
-    // await subprocess.stderr.pipe(process.stdout);
   } catch (e) {
     console.error(e);
   }
