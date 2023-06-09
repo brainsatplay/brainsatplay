@@ -1,3 +1,5 @@
+This framework is way outdated fyi, pending a new release as we figure out what's left to do in our new APIs and reboot the visual editing with live data system we started on 2 years ago.
+
 # The Brains@Play Framework: Functional Building Blocks for the Web
 [![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
