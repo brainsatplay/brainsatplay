@@ -1,8 +1,9 @@
-# The Brains@Play Framework: Functional Building Blocks for the Web
+# The Brains@Play Framework
 
 **The Brains@Play Framework** allows anyone to compose interactive, high-performance web applications and contribute to **an ecosystem of copyleft software infrastructure for open-source application development** on the Web. 
 
-> **Note:** Work on the Brains@Play Framework has been discontinued since September 2023. While this project was originally centered on uniform access to biosensing devices on the [Brains@Play Platform](https://github.com/brainsatplay/platform), we began translating this monolithic project into standalone libraries to simplify biosensing application development.
+> ### Notice of Discontinued Project
+> Work on the Brains@Play Framework has been discontinued since September 2023. While this project was originally centered on uniform access to biosensing devices on the [Brains@Play Platform](https://github.com/brainsatplay/platform), we began translating this monolithic project into standalone libraries to simplify biosensing application development.
 > 
 > With the best of intentions, we ultimately abandoned our core product and failed to secure sustainable funding. The resources linked below are a record of this stage of the organization.
 
