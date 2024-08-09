@@ -1,11 +1,9 @@
-This framework is way outdated fyi, pending a new release as we figure out what's left to do in our new APIs and reboot the visual editing with live data system we started on 2 years ago.
-
 # The Brains@Play Framework: Functional Building Blocks for the Web
-[![Discord](https://img.shields.io/badge/chat-discord-7289da.svg?sanitize=true)](https://discord.gg/CDxskSh9ZB)
 
 **The Brains@Play Framework** allows anyone to compose interactive, high-performance web applications and contribute to **an ecosystem of copyleft software infrastructure for open-source application development** on the Web. 
 
-Extensive documentation for the Brains@Play Framework can be found at https://docs.brainsatplay.com.
+> **Note:** Work on the Brains@Play Framework has been discontinued since September 2023. While this project was originally centered on uniform access to biosensing devices on the [Brains@Play Platform](https://github.com/brainsatplay/platform), we began translating this monolithic project into standalone libraries to simplify biosensing application development.
+> With the best of intentions, we ultimately abandoned our core product and failed to secure sustainable funding. The resources linked below are a record of this stage of the organization.
 
 ## The Benefits
 🔮 **Low Code:** Our browser-based [studio] makes it easy to wire together your application logic using the [visualscript] library.
@@ -23,7 +21,6 @@ Extensive documentation for the Brains@Play Framework can be found at https://do
 ## Getting Started
 Check out the [brainsatplay-starter-kit](https://github.com/brainsatplay/brainsatplay-starter-kit) to start developing your application with the Brains@Play Framework!
 
-
 ## Framework Libraries
 Below are the core repositories of the Brains@Play Framework. Check out the [components] repository to see everything created by our community!
 
@@ -32,24 +29,12 @@ Below are the core repositories of the Brains@Play Framework. Check out the [com
 | **[wasl]**         | [![wasl-status]][wasl] | The Web Application Specification Language, used by the [brainsatplay] library       |
 | **[brainsatplay]**         | [![brainsatplay-status]][brainsatplay] | Enables editing of [wasl] applications at runtime.
 | [graphscript]         | [![graphscript-status]][graphscript] | Easy graph-based workflow (state machine) programming, microservice architectures, and interoperable front and backend web frameworks.       |
-| [visualscript]         | [![visualscript-status]][visualscript]  | A low-code programming system for [wasl] applications       |
 | [studio]         | [![studio-status]][studio] | A low-code editor for [wasl] applications.       |
 | [datastreams-api]     | [![datastreams-api-status]][datastreams-api]                   | Uniformly acquire real-time data with available browser APIs.                       |
-| [tinybuild]     | [![tinybuild-status]][tinybuild]                   | Custom build tool for web applications.              
 
 ### Repo Contents (src)
 #### core
 An application synchronization library for [graphscript] and [visualscript].
-
-#### drafts
-#### chrome
-A Chrome Extension for developing [brainsatplay] applications.
-
-#### cli
-Program a new project through the terminal.
-
-#### pwa
-An example Progressive Web App (PWA) using the [brainsatplay] framework.         |
 
 ## Support
 If you have questions about developing with [brainsatplay], feel free to start a conversation on [Discord](https://discord.gg/tQ8P79tw8j) or reach out directly to our team at [contact@brainsatplay.com](mailto:contact@brainsatplay.com).
@@ -59,13 +44,8 @@ If you've created a plugin for [brainsatplay], make sure to link to the source `
 
 We welcome anyone who would like to jump into the source code of our many [supporting libraries](#framework-libraries). At this time, however, **documentation changes may be a more appropriate entrypoint** for contribution to the Brains@Play Framework. Make sure to check out our [docs] repository and contribute there!
 
-## Roadmap
-♿ **Inclusive:** Extend [visualscript] to become a fully accessible visual programming system. Use the [accessify] library to guarantee accessibility support for resulting applications through multimodal I/O support.
-
-📡 **Backend Support:** Edit workspaces running in Node.js, local or the cloud.
-
 ## Acknowledgments
-This project is maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Joshua Brewster](https://github.com/joshbrew), who use contract work and community contributions through [Open Collective](https://opencollective.com/brainsatplay) to support themselves.
+This project was maintained by [Garrett Flynn](https://github.com/garrettmflynn) and [Joshua Brewster](https://github.com/joshbrew).
 
 ### Backers
 [Support us with a monthly donation](https://opencollective.com/brainsatplay#backer) and help us continue our activities!
